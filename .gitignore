@@ -37,3 +37,6 @@ desktop.ini
 .idea/
 .vscode/
 .claude/
+# Cloudflare local state and deployment dependencies
+deploy/cloudflare/node_modules/
+deploy/cloudflare/.wrangler/

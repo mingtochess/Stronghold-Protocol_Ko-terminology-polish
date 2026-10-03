@@ -22,18 +22,27 @@ FROM ${NODE_IMAGE} AS deps
 WORKDIR /app
 COPY package.json package-lock.json ./
 # --ignore-scripts: the postinstall (tools/vendor.mjs) runs in the next stage, once the sources are there
-RUN npm ci --omit=dev --ignore-scripts --no-audit --no-fund && npm cache clean --force
+# Optional trusted CA bundle for builds behind an HTTPS inspection proxy. Normal builds need no secret.
+RUN --mount=type=secret,id=build_ca \
+    if [ -f /run/secrets/build_ca ]; then export NODE_EXTRA_CA_CERTS=/run/secrets/build_ca; fi; \
+    if [ -n "$HTTPS_PROXY" ]; then export npm_config_https_proxy="$HTTPS_PROXY"; fi; \
+    npm ci --omit=dev --ignore-scripts --no-audit --no-fund && npm cache clean --force
 
 # ---- 2. vendor libs + optional art download ---------------------------------------------------------
 FROM deps AS build
 ARG FETCH_ASSETS=0
+ARG BROWSER_RESOURCES=0
 COPY shared ./shared
 COPY server ./server
 COPY tools ./tools
 COPY data ./data
 COPY public ./public
 COPY docs/research ./docs/research
-RUN node tools/vendor.mjs \
+RUN --mount=type=secret,id=build_ca \
+    if [ -f /run/secrets/build_ca ]; then export NODE_EXTRA_CA_CERTS=/run/secrets/build_ca; fi; \
+    export NODE_USE_ENV_PROXY=1; \
+    node tools/vendor.mjs \
+ && if [ "$BROWSER_RESOURCES" = "1" ]; then node tools/build-browser-resources.mjs; fi \
  && if [ "$FETCH_ASSETS" = "1" ]; then \
       node tools/fetch-assets.mjs || echo "WARNING: art download incomplete; the image falls back to placeholder art"; \
     fi \
@@ -45,14 +54,14 @@ ENV NODE_ENV=production \
     PORT=3000 \
     HOST=0.0.0.0
 WORKDIR /app
-COPY --from=deps /app/package.json ./package.json
-COPY --from=deps /app/node_modules ./node_modules
-COPY --from=build /app/shared ./shared
-COPY --from=build /app/server ./server
-COPY --from=build /app/data ./data
-COPY --from=build /app/public ./public
+COPY --chown=node:node --from=deps /app/package.json ./package.json
+COPY --chown=node:node --from=deps /app/node_modules ./node_modules
+COPY --chown=node:node --from=build /app/shared ./shared
+COPY --chown=node:node --from=build /app/server ./server
+COPY --chown=node:node --from=build /app/data ./data
+COPY --chown=node:node --from=build /app/public ./public
 # research tables: read by server/sim/nodeData.js as a fallback
-COPY --from=build /app/docs/research ./docs/research
+COPY --chown=node:node --from=build /app/docs/research ./docs/research
 
 USER node
 EXPOSE 3000

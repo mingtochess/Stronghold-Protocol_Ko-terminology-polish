@@ -21,3 +21,4 @@ scripts/service.env.cmd
 Thumbs.db
 .env
 .env.*
+deploy

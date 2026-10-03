@@ -188,12 +188,15 @@ describe('HTML pages reference existing files', () => {
       }
     });
   }
-  test('index.html boots main.js as a module and has the rotate hint', () => {
+  test('index.html boots through the resource gate and has the rotate hint', () => {
     const src = readFileSync(path.join(PUBLIC, 'index.html'), 'utf8');
-    assert.match(src, /<script type="module" src="\/js\/main\.js"[^>]*><\/script>/);
+    assert.match(src, /<script type="module" src="\/js\/resource-bootstrap\.js"[^>]*><\/script>/);
     assert.match(src, /class="rotate-hint"/);
     assert.match(src, /fonts\.googleapis\.com\/css2\?family=Noto\+Sans\+SC/);
-    assert.match(src, /href="\/fonts\/fonts\.css"/);
+    assert.match(src, /id="resource-fonts"/);
+    const bootstrap = readFileSync(path.join(PUBLIC, 'js/resource-bootstrap.js'), 'utf8');
+    assert.match(bootstrap, /import\('\.\/main\.js'\)/);
+    assert.match(bootstrap, /\/fonts\/fonts\.css/);
   });
 });
 

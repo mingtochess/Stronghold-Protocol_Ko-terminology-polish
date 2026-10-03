@@ -23,7 +23,7 @@
   <link rel="stylesheet" media="print" onload="this.media='all'"
         href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&family=Oxanium:wght@400;500;600;700&family=Rajdhani:wght@500;600;700&display=swap" />
   <!-- Self-hosted Bender / Novecento (provided by the assets pipeline). -->
-  <link rel="stylesheet" href="/fonts/fonts.css" />
+  <link id="resource-fonts" rel="stylesheet" href="data:text/css," />
 
   <link rel="stylesheet" href="/css/theme.css" />
   <link rel="stylesheet" href="/css/components.css" />
@@ -47,7 +47,6 @@
   <link rel="modulepreload" href="/vendor/preact.module.js" />
   <link rel="modulepreload" href="/vendor/hooks.module.js" />
   <link rel="modulepreload" href="/vendor/htm.module.js" />
-  <link rel="modulepreload" href="/js/main.js" />
   <!-- Battlefield renderer libs (classic scripts, injected by js/render/app.js when a match view mounts): warm the cache
        at low priority so entering the match doesn't wait on ~800 KB of script. -->
   <link rel="prefetch" href="/vendor/pixi.min.js" as="script" />
@@ -93,7 +92,7 @@
       if (/specifier|resolve|import|module/i.test(String(ev && ev.message))) window.__spBootFail('load');
     });
   </script>
-  <script type="module" src="/js/main.js" onerror="window.__spBootFail && window.__spBootFail('load')"></script>
+  <script type="module" src="/js/resource-bootstrap.js" onerror="window.__spBootFail && window.__spBootFail('load')"></script>
   <script nomodule>window.__spBootFail && window.__spBootFail('old');</script>
   <script>
     // If modules never boot (very old browser / blocked script), explain instead of spinning forever.
