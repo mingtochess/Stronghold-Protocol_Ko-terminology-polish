@@ -1,0 +1,22 @@
+.game-chat {
+  position: fixed; left: max(12px, env(safe-area-inset-left)); bottom: calc(.85rem + env(safe-area-inset-bottom));
+  z-index: 30; font-size: 13px; line-height: 1.45; color: #e7eeeb;
+}
+.game-chat button, .game-chat input { font: inherit; }
+.game-chat button { cursor: pointer; color: #bcefdc; background: #15221d; border: 1px solid #416353; border-radius: 5px; padding: 6px 10px; }
+.game-chat button:disabled { opacity: .5; cursor: default; }
+.game-chat button:focus-visible, .game-chat input:focus-visible { outline: 2px solid #4ed8af; outline-offset: 2px; }
+.game-chat__toggle { display: flex; align-items: center; gap: 8px; min-height: 36px; }
+.game-chat__badge { min-width: 18px; padding: 0 4px; border-radius: 10px; background: #4ed8af; color: #09120d; font-size: 11px; }
+.game-chat__panel { width: 300px; max-width: calc(100vw - 24px); margin-bottom: 8px; background: rgba(9, 16, 13, .96); border: 1px solid #416353; border-radius: 8px; box-shadow: 0 4px 20px #0008; overflow: hidden; }
+.game-chat__panel header { display: flex; align-items: center; justify-content: space-between; padding: 7px 10px; border-bottom: 1px solid #263c31; }
+.game-chat__panel header button { border: 0; background: transparent; font-size: 20px; padding: 0 5px; }
+.game-chat__messages { height: 180px; max-height: 35vh; overflow-y: auto; padding: 8px 10px; overscroll-behavior: contain; touch-action: pan-y; }
+.game-chat__messages p { margin: 0 0 7px; overflow-wrap: anywhere; }
+.game-chat__messages strong { color: #b8c9c0; margin-right: 7px; }
+.game-chat__messages .is-own strong { color: #4ed8af; }
+.game-chat__messages span { user-select: text; }
+.game-chat__empty { color: #879b8f; }
+.game-chat__panel form { display: flex; gap: 6px; padding: 8px; border-top: 1px solid #263c31; }
+.game-chat__panel input { width: 0; flex: 1; min-width: 0; padding: 7px; border: 1px solid #416353; border-radius: 5px; background: #101b15; color: #e7eeeb; }
+@media (max-width: 600px) { .game-chat { font-size: 16px; bottom: max(54px, calc(.85rem + env(safe-area-inset-bottom))); } .game-chat__panel { width: 280px; } }

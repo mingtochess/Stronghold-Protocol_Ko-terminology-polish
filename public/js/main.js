@@ -47,6 +47,8 @@ import { GuideHost } from './ui/guide.js';
 import { installDeviceSupport } from './ui/device.js';
 import { LoadoutHost } from './screens/loadout.js';
 import { installLoadoutSync } from './ui/loadoutSync.js';
+import { ChatPanel } from './ui/chat.js';
+import { CHAT_HISTORY_LIMIT } from '../../shared/chat.js';
 
 const RESTORE_GRACE_MS = 1500;
 const JOIN_DELAY_MS = 350;
@@ -130,7 +132,7 @@ function backToLobby() {
   clearTimeout(restoreTimer);
   const s = store.get();
   if (s.room || s.match.public) closeAllDialogs();
-  store.set({ room: null, match: emptyMatch(), ticker: [], emotes: [] });
+  store.set({ room: null, match: emptyMatch(), ticker: [], emotes: [], chat: [] });
   store.patch('ui', { restoring: false });
 }
 
@@ -177,7 +179,7 @@ function onRoomState(msg) {
   }
   const prevRoom = store.get().room;
   // A (new) match starts: forget the previous match's state so stale results never show.
-  if (room.inMatch && !(prevRoom && prevRoom.inMatch && prevRoom.code === room.code)) store.set({ match: emptyMatch() });
+  if (room.inMatch && !(prevRoom && prevRoom.inMatch && prevRoom.code === room.code)) store.set({ match: emptyMatch(), chat: [] });
   store.set({ room });
   if (room.mode === 'coop' && typeof room.code === 'string') rememberRoom(room.code);
   maybeFinishRestore();
@@ -230,6 +232,12 @@ function wireNet() {
   net.on('m.emote', (msg) => {
     store.set((s) => ({ emotes: [...s.emotes.slice(-(EMOTE_KEEP - 1)), { seq: ++seq, playerId: msg.playerId, id: msg.id, at: Date.now() }] }));
   });
+  net.on('m.chat', (msg) => {
+    store.set((s) => ({ chat: [...s.chat.filter((m) => m.id !== msg.id), payload(msg)].slice(-CHAT_HISTORY_LIMIT) }));
+  });
+  net.on('m.chatHistory', (msg) => {
+    if (Array.isArray(msg.messages)) store.set({ chat: msg.messages.slice(-CHAT_HISTORY_LIMIT) });
+  });
 
   // Entering (title → lobby) while already online also needs the deep-link join.
   store.subscribe((s, prev) => {
@@ -273,6 +281,7 @@ function App() {
     <div class="app-bg" aria-hidden="true"></div>
     ${error ? html`<${ScreenCrashed} error=${error} reset=${resetError} />` : html`<${Screen} key=${route} />`}
     <${ConnectionBanner} />
+    ${route === 'game' ? html`<${ChatPanel} />` : null}
     <${ToastHost} />
     <${UiHosts} />
     <${GuideHost} />

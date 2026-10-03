@@ -119,6 +119,7 @@
 //     human is left at all the match ends ('abandoned'); when nobody alive is left it ends as 'eliminated'.
 
 import { C2S, unitStatsEntry } from '../../shared/protocol.js';
+import { normalizeChatText, CHAT_HISTORY_LIMIT, CHAT_COOLDOWN_MS } from '../../shared/chat.js';
 import { PHASE, ERR, EMOTES, EMOTE_COOLDOWN_MS, GEO, modeIdFor, layerGainRoom } from '../../shared/constants.js';
 import { Battle } from '../sim/Battle.js';
 import { DataSource } from '../sim/simdata.js';
@@ -257,6 +258,8 @@ export class Match {
     this.headlessSliceMs = Number.isFinite(opts.headlessSliceMs) && opts.headlessSliceMs > 0 ? opts.headlessSliceMs : this.sched.virtual ? Infinity : HEADLESS_SLICE_MS;
     this.verifyStats = { checked: 0, mismatches: 0, rejected: 0, takeovers: 0 };
     this._battleSeq = 0;
+    this.chatHistory = [];
+    this.chatSequence = 0;
     /** solo pause (g.pause, DESIGN §14): the field clocks / deadlines are frozen while true (m.public.paused) */
     this.paused = false;
     this._pausedAt = 0;
@@ -446,6 +449,7 @@ export class Match {
       const was = ps.connected;
       ps.connected = true;
       this.sendTo(playerId, this.publicView());
+      this.sendTo(playerId, { t: 'm.chatHistory', messages: this.chatHistory });
       if (!this.ended) {
         ps._lastPriv = null;
         this._sendPrivate(ps, true);
@@ -952,6 +956,7 @@ export class Match {
       case 'g.choice': return this.pickCard(ps, msg.idx);
       case 'g.ready': return ps.setReady(!!msg.ready);
       case 'g.emote': return this.emote(ps, msg.id);
+      case 'g.chat': return this.chat(ps, msg.text);
       case 'g.watch': return this.watch(ps, msg.fieldId);
       case 'g.autoplay': return this.setAutoplay(ps, !!msg.on);
       case 'g.pause': return this.setPause(ps, !!msg.on);
@@ -962,6 +967,19 @@ export class Match {
       case 'b.result': return this._onResult(ps, msg);
       default: return fail(ERR.BAD_MSG);
     }
+  }
+
+  chat(ps, text) {
+    const normalized = normalizeChatText(text);
+    if (!normalized) return fail(ERR.BAD_MSG, 'invalid chat message');
+    const now = this.sched.now();
+    if (now - ps.lastChatAt < CHAT_COOLDOWN_MS) return fail(ERR.RATE);
+    ps.lastChatAt = now;
+    const message = { id: ++this.chatSequence, playerId: ps.playerId, name: ps.name, text: normalized, at: now };
+    this.chatHistory.push(message);
+    if (this.chatHistory.length > CHAT_HISTORY_LIMIT) this.chatHistory.shift();
+    this.broadcast({ t: 'm.chat', ...message });
+    return OK;
   }
 
   emote(ps, id) {
