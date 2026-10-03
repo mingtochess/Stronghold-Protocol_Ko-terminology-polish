@@ -35,8 +35,8 @@ test('two browsers chat over real game sockets: toggle, unread, safe text, Korea
           if(m.t==='welcome'){token=m.token;store.set({me:{playerId:m.playerId,name:m.name},connection:{status:'online'}});window.ready=true;}
           if(m.t==='room.state')window.room=m;
           if(m.t==='m.public'){window.phase=m.phase;store.patch('match',{public:m});}
-          if(m.t==='m.chat')store.set(s=>({chat:[...s.chat,m].slice(-100)}));
-          if(m.t==='m.chatHistory')store.set({chat:m.messages});
+          if(m.t==='m.chat')store.set(s=>({chat:[...s.chat,m].slice(-100),chatFaction:m.playerId===s.me.playerId?m.faction??null:s.chatFaction}));
+          if(m.t==='m.chatHistory')store.set({chat:m.messages,chatFaction:m.faction??null});
           if(m.rid && pending.has(m.rid)){const p=pending.get(m.rid);pending.delete(m.rid);m.t==='error'?p.reject(new Error(m.code)):p.resolve(m);}
         };
       };
@@ -98,10 +98,32 @@ test('two browsers chat over real game sockets: toggle, unread, safe text, Korea
       await guest.waitForFunction(() => window.store.get().chat.length === 3, { polling: 100 });
       await guest.click('.game-chat__toggle');
       const bounds = await guest.$eval('.game-chat__panel', el => { const r=el.getBoundingClientRect();return {width:r.width,left:r.left,right:r.right,bottom:r.bottom}; });
-      assert.ok(bounds.width <= 320 && bounds.left >= 0 && bounds.right <= 1280 && bounds.bottom <= 720);
+      assert.ok(bounds.width === 360 && bounds.left >= 0 && bounds.right <= 1280 && bounds.bottom <= 720);
       await guest.setViewport({ width: 390, height: 640 });
       const mobile = await guest.$eval('.game-chat__panel', el => ({ width:el.getBoundingClientRect().width,right:el.getBoundingClientRect().right }));
-      assert.ok(mobile.width <= 300 && mobile.right <= 390);
+      assert.ok(mobile.width <= 366 && mobile.right <= 390);
+      const toggle = await guest.$eval('.game-chat__toggle', el => {const r=el.getBoundingClientRect();return {left:r.left,bottom:innerHeight-r.bottom,width:r.width,height:r.height,text:el.textContent.trim(),icon:!!el.querySelector('svg')};});
+      assert.equal(toggle.left, toggle.bottom);
+      assert.equal(toggle.width, 54); assert.equal(toggle.height, 54);
+      assert.equal(toggle.text, ''); assert.ok(toggle.icon);
+      await host.bringToFront();
+      await host.click('.game-chat__faction-toggle');
+      assert.equal(await host.$$eval('.game-chat__factions button', els => els.length), 8);
+      await host.click('.game-chat__factions button');
+      await guest.waitForFunction(() => window.store.get().chat.at(-1)?.text === '진영 선택: 염국', {polling:100});
+      assert.equal(await guest.$eval('.game-chat__messages p:last-child .game-chat__faction', el=>el.textContent), '(염국)');
+      assert.equal(await guest.$eval('.game-chat__messages p:last-child .game-chat__faction', el=>getComputedStyle(el).color), 'rgb(255, 59, 66)');
+      await host.waitForFunction(()=>!document.querySelector('.game-chat__faction-toggle').disabled, {polling:100});
+      await new Promise(resolve=>setTimeout(resolve,1100));
+      await host.type('.game-chat input', '선택 후 메시지');
+      await host.keyboard.press('Enter');
+      await guest.waitForFunction(() => window.store.get().chat.at(-1)?.text === '선택 후 메시지', {polling:100});
+      assert.equal(await guest.evaluate(()=>window.store.get().chat.at(-1).faction), '염국');
+      await host.evaluate(async()=>{window.store.set({chatFaction:null});await window.reconnect();});
+      await host.waitForFunction(()=>window.store.get().chatFaction==='염국', {polling:100});
+      await host.waitForFunction(()=>document.querySelector('.game-chat__faction-toggle').textContent==='진영: 염국', {polling:100});
+      await host.click('.game-chat__faction-toggle');
+      await host.screenshot({path:'/tmp/stronghold-chat-factions.png'});
       await host.evaluate(() => window.request('g.leave'));
       await guest.evaluate(() => window.request('g.leave'));
     } finally { if (browser) await browser.close(); await server.close(); await rm(fixtureDir, { recursive: true, force: true }); }

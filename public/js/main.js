@@ -132,7 +132,7 @@ function backToLobby() {
   clearTimeout(restoreTimer);
   const s = store.get();
   if (s.room || s.match.public) closeAllDialogs();
-  store.set({ room: null, match: emptyMatch(), ticker: [], emotes: [], chat: [] });
+  store.set({ room: null, match: emptyMatch(), ticker: [], emotes: [], chat: [], chatFaction: null });
   store.patch('ui', { restoring: false });
 }
 
@@ -179,7 +179,7 @@ function onRoomState(msg) {
   }
   const prevRoom = store.get().room;
   // A (new) match starts: forget the previous match's state so stale results never show.
-  if (room.inMatch && !(prevRoom && prevRoom.inMatch && prevRoom.code === room.code)) store.set({ match: emptyMatch(), chat: [] });
+  if (room.inMatch && !(prevRoom && prevRoom.inMatch && prevRoom.code === room.code)) store.set({ match: emptyMatch(), chat: [], chatFaction: null });
   store.set({ room });
   if (room.mode === 'coop' && typeof room.code === 'string') rememberRoom(room.code);
   maybeFinishRestore();
@@ -233,10 +233,11 @@ function wireNet() {
     store.set((s) => ({ emotes: [...s.emotes.slice(-(EMOTE_KEEP - 1)), { seq: ++seq, playerId: msg.playerId, id: msg.id, at: Date.now() }] }));
   });
   net.on('m.chat', (msg) => {
-    store.set((s) => ({ chat: [...s.chat.filter((m) => m.id !== msg.id), payload(msg)].slice(-CHAT_HISTORY_LIMIT) }));
+    store.set((s) => ({ chat: [...s.chat.filter((m) => m.id !== msg.id), payload(msg)].slice(-CHAT_HISTORY_LIMIT),
+      chatFaction: msg.playerId === s.me.playerId ? msg.faction ?? null : s.chatFaction }));
   });
   net.on('m.chatHistory', (msg) => {
-    if (Array.isArray(msg.messages)) store.set({ chat: msg.messages.slice(-CHAT_HISTORY_LIMIT) });
+    if (Array.isArray(msg.messages)) store.set({ chat: msg.messages.slice(-CHAT_HISTORY_LIMIT), chatFaction: msg.faction ?? null });
   });
 
   // Entering (title → lobby) while already online also needs the deep-link join.

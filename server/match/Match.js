@@ -119,7 +119,7 @@
 //     human is left at all the match ends ('abandoned'); when nobody alive is left it ends as 'eliminated'.
 
 import { C2S, unitStatsEntry } from '../../shared/protocol.js';
-import { normalizeChatText, CHAT_HISTORY_LIMIT, CHAT_COOLDOWN_MS } from '../../shared/chat.js';
+import { normalizeChatText, chatFaction, CHAT_HISTORY_LIMIT, CHAT_COOLDOWN_MS } from '../../shared/chat.js';
 import { PHASE, ERR, EMOTES, EMOTE_COOLDOWN_MS, GEO, modeIdFor, layerGainRoom } from '../../shared/constants.js';
 import { Battle } from '../sim/Battle.js';
 import { DataSource } from '../sim/simdata.js';
@@ -449,7 +449,7 @@ export class Match {
       const was = ps.connected;
       ps.connected = true;
       this.sendTo(playerId, this.publicView());
-      this.sendTo(playerId, { t: 'm.chatHistory', messages: this.chatHistory });
+      this.sendTo(playerId, { t: 'm.chatHistory', messages: this.chatHistory, faction: ps.chatFaction });
       if (!this.ended) {
         ps._lastPriv = null;
         this._sendPrivate(ps, true);
@@ -957,6 +957,7 @@ export class Match {
       case 'g.ready': return ps.setReady(!!msg.ready);
       case 'g.emote': return this.emote(ps, msg.id);
       case 'g.chat': return this.chat(ps, msg.text);
+      case 'g.chatFaction': return this.selectChatFaction(ps, msg.faction);
       case 'g.watch': return this.watch(ps, msg.fieldId);
       case 'g.autoplay': return this.setAutoplay(ps, !!msg.on);
       case 'g.pause': return this.setPause(ps, !!msg.on);
@@ -975,11 +976,26 @@ export class Match {
     const now = this.sched.now();
     if (now - ps.lastChatAt < CHAT_COOLDOWN_MS) return fail(ERR.RATE);
     ps.lastChatAt = now;
-    const message = { id: ++this.chatSequence, playerId: ps.playerId, name: ps.name, text: normalized, at: now };
+    this.publishChat(ps, normalized);
+    return OK;
+  }
+
+  selectChatFaction(ps, faction) {
+    if (!chatFaction(faction)) return fail(ERR.BAD_MSG, 'unknown chat faction');
+    if (ps.chatFaction === faction) return OK;
+    const now = this.sched.now();
+    if (now - ps.lastChatFactionAt < CHAT_COOLDOWN_MS) return fail(ERR.RATE);
+    ps.lastChatFactionAt = now;
+    ps.chatFaction = faction;
+    this.publishChat(ps, `진영 선택: ${faction}`);
+    return OK;
+  }
+
+  publishChat(ps, text) {
+    const message = { id: ++this.chatSequence, playerId: ps.playerId, name: ps.name, faction: ps.chatFaction, text, at: this.sched.now() };
     this.chatHistory.push(message);
     if (this.chatHistory.length > CHAT_HISTORY_LIMIT) this.chatHistory.shift();
     this.broadcast({ t: 'm.chat', ...message });
-    return OK;
   }
 
   emote(ps, id) {

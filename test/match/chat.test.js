@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { makeMatch } from './harness.js';
 import { validateC2S } from '../../shared/protocol.js';
-import { CHAT_MAX_LENGTH, CHAT_HISTORY_LIMIT, CHAT_COOLDOWN_MS } from '../../shared/chat.js';
+import { CHAT_MAX_LENGTH, CHAT_HISTORY_LIMIT, CHAT_COOLDOWN_MS, CHAT_FACTIONS } from '../../shared/chat.js';
 import { EMOTES } from '../../shared/constants.js';
 
 test('chat validates content, length and normalizes text with server-owned identity', () => {
@@ -50,4 +50,32 @@ test('outsiders, bots and departed players cannot send; other matches have separ
     assert.equal(b.m.chatHistory.length, 0);
     assert.equal(b.bc.filter((m) => m.t === 'm.chat').length, 0);
   } finally { a.m.dispose(); b.m.dispose(); }
+});
+
+test('factions are validated, announced with authoritative identity and retained on reconnect', () => {
+  const h = makeMatch({ humans: 2 }).start();
+  try {
+    for (const faction of ['unknown', 'constructor', null, 7]) {
+      assert.ok(validateC2S({t:'g.chatFaction', faction}));
+      assert.equal(h.m.handle('p_0', {t:'g.chatFaction', faction}).error, 'BAD_MSG');
+    }
+    for (const {name} of CHAT_FACTIONS) {
+      h.sched.t += CHAT_COOLDOWN_MS;
+      assert.equal(validateC2S({t:'g.chatFaction', faction:name}), null);
+      assert.deepEqual(h.m.handle('p_0', {t:'g.chatFaction', faction:name, name:'Forged'}), {ok:true});
+      const last=h.m.chatHistory.at(-1);
+      assert.equal(last.name, 'P0'); assert.equal(last.faction, name);
+      assert.equal(last.text, `진영 선택: ${name}`);
+      const count=h.m.chatHistory.length;
+      assert.deepEqual(h.m.handle('p_0', {t:'g.chatFaction', faction:name}), {ok:true});
+      assert.equal(h.m.chatHistory.length, count);
+    }
+    assert.equal(h.m.handle('p_0', {t:'g.chatFaction', faction:'염국'}).error, 'RATE');
+    assert.deepEqual(h.m.handle('p_1', {t:'g.chatFaction', faction:'염국'}), {ok:true});
+    h.m.handle('p_0', {t:'g.chat', text:'hello', faction:'염국'});
+    assert.equal(h.m.chatHistory.at(-1).faction, '카시미어');
+    assert.equal(h.m.chatHistory[0].faction, '염국');
+    h.m.onReconnect('p_0');
+    assert.equal(h.lastTo('p_0','m.chatHistory').faction, '카시미어');
+  } finally { h.m.dispose(); }
 });

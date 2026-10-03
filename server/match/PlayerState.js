@@ -110,6 +110,8 @@ export class PlayerState {
     this.infoReady = this.isBot;
     this.lastEmoteAt = -Infinity;
     this.lastChatAt = -Infinity;
+    this.lastChatFactionAt = -Infinity;
+    this.chatFaction = null;
     /** operator loadout (DESIGN §16): frozen { [baseChessId]: { skill, module } }, {} = every chess on its defaults */
     this.loadout = Object.freeze({});
     if (!this.isBot && seat.loadout) this.setLoadout(seat.loadout);
