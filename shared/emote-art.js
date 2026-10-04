@@ -1,5 +1,7 @@
+import { EMOTE_THEMES, EMOTE_CATALOG } from './constants.js';
+
 // User-supplied replacement art. Keys retain the existing game protocol IDs.
-// Wheel order is defined by EMOTE_THEMES in constants.js / tools/build-emotes.mjs.
+// Protocol IDs come from constants.js; wheel pages sort the replacement filenames.
 const ART = new Map([
   ["autochess_battle_happy", '/assets/emotes/c8.webp'],
   ["autochess_battle_scared", '/assets/emotes/b0.webp'],
@@ -39,3 +41,11 @@ const ART = new Map([
   ["autochess_battle_foolwisdel_06", '/assets/emotes/e3.webp'],
 ]);
 export const bundledEmoteArt = (id) => ART.get(id) || null;
+
+// Natural filename order: c2 precedes c10, matching file managers. Six pictures per page.
+const sorted = [...EMOTE_CATALOG].sort((a, b) => bundledEmoteArt(a.id).localeCompare(bundledEmoteArt(b.id), 'en', { numeric: true }));
+export const EMOTE_PAGES = Object.freeze(EMOTE_THEMES.map((theme, i) => Object.freeze({
+  themeId: theme.themeId,
+  name: `소통 ${i + 1}`,
+  emotes: Object.freeze(sorted.slice(i * 6, (i + 1) * 6)),
+})));

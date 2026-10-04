@@ -17,8 +17,8 @@
 // Styles: public/css/emotes.css (injected on first use when the page does not link it).
 
 import { useEffect, useRef, useState } from '../../vendor/hooks.module.js';
-import { EMOTE_THEMES, EMOTE_COOLDOWN_MS, EMOTE_BUBBLE_MS, emoteInfo, emoteArtGroup } from '../../../shared/constants.js';
-import { bundledEmoteArt } from '../../../shared/emote-art.js';
+import { EMOTE_COOLDOWN_MS, EMOTE_BUBBLE_MS, emoteInfo, emoteArtGroup } from '../../../shared/constants.js';
+import { bundledEmoteArt, EMOTE_PAGES as EMOTE_THEMES } from '../../../shared/emote-art.js';
 import { html } from './components.js';
 import { GIcon } from './gameComponents.js';
 import { data, useData, localAsset } from '../data.js';
@@ -246,7 +246,7 @@ export function EmoteWheel({ onSend, open, onToggle, disabled = false, cooldownM
     const now = Date.now();
     if (!e || cooling || disabled || cooldownLeft(lastSentAt, now, cooldownMs) > 0) return;
     lastSentAt = now;
-    rememberTheme(e.themeId);
+    rememberTheme(EMOTE_THEMES[clampPage(live.current.page)].themeId);
     setCooling(true);
     onSend(id);
     onToggle(false);
