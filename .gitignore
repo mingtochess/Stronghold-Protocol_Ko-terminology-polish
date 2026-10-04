@@ -3,9 +3,10 @@ node_modules/
 # copied from node_modules by tools/vendor.mjs (postinstall); never commit third-party builds
 public/vendor/
 
-# --- game assets: (c) Hypergryph / Yostar, fetched or extracted locally, NEVER committed ----------
+# --- game assets fetched or extracted locally (except supplied chat emotes) -----------------------
 # tools/fetch-assets.mjs → public/assets/** (~250 MB) and public/fonts/** (+ fonts.css)
-public/assets/
+public/assets/*
+!public/assets/emotes/
 public/fonts/
 # tools/local-extract/extract.py → public/assets/local/** and this per-machine manifest
 # (optional: the client and the tests work without it)

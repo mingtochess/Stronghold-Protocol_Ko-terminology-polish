@@ -248,7 +248,7 @@ describe('public/js/ui/emotes.js helpers', () => {
   } };
   const realFetch = globalThis.fetch;
 
-  test('art URLs come from the manifest only (keyed by picId); unknown / unlisted → null', async () => {
+  test('bundled replacements override extracted art; UI sprites still use the local manifest', async () => {
     globalThis.fetch = async (url) => (String(url).endsWith('/local-assets.json')
       ? { ok: true, status: 200, json: async () => manifest } : { ok: false, status: 404, json: async () => ({}) });
     try {
@@ -256,8 +256,8 @@ describe('public/js/ui/emotes.js helpers', () => {
       await data.invalidate('local');
       await data.load('local');
       const { emoteArtUrl, emoteUiSprite } = await import('../../public/js/ui/emotes.js');
-      assert.equal(emoteArtUrl('autochess_battle_fooldoctor_06'), '/assets/local/emoticon/fooldoctor/pic_fooldoctor_08_battle.png');
-      assert.equal(emoteArtUrl('autochess_battle_fooldoctor_05'), null, 'unlisted');
+      assert.equal(emoteArtUrl('autochess_battle_fooldoctor_06'), '/assets/emotes/c5.webp');
+      assert.equal(emoteArtUrl('autochess_battle_fooldoctor_05'), '/assets/emotes/c4.webp', 'bundled art works without extraction');
       assert.equal(emoteArtUrl('happy'), null, 'v1 id');
       assert.equal(emoteArtUrl('__proto__'), null);
       assert.equal(emoteUiSprite('emoji_bubble_bkg'), '/assets/local/ui/battle/emoji_bubble_bkg.png');

@@ -2,7 +2,7 @@
 // EMOTE_THEMES / EMOTES, generated reference data/emotes.json). Official emotes are pictures only: nothing here ever
 // renders an emote's text (our labels are aria-labels only).
 //
-//   EmoteArt    the emote picture (local-client art, data/local-assets.json → emoticon/<dir>/<picId>); a neutral glyph
+//   EmoteArt    bundled replacement picture (shared/emote-art.js), then extracted local-client art; a neutral glyph
 //               when the art is missing or fails to load, an empty box while the manifest is still loading.
 //   EmoteBubble the pop bubble beside the sender's avatar in the team panel (official emoji_bubble_bkg: a dark rounded
 //               square with a tail pointing left + the icon only); pop-in, 3 s, fade. The parent keys it by the emote's
@@ -18,6 +18,7 @@
 
 import { useEffect, useRef, useState } from '../../vendor/hooks.module.js';
 import { EMOTE_THEMES, EMOTE_COOLDOWN_MS, EMOTE_BUBBLE_MS, emoteInfo, emoteArtGroup } from '../../../shared/constants.js';
+import { bundledEmoteArt } from '../../../shared/emote-art.js';
 import { html } from './components.js';
 import { GIcon } from './gameComponents.js';
 import { data, useData, localAsset } from '../data.js';
@@ -48,13 +49,13 @@ export function ensureEmoteCss(doc = globalThis.document) {
 }
 
 /**
- * URL of an emote's official art, or null when the id is unknown or the local manifest does not list the picture
+ * Bundled replacement art first, then extracted art; null for unknown or unavailable pictures
  * (a path that is not listed is never requested).
  * @param {string} id official emoji id
  */
 export function emoteArtUrl(id) {
   const e = emoteInfo(id);
-  return e ? localAsset(emoteArtGroup(id), e.picId) : null;
+  return e ? bundledEmoteArt(id) || localAsset(emoteArtGroup(id), e.picId) : null;
 }
 
 /** Official emote UI sprite (ui/battle: emoji_bubble_bkg, emoji_bkg, emoji_cell_bkg, emoji_btn, emoji_btn_disable). */

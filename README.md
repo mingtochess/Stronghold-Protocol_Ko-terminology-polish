@@ -229,3 +229,5 @@ RENDER_E2E=1 node --test 'test/render/*.browser.test.js'   # 渲染测试，部�
 - 게임 소재 파일은 제출하지 마십시오(`public/assets/` 등의 디렉터리는 `.gitignore`에서 제외되어 있습니다).
 - 한국어 패치 제공 https://arca.live/b/arknights/184879626?p=1
 - 본 프로젝트는 비상업적 원칙을 유지합니다. 광고, 유료 기능, 후원 등 어떠한 형태의 수익화 기능도 제출하지 마십시오.
+
+소통 이미지 목록은 `shared/constants.js`의 `EMOTE_THEMES`에 있으며, 원본 목록 생성기는 `tools/build-emotes.mjs`입니다. 사용자 제공 대체 이미지 36개는 `public/assets/emotes/`에 포함되어 있고, 기존 소통 ID와 파일의 연결은 `shared/emote-art.js`에서 관리합니다. 이 이미지들은 Docker 배포에 포함되어 별도 리소스 재다운로드 없이 표시됩니다.
