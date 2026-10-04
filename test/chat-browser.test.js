@@ -12,14 +12,16 @@ test('two browsers chat over real game sockets: toggle, unread, safe text, Korea
   { skip: !existsSync(chrome), timeout: 60000 }, async () => {
     const fixtureDir = await mkdtemp(path.join(tmpdir(), 'stronghold-chat-'));
     const publicDir = fileURLToPath(new URL('../public/', import.meta.url));
-    for (const name of ['js', 'vendor', 'css']) await symlink(path.join(publicDir, name), path.join(fixtureDir, name));
+    for (const name of ['js', 'vendor', 'css', 'assets']) await symlink(path.join(publicDir, name), path.join(fixtureDir, name));
     const server = await startServer({ port: 0, host: '127.0.0.1', quiet: true, publicDir: fixtureDir });
     const puppeteer = (await import('puppeteer-core')).default;
     let browser;
-    const fixture = `<!doctype html><meta charset="utf-8"><link rel="icon" href="data:,"><link rel="stylesheet" href="/css/theme.css"><link rel="stylesheet" href="/css/chat.css"><div id="app"></div>
+    const fixture = `<!doctype html><meta charset="utf-8"><link rel="icon" href="data:,"><link rel="stylesheet" href="/css/theme.css"><link rel="stylesheet" href="/css/screens/game.css"><link rel="stylesheet" href="/css/emotes.css"><link rel="stylesheet" href="/css/chat.css"><style>html{font-size:100px}</style><div id="app"></div>
       <script type="module">
+      import {useState} from '/vendor/hooks.module.js';
       import {render} from '/vendor/preact.module.js';
       import {html} from '/js/ui/components.js';
+      import {EmoteWheel} from '/js/ui/emotes.js';
       import {ChatPanel} from '/js/ui/chat.js';
       import {store} from '/js/store.js';
       import {net} from '/js/net.js';
@@ -33,7 +35,9 @@ test('two browsers chat over real game sockets: toggle, unread, safe text, Korea
         socket.onclose=()=>store.patch('connection',{status:'offline'});
         socket.onmessage=e=>{const m=JSON.parse(e.data);
           if(m.t==='welcome'){token=m.token;store.set({me:{playerId:m.playerId,name:m.name},connection:{status:'online'}});window.ready=true;}
+          if(m.t==='m.emote')window.lastEmote=m;
           if(m.t==='room.state')window.room=m;
+          if(m.t==='m.result')store.patch('match',{result:m});
           if(m.t==='m.public'){window.phase=m.phase;store.patch('match',{public:m});}
           if(m.t==='m.chat')store.set(s=>({chat:[...s.chat,m].slice(-100),chatFaction:m.playerId===s.me.playerId?m.faction??null:s.chatFaction}));
           if(m.t==='m.chatHistory')store.set({chat:m.messages,chatFaction:m.faction??null});
@@ -41,7 +45,8 @@ test('two browsers chat over real game sockets: toggle, unread, safe text, Korea
         };
       };
       window.reconnect=()=>new Promise(resolve=>{socket.onclose=()=>{window.ready=false;window.connect();resolve();};socket.close();});
-      window.store=store;window.connect();render(html\`<\${ChatPanel} />\`,document.getElementById('app'));
+      function Fixture(){const [emoteOpen,setEmoteOpen]=useState(false);return html\`<div class="screen gm"><div class="gm__hud"><div class="gm__corner"><\${EmoteWheel} open=\${emoteOpen} onToggle=\${setEmoteOpen} onSend=\${id=>window.request('g.emote',{id})} /></div></div></div><\${ChatPanel} />\`;}
+      window.store=store;window.connect();render(html\`<\${Fixture} />\`,document.getElementById('app'));
       </script>`;
     try {
       await writeFile(path.join(fixtureDir, 'chat-test.html'), fixture);
@@ -91,9 +96,17 @@ test('two browsers chat over real game sockets: toggle, unread, safe text, Korea
       await host.evaluate(() => document.querySelector('.game-chat input').dispatchEvent(new CompositionEvent('compositionend', { bubbles:true })));
       await host.keyboard.press('Enter');
       await guest.waitForFunction(() => window.store.get().chat.length === 3, { polling: 100 });
+      await host.bringToFront();
+      await host.click('.ewheel__btn');
+      await host.waitForSelector('.ewheel__item');
+      await host.click('.ewheel__item');
+      await guest.waitForFunction(()=>window.lastEmote, {polling:100});
+      assert.ok(await host.$('.game-chat__panel'), 'sending an emote leaves chat open');
       await guest.bringToFront();
       await guest.keyboard.press('Escape');
       assert.equal(await guest.$('.game-chat__panel'), null);
+      assert.equal(await guest.$$eval('.game-chat__preview p', els=>els.length),3);
+      assert.deepEqual(await guest.$$eval('.game-chat__preview p', els=>els.map(el=>getComputedStyle(el).opacity)),['0.25','0.6','1']);
       await guest.evaluate(async () => { window.store.set({ chat: [] }); await window.reconnect(); });
       await guest.waitForFunction(() => window.store.get().chat.length === 3, { polling: 100 });
       await guest.click('.game-chat__toggle');
@@ -120,12 +133,26 @@ test('two browsers chat over real game sockets: toggle, unread, safe text, Korea
       await host.keyboard.press('Enter');
       await guest.waitForFunction(() => window.store.get().chat.at(-1)?.text === '선택 후 메시지', {polling:100});
       assert.equal(await guest.evaluate(()=>window.store.get().chat.at(-1).faction), '염국');
+      await host.waitForFunction(()=>!document.querySelector('.game-chat__faction-toggle').disabled && document.querySelector('.game-chat input').value==='', {polling:100});
       await host.evaluate(async()=>{window.store.set({chatFaction:null});await window.reconnect();});
       await host.waitForFunction(()=>window.store.get().chatFaction==='염국', {polling:100});
       await host.waitForFunction(()=>document.querySelector('.game-chat__faction-toggle').textContent==='진영: 염국', {polling:100});
       await host.click('.game-chat__faction-toggle');
       await host.screenshot({path:'/tmp/stronghold-chat-factions.png'});
-      await host.evaluate(() => window.request('g.leave'));
-      await guest.evaluate(() => window.request('g.leave'));
+      const room=server.lobby.rooms.get(code);
+      room.match.finish({victory:true,reason:'victory'});
+      await host.waitForFunction(()=>window.store.get().match.result, {polling:100});
+      await new Promise(resolve=>setTimeout(resolve,1100));
+      await host.bringToFront();
+      await host.focus('.game-chat input');
+      await host.keyboard.down('Control');
+      await host.keyboard.press('A');
+      await host.keyboard.up('Control');
+      await host.keyboard.press('Backspace');
+      await host.type('.game-chat input', '결과창에서도 대화');
+      await host.keyboard.press('Enter');
+      await guest.waitForFunction(()=>window.store.get().chat.at(-1)?.text==='결과창에서도 대화', {polling:100,timeout:5000});
+      await host.evaluate(() => window.request('room.leave'));
+      await guest.evaluate(() => window.request('room.leave'));
     } finally { if (browser) await browser.close(); await server.close(); await rm(fixtureDir, { recursive: true, force: true }); }
   });

@@ -59,6 +59,7 @@
 
 import { randomBytes, randomInt } from 'node:crypto';
 import { ERR, MAX_SEATS, ROOM_CODE_LEN, modeIdFor } from '../shared/constants.js';
+import { normalizeChatText, chatFaction, CHAT_COOLDOWN_MS, CHAT_HISTORY_LIMIT } from '../shared/chat.js';
 import { checkLoadout } from '../shared/protocol.js';
 import { encode, isDroppable, isErrCode, sendRaw, sendSession } from './net.js';
 import { getData as defaultGetData, lookup } from './data.js';
@@ -115,6 +116,9 @@ export class Room {
     /** @type {{ live: boolean, ended: boolean, disposed: boolean, match: any } | null} */
     this.matchCtx = null;
     this.matchCount = 0;
+    this.chatHistory = [];
+    this.chatSequence = 0;
+    this.chatMembers = new Map();
     /** @type {any} summary passed to onEnd by the last match */
     this.lastSummary = null;
     /**
@@ -250,6 +254,7 @@ export class Lobby {
    */
   onMessage(session, msg) {
     switch (msg.t) {
+      case 'g.chat': case 'g.chatFaction': return this.chat(session, msg);
       case 'room.create': return this.create(session, msg);
       case 'room.join': return this.join(session, msg);
       case 'room.leave': return this.leave(session);
@@ -332,6 +337,7 @@ export class Lobby {
     session.pendingResult = null;
     this.log.info(`[lobby] ${code} created (${mode}/${difficulty}) by ${session.name}`);
     this.broadcastState(room);
+    this.sendChatHistory(room, session);
     return OK;
   }
 
@@ -353,6 +359,7 @@ export class Lobby {
     session.pendingResult = null;
     if (!room.hostId) room.hostId = session.playerId;
     this.broadcastState(room);
+    this.sendChatHistory(room, session);
     return OK;
   }
 
@@ -550,6 +557,8 @@ export class Lobby {
 
   /** Match unicast; m.result frames are also kept for the replay. */
   matchSend(room, ctx, playerId, msg) {
+    // runResync restores the room history; the match-local fallback must not clear it.
+    if (msg?.t === 'm.chatHistory') return true;
     if (msg && msg.t === 'm.result') {
       const data = encode(msg);
       if (data != null) ctx.results.set(playerId, data);
@@ -627,8 +636,10 @@ export class Lobby {
     session.resyncAt = this.now();
     if (room.match) {
       this.callMatch(room, 'onReconnect', session.playerId);
+      this.sendChatHistory(room, session);
       return;
     }
+    this.sendChatHistory(room, session);
     const frames = this.replayFor(room, session.playerId);
     if (frames) for (const frame of frames) sendRaw(session.ws, frame);
   }
@@ -653,6 +664,33 @@ export class Lobby {
     let n = 0;
     for (const r of this.rooms.values()) if (pred(r)) n++;
     return n;
+  }
+
+  // Room-scoped chat survives waiting → match → result → waiting transitions.
+  chat(session, msg) {
+    const room = this.roomOf(session);
+    const seat = room?.seatOf(session.playerId);
+    if (!seat || seat.isBot || seat.left) return fail(ERR.NOT_IN_ROOM);
+    const selecting = msg.t === 'g.chatFaction';
+    const text = selecting ? (chatFaction(msg.faction) ? `진영 선택: ${msg.faction}` : '') : normalizeChatText(msg.text);
+    if (!text) return fail(ERR.BAD_MSG);
+    const member = room.chatMembers.get(session.playerId) || {faction:null,lastChatAt:-Infinity,lastFactionAt:-Infinity};
+    if (selecting && member.faction === msg.faction) return OK;
+    const key = selecting ? 'lastFactionAt' : 'lastChatAt';
+    const now = this.now();
+    if (now - member[key] < CHAT_COOLDOWN_MS) return fail(ERR.RATE);
+    member[key] = now;
+    if (selecting) member.faction = msg.faction;
+    room.chatMembers.set(session.playerId, member);
+    const message = {id:++room.chatSequence,playerId:session.playerId,name:seat.name,faction:member.faction,text,at:now};
+    room.chatHistory.push(message);
+    if (room.chatHistory.length > CHAT_HISTORY_LIMIT) room.chatHistory.shift();
+    this.broadcastRoom(room, {t:'m.chat',...message});
+    return OK;
+  }
+
+  sendChatHistory(room, session) {
+    sendSession(session, {t:'m.chatHistory',messages:room.chatHistory,faction:room.chatMembers.get(session.playerId)?.faction ?? null});
   }
 
   /** Route a 'g.*' intent to the running match. */
@@ -748,6 +786,7 @@ export class Lobby {
     if (session && session.roomCode === room.code) session.roomCode = null;
     this.clearGrace(playerId);
     this.dropReplay(room, playerId);
+    room.chatMembers.delete(playerId);
     const seat = room.seatOf(playerId);
     if (!seat || seat.isBot || seat.left || room.disposed) return;
     if (room.match) {

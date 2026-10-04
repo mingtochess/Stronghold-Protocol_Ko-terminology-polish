@@ -31,3 +31,12 @@
 .game-chat__panel form { display: flex; gap: 6px; padding: 8px; border-top: 1px solid #263c31; }
 .game-chat__panel input { width: 0; flex: 1; min-width: 0; padding: 7px; border: 1px solid #416353; border-radius: 5px; background: #101b15; color: #e7eeeb; }
 @media (max-width: 600px) { .game-chat { font-size: 16px; } .game-chat__panel header { font-size: 13px; } }
+
+/* Allow the corner controls to receive clicks above chat, keeping their existing coordinates. */
+.has-game-chat .screen.gm, .has-game-chat .gm__hud { z-index: auto; }
+.has-game-chat .gm__corner { z-index: 31; }
+.game-chat { pointer-events: none; }
+.game-chat__panel, .game-chat__toggle { pointer-events: auto; }
+.game-chat__preview { width: 360px; max-width: calc(100vw - 2 * var(--chat-corner-inset)); margin-bottom: 8px; padding: 8px 10px; text-shadow: 0 1px 3px #000, 0 0 5px #000; }
+.game-chat__preview p { margin: 0 0 5px; overflow-wrap: anywhere; }
+.game-chat__preview strong { color: #b8c9c0; margin-right: 7px; }

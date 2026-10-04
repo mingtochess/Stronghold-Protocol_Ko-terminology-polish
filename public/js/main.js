@@ -174,12 +174,13 @@ function onRoomState(msg) {
   if (myId != null && seats.length && !seats.some((s) => s && s.playerId === myId)) {
     // We are no longer seated (kicked / left elsewhere).
     if (store.get().room) toast('你已不在该同盟中', 'warn');
-    store.set({ room: null, match: emptyMatch() });
+    store.set({ room: null, match: emptyMatch(), chat: [], chatFaction: null });
     return;
   }
   const prevRoom = store.get().room;
   // A (new) match starts: forget the previous match's state so stale results never show.
-  if (room.inMatch && !(prevRoom && prevRoom.inMatch && prevRoom.code === room.code)) store.set({ match: emptyMatch(), chat: [], chatFaction: null });
+  if (room.inMatch && !(prevRoom && prevRoom.inMatch && prevRoom.code === room.code)) store.set({ match: emptyMatch() });
+  if (prevRoom?.code !== room.code) store.set({chat: [], chatFaction: null});
   store.set({ room });
   if (room.mode === 'coop' && typeof room.code === 'string') rememberRoom(room.code);
   maybeFinishRestore();
@@ -282,7 +283,7 @@ function App() {
     <div class="app-bg" aria-hidden="true"></div>
     ${error ? html`<${ScreenCrashed} error=${error} reset=${resetError} />` : html`<${Screen} key=${route} />`}
     <${ConnectionBanner} />
-    ${route === 'game' ? html`<${ChatPanel} />` : null}
+    ${route === 'game' || route === 'room' ? html`<${ChatPanel} />` : null}
     <${ToastHost} />
     <${UiHosts} />
     <${GuideHost} />
