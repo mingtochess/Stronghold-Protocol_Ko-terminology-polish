@@ -9,7 +9,7 @@ public/assets/*
 !public/assets/emotes/
 public/fonts/
 # tools/local-extract/extract.py → public/assets/local/** and this per-machine manifest
-# (optional: the client and the tests work without it)
+# (optional: the client and the tests work without it; docs/DEPLOY.md §6 lists what falls back)
 data/local-assets.json
 # download caches, upstream tables, ledgers, reports, setup state
 .cache/

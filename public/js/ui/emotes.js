@@ -2,8 +2,10 @@
 // EMOTE_THEMES / EMOTES, generated reference data/emotes.json). Official emotes are pictures only: nothing here ever
 // renders an emote's text (our labels are aria-labels only).
 //
-//   EmoteArt    bundled replacement picture (shared/emote-art.js), then extracted local-client art; a neutral glyph
-//               when the art is missing or fails to load, an empty box while the manifest is still loading.
+//   EmoteArt    bundled replacement art, then extracted art (data/local-assets.json → emoticon/<dir>/<picId>), then
+//               the copy setup downloads from the public mirror (data/assets.json → ui['emoticon/<dir>/<picId>'];
+//               GitHub issue #42), each tried in turn when one fails to load; a neutral glyph when none is available,
+//               an empty box while a manifest is still loading.
 //   EmoteBubble the pop bubble beside the sender's avatar in the team panel (official emoji_bubble_bkg: a dark rounded
 //               square with a tail pointing left + the icon only); pop-in, 3 s, fade. The parent keys it by the emote's
 //               seq so a newer emote replaces the old one and pops again, and passes the arrival time (`at`) so a
@@ -21,7 +23,7 @@ import { EMOTE_COOLDOWN_MS, EMOTE_BUBBLE_MS, emoteInfo, emoteArtGroup } from '..
 import { bundledEmoteArt, EMOTE_PAGES as EMOTE_THEMES } from '../../../shared/emote-art.js';
 import { html } from './components.js';
 import { GIcon } from './gameComponents.js';
-import { data, useData, localAsset } from '../data.js';
+import { data, useData, localAsset, artUrls, nextArtUrl } from '../data.js';
 import { loadPref, savePref } from '../store.js';
 
 const cx = (...p) => p.flat().filter(Boolean).join(' ');
@@ -49,14 +51,26 @@ export function ensureEmoteCss(doc = globalThis.document) {
 }
 
 /**
- * Bundled replacement art first, then extracted art; null for unknown or unavailable pictures
- * (a path that is not listed is never requested).
+ * URLs in preference order: bundled replacement, local-client extraction, public mirror copy.
+ * Unknown IDs have no candidates; failed URLs advance to the next candidate.
+ * @param {string} id official emoji id
+ * @returns {string[]}
+ */
+export function emoteArtUrls(id) {
+  const e = emoteInfo(id);
+  return e ? [...new Set([bundledEmoteArt(id), ...artUrls(emoteArtGroup(id), e.picId)].filter(Boolean))] : [];
+}
+
+/**
+ * URL of an emote's official art (the first of emoteArtUrls), or null.
  * @param {string} id official emoji id
  */
 export function emoteArtUrl(id) {
-  const e = emoteInfo(id);
-  return e ? bundledEmoteArt(id) || localAsset(emoteArtGroup(id), e.picId) : null;
+  return emoteArtUrls(id)[0] || null;
 }
+
+/** True while the local-art manifest or the asset manifest has not settled (EmoteArt shows an empty box meanwhile). */
+const artManifestsPending = () => ['local', 'assets'].some((n) => { const st = data.status(n); return st === 'loading' || st === 'idle'; });
 
 /** Official emote UI sprite (ui/battle: emoji_bubble_bkg, emoji_bkg, emoji_cell_bkg, emoji_btn, emoji_btn_disable). */
 export const emoteUiSprite = (name) => localAsset('ui/battle', name);
@@ -150,18 +164,19 @@ function EmoteGlyph({ class: cls }) {
 }
 
 /**
- * Official emote picture; neutral glyph when unavailable.
+ * Emote picture (replacement, extracted art, then mirror copy; advance when a picture fails to load);
+ * neutral glyph when unavailable.
  * @param {{ id: string, class?: string }} props
  */
 export function EmoteArt({ id, class: cls }) {
-  useData('local');
-  const [bad, setBad] = useState(null);
-  const src = emoteArtUrl(id);
-  if (src && bad !== src) {
-    return html`<img class=${cx('eart', cls)} src=${src} alt="" draggable=${false} decoding="async" onError=${() => setBad(src)} />`;
+  useData('local', 'assets');
+  const [bad, setBad] = useState(() => new Set()); // URLs that failed to load
+  const src = nextArtUrl(emoteArtUrls(id), bad);
+  if (src) {
+    return html`<img key=${src} class=${cx('eart', cls)} src=${src} alt="" draggable=${false} decoding="async"
+      onError=${() => setBad((s) => new Set(s).add(src))} />`;
   }
-  const st = data.status('local');
-  if (!src && emoteInfo(id) && (st === 'loading' || st === 'idle')) return html`<span class=${cx('eart', 'eart--pending', cls)} aria-hidden="true"></span>`;
+  if (emoteInfo(id) && artManifestsPending()) return html`<span class=${cx('eart', 'eart--pending', cls)} aria-hidden="true"></span>`;
   return html`<${EmoteGlyph} class=${cls} />`;
 }
 

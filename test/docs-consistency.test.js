@@ -121,8 +121,8 @@ test('reconnect windows: co-op 10 min, solo singleReconnectTime 24 h (code, data
   assert.match(META, /singleReconnectTime/);
   assert.match(dataRow('constants'), /singleReconnectTime/);
   for (const [name, text] of [['README', README], ['DEPLOY', DEPLOY], ['PLAYING', PLAYING]]) {
-    assert.match(text, /24 小时/, `${name}: solo resume window`);
-    assert.match(text, /10 分钟/, `${name}: co-op window`);
+    assert.match(text, /24 小时|24시간/, `${name}: solo resume window`);
+    assert.match(text, /10 分钟|10분/, `${name}: co-op window`);
   }
   assert.ok(!/断线 10 分钟内可重连，掉线期间 AI 托管/.test(README), 'README: a dropped seat is not AI-played unless 暂离');
 });
@@ -131,8 +131,8 @@ test('equipment: g.equip replaceUid and locked equipped items are in the contrac
   assert.match(DESIGN, /`g\.equip \{itemUid, targetUid, replaceUid\?\}`/);
   assert.match(DESIGN, /equipped items are locked/);
   assert.match(META, /g\.equip\s*\n?\s*\{ itemUid, targetUid, replaceUid \}/);
-  assert.match(README, /已配发的装备锁定在干员身上/);
-  assert.match(PLAYING, /已配发的装备锁定在干员身上/);
+  assert.match(README, /已配发的装备锁定在干员身上|이미 장착한 장비는 오퍼레이터에게 귀속됩니다/);
+  assert.match(PLAYING, /已配发的装备锁定在干员身上|이미 장착한 장비는 오퍼레이터에게 귀속됩니다/);
 });
 
 test('battleId is unique per match although field ids repeat (code) and DESIGN §14 says so', () => {
@@ -198,7 +198,7 @@ test('solo pause: g.pause {on} is solo-only and m.public.paused follows (code) �
   assert.match(DESIGN, /`g\.pause \{on\}`/);
   assert.match(DESIGN, /\*\*Solo pause/);
   assert.match(META, /`m\.public\.paused`|`paused`\n?\(solo pause/);
-  assert.match(README, /暂停（独立模拟）/);
+  assert.match(README, /暂停（独立模拟）|일시정지 \(싱글 시뮬레이션\)/);
   assert.match(PLAYING, /同盟模拟的作战不能暂停/);
 });
 
@@ -264,7 +264,7 @@ test('lost models, live LP, detail card order, static game data (user playtest #
   assert.match(DESIGN, /pendingLp\? \/\* COMBAT \/ 联防 of a normal round/);
   assert.match(DESIGN, /`ownLeaks\(local, server\)`/);
   assert.match(PLAYING, /顶栏的目标生命值会\*\*立即\*\*显示扣除后的数值/);
-  assert.match(README, /漏怪时顶栏的目标生命值实时减少/);
+  assert.match(README, /漏怪时顶栏的目标生命值实时减少|적을 놓치면 상단의 목표 생명력이 실시간으로 감소합니다/);
 });
 
 test('user playtest #4 (DESIGN §18): picking by tile, timers, 机变 two taps, down / element state, content — code and every doc agree', () => {
@@ -277,7 +277,7 @@ test('user playtest #4 (DESIGN §18): picking by tile, timers, 机变 two taps, 
   assert.match(DESIGN, /`ENEMY_REACH` 0\.6 tile/);
   assert.match(DESIGN, /render\/pick\.js/);
   assert.ok(!/pieceDragOver'\|/.test(DESIGN), 'DESIGN §9: no pieceDragOver event');
-  assert.match(README, /按地上的方格/);
+  assert.match(README, /按地上的方格|바닥의 격자를 기준으로/);
   for (const [name, text] of [['README', README], ['PLAYING', PLAYING]]) {
     assert.ok(!/画面上实际画出的干员/.test(text), `${name}: no body picking`);
     assert.ok(!/模型抬高到手指上方|模型在手指上方/.test(text), `${name}: no touch lift`);
@@ -300,7 +300,7 @@ test('user playtest #4 (DESIGN §18): picking by tile, timers, 机变 two taps, 
   assert.match(META, /`ev\.preview` true/, 'META: onBattleStart handlers must not change the match for the stats preview');
   // #2 机变 two taps
   assert.match(PLAYING, /选卡要\*\*点两次\*\*/);
-  assert.match(README, /机变选卡/);
+  assert.match(README, /机变选卡|기변 카드 선택/);
   // #8 / #9 element gauges (爆发冷却) and knocked-out operators
   assert.equal(ELEMENT.erosion.ally.duration, 10, 'operators\' 侵蚀 burst has its 10 s cooldown');
   assert.deepEqual(ELEMENT_ORDER.slice(0, 4), ['neural', 'erosion', 'burn', 'apoptosis']);
@@ -747,9 +747,11 @@ test('batch 6 QA residuals (DESIGN §21.21–§21.25): the lock per deployment f
   assert.ok(!/the carrier's own non-initial `deploy` re-arms it/.test(SIM), 'SIM: the per-grant deploy hook is gone');
   assert.match(PLAYING, /被 M3茧甲 \/ 埃芒加德复活）后又能锁一次，娜仁图亚策略借来的锤子也一样/);
   assert.ok(!/First time per battle carrier would take lethal damage/.test(doc('docs/research/04-items.md')), 'research 04: once per deployment');
-  // F3: 卢西恩 / 锏 count only the allies they can hurt; the player text keeps auras and counters
-  assert.match(doc('server/sim/content/bosses.js'), /LUCIEN_AOE_RADIUS\)\.some\(\(u\) => !evadesGround\(e, u\)\)/);
-  assert.match(doc('server/sim/content/enemies.js'), /const inR = \(b, e, s\) => b\.alliesInRadius\([^\n]*\.some\(\(u\) => !evadesGround\(e, u\)\)/);
+  // F3: 卢西恩 / 锏 count only the allies they can hurt — since 0.1.2 (§22.12) the targets of their trigger selection
+  // (targetsNear → canTargetAlly, which skips an airborne 起飞 ally for a ground enemy); the player text keeps auras and counters
+  assert.match(doc('server/sim/content/bosses.js'), /cond: \(b\) => targetsNear\(b, e, LUCIEN_AOE_RADIUS\)\.length > 0/);
+  assert.match(doc('server/sim/content/enemies.js'), /const inR = \(b, e, s\) => targetsNear\(b, e, [^\n]*\)\.length > 0/);
+  assert.match(doc('server/sim/targeting.js'), /if \(f\.liftoff && evadesGround\(e, a\)\) return false;/);
   assert.match(sub(22), /they count only the allies they can hurt \(`!evadesGround`\)/);
   assert.match(sub(20), /an area skill cast because allies are near counts only those it can hurt/);
   assert.ok(!/燃烧区域和减益都落不到她身上/.test(PLAYING), 'PLAYING: no blanket 减益 claim');

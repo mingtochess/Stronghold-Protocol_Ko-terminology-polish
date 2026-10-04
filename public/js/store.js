@@ -84,7 +84,7 @@ export const initialState = Object.freeze({
   chat: [],
   chatFaction: null,
   clock: { offset: 0, rtt: null, synced: false },
-  ui: { pendingJoin: null, restoring: false },
+  ui: { pendingJoin: null, restoring: false, buildStale: false },
 });
 
 /** The app-wide store singleton. */

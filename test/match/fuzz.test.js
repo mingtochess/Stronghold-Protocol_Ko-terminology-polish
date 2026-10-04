@@ -1,6 +1,7 @@
 // Protocol fuzz: random VALID-SHAPED intents (they pass shared/protocol.js validateC2S) in random phases, random
 // disconnects/reconnects/leaves and random time jumps never throw, always answer { ok } or { error: ERR.* }, never
 // report an internal error and never corrupt the invariants (pool accounting, funds, slots, legality, merges).
+import { CHAT_FACTIONS } from '../../shared/chat.js';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { validateC2S, C2S } from '../../shared/protocol.js';
@@ -32,6 +33,8 @@ function randomIntent(rng, m, ps) {
     case 'g.art': return { t, itemUid: uid(), row: rng.int(19), col: rng.int(21) };
     case 'g.reward': case 'g.choice': return { t, idx: rng.int(6) };
     case 'g.ready': return { t, ready: rng() < 0.4 };
+    case 'g.chat': return { t, text: `fuzz message ${rng.int(1000)}` };
+    case 'g.chatFaction': return { t, faction: rng.pick(CHAT_FACTIONS).name };
     case 'g.emote': return { t, id: rng.pick(EMOTES) };
     case 'g.watch': return { t, fieldId: rng.pick(['n:p_0', 'n:p_1', 'n:ai_0', 'u', 'b1', 'b2', 'zz', '']) };
     case 'g.autoplay': return { t, on: rng() < 0.05 };

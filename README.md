@@ -1,10 +1,10 @@
-# 현재 본 Readme의 번역은 GPT에 의해 생성되었습니다. 추후 수정/검수가 필요합니다.
+# 위수 프로토콜: 맹약 · Stronghold Protocol: Alliance
 
-# 위수 프로토콜: 맹약 · Stronghold Protocol: Covenant
+> 현재 본 Readme의 번역은 GPT에 의해 생성되었습니다. 추후 수정/검수가 필요합니다.
 
 《명일방주》의 시즌 오토체스 타워 디펜스 모드 「위수 프로토콜: 맹약」을 **비공식 팬 메이크로 재현한 작품**입니다. 브라우저에서 바로 플레이할 수 있으며, 싱글 플레이 또는 1–4인 온라인 협동을 지원합니다.
 
-![version](https://img.shields.io/badge/version-0.1.1-2ea44f)
+![version](https://img.shields.io/badge/version-0.1.2-2ea44f)
 ![license](https://img.shields.io/badge/code%20license-GPL--3.0--or--later-blue)
 ![node](https://img.shields.io/badge/node-22%20%7C%2024-339933)
 
@@ -37,7 +37,7 @@
 
 - **싱글 시뮬레이션**(1인)과 **동맹 시뮬레이션**(1–4인 **협동**, PvP 없음, 빈 자리는 AI 팀원을 추가할 수 있음).
 - 서버는 Node.js 프로그램이며, **전투는 각 플레이어의 브라우저에서 시뮬레이션**됩니다(공식과 동일). 서버는 경제와 라운드만 관리하므로 저전력 소형 PC 한 대로도 서버를 열 수 있습니다.
-- 현재 버전은 0.1.1입니다. 첫 공개 버전(0.1.0) 이후 플레이어 피드백을 바탕으로 문제를 수정했습니다. 자세한 내용은 [CHANGELOG.md](CHANGELOG.md)를 참조하십시오. 아직 일부 규칙은 추론을 바탕으로 구현되어 있으며, 공식과 일치하지 않는 부분은 Issue로 알려주시면 감사하겠습니다.
+- 현재 버전은 0.1.2입니다. 첫 공개 버전(0.1.0) 이후 플레이어 피드백을 바탕으로 문제를 수정했습니다. 자세한 내용은 [CHANGELOG.md](CHANGELOG.md)를 참조하십시오. 아직 일부 규칙은 추론을 바탕으로 구현되어 있으며, 공식과 일치하지 않는 부분은 Issue로 알려주시면 감사하겠습니다.
 
 ## 기능 개요
 
@@ -68,7 +68,7 @@
    - Windows: PowerShell에서 `winget install OpenJS.NodeJS.LTS`를 실행하거나 <https://nodejs.org/zh-cn/download>에서 설치 프로그램을 다운로드합니다.
    - macOS: `brew install node@22`를 실행하거나 공식 웹사이트에서 설치 프로그램을 다운로드합니다.
    - Linux: 배포판의 패키지 관리자, nvm 또는 fnm을 사용합니다.
-2. **다운로드**: [Releases](../../releases/latest) 페이지에서 최신 버전(v0.1.1)의 통합 패키지(zip)를 다운로드하고, 경로가 짧은 폴더에 압축을 풉니다(Windows에서는 OneDrive 동기화 폴더에 넣지 않는 것을 권장합니다).
+2. **다운로드**: [Releases](../../releases/latest) 페이지에서 최신 버전(v0.1.2)의 통합 패키지(zip)를 다운로드하고, 경로가 짧은 폴더에 압축을 풉니다(Windows에서는 OneDrive 동기화 폴더에 넣지 않는 것을 권장합니다).
 3. **실행**
    - Windows: **`scripts\start-windows.bat`**를 더블 클릭합니다. 「보안 경고」가 표시되면 「실행」을 클릭합니다. Windows 방화벽 팝업에서는 「개인 네트워크」를 선택하고 허용합니다.
    - macOS / Linux: 압축을 푼 폴더에서 `./scripts/start.sh`(또는 `bash scripts/start.sh`)를 실행합니다.
@@ -86,7 +86,7 @@ npm start          # 启动服务器：http://localhost:3000
 
 시작 스크립트(Windows `scripts\start-windows.bat`, macOS / Linux `scripts/start.sh`)를 직접 실행할 수도 있습니다. 처음 실행할 때 자동으로 의존성을 설치하고 소재를 다운로드한 뒤 서버를 시작하고 브라우저를 엽니다.
 
-- **공식 3D 체스판**은 로컬 《명일방주》 PC 클라이언트에서 텍스처를 추출해야 합니다(Windows 네이티브 클라이언트, macOS의 CrossOver 또는 PlayCover). `npm run setup`이 클라이언트를 감지하면 추출 여부를 묻습니다(Python 3.8+ 필요, 의존성은 프로젝트 내부의 `.venv-extract`에 설치되어 시스템에는 영향을 주지 않음). 이후 `node tools/setup.mjs --local`로 다시 추출하거나 `--game "<…/StreamingAssets/AB/Windows>"`로 경로를 지정할 수 있습니다. 클라이언트가 없으면 자동으로 2D 체스판을 사용하며, 다른 기능에는 영향을 주지 않습니다.
+- **공식 3D 체스판**은 로컬 《명일방주》 PC 클라이언트에서 텍스처를 추출해야 합니다(Windows 네이티브 클라이언트, macOS의 CrossOver 또는 PlayCover). `npm run setup`이 클라이언트를 감지하면 추출 여부를 묻습니다(Python 3.8+ 필요, 의존성은 프로젝트 내부의 `.venv-extract`에 설치되어 시스템에는 영향을 주지 않음). 이후 `node tools/setup.mjs --local`로 다시 추출하거나 `--game "<…/StreamingAssets/AB/Windows>"`로 경로를 지정할 수 있습니다. 클라이언트가 없으면 2D 체스판과 대체 아이콘·모델을 사용합니다. 소통과 플레이 방법의 튜토리얼 이미지는 공개 미러에서 다운로드됩니다. 클라이언트가 없는 서버에는 **동일 버전** 통합 패키지의 `public/assets/local/`와 `data/local-assets.json`을 복사할 수 있습니다. 자세한 내용은 [배포 문서](docs/DEPLOY.md)의 로컬 클라이언트 소재 항목을 참고하세요.
 - 소재 다운로드는 GitHub를 우선 사용하며, 실패하면 자동으로 jsDelivr 미러로 전환합니다.
 - `npm run doctor`(즉 `node tools/doctor.mjs`)를 언제든 실행하여 Node 버전, 소재의 완전성, 포트 사용 여부, LAN 주소 및 방화벽을 진단할 수 있습니다.
 
@@ -170,6 +170,7 @@ EC2에서 GitHub의 코드를 수동으로 업데이트하려면 **[Git 기반 E
 | [CHANGELOG.md](CHANGELOG.md) | 변경 기록: 각 버전에서 수정된 사항과 확인 결과 문제가 아니었던 피드백 |
 | [docs/PLAYING.md](docs/PLAYING.md) | 게임플레이 가이드: 진행 과정, 경제, 모집 및 승급, 진형 구성, 공동 방어, 맹약, 최종 공세, 정산 칭호 |
 | [docs/DEPLOY.md](docs/DEPLOY.md) | 배포 가이드: Windows 서버 실행 및 부팅 시 자동 실행, 방화벽, 네트워크 구성 / 터널, 리버스 프록시 및 HTTPS, Docker, systemd, 문제 해결 |
+| [docs/WINDOWS.md](docs/WINDOWS.md) | Windows 휴대용 패키지 생성 및 구성 안내 |
 | [docs/DESIGN.md](docs/DESIGN.md) | 아키텍처 및 계약(영문): 기술 스택, 디렉터리 역할, 네트워크 프로토콜, 렌더링 및 UI, 각 테스트 플레이 후 규칙 수정 사항 |
 | [docs/SIM.md](docs/SIM.md) | 전투 시뮬레이션 엔진 참고(영문): 훅, 스킬 설명 형식, 직군 기본 행동 |
 | [docs/META.md](docs/META.md) | 게임 및 경제 엔진(영문): 라운드 진행, 상점, 공동 방어, 최종 공세의 구현 세부 사항 |
@@ -231,3 +232,16 @@ RENDER_E2E=1 node --test 'test/render/*.browser.test.js'   # 渲染测试，部�
 - 본 프로젝트는 비상업적 원칙을 유지합니다. 광고, 유료 기능, 후원 등 어떠한 형태의 수익화 기능도 제출하지 마십시오.
 
 소통 이미지 목록은 `shared/constants.js`의 `EMOTE_THEMES`에 있으며, 원본 목록 생성기는 `tools/build-emotes.mjs`입니다. 사용자 제공 대체 이미지 36개는 `public/assets/emotes/`에 포함되어 있고, 기존 소통 ID와 파일의 연결은 `shared/emote-art.js`에서 관리합니다. 이 이미지들은 Docker 배포에 포함되어 별도 리소스 재다운로드 없이 표시됩니다.
+
+원본 v0.1.2 업데이트를 반영했습니다. 조작 개선, 전투·스킬 수정, 오퍼레이터 편성 내보내기·가져오기, 오래 열린 페이지의 새 빌드 자동 감지를 포함합니다. 로컬 체스판 소재가 없으면 2D 체스판으로 표시하며, 공개 미러의 소통·튜토리얼 이미지를 대체 경로로 사용할 수 있습니다.
+
+---
+
+## English
+
+An **unofficial, non-commercial fan remake** of Arknights' seasonal auto-chess tower-defense mode *Stronghold Protocol: Alliance*, played in the browser: solo, or 1–4 player co-op (AI teammates can fill seats). Combat is simulated in each player's browser, so a low-power PC can host.
+
+- **Run:** download the all-in-one bundle from [Releases](../../releases/latest), install Node.js 22 or 24, then double-click `scripts\start-windows.bat` (Windows) or run `./scripts/start.sh` (macOS / Linux) and open <http://localhost:3000>. From source: `npm install && npm run setup && npm start` (setup downloads ~270 MB of art from public mirrors, the emotes and the how-to-play pages included; the official 3D board, some official HUD icons and two enemy models are extracted from a local Arknights client — without one the game uses the 2D board and look-alike stand-ins, and a server can copy `public/assets/local/` and `data/local-assets.json` from the release bundle of the same version).
+- **Play with friends:** create a co-op room and share the 4-letter key or the `?room=KEY` link. On a LAN, use the address printed at start; otherwise use a virtual-LAN tool, a tunnel or a VPS — see [docs/DEPLOY.md](docs/DEPLOY.md).
+- **Disclaimer:** not affiliated with or endorsed by Hypergryph or Yostar. All Arknights names, art, audio, text and data are © their respective owners and are **not** covered by this project's GPL licence. For study and personal non-commercial use only — no selling, paid distribution, paid servers or monetisation of any kind. Content will be removed on request of the rights holders. Provided "as is", without warranty.
+- **License:** code GPL-3.0-or-later ([LICENSE](LICENSE)); game assets excluded.
