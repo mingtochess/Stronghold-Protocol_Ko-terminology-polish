@@ -104,7 +104,8 @@ test('two browsers chat over real game sockets: toggle, unread, safe text, Korea
       assert.ok(mobile.width <= 366 && mobile.right <= 390);
       const toggle = await guest.$eval('.game-chat__toggle', el => {const r=el.getBoundingClientRect();return {left:r.left,bottom:innerHeight-r.bottom,width:r.width,height:r.height,text:el.textContent.trim(),icon:!!el.querySelector('svg')};});
       assert.equal(toggle.left, toggle.bottom);
-      assert.equal(toggle.width, 54); assert.equal(toggle.height, 54);
+      assert.ok(toggle.width >= 34); assert.equal(toggle.width, toggle.height);
+      assert.equal(await guest.$eval('.game-chat__toggle', el=>getComputedStyle(el).borderRadius), '0px');
       assert.equal(toggle.text, ''); assert.ok(toggle.icon);
       await host.bringToFront();
       await host.click('.game-chat__faction-toggle');

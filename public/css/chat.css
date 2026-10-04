@@ -1,4 +1,4 @@
-:root { --chat-corner-inset: max(12px, env(safe-area-inset-left), env(safe-area-inset-bottom)); }
+:root { --chat-corner-inset: max(12px, env(safe-area-inset-left), env(safe-area-inset-bottom)); --chat-button-size: max(.56rem, 34px); --chat-button-gap: .1rem; }
 .game-chat {
   position: fixed; left: var(--chat-corner-inset); bottom: var(--chat-corner-inset);
   z-index: 30; font-size: 13px; line-height: 1.45; color: #e7eeeb;
@@ -7,10 +7,13 @@
 .game-chat button { cursor: pointer; color: #bcefdc; background: #15221d; border: 1px solid #416353; border-radius: 5px; padding: 6px 10px; }
 .game-chat button:disabled { opacity: .5; cursor: default; }
 .game-chat button:focus-visible, .game-chat input:focus-visible { outline: 2px solid #4ed8af; outline-offset: 2px; }
-.game-chat button.game-chat__toggle { position: relative; display: grid; place-items: center; width: 54px; height: 54px; padding: 0; border-radius: 12px; }
-.game-chat__toggle svg { width: 28px; height: 28px; }
+.game-chat button.game-chat__toggle { position: relative; display: grid; place-items: center; width: var(--chat-button-size); height: var(--chat-button-size); padding: 0; border-radius: 0; background: rgba(8, 11, 10, .85); border-color: var(--line-2); color: var(--text-lo); transition: color var(--t-fast), border-color var(--t-fast); }
+.game-chat__toggle svg { width: max(.28rem, 17px); height: max(.28rem, 17px); }
+.game-chat button.game-chat__toggle:hover, .game-chat button.game-chat__toggle[aria-expanded="true"] { color: var(--mint-400); border-color: var(--mint-700); }
 .game-chat__badge { position: absolute; top: -5px; right: -5px; min-width: 18px; padding: 0 4px; border-radius: 10px; background: #4ed8af; color: #09120d; font-size: 11px; }
-.has-game-chat .gm__corner { left: calc(var(--chat-corner-inset) + 64px); }
+.has-game-chat .gm__corner { left: calc(var(--chat-corner-inset) + var(--chat-button-size) + var(--chat-button-gap)); bottom: var(--chat-corner-inset); gap: var(--chat-button-gap); }
+.has-game-chat .gm__corner .gm__gear, .has-game-chat .gm__corner .ewheel__btn { height: var(--chat-button-size); border-radius: 0; }
+.has-game-chat .gm__corner .gm__gear { width: var(--chat-button-size); }
 .game-chat__panel { width: 360px; max-width: calc(100vw - var(--chat-corner-inset) - var(--chat-corner-inset)); margin-bottom: 8px; background: rgba(9, 16, 13, .96); border: 1px solid #416353; border-radius: 8px; box-shadow: 0 4px 20px #0008; overflow: hidden; }
 .game-chat__panel header { display: flex; align-items: center; justify-content: space-between; padding: 7px 10px; border-bottom: 1px solid #263c31; }
 .game-chat__panel header .game-chat__close { border: 0; background: transparent; font-size: 20px; padding: 0 5px; }
