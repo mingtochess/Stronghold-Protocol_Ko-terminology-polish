@@ -76,7 +76,7 @@ function parseArgs(argv) {
 
 let OPTS;
 try {
-  OPTS = parseArgs(process.argv.slice(2));
+  OPTS = parseArgs(process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url) ? process.argv.slice(2) : []);
 } catch (e) {
   console.error(`build-data: ${e.message}`);
   process.exit(2);
@@ -286,7 +286,7 @@ function bestCandidate(cands, phase, level) {
  * Load every official table and research file into one context object.
  * @returns {Promise<object>} ctx
  */
-async function loadContext() {
+export async function loadContext({ operatorsOnly = false } = {}) {
   log('loading official data…');
   const [activity, charTable, skillTable, rangeTable, uniequip, battleEquip, handbook, enemyDbRaw] = await Promise.all([
     loadGamedata('excel/activity_table.json'),
@@ -323,7 +323,7 @@ async function loadContext() {
   if (enemyDataLevelId) levelSrc.set(enemyDataLevelId, ac.constData.enemyDataLevelId);
   const levels = {};
   // Sequential download to stay polite to GitHub; cached files load instantly.
-  for (const id of [...levelSrc.keys()].sort(naturalCmp)) levels[id] = await loadGamedata(levelPath(levelSrc.get(id)));
+  for (const id of (operatorsOnly ? [] : [...levelSrc.keys()].sort(naturalCmp))) levels[id] = await loadGamedata(levelPath(levelSrc.get(id)));
 
   const research = {
     core: await loadResearch('01-core-data.json'),
@@ -767,7 +767,7 @@ function branchTraitText(char, phase, level) {
  * ({id, modulePhase, moduleTokenParts} per non-default module + 'none') for the token variants.
  * @returns {{ chess: object, tokenOwners: Map<string, Array<{chessId:string, charId:string, phase:number, level:number, skillIndex:number, skillLevel:number, count:number|null, golden:boolean, modulePhase:any, skillAlts:object[], moduleAlts:object[]}>> }}
  */
-function buildChess(ctx) {
+export function buildChess(ctx) {
   const { act, charTable, uniequip, battleEquip } = ctx;
   const out = {};
   const tokenOwners = new Map();
@@ -3317,7 +3317,7 @@ async function main() {
   }
 }
 
-main().catch((e) => {
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) main().catch((e) => {
   console.error('build-data failed:', e && e.stack ? e.stack : e);
   process.exitCode = 1;
 });

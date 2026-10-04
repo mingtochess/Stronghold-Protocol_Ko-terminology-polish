@@ -1162,7 +1162,7 @@ function yanyouKit(bb, raw) {
 }
 
 /** Free field tile for a flyer: the player's half, void/non-deployable tiles first, nearest to the half's centre. */
-function airTile(battle, playerId, taken) {
+export function airTile(battle, playerId, taken = new Set()) {
   const R = battle.rect;
   const ps = battle.getPlayer(playerId);
   let c0 = R.c0, c1 = R.c1;
