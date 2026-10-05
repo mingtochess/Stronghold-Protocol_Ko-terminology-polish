@@ -25,6 +25,7 @@
 // flutters inside its own tile); an `attract` (诱导) status walks it to the status point instead (moveAttracted);
 // both re-plan the route when released (恐惧 outranks 诱导).
 
+import {attackWindup, attackClipTiming} from '../../shared/attackTiming.js';
 import { ATTACK_PAUSE, ALLY_COLLIDER_RADIUS, MOVE_SCALE, PROJECTILE_SPEEDS, PROJECTILE_SPEED, BOOMERANG_RETURN_SPEED, COLS, CHAIN_RADIUS } from './constants.js';
 import { sortEnemyTargets, sortAllyTargets, canTargetEnemy, canTargetAlly, tileKeyOf } from './targeting.js';
 import { reduceElement } from './damage.js';
@@ -68,15 +69,37 @@ export function effectiveProfile(u) {
 export function updateAlly(b, u, dt) {
   if (u.atkCd > 0 && u.canAct) u.atkCd = Math.max(0, u.atkCd - dt);
   if (u.blocking.length) enforceBlockCapacity(b, u);
-  if (!u.canAct || !u.profile) return;
+  if (!u.canAct || !u.profile) { cancelWindup(b, u); return; }
   // a rangeExtend change (buff added / expired) rebuilds the range — also for units that never attack (auras)
   if (b.rangeChanged(u)) b._refreshRange(u);
   const sk = u.skill;
   let prof = effectiveProfile(u);
-  if (prof.noAttack) return;
-  if (prof.noAttackUnlessSkill && !(sk && sk.active)) return;
-  if (u.s.flags.disarm) return;
-  if (u.atkCd > 0) return;
+  if (prof.noAttack) { cancelWindup(b, u); return; }
+  if (prof.noAttackUnlessSkill && !(sk && sk.active)) { cancelWindup(b, u); return; }
+  if (u.s.flags.disarm) { cancelWindup(b, u); return; }
+  if (u.mem.attackWindup) {
+    const pending = u.mem.attackWindup;
+    if (pending.seq !== u.deploySeq || pending.skillActive !== !!sk?.active) { cancelWindup(b, u); return; }
+    const candidates = acquireTargets(b, u, pending.profile);
+    const valid = new Set(candidates);
+    const previous = pending.targets;
+    let targets = previous.filter(t => valid.has(t));
+    // A replacement inherits the existing wind-up and hit deadline, without restarting Spine.
+    if (b.time + 1e-9 < pending.until) {
+      for (const t of candidates) {
+        if (targets.length >= previous.length) break;
+        if (!targets.includes(t)) targets.push(t);
+      }
+      if (targets.length && targets[0] !== previous[0]) b._ev(['atkRetarget', u.id, targets[0].id, !!pending.profile.allInRange]);
+      pending.targets = targets;
+    }
+    if (!targets.length) { cancelWindup(b, u); return; }
+    if (b.time + 1e-9 < pending.until) return;
+    delete u.mem.attackWindup;
+    performAttack(b, u, pending.profile, targets);
+    return;
+  }
+  if (u.atkCd > 1e-9) return;
   if (prof.canAttack && !prof.canAttack(b, u)) return;
   let targets = acquireTargets(b, u, prof);
   if (!targets.length) { u.trait.hadTarget = false; return; }
@@ -87,8 +110,19 @@ export function updateAlly(b, u, dt) {
     targets = acquireTargets(b, u, prof);
     if (!targets.length) return;
   }
-  performAttack(b, u, prof, targets);
+  const wind = attackWindup(u);
+  if (wind > 0) {
+    u.mem.attackWindup = { until: b.time + wind, targets, profile: prof, seq: u.deploySeq, skillActive: !!sk?.active };
+    b._ev(['atkStart', u.id, targets[0].id, wind, u.s.interval, !!prof.allInRange]);
+  } else performAttack(b, u, prof, targets);
   u.atkCd = Math.max(u.atkCd, u.s.interval);
+}
+
+/** Interrupted wind-ups never produce a strike or an extra attack animation. */
+function cancelWindup(b, u) {
+  if (!u.mem.attackWindup) return;
+  delete u.mem.attackWindup;
+  b._ev(['atkCancel', u.id]);
 }
 
 /** Release blocked enemies beyond the current block capacity (latest blocked first). */
@@ -105,6 +139,7 @@ export function enforceBlockCapacity(b, u) {
 
 /** Collect targets for an ally with profile `prof`. */
 export function acquireTargets(b, u, prof) {
+  if (typeof prof.acquireTargets === 'function') return prof.acquireTargets(b,u);
   // a heal attack (医师 / 群愈师 / 疗养师 / 链愈师 / 行医, a skill attack turned into a heal) selects injured allies only,
   // never the enemies its unit blocks — a blocking healer keeps healing: PRTS 卫戍协议/帮助 "对于医疗干员（咒愈师分支除外），
   // 攻击目标为需要治疗的单位" (the blocked-first rule below is for attackers of enemies; community feedback after 0.1.0, E2)
@@ -155,13 +190,20 @@ export function performAttack(b, u, prof, targets, opts = null) {
   u.stats.attacks++;
   const attackId = ++b._attackSeq; // every damage instance of this attack (all targets, splash, chain) carries it
   const isHeal = !!(prof.heal && prof.dmgType === 'heal');
+  // 首次接敌 (official voice type ENCOUNTER_ENEMY, ≥ 3 s between two such lines): one event the first time a unit
+  // attacks an enemy, whatever the attack is — the client answers with that operator's 行动开始 line (audio.js voice).
+  if (!isHeal && u.side === 'ally' && !u.mem.engaged && targets.some((t) => t && t.side === 'enemy')) {
+    u.mem.engaged = true;
+    b._ev(['engage', u.id]);
+  }
   const ranged = !prof._fortressMelee && prof.attack === 'ranged' && prof.projectile && prof.projectile !== 'none' && prof.projectile !== 'beam';
   const vis = prof._fortressMelee ? 'none' : (prof.projectile || 'none');
   for (let i = 0; i < targets.length; i++) {
     const t = targets[i];
-    b._ev(['atk', u.id, t.id, vis]);
+    b._ev(['atk', u.id, t.id, vis, !!prof.allInRange]);
+    if (prof.deferHit) continue; // authored attacks schedule their own landing damage
     if (isHeal) { doHeal(b, u, prof, t); continue; }
-    const info = { isSkill, index: i, attackId };
+    const info = { isSkill, index: i, attackId, atk: prof.tags?.includes('wisdel-s3') ? u.s.atk : undefined };
     if (ranged && t.side === 'enemy' && prof.projectile === 'boomerang') {
       throwBoomerang(b, u, prof, t, info);
     } else if (ranged && t.side === 'enemy') {
@@ -195,15 +237,16 @@ function throwBoomerang(b, u, prof, t, info) {
       // (guarded on its own: a content error in the hit must not cost the thrower its boomerang for the battle)
       if (c.target || prof.splashRadius > 0) b._safe(() => resolveHit(b, u, prof, c.target, info, c.x, c.y), 'boomerang.hit', u);
       if (!home()) return;
+      if (prof.onBoomerangTurn) b._safe(() => prof.onBoomerangTurn(c), 'boomerang.turn', u);
       // hitDead: flies on to the thrower's last position even while it is hidden, caught there when it is still home
       b.addProjectile({ from: { x: c.x, y: c.y }, target: u, speed: BOOMERANG_RETURN_SPEED, visual: 'boomerangReturn', source: u, hitDead: true,
-        onHit: () => { if (home() && u.trait.boomerangsOut > 0) u.trait.boomerangsOut--; } });
+        onHit: () => { if (home() && u.trait.boomerangsOut > 0) { u.trait.boomerangsOut--; if (!u.trait.boomerangsOut && prof.onBoomerangReturn) b._safe(() => prof.onBoomerangReturn(), 'boomerang.return', u); } } });
     } });
 }
 
 /** Apply one attack hit (called on impact for projectiles). `target` may be null (splash on a dead target's spot). */
 export function resolveHit(b, u, prof, target, info, x, y) {
-  const atk = u.s.atk;
+  const atk = info.atk ?? u.s.atk;
   const scale = (prof.atkScale ?? 1) * u.s.atkScaleMul;
   let dealtTotal = 0;
   const baseType = prof.dmgType === 'heal' || prof.dmgType === 'none' ? 'phys' : prof.dmgType;
@@ -254,7 +297,7 @@ export function resolveHit(b, u, prof, target, info, x, y) {
     for (let k = 1; k < n; k++) {
       let best = null, bd = Infinity;
       for (const e of b.enemiesInRadius(prev.x, prev.y, prof.chain.radius || CHAIN_RADIUS)) {
-        if (hit.has(e.id) || !canTargetEnemy(u, e, prof)) continue;
+        if ((!prof.chain.repeat && hit.has(e.id)) || e === prev || !canTargetEnemy(u, e, prof)) continue;
         const d = Math.hypot(e.x - prev.x, e.y - prev.y);
         if (d < bd - 1e-9 || (Math.abs(d - bd) <= 1e-9 && best && e.spawnSeq < best.spawnSeq)) { bd = d; best = e; }
       }
@@ -269,7 +312,7 @@ export function resolveHit(b, u, prof, target, info, x, y) {
     }
     if (prof.chain.sluggish && target.alive) b.applyStatus(target, 'sluggish', { duration: prof.chain.sluggish, source: u });
   }
-  const hctx = { dealt: dealtTotal, x, y, isSkill: info.isSkill };
+  const hctx = { dealt: dealtTotal, x, y, isSkill: info.isSkill, atk, profile: prof };
   if (prof.afterHit) b._safe(() => prof.afterHit(b, u, target, hctx), 'profile.afterHit', u);
   if (prof.skillOnHit && u.skill) {
     const fn = prof.skillOnHit;
@@ -288,24 +331,28 @@ function doHeal(b, u, prof, t) {
   let amount = atk * scale;
   if (h.farMul && Math.max(Math.abs(t.tileR - u.tileR), Math.abs(t.tileC - u.tileC)) > (h.nearDist ?? 2)) amount *= h.farMul;
   if (h.elementHealRatio) reduceElement(t, atk * h.elementHealRatio);
-  b.heal(u, t, amount);
-  if (h.mode === 'chain') {
-    const seen = new Set([t.id]);
-    let prev = t;
-    const n = Math.max(1, h.count || 3);
-    for (let k = 1; k < n; k++) {
-      let best = null, bd = Infinity;
-      for (const a of b.alliesInRadius(prev.x, prev.y, 2.5, null)) {
-        // 禁疗 / noHeal units are no heal target for the bounces either (as injuredAlliesInKeys; 史尔特尔's 余烬, GitHub #52)
-        if (seen.has(a.id) || a.hp >= a.s.maxHp || a.kind === 'device' || a.s.flags.noHeal || (a.profile && a.profile.noHeal)) continue;
-        const d = a.hpRatio;
-        if (d < bd) { bd = d; best = a; }
+  if (typeof h.resolve === 'function') {
+    b._safe(() => h.resolve({ battle: b, unit: u, target: t, amount }), 'profile.heal.resolve', u);
+  } else {
+    b.heal(u, t, amount);
+    if (h.mode === 'chain') {
+      const seen = new Set([t.id]);
+      let prev = t;
+      const n = Math.max(1, h.count || 3);
+      for (let k = 1; k < n; k++) {
+        let best = null, bd = Infinity;
+        for (const a of b.alliesInRadius(prev.x, prev.y, 2.5, null)) {
+          // 禁疗 / noHeal units are no heal target for the bounces either (as injuredAlliesInKeys; 史尔特尔's 余烬, GitHub #52)
+          if (seen.has(a.id) || a.hp >= a.s.maxHp || a.kind === 'device' || a.s.flags.noHeal || (a.profile && a.profile.noHeal)) continue;
+          const d = a.hpRatio;
+          if (d < bd) { bd = d; best = a; }
+        }
+        if (!best) break;
+        seen.add(best.id);
+        b._ev(['atk', prev.id, best.id, 'chainHeal']);
+        b.heal(u, best, amount * Math.pow(1 - (h.falloff ?? 0.25), k));
+        prev = best;
       }
-      if (!best) break;
-      seen.add(best.id);
-      b._ev(['atk', prev.id, best.id, 'chainHeal']);
-      b.heal(u, best, amount * Math.pow(1 - (h.falloff ?? 0.25), k));
-      prev = best;
     }
   }
   if (u.skill && u.skill.active && u.skill.spec.onHit) {
@@ -447,14 +494,20 @@ export function remainingDistance(b, e) {
 export function updateEnemy(b, e, dt) {
   const R = e.route;
   if (!e.alive) return;
+  if (e.hidden) cancelWindup(b, e);
   // hidden (teleporting) enemies only advance wait legs
   const stunned = e.s.flags.stun;
+  if(e.mem.visualShift && b.time<e.mem.visualShift[4]+e.mem.visualShift[5]) {
+    cancelWindup(b,e);e.atkStandUntil=-Infinity;e.moving=false;
+    if(!e.hidden && !stunned) b._checkBlock(e);
+    return;
+  }
   if (e.atkCd > 0 && !stunned && !e.hidden) e.atkCd = Math.max(0, e.atkCd - dt);
   // true: an unblocked ranged enemy in the wind-up of its next attack with a target in range (it stands)
   const winding = !e.hidden && !stunned && enemyAttack(b, e);
   if (!e.alive) return;
   // a stun / freeze / sleep cuts the attack clip short: no stand left once it ends [ASSUMED]
-  if (stunned && !e.hidden) { e.atkStandUntil = -Infinity; return; }
+  if (stunned && !e.hidden) { cancelWindup(b, e); e.atkStandUntil = -Infinity; return; }
   if (e.blockedBy) {
     const bl = e.blockedBy;
     // (unblockable/levitate/fear may also arrive through a plain addBuff, which does not unblock by itself; a
@@ -604,7 +657,7 @@ function advanceRoute(b, e, dt, R, standing = false) {
 export function attackStand(e, out = { wind: 0, rest: 0 }) {
   out.wind = 0; out.rest = 0;
   if (e.profile?.attackMoves ?? e.def?.attackMoves) return out;
-  const a = e.def?.attackAnim;
+  const a = attackClipTiming(e) || e.def?.attackAnim;
   if (!a || !(a.dur > 0)) { out.rest = ATTACK_PAUSE; return out; }
   const iv = e.s.interval;
   const speed = iv > 0 && iv < a.dur ? a.dur / iv : 1;
@@ -622,10 +675,10 @@ const STAND = { wind: 0, rest: 0 };
  */
 function enemyAttack(b, e) {
   const def = e.def;
-  if (e.profile && e.profile.noAttack) return false;
+  if (e.profile && e.profile.noAttack) { cancelWindup(b, e); return false; }
   const dmgType = (e.profile && e.profile.dmgType) || def.dmgType;
   if (dmgType === 'none' || e.s.atk <= 0) return false;
-  if (e.s.flags.fear || e.s.flags.disarm) return false;
+  if (e.s.flags.fear || e.s.flags.disarm) { cancelWindup(b, e); return false; }
   if (e.s.flags.tremble && e.blockedBy) return false; // 战栗: 被阻挡后无法进行普通攻击
   if (dmgType === 'heal') { if (e.atkCd <= 0) enemyHeal(b, e, e.base.rangeRadius); return false; }
   // applyWay MELEE enemies only ever hit their blocker, even when their data carries a rangeRadius (粉碎攻坚手 2.5,
@@ -638,7 +691,8 @@ function enemyAttack(b, e) {
   // `e.profile.canTarget(ally)`: the enemy's own target rule (只攻击地面单位, 不会攻击飞行单位 …; content/enemies.js),
   // applied to the candidates before the priority sort and the target count
   const own = e.profile && typeof e.profile.canTarget === 'function' ? e.profile.canTarget : null;
-  if (e.atkCd > 0) {
+  if (e.def.attackTiming && e.atkCd > 1e-9 && !e.mem.attackWindup) return false;
+  if (!e.def.attackTiming && e.atkCd > 0) {
     // the wind-up of the next attack (GitHub #58): an unblocked ranged enemy stands once a target is in range
     if (e.blockedBy || radius <= 0 || !(e.atkCd <= attackStand(e, STAND).wind + 1e-9)) return false;
     return b.alliesInRadius(e.x, e.y, reach, null).some((a) => canTargetAlly(e, a, true) && (!own || own(a)));
@@ -655,7 +709,23 @@ function enemyAttack(b, e) {
   }
   if (own && targets.length) targets = targets.filter((a) => own(a));
   if (targets.length > 1) sortAllyTargets(e, targets);
-  if (!targets.length) return false;
+  if (!targets.length) { cancelWindup(b, e); return false; }
+  let wound = false;
+  const pending = e.mem.attackWindup;
+  if (pending) {
+    targets = pending.targets.filter(t => targets.includes(t));
+    if (!targets.length) { cancelWindup(b, e); return false; }
+    if (b.time + 1e-9 < pending.until) return true;
+    delete e.mem.attackWindup; wound = true;
+  } else {
+    const wind = attackWindup(e);
+    if (wind > 0) {
+      e.mem.attackWindup = { until: b.time + wind, targets };
+      e.atkCd = e.s.interval;
+      b._ev(['atkStart', e.id, targets[0].id, wind, e.s.interval]);
+      return true;
+    }
+  }
   // 麻痹 (ba.palsy): each stack interrupts one normal attack
   const palsy = e.buffs.length ? e.findBuff('palsy') : null;
   if (palsy) {
@@ -695,9 +765,9 @@ function enemyAttack(b, e) {
     } else hit(t);
   }
   if (b._hooks.attack) b.emit('attack', { attacker: e, targets, isSkill: false });
-  e.atkCd = e.s.interval;
+  if (!wound) e.atkCd = e.s.interval;
   // stands for the rest of its attack clip (attackStand; the wind-up was stood before the strike)
-  if (!e.blockedBy && radius > 0) e.atkStandUntil = b.time + attackStand(e, STAND).rest;
+  if (!(e.profile?.attackMoves ?? def.attackMoves)) e.atkStandUntil = b.time + attackStand(e, STAND).rest;
   return false;
 }
 

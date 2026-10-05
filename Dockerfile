@@ -35,6 +35,7 @@ ARG BROWSER_RESOURCES=0
 COPY shared ./shared
 COPY server ./server
 COPY tools ./tools
+COPY content ./content
 COPY data ./data
 COPY public ./public
 COPY docs/research ./docs/research
@@ -42,7 +43,8 @@ RUN --mount=type=secret,id=build_ca \
     if [ -f /run/secrets/build_ca ]; then export NODE_EXTRA_CA_CERTS=/run/secrets/build_ca; fi; \
     export NODE_USE_ENV_PROXY=1; \
     node tools/vendor.mjs \
- && if [ "$BROWSER_RESOURCES" = "1" ]; then node tools/build-browser-resources.mjs; fi \
+ && node tools/apply-production.mjs \
+ && if [ "$BROWSER_RESOURCES" = "1" ]; then if [ ! -f content/production/resources.json ]; then node tools/build-browser-resources.mjs; fi; fi \
  && if [ "$FETCH_ASSETS" = "1" ]; then \
       node tools/fetch-assets.mjs || echo "WARNING: art download incomplete; the image falls back to placeholder art"; \
     fi \

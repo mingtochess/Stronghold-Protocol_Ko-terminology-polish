@@ -118,7 +118,7 @@ describe('9: the prep camera keeps the bench clear of the shop bar on phones in 
     const game = read('public/css/screens/game.css');
     const shop = read('public/css/screens/game-shop.css');
     // bond strip: top 1.36rem + a .52rem disc and its name line → measured 2.14–2.15rem in Chrome; 2.16rem kept
-    assert.match(game, /\.gm__bonds \{ position: absolute; left: 1\.56rem; top: 1\.36rem;/);
+    assert.match(game, /\.gm__bonds \{ position: absolute; left: 50%; transform: translateX\(-50%\); top: 1\.36rem;/);
     assert.match(game, /\.bslot \.bond \{ --disc: \.52rem; \}/);
     assert.equal(HUD_REM.bondStripBottom, 2.16);
     // shop bar: bottom .2rem + row padding .1rem × 2 + 2.24rem cards (level / operator / item) + 2 px + 1 px borders

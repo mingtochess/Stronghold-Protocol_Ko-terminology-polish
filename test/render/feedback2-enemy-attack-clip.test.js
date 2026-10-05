@@ -80,7 +80,7 @@ test('an operator keeps its attack loop stretched over the attack rhythm (unchan
   assert.equal(a.current, 'Attack', 'still in attack mode 2 s later (1.4 × the interval)');
 });
 
-test('UnitView: enemy models play a clip per attack, operator models do not', async () => {
+test('UnitView: enemy and operator models play one clip per confirmed attack', async () => {
   const entry = entryOf(JSHOOT);
   const store = { picture: () => null, image: async () => null, spineEntry: () => entry, spine: { acquire: async () => dataOf(entry), release() {} } };
   const cam = () => presetCamera('normal', { width: 1280, height: 720 });
@@ -98,5 +98,66 @@ test('UnitView: enemy models play a clip per attack, operator models do not', as
   assert.equal(e.actor.current, 'Attack');
   assert.equal(e.actor.spine.state.tracks[0].loop, false);
   const o = await make('ally');
-  assert.equal(o.actor.clipPerAttack, false);
+  assert.equal(o.actor.clipPerAttack, true);
+});
+
+test('selected skill without a dedicated clip never borrows a different skill animation', () => {
+  const entry={animations:{Idle:1,Attack:1,Skill_3_Loop:1},anims:{idle:'Idle',attack:{loop:'Attack'},skill:{loop:'Skill_3_Loop'},skills:{'2':{loop:'Skill_3_Loop'}}}};
+  const a=new SpineActor(dataOf(entry),entry);
+  a.setSkillIndex(0);a.setSkill(true);
+  assert.equal(a.roles.skill,null);
+  a.setSkill(false);a.setSkillIndex(2);a.setSkill(true);
+  assert.equal(a.roles.skill.loop,'Skill_3_Loop');
+});
+
+test('state skins compose with the default body and restore it when the status ends', () => {
+  const a=actor(JSHOOT,true);
+  class Skin {constructor(name){this.name=name;this.parts=[];}addSkin(s){this.parts.push(s.name);}}
+  const base=new Skin('default'),ice=new Skin('frozen');let active;
+  a.spine.skeleton={data:{defaultSkin:base,skins:[base,ice]},setSkin(s){active=s;},setSlotsToSetupPose(){}};
+  assert.equal(a.setVisualStates(['freeze']),true);
+  assert.deepEqual(active.parts,['default','frozen']);
+  a.setVisualStates([]);assert.deepEqual(active.parts,['default']);
+});
+
+test('instant skill keeps its full cast animation after the same-frame skill-off and blends into idle',()=>{
+ const entry={animations:{Idle:1,Skill:2},anims:{idle:'Idle',skill:{loop:'Skill'}}};
+ const a=new SpineActor(dataOf(entry),entry);a.setSkill(true,{instant:true});a.setSkill(false);
+ assert.equal(a.current,'Skill');a.update(1.9);assert.equal(a.current,'Skill');
+ a.update(.2);assert.equal(a.current,'Idle');assert.ok(a.spine.state.tracks[0].mixDuration>0);
+});
+test('operator recovery uses the authored speed and rests only when the real interval exceeds clip duration',()=>{
+ const a=actor(JSHOOT,true);a.continuousAttacks=true;a.setBase('idle');
+ a.beginAttack(2.7,.533);run(a,.533);a.attack(2.7);
+ const before=a.clock;run(a,.3);assert.equal(a.current,'Attack');assert.equal(track(a).loop,false);
+ assert.ok(a.clock>before);assert.equal(track(a).timeScale,1,'native recovery never crawls');
+ run(a,.2);assert.equal(a.current,'Idle','a genuinely longer cooldown permits an idle pose');
+ a.beginAttack(2.7,.533);assert.equal(a.current,'Attack');assert.equal(track(a).trackTime,0);
+ a.cancelAttack();assert.equal(a.current,'Idle');
+});
+
+test('skill ending after its strike preserves the complete recovery before End',()=>{
+ const entry={animations:{Idle:1,Attack:1,Skill:1,Skill_End:.2},hits:{Skill:[.4]},anims:{idle:'Idle',attack:{loop:'Attack'},skill:{loop:'Skill',end:'Skill_End'}}};
+ const a=new SpineActor(dataOf(entry),entry);a.clipPerAttack=true;a.setSkill(true);
+ a.beginAttack(1,.4);run(a,.4);a.attack(1);a.setSkill(false);
+ assert.equal(a.current,'Skill');run(a,.5);assert.equal(a.current,'Skill');run(a,.15);assert.equal(a.current,'Skill_End');
+});
+test('consecutive attacks at the authored clip interval never insert idle',()=>{
+ const a=actor(JSHOOT,true);a.continuousAttacks=true;a.setBase('idle');
+ const seen=[];const original=a.spine.state.setAnimation;
+ a.spine.state.setAnimation=(i,n,l)=>{seen.push(n);return original(i,n,l);};
+ for(let n=0;n<4;n++){a.beginAttack(1,.533);run(a,.533);a.attack(1);run(a,.45);}
+ assert.ok(seen.length>=4);assert.ok(seen.every(n=>n==='Attack'),seen.join(','));
+});
+test('multi-target strikes preserve facing and freeze pauses the entire actor clock',async()=>{
+ const entry=entryOf(JSHOOT),cam=()=>presetCamera('normal',{width:1280,height:720});
+ const store={picture:()=>null,image:async()=>null,spineEntry:()=>entry,spine:{acquire:async()=>dataOf(entry),release(){}}};
+ const v=new UnitView(fakeViewCtx(fake.P,{assets:store,cam}),{id:8,side:'ally',kind:'op',spine:JSHOOT,defId:JSHOOT,x:8,y:9,maxHp:1000});
+ await new Promise(r=>setImmediate(r));await new Promise(r=>setImmediate(r));
+ v.onAttackStart({x:7,y:9},.533,1);v.onAttack({x:7,y:9},1,'none');v.onAttack({x:9,y:9},1,'none');assert.equal(v.visFacing,-1);
+ v.onAttackStart({x:9,y:9},.533,1,true);assert.equal(v.visFacing,-1,'untargeted full-area attack does not flip');
+ const {UF}=await import('../../shared/constants.js');const before=v.actor.clock,current=v.actor.current;
+ v.sync({x:8,y:9,hp:1000,maxHp:1000,sp:0,spMax:0,flags:UF.FROZEN,anim:ANIM.STUN},2);v.update(.4,cam(),2);
+ assert.equal(v.actor.clock,before);assert.equal(v.actor.current,current);
+ v.sync({x:8,y:9,hp:1000,maxHp:1000,sp:0,spMax:0,flags:0,anim:ANIM.IDLE},2.4);v.update(.1,cam(),2.5);assert.ok(v.actor.clock>before);v.destroy();
 });

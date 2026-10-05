@@ -11,6 +11,7 @@
 // is blocked or revealed, nor in the seconds after a block before it hides again — targeting.js enemyStealthed), an
 // ally's = 隐匿 / 迷彩 whatever it blocks.
 
+import {showsSkillArea} from './skillArea.js';
 import { UF, ANIM } from '../../shared/constants.js';
 import { DIE_ANIM_TIME, ATTACK_ANIM_TIME, DEPLOY_ANIM_TIME } from './constants.js';
 import { enemyStealthed } from './targeting.js';
@@ -38,12 +39,17 @@ export function unitInfo(u) {
     dir: u.dir ?? 'RIGHT',
     maxHp: Math.max(1, Math.round(u.s.maxHp)),
     motion: u.motion === 'FLY' ? 'FLY' : undefined,
+    ...(u.profile?.visibleRangeRadius > 0 ? { rangeRadius: u.profile.visibleRangeRadius } : {}),
     boss: u.isBoss ? true : undefined,
     // the unit's current model form (an enemy's content/enemies.js setForm, a 傀儡师's 替身 — render/units.js FORMS): a
     // view built mid-battle (fieldMeta — a watched teammate's field, 联防 observers, a reconnect) starts on that clip set
     form: typeof u.form === 'string' ? u.form : undefined,
     uid: u.uid ?? undefined,
     // DESIGN §16: the equipped skill's index (the renderer / audio pick that skill's Spine clip and sound)
+    skillDuration: u.skill && ['instant','charges'].includes(u.skill.kind) ? 0 : undefined,
+    skillZoneGrid: showsSkillArea(u) ? (d.skill.rangeGrid?.length ? d.skill.rangeGrid : d.rangeGrid) : undefined,
+    omnidirectional: !!u.profile?.allInRange, fixedFacing:!!u.profile?.fixedFacing,
+    skinId: d.loadout?.skinId, charId: d.raw?.charId,
     skillIndex: u.side === 'ally' && Number.isInteger(d.skill?.index) ? d.skill.index : undefined,
     // DESIGN §16: an elite ally's equipped module (uniEquipId | 'none'; display only — a teammate's unit in a shared
     // field shows its owner's module in the detail card)
@@ -51,6 +57,7 @@ export function unitInfo(u) {
     // an ally operator's equipped item ids (display: a 变形同构体 wearer counts for the bond it grants — the bond popup's
     // member list and the detail card's bond chips of a teammate's unit)
     items: u.side === 'ally' && u.kind === 'op' && Array.isArray(u.items) && u.items.length ? [...u.items] : undefined,
+    profession: d.profession, subProf: d.subProf, attackType: u.dmgType,
   };
 }
 
@@ -67,7 +74,7 @@ export function flagsOf(u) {
   // blocked 逐火 余烬 is drawn solid while the team beats it, and for 3 s after it slips away
   if (u.side === 'enemy' ? (f.stealth && enemyStealthed(u)) || f.camou : f.stealth || f.camou) bits |= UF.STEALTH;
   if (u.skill && u.skill.active && u.skill.kind !== 'passive') bits |= UF.SKILL;
-  if (u.s.shield > 0 || u.buffs.some((b) => b.shieldHits > 0)) bits |= UF.SHIELD;
+  if (u.s.shield > 0 || u.buffs.some((b) => b.shieldHits > 0) || u.mem?.ab?.hitShield > 0 || u.mem?.ab?.list?.some(a => a.visualBarrier && a.left > 0)) bits |= UF.SHIELD;
   if (f.invulnerable) bits |= UF.INVULN;
   if (f.cold) bits |= UF.COLD;
   if (f.sleep) bits |= UF.SLEEP;
@@ -79,7 +86,7 @@ export function flagsOf(u) {
 export function animOf(u, t) {
   if (!u.alive) return ANIM.DIE;
   if (u.s.flags.stun) return ANIM.STUN;
-  if (t - u.deployedAt < DEPLOY_ANIM_TIME && u.side === 'ally') return ANIM.DEPLOY;
+  if (u.side === 'ally' && (u.deployRemaining > 1e-9 || t-u.deployedAt < DEPLOY_ANIM_TIME)) return ANIM.DEPLOY;
   if (t < (u.skillAnimUntil ?? -1)) return ANIM.SKILL;
   if (t - u.lastAttackAt < ATTACK_ANIM_TIME) return u.skill && u.skill.active && u.skill.kind !== 'passive' ? ANIM.SKILL : ANIM.ATTACK;
   if (u.side === 'enemy' && u.moving && !u.blockedBy) return ANIM.MOVE;
@@ -89,12 +96,16 @@ export function animOf(u, t) {
 /** Snapshot tuple for one unit. */
 export function unitTuple(u, t) {
   const sk = u.skill;
-  const spMax = sk && !sk.noSkill ? sk.spCost : 0;
+  let spMax = sk && !sk.noSkill ? sk.spCost : 0;
   let sp = sk && !sk.noSkill ? sk.sp : 0;
   if (sk && sk.active && sk.isTimed) {
-    // show remaining duration/ammo as a draining bar
-    if (sk.kind === 'ammo') sp = spMax * (sk.ammoLeft / Math.max(1, sk.ammo));
-    else if (Number.isFinite(sk.timeLeft) && sk.duration > 0) sp = spMax * (sk.timeLeft / sk.duration);
+    // show remaining duration/ammo as a draining bar — ammo out of the activation's real total (base + bullets added:
+    // 拉特兰, 逃犯引渡手续, refills; community report #35), so every bullet shortens it
+    if (sk.kind === 'ammo') { if (!spMax) spMax = Math.max(1, sk.ammoMax || sk.ammo || 0, sk.ammoLeft); sp = spMax * (sk.ammoLeft / Math.max(1, sk.ammoMax || sk.ammo || 0, sk.ammoLeft)); }
+    else if (Number.isFinite(sk.timeLeft) && sk.duration > 0) {
+      if (spMax === 0) spMax = sk.duration;
+      sp = spMax * (sk.timeLeft / sk.duration);
+    }
   }
   // hp is rounded up (a living unit never shows 0) but never above the rounded max HP
   const maxHp = Math.max(1, Math.round(u.s.maxHp));

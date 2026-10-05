@@ -1,3 +1,4 @@
+import {appearanceRecord} from './appearance.js';
 // Asset URL resolution against data/assets.json (docs/ASSETS.md). Pure: every function takes the
 // manifest object (or null) and returns a URL string or null — callers draw their own fallback
 // (glyph, CSS shape) when null. Only URLs present in the manifest are ever returned, so the client
@@ -17,6 +18,7 @@ export function uiUrl(m, key) {
  * @param {any} chess chess.json record (or { assets: { avatar } })
  */
 export function chessAvatarUrl(m, chess) {
+  chess=appearanceRecord(chess);
   const chars = obj(obj(m)?.chars);
   const id = str(chess?.assets?.avatar) || str(chess?.charId);
   if (!chars || !id) return null;
@@ -33,10 +35,12 @@ export function chessAvatarUrl(m, chess) {
  * @param {any} chess
  */
 export function chessPortraitUrl(m, chess) {
+  chess=appearanceRecord(chess);
   const chars = obj(obj(m)?.chars);
   const id = str(chess?.assets?.portrait);
   if (!chars) return null;
   if (id) {
+    if(chars[id]?.portrait)return str(chars[id].portrait);
     if (id.endsWith('_2')) {
       const base = chars[id.slice(0, -2)];
       if (base) return str(base.portraitE2) || str(base.portrait);

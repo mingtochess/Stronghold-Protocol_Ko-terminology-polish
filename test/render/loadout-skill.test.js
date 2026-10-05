@@ -71,10 +71,10 @@ describe('Spine actor + audio use the equipped skill', () => {
     assert.equal(d.current, 'Skill_3_Begin', 'control: the default S3 starts with its begin clip');
   });
 
-  test('default / unknown index: the primary skill clip', async () => {
+  test('default uses primary; missing dedicated skill never borrows another skill clip', async () => {
     assert.equal((await actorFor(undefined)).roles.skill.loop, 'Skill_3_Loop');
     assert.equal((await actorFor(2)).roles.skill.loop, 'Skill_3_Loop');
-    assert.equal((await actorFor(1)).roles.skill.loop, 'Skill_3_Loop', 'no clip for S2 in the model: primary');
+    assert.equal((await actorFor(1)).roles.skill, null, 'no S2 clip: use normal attacks instead of S3');
   });
 
   test('audio: the equipped skill’s own ON_SKILL_START sound', () => {

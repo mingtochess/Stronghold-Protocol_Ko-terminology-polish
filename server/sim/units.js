@@ -72,6 +72,7 @@ export class Unit {
     this.lastAttackAt = -Infinity;
     this.lastHitAt = -Infinity;
     this.deployedAt = -Infinity;
+    this.deployRemaining = 0;
     this.deathAt = -Infinity;
     this.respawnAt = Infinity;
     this.deploySeq = 0;         // deployment counter; also the identity of one deployment (content: `seq === u.deploySeq`)
@@ -172,7 +173,7 @@ export class Unit {
   get flags() { return this.s.flags; }
 
   /** Can act at all this tick (not stunned/frozen/sleeping/levitated). */
-  get canAct() { return this.alive && this.deployed && !this.hidden && !this.s.flags.stun; }
+  get canAct() { return this.alive && this.deployed && !this.hidden && !this.s.flags.stun && this.deployRemaining <= 1e-9; }
 
   hasFlag(k) { return !!this.s.flags[k]; }
 

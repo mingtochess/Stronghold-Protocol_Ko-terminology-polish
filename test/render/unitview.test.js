@@ -86,6 +86,17 @@ describe('fallback portraits (avatar diamonds)', () => {
     assert.notEqual(v.fallback.texture, fake.P.Texture.EMPTY);
   });
 
+  test('圣聆初雪 S2: the frozen gate (保护目标（冻结状态）, no art in the data) is an ice diamond, not the plain placeholder', async () => {
+    const before = diamonds().length;
+    const v = view({ kind: 'token', defId: 'token_10058_sbell2_icetgt' }, {}, store());   // (an owner avatar would load)
+    await tick(); await tick();
+    for (let i = 0; i < 3; i++) v.update(1 / 60, cam(), i / 60);
+    assert.equal(v._frameColor(), 0x9fe6ff, 'ice frame');
+    assert.equal(diamonds().length - before, 1);
+    assert.notEqual(v.fallback.texture, T.diamondTexture('token_10058_sbell2_icetgt', null, 0x9fe6ff), 'its own (ice) glyph, not the procedural one');
+    assert.equal(v.fallback.texture, T.diamondTexture('token_10058_sbell2_icetgt', null, 0x9fe6ff, { ice: true }));
+  });
+
   test('a slow avatar shows the placeholder meanwhile, then the picture', async () => {
     const before = diamonds().length;
     let release;
@@ -243,7 +254,7 @@ describe('enemy preview pen figures (lod idle)', () => {
       assets: store({ spine: true }), cam, frameNo: () => frame, impostors: atlas,
       renderer: { resolution: 1, render: (obj, o) => renders.push(o?.renderTexture || null) },
     });
-    const v = new UnitView(ctx, { id: 'e:0', side: 'enemy', kind: 'enemy', defId: 'enemy_1007_slime', tier: 1, x: 9, y: 15, maxHp: 1, facing: -1 }, { prep: true, lod: 'idle' });
+    const v = new UnitView(ctx, { id: 'e:0', preview: true, side: 'enemy', kind: 'enemy', defId: 'enemy_1007_slime', tier: 1, x: 9, y: 15, maxHp: 1, facing: -1 }, { prep: true, lod: 'idle' });
     await tick(); await tick();
     assert.ok(v.spineReady, 'spine ready');
     let steps = 0;
@@ -253,11 +264,60 @@ describe('enemy preview pen figures (lod idle)', () => {
     return { v, step, renders, steps: () => steps };
   }
 
-  test('with room in the shared atlas: an impostor refreshed every 3rd frame, never a private render target', async () => {
+  test('visible preview keeps complete skeletons outside the shared atlas and animates every frame', async () => {
     const { v, step, renders, steps } = await penFigure(false);
     for (let i = 0; i < 30; i++) step();
-    assert.ok(v.imp && v.imp.slot, 'atlas slot');
+    assert.ok(!v.imp, 'no shared atlas can erase neighbouring attachments');
     assert.equal(renders.length, 0, 'drawn by the atlas flush, no per-figure render call');
-    assert.ok(steps() <= 12, `idle loop stepped ≈ every 3rd frame (${steps()} of 30)`);
+    assert.equal(steps(), 30, 'native frame cadence for visible preview');
   });
+});
+
+test('Airborne drones draw above ground operators regardless of row depth',()=>{
+ const drone=view({kind:'token',motion:'FLY',x:7,y:12}),op=view({x:7,y:9});
+ drone.flying=true;drone.update(1/60,cam(),0);op.update(1/60,cam(),0);
+ assert.ok(drone.root.zIndex>op.root.zIndex);
+});
+
+test('Operator attack animation never adds a positional lunge',()=>{
+ const v=view({kind:'op'}),camera=cam();v.update(.1,camera,0);
+ const before={x:v.root.position.x,y:v.root.position.y};
+ v.onAttack({x:8,y:12},1,'none');v.update(.1,camera,.1);v.update(.1,camera,.2);
+ assert.equal(v.root.position.x,before.x);assert.equal(v.root.position.y,before.y);
+});
+
+test('target facing transitions for operators and enemies in 100ms without changing animation time', async () => {
+  for(const side of ['ally','enemy']){
+    const v=view({side,kind:side==='ally'?'op':'enemy',dir:'RIGHT'},{},store({spine:true}));
+    await tick();v.update(.01,cam(),0);const before=v.flipValue,clock=v.actor.clock,originalDir=v.dir;
+    v.faceTarget({x:side==='ally'?0:10,y:12});v.update(.025,cam(),.025);
+    assert.notEqual(v.flipValue,before);assert.ok(Math.abs(v.flipValue)<1,'flip takes time');
+    assert.ok(Math.abs(v.actor.clock-clock-.025)<1e-6,'animation clock is independent');
+    v.update(.1,cam(),.125);assert.equal(Math.abs(v.flipValue),1);
+    assert.equal(v.dir,originalDir,'target facing does not rotate the gameplay range');v.destroy();
+  }
+});
+
+test('skill range clears immediately on death and skill end, including offscreen early returns',()=>{
+ const v=view({charId:'char_358_lisa',skillZoneGrid:[[0,0],[0,1]]});
+ v.setSkill(true);v.update(1/60,cam(),0);assert.equal(v.skillZone.visible,true);
+ v.die();assert.equal(v.skillZone.visible,false);assert.equal(v.statuses.has('skill'),false);
+ v.revive();v.setSkill(true);v.update(1/60,cam(),1);assert.equal(v.skillZone.visible,true);
+ v.setSkill(false);assert.equal(v.skillZone.visible,false);
+ v.setSkill(true);v.update(1/60,cam(),2);v.alive=false;v._cull=()=>true;
+ v.update(1/60,cam(),3);assert.equal(v.skillZone.visible,false);
+});
+
+test('operator range style is stable across copies and skins with sparse patterns', async()=>{
+ const {skillRangeStyle}=await import('../../public/js/render/units.js');
+ const a=skillRangeStyle({charId:'char_358_lisa',id:1,spine:'skin_a'});
+ assert.deepEqual(a,skillRangeStyle({charId:'char_358_lisa',id:2,spine:'skin_b'}));
+ const b=skillRangeStyle({charId:'char_1020_reed2'});assert.notDeepEqual(a,b);
+ assert.ok(a.pattern.length<=2);for(const segment of a.pattern)assert.ok(segment.every(x=>Math.abs(x)<=.25));
+});
+
+test('fixed-facing aerial units never flip towards attack targets',()=>{
+ const v=view({kind:'token',fixedFacing:true,motion:'FLY',x:7,y:10});
+ v.visFacing=1;v.faceTarget({x:3,y:10});assert.equal(v.visFacing,1);
+ v.visFacing=-1;v.update(1/60,cam(),0);assert.equal(v.flipValue,1);
 });

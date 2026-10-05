@@ -34,7 +34,7 @@ import { html, UiHosts, Button, MicroLabel, closeAllDialogs } from './ui/compone
 import { ConnectionBanner } from './ui/connBanner.js';
 import { ToastHost, toast, toastError, describeError } from './ui/toasts.js';
 import { net, identity, NetError } from './net.js';
-import { store, useStore, emptyMatch, selectRoute, sessionResetNotice } from './store.js';
+import { store, useStore, emptyMatch, selectRoute, sessionResetNotice, isSpectating } from './store.js';
 import { data } from './data.js';
 import { GAME_FILES } from './ui/gameComponents.js';
 import { TitleScreen, sanitizeName } from './screens/title.js';
@@ -133,7 +133,7 @@ function backToLobby() {
   clearTimeout(restoreTimer);
   const s = store.get();
   if (s.room || s.match.public) closeAllDialogs();
-  store.set({ room: null, match: emptyMatch(), ticker: [], emotes: [], chat: [], chatFaction: null });
+  store.set({ room: null, match: emptyMatch(), ticker: [], emotes: [], chat: [], chatFaction: null, chatFactions: {} });
   store.patch('ui', { restoring: false });
 }
 
@@ -172,16 +172,16 @@ function onRoomState(msg) {
   roomStateAt = Date.now();
   const myId = store.get().me.playerId;
   const seats = Array.isArray(room.seats) ? room.seats : [];
-  if (myId != null && seats.length && !seats.some((s) => s && s.playerId === myId)) {
-    // We are no longer seated (kicked / left elsewhere).
+  if (myId != null && seats.length && !seats.some((s) => s && s.playerId === myId) && !isSpectating(room, myId)) {
+    // We are no longer seated (kicked / left elsewhere) — neither in a player seat nor a spectator seat.
     if (store.get().room) toast('你已不在该同盟中', 'warn');
-    store.set({ room: null, match: emptyMatch(), chat: [], chatFaction: null });
+    store.set({ room: null, match: emptyMatch(), chat: [], chatFaction: null, chatFactions: {} });
     return;
   }
   const prevRoom = store.get().room;
   // A (new) match starts: forget the previous match's state so stale results never show.
   if (room.inMatch && !(prevRoom && prevRoom.inMatch && prevRoom.code === room.code)) store.set({ match: emptyMatch() });
-  if (prevRoom?.code !== room.code) store.set({chat: [], chatFaction: null});
+  if (prevRoom?.code !== room.code) store.set({chat: [], chatFaction: null, chatFactions: {}});
   store.set({ room });
   if (room.mode === 'coop' && typeof room.code === 'string') rememberRoom(room.code);
   maybeFinishRestore();
@@ -236,10 +236,11 @@ function wireNet() {
   });
   net.on('m.chat', (msg) => {
     store.set((s) => ({ chat: [...s.chat.filter((m) => m.id !== msg.id), payload(msg)].slice(-CHAT_HISTORY_LIMIT),
+      chatFactions: { ...s.chatFactions, [msg.playerId]: msg.faction ?? null },
       chatFaction: msg.playerId === s.me.playerId ? msg.faction ?? null : s.chatFaction }));
   });
   net.on('m.chatHistory', (msg) => {
-    if (Array.isArray(msg.messages)) store.set({ chat: msg.messages.slice(-CHAT_HISTORY_LIMIT), chatFaction: msg.faction ?? null });
+    if (Array.isArray(msg.messages)) store.set({ chat: msg.messages.slice(-CHAT_HISTORY_LIMIT), chatFactions: msg.factions || Object.fromEntries(msg.messages.map(m => [m.playerId, m.faction ?? null])), chatFaction: msg.faction ?? msg.factions?.[store.get().me.playerId] ?? null });
   });
 
   // Entering (title → lobby) while already online also needs the deep-link join.
@@ -277,6 +278,7 @@ function ScreenCrashed({ error, reset }) {
 }
 
 function App() {
+  useStore(s=>s.ui.appearanceRevision);
   const route = useStore(selectRoute);
   const [error, resetError] = useErrorBoundary((err) => console.error('[ui] screen crashed', err));
   const Screen = SCREENS[route] || LobbyScreen;
@@ -284,7 +286,7 @@ function App() {
     <div class="app-bg" aria-hidden="true"></div>
     ${error ? html`<${ScreenCrashed} error=${error} reset=${resetError} />` : html`<${Screen} key=${route} />`}
     <${ConnectionBanner} />
-    ${route === 'game' || route === 'room' ? html`<${ChatPanel} />` : null}
+    ${route === 'game' || route === 'room' ? html`<${ChatPanel} room=${route === 'room'} />` : null}
     <${ToastHost} />
     <${UiHosts} />
     <${GuideHost} />
@@ -344,7 +346,7 @@ async function boot() {
   installLoadoutSync({ net });
   net.attachBrowserHooks();
   // Audio: unlock on first gesture, BGM follows the route / match phase (js/audio.js).
-  installAudio({ getManifest: () => data.get('assets'), subscribe: store.subscribe, getState: store.get, selectRoute, settings: settingsStore.get() });
+  installAudio({ getOperator: id => data.lookup('chess',id), getManifest: () => data.get('assets'), subscribe: store.subscribe, getState: store.get, selectRoute, settings: settingsStore.get() });
   data.load('assets').catch(() => {});
   // Warm the data cache in the background (missing files are tolerated).
   data.loadAll('config').catch(() => {});

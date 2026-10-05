@@ -1,3 +1,5 @@
+import {assets} from '../assets.js';
+import {projectileStyle,meleeStyle} from './projectileStyle.js';
 // render/fx.js — battle visual effects with pooling and hard caps (DESIGN §9).
 //
 //   projectiles  b.ev 'atk' by projKind (render/style.js PROJ): sniper tracers with a muzzle flash; arts / heal / enemy
@@ -13,8 +15,7 @@
 //                (≥ 18 % max HP) pop larger; ≤ 4 per target; laid out in screen space against every live number (lanes
 //                beside the head, stacked upwards) so numbers of neighbouring units never cover or touch each other;
 //                crowded spots get shorter lives (see number())
-//   skill        activation burst: flash, a light pillar with a white-hot core, a shockwave + hex ring on the ground,
-//                rising motes; while active a slowly turning hex with a soft glow under the unit (+ a few motes)
+//   skill        brief, small activation glint; recurring subtle amber marks beside active units
 //   blasts       explosions (fireball, flash, shockwave + coloured ground ring, sparks, smoke; heavy ones add debris
 //                and a scorch mark) for blast fx kinds and shell impacts
 //   bombard      蕾缪安 S3: fx 'lock' keeps a reticle on the locked enemy until the 'bombard' of the shell fired at it
@@ -120,8 +121,24 @@ const ANCHOR_SNAP = 0.75;
 const SKILL_GOLD = 0xffd45a;
 const NO_OPTS = Object.freeze({});
 const clamp = (v, lo, hi) => (v < lo ? lo : v > hi ? hi : v);
-/** World height of a unit's chest (shots start / aim there) and just above its feet (where shells land). */
-const chestZ = (v) => (v.z || 0) + (v.hover || 0) + (v._headTiles || 1.2) * 0.45;
+/**
+ * Shot heights (GitHub #61): where a shot or beam leaves a unit (`launch`, ≈ its hands) and where shots, beams and lock
+ * marks meet a unit (`aim`, ≈ its chest), as shares of the drawn model's height above the feet (`_headTiles`). The
+ * models are upright screen billboards, so these are heights on screen, solved into world heights through the camera
+ * (projection.js liftFor, `bodyZ`): 0.45 × the head height taken as a WORLD height drew at ≈ 18 % of the model under the
+ * 30° pitch — shots left the hips and aimed at the targets' hips. [ASSUMED] the shares (a battle chibi's hands / chest;
+ * the data has no official muzzle points).
+ */
+export const SHOT_HEIGHT = Object.freeze({ launch: 0.45, aim: 0.5 });
+/** World height of the point `frac` of a unit's drawn model height above its feet (SHOT_HEIGHT), seen through `cam`. */
+export function bodyZ(cam, v, frac) {
+  const z0 = (v.z || 0) + (v.hover || 0);
+  const h = (v._headTiles || 1.2) * frac;
+  if (!cam || typeof cam.liftFor !== 'function') return z0 + h;
+  const dz = cam.liftFor(v.x, v.y, z0, h * cam.scaleAt(v.x, v.y, z0));
+  return Number.isFinite(dz) ? z0 + dz : z0 + h;
+}
+/** World height just above a unit's feet (where shells land). */
 const feetZ = (v) => (v.z || 0) + (v.hover || 0) + 0.2;
 /** Cheap fingerprint of a camera's framing (the damage-number layout cache is reused only while it is unchanged). */
 const camKey = (c) => (c ? c.tx + c.ty * 1e3 + c.tz * 1e6 + c.tilt * 7.13 + c.dist * 1e4 + c.scale * 3.7e-2 + c.cx * 1.1e-5 + c.cy * 1.3e-8 : 0);
@@ -306,6 +323,7 @@ export class FxSystem {
     this.P = P;
     this.atlas = fxAtlas();
     this.tex = this.atlas.tex;
+    this.weaponTextures = {};
     ensureDamageFonts();
     const props = { vertices: true, position: true, rotation: true, uvs: true, tint: true };
     this.addPc = new P.ParticleContainer(MAX_PARTICLES.high, props, 512, true);
@@ -317,6 +335,7 @@ export class FxSystem {
     ctx.layers.fxAdd.addChild(this.addPc);
     this.parts = [];          // active particle records { sp, add, x, y, vx, … }
     this.freeAdd = []; this.freeNorm = [];   // pooled particle records (their sprites stay in the containers)
+    this.contacts = [];
     this.projs = [];
     this.projFree = [];
     this.projLayer = new P.Container();
@@ -375,6 +394,24 @@ export class FxSystem {
    * Spawn a screen-space particle; returns its record (set `sx` on it to mirror). `o` is only read (the per-frame
    * emitters pass the shared _o() object). Records are pooled with their sprite; at the cap the oldest is recycled.
    */
+  _anchored(x,y,z,fn) {
+    const previous=this._particleAnchor;
+    this._particleAnchor=Number.isFinite(x)&&Number.isFinite(y)?{x,y,z:z||0}:previous;
+    try{return fn()}finally{this._particleAnchor=previous}
+  }
+  attack(src,tgt,kind){return src?this._anchored(src.x,src.y,bodyZ(this.ctx.cam(),src,SHOT_HEIGHT.launch),()=>this._attack(src,tgt,kind)):undefined}
+  damage(view,...args){return view?this._anchored(view.x,view.y,bodyZ(this.ctx.cam(),view,SHOT_HEIGHT.aim),()=>this._damage(view,...args)):undefined}
+  heal(view,...args){return view?this._anchored(view.x,view.y,bodyZ(this.ctx.cam(),view,SHOT_HEIGHT.aim),()=>this._heal(view,...args)):undefined}
+  skill(view,...args){return view?this._anchored(view.x,view.y,bodyZ(this.ctx.cam(),view,SHOT_HEIGHT.aim),()=>this._skill(view,...args)):undefined}
+  explosion(x,y,z,...args){return this._anchored(x,y,z,()=>this._explosion(x,y,z,...args))}
+  _impact(pr,cam){return this._anchored(pr.tx,pr.ty,pr.tz,()=>this._impactAnchored(pr,cam))}
+  simFx(kind,x,y,extra){
+    const ex=extra&&typeof extra==='object'?extra:{},spec=fxSpec(kind,ex);
+    if(spec.a==='none')return;
+    const at=spec.pt?this._point(Number(x),Number(y)):this._where(Number(x),Number(y),ex);
+    return this._anchored(at.x,at.y,at.z,()=>this._simFx(kind,x,y,extra));
+  }
+
   particle(tex, x, y, o = NO_OPTS) {
     if (this.parts.length >= this.maxParticles) this._freeParticle(this.parts.shift());
     const add = o.add !== false;
@@ -390,6 +427,8 @@ export class FxSystem {
     sp.anchor.set(o.anchorX ?? 0.5, o.ay ?? 0.5);
     sp.visible = true;
     sp.position.set(x, y);
+    p.world=o.screen?null:(o.world||this._particleAnchor||null);
+    if(p.world){const a=this.ctx.cam().project(p.world.x,p.world.y,p.world.z||0);p.ax=a.x;p.ay=a.y;p.as=a.s}
     sp.tint = o.tint ?? 0xffffff;
     sp.rotation = o.rot ?? 0;
     p.x = x; p.y = y; p.vx = o.vx || 0; p.vy = o.vy || 0; p.g = o.g || 0; p.drag = o.drag ?? 0; p.life = 0; p.max = o.life || 0.5;
@@ -430,8 +469,12 @@ export class FxSystem {
       p.vy += p.g * dt;
       p.x += p.vx * dt; p.y += p.vy * dt;
       const sp = p.sp;
-      sp.position.set(p.x, p.y);
-      const s = p.s0 + (p.s1 - p.s0) * k;
+      let cameraScale=1;
+      if(p.world){
+        const a=this.ctx.cam().project(p.world.x,p.world.y,p.world.z||0);cameraScale=a.s/p.as;
+        sp.position.set(a.x+(p.x-p.ax)*cameraScale,a.y+(p.y-p.ay)*cameraScale);
+      }else sp.position.set(p.x,p.y);
+      const s = (p.s0 + (p.s1 - p.s0) * k)*cameraScale;
       sp.scale.set(s * p.sx, s);
       if (p.spin) sp.rotation += p.spin * dt;
       let a = p.a0 + (p.a1 - p.a0) * k;
@@ -458,6 +501,13 @@ export class FxSystem {
     return this._proj(view.x, view.y, z, out);
   }
 
+  /** Screen point `frac` of a unit's drawn model height above its feet (SHOT_HEIGHT: beams, a mortar's muzzle). */
+  _bodyPt(view, frac, out = this._p) {
+    const p = this._proj(view.x, view.y, (view.z || 0) + (view.hover || 0), out);
+    p.y -= (view._headTiles || 1.2) * frac * p.s;
+    return p;
+  }
+
   /** `n` sparks flying out of a screen point (halved at quality 'low'); o: speed, up, g, life, size, tex. */
   burst(x, y, s, n, tint, o = NO_OPTS) {
     const q = this.quality === 'low' ? Math.ceil(n / 2) : n;
@@ -474,25 +524,26 @@ export class FxSystem {
   // ---- projectiles -----------------------------------------------------------------------------------------
 
   /** b.ev 'atk' visual. src/tgt are views (tgt may be null). */
-  attack(src, tgt, kind) {
+  _attack(src, tgt, kind) {
     if (!src) return;
     // chain: the source is the previous target of the bounce (sim ai.js), so the arc hops unit to unit
-    if (kind === 'chain' || kind === 'chainHeal') { if (tgt && tgt !== src) this._beam(src, tgt, kind === 'chainHeal' ? 0x7dffa8 : 0xc9a2ff); return; }
+    if (kind === 'chain' || kind === 'chainHeal') { if (tgt && tgt !== src) this._beam(src, tgt, kind === 'chainHeal' ? 0x7dffa8 : 0xc9a2ff, 0.22, 1, true); return; }
     if (kind === 'beam') { if (tgt && tgt !== src) this._beam(src, tgt, src.isEnemy ? 0xff7a5a : 0xffe6a8, 0.18, 0.15); return; }
-    const spec = PROJ[kind];
+    const spec = projectileStyle(kind,src.info,src.isEnemy);
     if (!spec || !tgt) {
       if (kind === 'none' || !kind) this._slashAt = src.id;
       return;
     }
     const pr = this._takeProj();
+    const cam = this.ctx.cam();
     const dx = tgt.x - src.x, dy = tgt.y - src.y;
     const dist = Math.hypot(dx, dy);
     const ux = dist > 1e-6 ? dx / dist : (src.facing || 1) >= 0 ? 1 : -1, uy = dist > 1e-6 ? dy / dist : 0;
     const hand = Math.min(0.28, dist * 0.3);   // the weapon is in front of the body
     const look = spec.look;
     pr.kind = kind; pr.spec = spec; pr.src = src; pr.tgt = tgt; pr.rise = 0;
-    pr.x0 = src.x + ux * hand; pr.y0 = src.y + uy * hand; pr.z0 = chestZ(src);
-    pr.tx = tgt.x; pr.ty = tgt.y; pr.tz = look === 'shell' ? feetZ(tgt) : chestZ(tgt);
+    pr.x0 = src.x + ux * hand; pr.y0 = src.y + uy * hand; pr.z0 = bodyZ(cam, src, SHOT_HEIGHT.launch);
+    pr.tx = tgt.x; pr.ty = tgt.y; pr.tz = look === 'shell' ? feetZ(tgt) : bodyZ(cam, tgt, SHOT_HEIGHT.aim);
     pr.t = 0; pr.fade = 0; pr.hit = false; pr.emit = Math.random(); pr.ang = Math.atan2(-uy, ux);   // ≈ on screen (rows run up)
     pr.dur = clamp(dist / projSpeed(kind) / this._ts(), 0.04, 1.5);
     pr.arc = spec.arc ? spec.arc * clamp(0.45 + dist * 0.18, 0.6, 1.8) : 0;
@@ -542,8 +593,10 @@ export class FxSystem {
     halo.texture = this.tex.glow;
     halo.tint = pr.glow;
     halo.visible = true;
-    core.texture = this.tex[look === 'boomerang' ? 'boomerang' : thin ? 'dot' : 'orb'];
-    core.tint = spec.tint;
+    pr.weaponTexture = this.weaponTextures[spec.weaponSprite] || null;
+    core.texture = pr.weaponTexture || this.tex[look === 'boomerang' ? 'boomerang' : thin ? 'dot' : 'orb'];
+    core.blendMode = pr.weaponTexture ? this.P.BLEND_MODES.NORMAL : this.P.BLEND_MODES.ADD;
+    core.tint = pr.weaponTexture ? 0xffffff : spec.tint;
     core.rotation = 0;
     core.visible = true;
     shadow.visible = look === 'shell' || look === 'boomerang';
@@ -587,7 +640,7 @@ export class FxSystem {
     const spec = pr.spec, look = spec.look;
     pr.t += dt;
     const tg = pr.tgt;
-    if (tg && !tg.destroyed && tg.alive !== false) { pr.tx = tg.x; pr.ty = tg.y; pr.tz = look === 'shell' ? feetZ(tg) : chestZ(tg); }
+    if (tg && !tg.destroyed && tg.alive !== false) { pr.tx = tg.x; pr.ty = tg.y; pr.tz = look === 'shell' ? feetZ(tg) : bodyZ(cam, tg, SHOT_HEIGHT.aim); }
     const k = Math.min(1, pr.t / pr.dur);
     if (k >= 1 && !pr.hit) { pr.hit = true; pr.fade = 0; this._impact(pr, cam); }
     let fk = 0;
@@ -610,10 +663,13 @@ export class FxSystem {
     const halo = pr.halo;
     halo.position.set(px, py);
     halo.scale.set((hs / 128) * (1 + 0.12 * Math.sin(pr.t * 40)));
-    halo.alpha = 0.85 * (1 - fk);
+    halo.alpha = 0.35 * (1 - fk);
     const core = pr.core;
     core.position.set(px, py);
-    if (thin) core.scale.set((hs * 0.5) / 32);
+    if (pr.weaponTexture) {
+      core.rotation=pr.ang;
+      const tex=pr.weaponTexture;core.scale.set(s*.32/Math.max(1,tex.width));
+    } else if (thin) core.scale.set((hs * 0.5) / 32);
     else if (look === 'shell') { core.rotation = pr.ang; core.scale.set((hs * 0.85) / 64, (hs * 0.55) / 64); }   // a shell along its flight
     else core.scale.set((hs * 0.62) / 64);
     core.alpha = 1 - fk;
@@ -654,12 +710,12 @@ export class FxSystem {
     let gx, gy, gz;
     if (pr.phase === 0) {
       const tg = pr.tgt;
-      if (tg && !tg.destroyed && tg.alive !== false) { pr.tx = tg.x; pr.ty = tg.y; pr.tz = chestZ(tg); }
+      if (tg && !tg.destroyed && tg.alive !== false) { pr.tx = tg.x; pr.ty = tg.y; pr.tz = bodyZ(cam, tg, SHOT_HEIGHT.aim); }
       gx = pr.tx; gy = pr.ty; gz = pr.tz;
     } else {
       const sv = pr.src;
       if (!sv || sv.destroyed || sv.alive === false) return false;
-      gx = sv.x; gy = sv.y; gz = chestZ(sv);
+      gx = sv.x; gy = sv.y; gz = bodyZ(cam, sv, SHOT_HEIGHT.launch);
     }
     const dx = gx - pr.bx, dy = gy - pr.by, dz = gz - pr.bz;
     const d = Math.hypot(dx, dy, dz);
@@ -723,7 +779,12 @@ export class FxSystem {
     const k = pr.t / pr.dur;
     if (k >= 1) return false;
     let x, y, z, zq;
-    if (k < pr.rise) {
+    if (pr.vertical && k < Math.max(0,1-.22/pr.dur)) {
+      pr.trail.visible=pr.halo.visible=pr.core.visible=pr.shadow.visible=false;
+      return true;
+    }
+    pr.trail.visible=pr.halo.visible=pr.core.visible=true;
+    if (k < pr.rise && !pr.vertical) {
       const u = k / pr.rise, ub = Math.max(0, u - 0.25);
       const sv = pr.src;
       if (sv && !sv.destroyed) { pr.x0 = sv.x; pr.y0 = sv.y; }
@@ -731,7 +792,8 @@ export class FxSystem {
       z = pr.z0 + SHELL_UP * (1 - (1 - u) * (1 - u));          // out of the barrel fast, slowing as it climbs
       zq = pr.z0 + SHELL_UP * (1 - (1 - ub) * (1 - ub));
     } else {
-      const u = (k - pr.rise) / (1 - pr.rise), ub = Math.max(0, u - 0.25);
+      const start=pr.vertical?Math.max(0,1-.22/pr.dur):pr.rise;
+      const u = (k - start) / (1 - start), ub = Math.max(0, u - 0.25);
       x = pr.tx; y = pr.ty;
       z = pr.tz + SHELL_UP * (1 - u * u);                       // falling faster and faster
       zq = pr.tz + SHELL_UP * (1 - ub * ub) + 0.3;
@@ -812,7 +874,7 @@ export class FxSystem {
   }
 
   /** Arrival burst of a shot (PROJ `hit`): at the target, or the ground under it for shells. */
-  _impact(pr, cam) {
+  _impactAnchored(pr, cam) {
     const spec = pr.spec;
     const p = cam.project(pr.tx, pr.ty, pr.tz, this._g);
     const x = p.x, y = p.y, s = p.s;
@@ -860,11 +922,11 @@ export class FxSystem {
    * brightening plus the blast radius throbbing until the impact. The shell takes the shooter's lock on that spot: the
    * lock ends with this shell's 'bombard' (_landed).
    */
-  mortar(src, x, y, r, flight) {
+  mortar(src, x, y, r, flight, vertical = false) {
     const pr = this._takeProj();
     const gz = this._groundZ(x, y);
-    pr.kind = 'bombardShell'; pr.spec = BOMBARD_SHELL; pr.src = src; pr.tgt = null;
-    pr.x0 = src ? src.x : x; pr.y0 = src ? src.y : y; pr.z0 = src ? chestZ(src) : gz + 0.5;
+    pr.vertical = vertical; pr.kind = 'bombardShell'; pr.spec = BOMBARD_SHELL; pr.src = src; pr.tgt = null;
+    pr.x0 = src ? src.x : x; pr.y0 = src ? src.y : y; pr.z0 = src ? bodyZ(this.ctx.cam(), src, SHOT_HEIGHT.launch) : gz + 0.5;
     pr.tx = x; pr.ty = y; pr.tz = gz;
     pr.t = 0; pr.dur = clamp(flight, 0.1, 4); pr.fade = 0; pr.hit = false; pr.emit = 0; pr.arc = 0; pr.ang = Math.PI / 2;
     pr.rise = pr.dur >= 0.45 ? SHELL_RISE : 0;
@@ -877,9 +939,10 @@ export class FxSystem {
     const rr = Math.max(0.5, r);
     this.ring(x, y, gz, rr, rr * 0.22, 0xff5a3a, pr.dur, 'shock', 'in');
     this.ring(x, y, gz, rr * 0.96, rr, 0xff7a4a, pr.dur, 'ring', 'pulse');
-    if (src && this.rich) {
+    if(vertical)this.ring(x,y,gz,.45,.45,0xff3b30,pr.dur,'reticle','pulse');
+    if (src && this.rich && !vertical) {
       // the shot leaves her upwards: a muzzle flash and a streak climbing out of sight
-      const p = this._chest(src, this._g);
+      const p = this._bodyPt(src, SHOT_HEIGHT.launch, this._g);
       const s = p.s;
       this.particle('muzzle', p.x, p.y, { tint: 0xffc27a, life: 0.1, s0: (s / 64) * 0.6, s1: (s / 64) * 0.8, a0: 1, a1: 0, rot: -Math.PI / 2, anchorX: 0.19 });
       this.particle('glow', p.x, p.y, { tint: 0xffb35c, life: 0.14, s0: (s / 128) * 0.5, s1: (s / 128) * 0.9, a0: 0.9, a1: 0 });
@@ -907,10 +970,11 @@ export class FxSystem {
     if (best && bd <= r + 1.5) this._releaseLock(best);
   }
 
-  _beam(a, b, color, dur = 0.22, jitter = 1) {
-    this.beamList.push({ a, b, color, t: 0, dur, jitter, seed: Math.random() * 1000 });
+  /** A beam from view `a` to view `b`; `chain`: a bounce, `a` is the previous target (it leaves from its chest). */
+  _beam(a, b, color, dur = 0.22, jitter = 1, chain = false) {
+    this.beamList.push({ a, b, color, t: 0, dur, jitter, chain, seed: Math.random() * 1000 });
     if (this.beamList.length > 40) this.beamList.shift();
-    const q = this._chest(b, this._g);
+    const q = this._bodyPt(b, SHOT_HEIGHT.aim, this._g);
     this.particle('flare', q.x, q.y, { tint: color, life: 0.16, s0: (q.s / 128) * 0.7, s1: (q.s / 128) * 0.25, a0: 1, a1: 0, rot: Math.random() });
   }
 
@@ -922,14 +986,15 @@ export class FxSystem {
     for (const bm of this.beamList) {
       bm.t += dt;
       if (bm.t >= bm.dur || !bm.a || !bm.b) continue;
-      this._chest(bm.a, p); const px = p.x, py = p.y, s = p.s;
-      this._chest(bm.b, q);
+      // a chain bounce leaves the previous target where the shot met it (its chest), a beam leaves the shooter's hands
+      this._bodyPt(bm.a, bm.chain ? SHOT_HEIGHT.aim : SHOT_HEIGHT.launch, p); const px = p.x, py = p.y, s = p.s;
+      this._bodyPt(bm.b, SHOT_HEIGHT.aim, q);
       const k = 1 - bm.t / bm.dur;
       const segs = 7;
       // soft glow, coloured body, white-hot core
       for (let pass = 0; pass < 3; pass++) {
-        const wd = pass === 0 ? s * 0.16 : pass === 1 ? s * 0.065 : s * 0.026;
-        g.lineStyle(Math.max(1, wd), pass === 2 ? 0xffffff : bm.color, (pass === 0 ? 0.22 : pass === 1 ? 0.6 : 0.95) * k);
+        const wd = pass === 0 ? s * 0.08 : pass === 1 ? s * 0.035 : s * 0.014;
+        g.lineStyle(Math.max(1, wd), pass === 2 ? 0xffffff : bm.color, (pass === 0 ? 0.1 : pass === 1 ? 0.45 : 0.85) * k);
         g.moveTo(px, py);
         for (let i = 1; i < segs; i++) {
           const f = i / segs;
@@ -1136,7 +1201,7 @@ export class FxSystem {
       }
       if (L.out >= 0) { L.out += dt; if (L.out >= LOCK_FADE) { this._freeLock(L); continue; } }
       const v = L.view;
-      if (v && !v.destroyed && v.alive !== false) { L.x = v.x; L.y = v.y; L.z = chestZ(v); }
+      if (v && !v.destroyed && v.alive !== false) { L.x = v.x; L.y = v.y; L.z = bodyZ(cam, v, SHOT_HEIGHT.aim); }
       const p = cam.project(L.x, L.y, L.z, this._p);
       const s = p.s;
       const out = L.out >= 0 ? L.out / LOCK_FADE : 0;
@@ -1157,7 +1222,7 @@ export class FxSystem {
   // ---- hits / numbers -----------------------------------------------------------------------------------------
 
   /** b.ev 'dmg' visual: glow + sparks in the hit colour; a melee blow (atk 'none' just before) adds its slash. */
-  damage(view, amount, type, srcView) {
+  _damage(view, amount, type, srcView) {
     if (!view) return;
     const style = dmgStyleKey(type);
     const p = this._chest(view);
@@ -1165,9 +1230,9 @@ export class FxSystem {
     const tint = HIT_TINT[style] || 0xffffff;
     const big = view.maxHp > 0 && amount >= view.maxHp * 0.18;
     const melee = !!srcView && this._slashAt === srcView.id;
-    this.particle('glow', px, py, { tint, life: 0.18, s0: (s / 128) * (big ? 1.0 : 0.6), s1: (s / 128) * (big ? 1.5 : 0.9), a0: 0.9, a1: 0 });
+    if(!melee)this.particle('glow', px, py, { tint, life: 0.18, s0: (s / 128) * (melee ? .18 : big ? 1.0 : .6), s1: (s / 128) * (melee ? .24 : big ? 1.5 : .9), a0: melee ? .25 : .9, a1: 0 });
     if (melee) { this._slashAt = null; this._slash(view, srcView, px, py, s, style, big); }
-    this.burst(px, py, s, big ? 8 : melee ? 6 : 4, tint, { speed: melee ? 2.8 : 2.4, size: big ? 0.6 : 0.46 });
+    if(!melee)this.burst(px, py, s, big ? 8 : 4, tint, { speed: melee ? 2.8 : 2.4, size: melee ? .18 : big ? 0.6 : 0.46 });
     if (srcView && this.ctx.subProfOf && SPLASH_SUBS.has(this.ctx.subProfOf(srcView.info?.defId))) {
       if (!this._lastRing || this.time - this._lastRing > 0.08) {
         this._lastRing = this.time;
@@ -1186,16 +1251,22 @@ export class FxSystem {
     const q = this._chest(src, this._q);
     const dx = px - q.x, dy = py - q.y;
     const ang = Math.abs(dx) + Math.abs(dy) > 1 ? Math.atan2(dy, dx) : (src.x > view.x ? Math.PI : 0);
-    const rot = ang + Math.PI / 2 + (Math.random() - 0.5) * 0.9;
-    const flip = Math.random() < 0.5 ? -1 : 1;
-    const k = big ? 1.25 : 1;
-    const a = this.particle('slash', px, py, { tint: style === 'phys' ? 0xffe2b0 : HIT_TINT[style] || 0xffffff, life: 0.2, s0: (s / 128) * 1.05 * k, s1: (s / 128) * 1.3 * k, a0: 1, a1: 0, rot });
-    a.sx = flip;
-    const b = this.particle('slash', px, py, { tint: 0xffffff, life: 0.12, s0: (s / 128) * 0.8 * k, s1: (s / 128) * 1.0 * k, a0: 0.85, a1: 0, rot });
-    b.sx = flip;
+    // Flat, short weapon strokes: no additive halo or sparkling burst.
+    const family=meleeStyle(src.info,style),g=new this.P.Graphics();
+    const tint=style==='phys'?0xddd8cd:HIT_TINT[style]||0xa9b8cf;
+    g.position.set(px,py);g.rotation=ang;
+    g.lineStyle(Math.max(.8,s*.018),tint,.85);
+    const reach=s*(big?.3:.22);
+    if(family==='thrust')g.moveTo(-reach,0).lineTo(reach*.3,0);
+    else if(family==='impact'){g.moveTo(-reach*.4,-reach*.45).lineTo(reach*.4,reach*.45);g.moveTo(-reach*.4,reach*.45).lineTo(reach*.4,-reach*.45);}
+    else if(family==='claw'){for(let i=-1;i<=1;i++)g.moveTo(-reach*.6,i*reach*.25-reach*.5).lineTo(reach*.3,i*reach*.25+reach*.5);}
+    else g.moveTo(-reach*.5,-reach*.65).lineTo(0,-reach*.1).lineTo(reach*.5,reach*.65);
+    this.ctx.layers.fxNormal.addChild(g);
+    this.contacts.push({g,t:0,dur:family==='impact'?.09:.12,x:view.x,y:view.y,z:bodyZ(this.ctx.cam(),view,SHOT_HEIGHT.aim),s});
+    if(this.contacts.length>80)this.contacts.shift().g.destroy();
   }
 
-  heal(view, amount) {
+  _heal(view, amount) {
     if (!view) return;
     const p = this._chest(view);
     const s = p.s;
@@ -1502,79 +1573,45 @@ export class FxSystem {
    * Skill activation (on) / end (off). On: a flash at the body, a gold light pillar with a white-hot core from the
    * feet, a shockwave and a hex ring on the ground, rising motes — then the active aura (_aura) until it ends.
    */
-  skill(view, on) {
+  _skill(view, on) {
     if (!view) return;
     if (!on) { this._aura(view, false); return; }
-    const z = (view.z || 0) + (view.hover || 0);
-    const g = this._proj(view.x, view.y, z, this._g);
-    const gx = g.x, gy = g.y, s = g.s;
+    if(view.info?.skillDuration===0 && view.info.skillZoneGrid?.length){
+      const tiles=view.info.skillZoneGrid.map(([dr,dc])=>{const [r,c]=view.dir==='UP'?[dc,-dr]:view.dir==='LEFT'?[-dr,-dc]:view.dir==='DOWN'?[-dc,dr]:[dr,dc];return [Math.round(view.y+r),Math.round(view.x+c)];});
+      this.tileFlash(tiles,0x90dfc8,.45);
+    }
     const c = this._chest(view, this._q);
-    this.particle('pillar', gx, gy, { tint: SKILL_GOLD, life: 0.7, s0: (s / 64) * 1.05, s1: (s / 64) * 1.3, a0: 0.95, a1: 0, sx: 0.8, ay: 1 });
-    this.particle('pillar', gx, gy, { tint: 0xffffff, life: 0.38, s0: (s / 64) * 0.9, s1: (s / 64) * 1.15, a0: 0.9, a1: 0, sx: 0.28, ay: 1 });
-    this.particle('flare', c.x, c.y, { tint: 0xfff0b0, life: 0.3, s0: (s / 128) * 1.9, s1: (s / 128) * 0.6, a0: 1, a1: 0, rot: Math.random() });
-    this.particle('glow', c.x, c.y, { tint: SKILL_GOLD, life: 0.36, s0: (s / 128) * 1.2, s1: (s / 128) * 2.4, a0: 0.9, a1: 0 });
-    this.ring(view.x, view.y, z, 0.15, 1.7, 0xffe7a0, 0.45, 'shock');
-    this.ring(view.x, view.y, z, 0.3, 1.25, SKILL_GOLD, 0.6, 'hex');
-    this.burst(c.x, c.y, s, this.rich ? 10 : 4, 0xffe28a, { speed: 1.4, up: 1.6, life: 0.7, tex: 'dot', size: 0.34 });
+    this.particle('flare', c.x, c.y, {tint:0xffcc83,life:.12,s0:c.s/128*.35,s1:c.s/128*.15,a0:.48,a1:0});
     this._aura(view, true);
   }
 
-  /** Active-skill aura: a soft gold glow and a slowly turning hex on the ground under the unit (fading in / out). */
+  /** Subtle, repeating skill-state marks beside the unit; no rotating magic circle. */
   _aura(view, on) {
-    const P = this.P;
-    let a = this.auras.get(view.id);
-    if (on) {
-      if (!a) {
-        // the root is squashed onto the ground; the hex turns inside it (so it turns in the ground plane)
-        const root = new P.Container();
-        const disc = new P.Sprite(this.tex.soft);
-        disc.anchor.set(0.5); disc.blendMode = P.BLEND_MODES.ADD; disc.tint = SKILL_GOLD;
-        const hex = new P.Sprite(this.tex.hex);
-        hex.anchor.set(0.5); hex.blendMode = P.BLEND_MODES.ADD; hex.tint = 0xffc94a;
-        root.addChild(disc, hex);
-        root.alpha = 0;
-        this.ctx.layers.groundFx.addChild(root);
-        a = { sp: root, disc, hex, view, t: 0, mote: 0 };
-        this.auras.set(view.id, a);
-      }
-      a.view = view;
-      a.off = false;
-    } else if (a) a.off = true;
+    let a=this.auras.get(view.id);
+    if(on){
+      if(!a){const sp=new this.P.Graphics();sp.alpha=0;this.ctx.layers.fxNormal.addChild(sp);
+        a={sp,view,t:0};this.auras.set(view.id,a);}
+      a.view=view;a.off=false;
+    }else if(a)a.off=true;
   }
 
   _updateAuras(dt) {
-    if (!this.auras.size) return;
-    const cam = this.ctx.cam();
-    const p = this._p, q = this._q;
-    const rich = this.rich;
-    for (const [id, a] of this.auras) {
-      a.t += dt;
-      const v = a.view;
-      const ending = a.off || !v || v.destroyed || v.alive === false;
-      if (ending) {
-        a.sp.alpha -= dt * 3;
-        if (a.sp.alpha <= 0) { a.sp.destroy({ children: true }); this.auras.delete(id); continue; }
-      } else a.sp.alpha = Math.min(1, a.sp.alpha + dt * 5);
-      if (!v || v.destroyed) continue;
-      const z = (v.z || 0) + 0.01;
-      this._onGround(a.sp, v.y, v.z || 0);
-      cam.project(v.x, v.y, z, p);
-      cam.project(v.x, v.y + 0.55, z, q);
-      a.sp.position.set(p.x, p.y);
-      a.sp.scale.set((p.s * 0.95) / 128, (Math.max(1, p.y - q.y) * 1.72) / 128);
-      a.hex.rotation = a.t * 0.9;
-      a.hex.alpha = 0.8 + 0.2 * Math.sin(a.t * 4);
-      a.disc.alpha = 0.42 + 0.1 * Math.sin(a.t * 4);
-      // now and then a mote rises from the ring
-      if (rich && !ending && (a.mote += dt) >= 0.3) {
-        a.mote = 0;
-        if (this._room()) {
-          const ang = Math.random() * Math.PI * 2;
-          const m = cam.project(v.x + Math.cos(ang) * 0.38, v.y + Math.sin(ang) * 0.3, z, this._g);
-          const o = this._o();
-          o.tint = 0xffe28a; o.vy = -m.s * 0.9; o.life = 0.75; o.s0 = (m.s / 32) * 0.14; o.s1 = 0; o.a0 = 0.9; o.fadeIn = 0.1;
-          this.particle('dot', m.x, m.y, o);
-        }
+    const cam=this.ctx.cam();
+    for(const [id,a] of this.auras){
+      a.t+=dt;const v=a.view;
+      const ending=a.off||!v||v.destroyed||v.alive===false;
+      a.sp.alpha=ending?a.sp.alpha-dt*3:Math.min(.85,a.sp.alpha+dt*3);
+      if(a.sp.alpha<=0&&ending){a.sp.destroy();this.auras.delete(id);continue;}
+      if(!v||v.destroyed)continue;
+      const p=cam.project(v.x,v.y,(v.z||0)+(v.hover||0)+(v.lift||0),this._p);
+      this._onGround(a.sp,v.y,v.z||0);a.sp.position.set(p.x,p.y);
+      a.sp.clear();
+      for(let i=0;i<3;i++){
+        const progress=(a.t*.8+i/3)%1,fade=Math.sin(progress*Math.PI);
+        const y=-p.s*(.08+progress*.55),w=p.s*.065;
+        a.sp.lineStyle(Math.max(.9,p.s*.012),0xffc37a,fade*.95);
+        for(const side of [-1,1]){const x=side*p.s*.23;
+          a.sp.moveTo(x-w,y+w).lineTo(x,y).lineTo(x+w,y+w);}
       }
     }
   }
@@ -1676,7 +1713,7 @@ export class FxSystem {
    * t (shell flight, game s), src / from / to / target / targets (unit ids), fx, fy / fromX, fromY / tx, ty (positions),
    * element, n, scale, kind, tiles.
    */
-  simFx(kind, x, y, extra) {
+  _simFx(kind, x, y, extra) {
     const ex = extra && typeof extra === 'object' ? extra : {};
     const spec = fxSpec(kind, ex);
     if (spec.a === 'none') return; // an event the screen does not show (hitCap)
@@ -1705,7 +1742,7 @@ export class FxSystem {
         // 蕾缪安 S3: a shell fired now by `id` that lands at (x, y) after `t` game seconds (its 'bombard' explodes there)
         const flight = num(ex.t ?? ex.flight ?? ex.dur ?? ex.duration, 1) / ts;
         this._touchLocks(ex.id ?? ex.src ?? null);
-        this.mortar(this._viewOf(ex.id ?? ex.src), at.x, at.y, r, flight);
+        this.mortar(this._viewOf(ex.id ?? ex.src), at.x, at.y, r, flight, !!ex.vertical);
         break;
       }
       case 'zone': this.zone(at.x, at.y, at.z, r, col, Math.max(0.6, dur || 1.5), spec.tex); break;
@@ -1803,7 +1840,7 @@ export class FxSystem {
           // `id` is always the locked enemy: the reticle sticks to its view even a little off the event's spot
           const lv = at.v || this._viewOf(ex.id);
           this._touchLocks(ex.src ?? null);
-          this._lock(lv, ex.src ?? null, lv ? lv.x : at.x, lv ? lv.y : at.y, lv ? chestZ(lv) : at.z + 0.55);
+          this._lock(lv, ex.src ?? null, lv ? lv.x : at.x, lv ? lv.y : at.y, lv ? bodyZ(cam, lv, SHOT_HEIGHT.aim) : at.z + 0.55);
           break;
         }
         const v = at.v;
@@ -1925,7 +1962,7 @@ export class FxSystem {
    * coloured ring on the ground, sparks and smoke. o.heavy (bombard, airstrike …): longer, more sparks, debris flying
    * and a scorch mark; o.small (shell impacts): no coloured ring, fewer sparks; o.tiles: flash those tiles too.
    */
-  explosion(x, y, z, r, col, o = NO_OPTS) {
+  _explosion(x, y, z, r, col, o = NO_OPTS) {
     const cam = this.ctx.cam();
     const g = cam.project(x, y, z + 0.3, this._g);
     const gx = g.x, gy = g.y, s = g.s;
@@ -2086,7 +2123,7 @@ export class FxSystem {
   snowfall(tint) {
     const size = this.ctx.screenSize();
     for (let i = 0; i < (this.quality === 'low' ? 10 : 26); i++) {
-      this.particle('dot', Math.random() * size.width, Math.random() * size.height * 0.7, { tint, vx: 30 + Math.random() * 40, vy: 60 + Math.random() * 60, life: 1 + Math.random() * 0.6, s0: 0.25 + Math.random() * 0.3, s1: 0.1, a0: 0.8, a1: 0, fadeIn: 0.2 });
+      this.particle('dot', Math.random() * size.width, Math.random() * size.height * 0.7, { screen:true, tint, vx: 30 + Math.random() * 40, vy: 60 + Math.random() * 60, life: 1 + Math.random() * 0.6, s0: 0.25 + Math.random() * 0.3, s1: 0.1, a0: 0.8, a1: 0, fadeIn: 0.2 });
     }
   }
 
@@ -2096,13 +2133,14 @@ export class FxSystem {
   }
 
   /** Screen-space pop (bond layer gain / bounty coins). `icon` = texture or null. */
-  pop(icon, label, tint, i = 0) {
+  pop(icon, label, tint, i = 0, at = null) {
     const P = this.P;
     const size = this.ctx.screenSize();
     const top = this.ctx.fieldTop ? this.ctx.fieldTop() : size.height * 0.2;
     const c = new P.Container();
     const x = size.width / 2 + (i % 5 - 2) * 70;
-    c.position.set(x, top);
+    const anchor = at ? this._proj(at[0],at[1],this._groundZ(at[0],at[1])) : null;
+    c.position.set(anchor?.x ?? x, anchor ? anchor.y - 65 : top);
     if (icon) {
       const glow = new P.Sprite(this.tex.glow);
       glow.anchor.set(0.5); glow.tint = tint; glow.blendMode = P.BLEND_MODES.ADD; glow.scale.set(0.9);
@@ -2129,7 +2167,7 @@ export class FxSystem {
       c.addChild(t);
     }
     this.ctx.layers.screen.addChild(c);
-    this.pops.push({ c, t: 0, dur: 1.4, y0: top });
+    this.pops.push({ c, t: 0, dur: 1.4, y0: c.position.y, at });
     if (this.pops.length > 12) { const o = this.pops.shift(); o.c.destroy({ children: true }); }
   }
 
@@ -2139,6 +2177,7 @@ export class FxSystem {
       p.t += dt;
       if (p.t >= p.dur) { p.c.destroy({ children: true }); continue; }
       const k = p.t / p.dur;
+      if(p.at){const a=this._proj(p.at[0],p.at[1],this._groundZ(p.at[0],p.at[1]));p.c.position.x=a.x;p.y0=a.y-65;}
       p.c.position.y = p.y0 - 40 * easeOut(k);
       p.c.alpha = k < 0.15 ? k / 0.15 : k > 0.7 ? 1 - (k - 0.7) / 0.3 : 1;
       const s = k < 0.15 ? 0.6 + (k / 0.15) * 0.5 : 1.1 - Math.min(0.1, (k - 0.15));
@@ -2150,6 +2189,7 @@ export class FxSystem {
 
   /** Remove everything (battle reset). */
   clear() {
+    for(const c of this.contacts)c.g.destroy();this.contacts.length=0;
     for (const p of this.parts) this._freeParticle(p);
     this.parts.length = 0;
     for (const pr of this.projs) this._releaseProj(pr);
@@ -2181,6 +2221,7 @@ export class FxSystem {
   }
 
   update(dt) {
+    this.contacts=this.contacts.filter(c=>{c.t+=dt;if(c.t>=c.dur){c.g.destroy();return false;}const p=this.ctx.cam().project(c.x,c.y,c.z);c.g.position.set(p.x,p.y);c.g.scale.set(p.s/Math.max(1,c.s));c.g.alpha=1-c.t/c.dur;return true;});
     this.time += dt;
     this._updateParticles(dt);
     this._updateProjs(dt);

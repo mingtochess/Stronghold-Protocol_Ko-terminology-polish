@@ -72,7 +72,7 @@ test('D1 real path, drain alone: 信仰搅拌机 S3 fires on a 源石溶剂 tick
     assert.ok(rec.casts.length >= 1, `${mixId}: S3 cast from the drain alone`);
     const first = rec.casts[0];
     assert.equal(first.reason, 'TAKE_DAMAGE');
-    const ready = sk.spCost - sk.initSp;
+    const ready = u.deployedAt + sk.spCost - sk.initSp;
     assert.ok(first.t >= ready - 1e-6 && first.t <= ready + 1 + 1e-6, `${mixId}: cast at the first tick after ${ready} s (${first.t})`);
     // counters with nobody in range: one bullet per drain tick, every one with no enemy on the field
     assert.ok(rec.ammo.length >= 6, `${mixId}: bullets spent (${rec.ammo.length})`);

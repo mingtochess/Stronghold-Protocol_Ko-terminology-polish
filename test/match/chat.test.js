@@ -73,9 +73,9 @@ test('factions are validated, announced with authoritative identity and retained
     assert.equal(h.m.handle('p_0', {t:'g.chatFaction', faction:'염국'}).error, 'RATE');
     assert.deepEqual(h.m.handle('p_1', {t:'g.chatFaction', faction:'염국'}), {ok:true});
     h.m.handle('p_0', {t:'g.chat', text:'hello', faction:'염국'});
-    assert.equal(h.m.chatHistory.at(-1).faction, '카시미어');
+    assert.equal(h.m.chatHistory.at(-1).faction, CHAT_FACTIONS.at(-1).name);
     assert.equal(h.m.chatHistory[0].faction, '염국');
     h.m.onReconnect('p_0');
-    assert.equal(h.lastTo('p_0','m.chatHistory').faction, '카시미어');
+    assert.equal(h.lastTo('p_0','m.chatHistory').faction, CHAT_FACTIONS.at(-1).name);
   } finally { h.m.dispose(); }
 });

@@ -25,11 +25,11 @@ function FactionChips({ types }) {
 }
 
 function EnemiesTab({ pub, priv, onEnemy }) {
-  const rows = groupEnemies(priv?.nextEnemies, (k) => data.lookup('enemies', k));
+  const rows = groupEnemies((priv?.nextEnemies||[]).filter(e=>!e.boss&&e.tag!=='boss'), (k) => data.lookup('enemies', k));
   const types = factionTypes(pub?.factions);
   const f = data.get('factions')?.types || {};
   const total = rows.reduce((s, r) => s + r.count, 0);
-  const boss = pub?.bossId ? data.lookup('bosses', pub.bossId) : null;
+  const boss = null;
   return html`<div class="edrawer__body">
     <div class="edrawer__sum">
       <span>第 <b class="num">${pub?.round ?? '-'}</b> 回合 · 即将迎击 <b class="num t-orange">${total}</b> 名敌人</span>

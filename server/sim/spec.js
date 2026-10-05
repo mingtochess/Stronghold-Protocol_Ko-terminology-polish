@@ -1,3 +1,4 @@
+import { customFactionData } from '../../shared/customFactions.js';
 // server/sim/spec.js — BattleSpec: the JSON description of one battle, built by the server and simulated identically
 // by the server (headless / takeover / verification) and by browsers (the authoritative client and display replicas).
 // DESIGN §14. Pure ESM (served at /sim/spec.js): no Node API.
@@ -22,7 +23,7 @@
 // ownerLoadout)); an explicit loadout argument always wins over the view's per-chess lookup.
 
 import { Battle } from './Battle.js';
-import { toDataSource, withUnitLoadouts } from './simdata.js';
+import { DataSource, toDataSource, withUnitLoadouts } from './simdata.js';
 import { BOSS_POOL_MIN_HP } from './constants.js';
 
 export const SPEC_VERSION = 1;
@@ -80,7 +81,8 @@ const LOADOUT_ID = /^[A-Za-z0-9_\-]{1,64}$/;
 export function sanitizeUnitLoadout(u) {
   if ('skillIndex' in u && !(Number.isInteger(u.skillIndex) && u.skillIndex >= 0 && u.skillIndex <= 9)) delete u.skillIndex;
   if ('moduleId' in u && !(typeof u.moduleId === 'string' && LOADOUT_ID.test(u.moduleId))) delete u.moduleId;
-  if (u.kind === 'token') { delete u.skillIndex; delete u.moduleId; }
+  if ('skinId' in u && !(typeof u.skinId === 'string' && LOADOUT_ID.test(u.skinId))) delete u.skinId;
+  if (u.kind === 'token') { delete u.skillIndex; delete u.moduleId; delete u.skinId; }
   return u;
 }
 
@@ -99,6 +101,10 @@ export { withUnitLoadouts };
 export function createBattleFromSpec(spec, dataSource, opts = {}) {
   if (!spec || typeof spec !== 'object') throw new TypeError('createBattleFromSpec: spec required');
   const s = jsonClone(spec);
+  if (s.flags?.customFactions === false) {
+    const ds = toDataSource(dataSource);
+    dataSource = new DataSource(customFactionData(ds.raw, false), null);
+  }
   const bossLike = s.kind === 'boss' || s.kind === 'hidden';
   let sharedBoss = opts.sharedBoss ?? null;
   if (!sharedBoss && bossLike && s.boss) sharedBoss = new LocalBossPool(s.boss.poolMax, s.boss.poolHp);

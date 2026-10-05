@@ -43,11 +43,11 @@ export function matchInfoModel(pub, { bonds = [], chess = () => null, mode = nul
   const list = (Array.isArray(bonds) ? bonds : []).filter((b) => !!b && typeof b === 'object' && typeof b.bondId === 'string')
     .sort((a, b) => (a.bondOrder ?? 0) - (b.bondOrder ?? 0) || (a.identifier ?? 0) - (b.identifier ?? 0));
   const tierOf = (id) => chess(id)?.tier ?? 0;
-  const banned = (Array.isArray(pub?.bannedChess) ? pub.bannedChess : []).filter((id) => typeof id === 'string' && !!chess(id))
+  const banned = (Array.isArray(pub?.bannedChess) ? pub.bannedChess : []).filter((id) => typeof id === 'string' && !!chess(id) && !chess(id).optionalRecruit)
     .sort((a, b) => tierOf(a) - tierOf(b));
   return {
     sets, stateOf, bonds: list, core: list.filter((b) => b.isCore), addon: list.filter((b) => !b.isCore),
-    banned, perBond: bannedPerBond(list, banned),
+    banned, bannedGroups: list.map(b=>({bondId:b.bondId,name:b.name,ids:banned.filter(id=>(chess(id)?.bonds||[]).includes(b.bondId))})).filter(g=>g.ids.length), perBond: bannedPerBond(list, banned),
   };
 }
 
@@ -94,9 +94,7 @@ export function BannedOperators({ model }) {
   const { banned } = model;
   return html`<div class="brief-banned">
     <h3 class="brief-h"><span>本局禁用干员</span><${MicroLabel}>BANNED OPERATORS</${MicroLabel}><b class="num brief-banned__n">${banned.length}</b></h3>
-    ${banned.length ? html`<div class="brief-banned__grid">
-      ${banned.map((id) => html`<${UnitThumb} key=${id} kind="chess" id=${id} size="sm" dim=${true} />`)}
-    </div>` : html`<p class="t-dim">本局没有禁用干员</p>`}
+    ${banned.length ? html`${(model.bannedGroups?.length ? model.bannedGroups : [{bondId:'other',name:'기타',ids:banned}]).map(g=>html`<section class="brief-banned__group" key=${g.bondId}><h4>${g.bondId !== 'other' ? html`<${BondDisc} name=${g.name} icon=${bondIconUrl(data.get('assets'), g.bondId)} showName=${false} size="sm" />` : null}<span>${g.name}</span></h4><div class="brief-banned__grid">${g.ids.map(id=>html`<${UnitThumb} key=${id} kind="chess" id=${id} size="sm" dim=${false} />`)}</div></section>`)}` : html`<p class="t-dim">本局没有禁用干员</p>`}
   </div>`;
 }
 

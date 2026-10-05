@@ -66,6 +66,7 @@ export const ICONS = {
   info: { d: 'M12 2a10 10 0 1 1 0 20 10 10 0 0 1 0-20zm-1 8v7h2v-7zm0-3v2h2V7z', eo: true },
   warn: { d: 'M12 2 1 21h22zm-1 7v6h2V9zm0 7.5v2h2v-2z', eo: true },
   play: { d: 'M7 4v16l13-8z' },
+  mic: { d: 'M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.9V21H8v2h8v-2h-3v-3.1A7 7 0 0 0 19 11z' },
   edit: { d: 'M3 17.2V21h3.8l11-11-3.8-3.8zM20.7 7.1a1 1 0 0 0 0-1.4l-2.4-2.4a1 1 0 0 0-1.4 0l-1.8 1.8 3.8 3.8z' },
   sword: { d: 'M20 3h1v4L10.4 17.6l1.4 1.4-1.4 1.4-2.1-2.1-3.5 3.5-1.4-1.4 3.5-3.5L4.8 14.8l1.4-1.4 1.4 1.4L18 4z' },
   shield: { d: 'M12 2 4 5v6c0 5 3.4 9.3 8 11 4.6-1.7 8-6 8-11V5z' },
@@ -74,6 +75,8 @@ export const ICONS = {
   collapse: { d: 'M8 3h2v7H3V8h5zm6 0h2v5h5v2h-7zM3 14h7v7H8v-5H3zm11 0h7v2h-5v5h-2z' },
   rotate: { d: 'M7 2h8a2 2 0 0 1 2 2v7h-2V4H7v16h4v2H7a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zm8 12h5a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-5a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2zm0 2v4h5v-4z', eo: true },
   book: { d: 'M2 4h7.5A3.5 3.5 0 0 1 12 5.1 3.5 3.5 0 0 1 14.5 4H22v16h-7.5a1.5 1.5 0 0 0-1.5 1.5h-2A1.5 1.5 0 0 0 9.5 20H2zm2 2v12h5.5c.5 0 1 .1 1.5.3V7.5A1.5 1.5 0 0 0 9.5 6zm10.5 0A1.5 1.5 0 0 0 13 7.5v10.8c.5-.2 1-.3 1.5-.3H20V6z', eo: true },
+  // 观战 (spectator seats; the same eye as gameComponents.js GIcon 'eye')
+  eye: { d: 'M12 5c5 0 9 4.5 10 7-1 2.5-5 7-10 7S3 14.5 2 12c1-2.5 5-7 10-7zm0 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm0 2a2 2 0 1 1 0 4 2 2 0 0 1 0-4z', eo: true },
 };
 
 /**
@@ -678,7 +681,7 @@ const SEAT_HUES = [162, 196, 38, 280];
  * @param {{ name?: string, src?: string, size?: 'sm'|'md'|'lg'|'xl', seat?: number, host?: boolean, bot?: boolean,
  *   self?: boolean, ready?: boolean, offline?: boolean, dead?: boolean, empty?: boolean, class?: string }} props
  */
-export function AvatarFrame({ name = '', src, size = 'md', seat = 0, host, bot, self, ready, offline, dead, empty, class: cls }) {
+export function AvatarFrame({ name = '', src, size = 'md', seat = 0, host, bot, self, ready, offline, dead, empty, badge = null, class: cls }) {
   const [badSrc, setBadSrc] = useState(null);
   const imgOk = !!src && badSrc !== src;
   const hue = SEAT_HUES[((seat | 0) % 4 + 4) % 4];
@@ -694,6 +697,7 @@ export function AvatarFrame({ name = '', src, size = 'md', seat = 0, host, bot, 
     ${host ? html`<span class="avatar__badge avatar__badge--host" title="创建者"><${Icon} name="crown" /></span>` : null}
     ${self ? html`<span class="avatar__badge avatar__badge--self" title="你"><${Icon} name="user" /></span>` : null}
     ${bot && !empty ? html`<span class="avatar__tag">AI</span>` : null}
+    ${badge}
   </div>`;
 }
 

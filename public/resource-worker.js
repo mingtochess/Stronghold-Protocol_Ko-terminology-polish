@@ -24,10 +24,13 @@ async function complete(cache, resources) {
 
 async function download(file, cache) {
   if (await cache.match(file.path)) return;
+  const previous=await caches.match(file.path);
+  if(previous){await cache.put(file.path,previous);return;}
   let lastError;
   for (const source of file.sources) {
-    const url = new URL(source);
-    if (url.protocol !== 'https:' || !['cdn.jsdelivr.net', 'raw.githubusercontent.com'].includes(url.hostname)) throw new Error('허용되지 않은 리소스 출처');
+    const url = new URL(source, self.location.origin);
+    const local = file.local && source === file.path && url.origin === self.location.origin && /^\/assets\//.test(url.pathname);
+    if (!local && (url.protocol !== 'https:' || !['cdn.jsdelivr.net', 'raw.githubusercontent.com'].includes(url.hostname))) throw new Error('허용되지 않은 리소스 출처');
     try {
       const response = await fetch(source, { mode: 'cors', credentials: 'omit', signal: AbortSignal.timeout(30000) });
       if (!response.ok || response.type === 'opaque') throw new Error(`HTTP ${response.status}`);
@@ -42,10 +45,10 @@ async function download(file, cache) {
   throw new Error(`${file.path}: ${lastError?.message || '다운로드 실패'}`);
 }
 
-async function prepare() {
+async function prepare(background = false) {
   const resources = await index();
   const cache = await caches.open(PREFIX + resources.version);
-  await cache.delete('/__resources_ready__');
+  if(!background)await cache.delete('/__resources_ready__');
   const failures = [];
   let next = 0, done = 0;
   const run = async () => {
@@ -55,7 +58,7 @@ async function prepare() {
       send({ type: 'progress', done: ++done, total: resources.files.length });
     }
   };
-  await Promise.all(Array.from({ length: 6 }, run));
+  await Promise.all(Array.from({ length: background ? 2 : 6 }, run));
   if (failures.length) throw new Error(`${failures.length}개 파일을 받지 못했습니다. 다시 시도하면 받은 파일은 재사용합니다.\n${failures.slice(0, 3).join('\n')}`);
   // Match the repository pipeline's atlas normalization, using actual cached PNG dimensions.
   for (const file of resources.files.filter(f => f.atlas)) {
@@ -91,11 +94,14 @@ self.addEventListener('message', event => {
         indexPromise = undefined;
         const resources = await index();
         const cache = await caches.open(PREFIX + resources.version);
-        port.postMessage({ type: 'status', ready: await complete(cache, resources) });
-      } else if (event.data.type === 'prepare') {
+        const current=await complete(cache,resources);
+        let reusable=false;
+        if(!current)for(const name of await caches.keys()){if(!name.startsWith(PREFIX))continue;const old=await caches.open(name);if(await old.match('/__resources_ready__') && await old.match('/fonts/fonts.css')){reusable=true;break;}}
+        port.postMessage({type:'status',ready:current||reusable,patch:!current&&reusable});
+      } else if (event.data.type === 'prepare' || event.data.type === 'preparePatch') {
         listeners.add(port);
         try {
-          preparing ||= prepare().finally(() => { preparing = undefined; });
+          preparing ||= prepare(event.data.type === 'preparePatch').finally(() => { preparing = undefined; });
           port.postMessage(await preparing);
         } finally { listeners.delete(port); }
       }
@@ -106,16 +112,23 @@ self.addEventListener('message', event => {
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
   if (url.origin !== self.location.origin || event.request.method !== 'GET' ||
-      !/^\/(assets|fonts|media)\//.test(url.pathname)) return;
+      (!/^\/(assets|fonts|media|data|i18n)\//.test(url.pathname) && url.pathname !== '/vendor/browser-resources.json')) return;
   event.respondWith((async () => {
     const resources = await index();
     const cache = await caches.open(PREFIX + resources.version);
-    let path = url.pathname;
+    let path = url.pathname + url.search;
+    if(/^\/(data|i18n)\//.test(url.pathname)||url.pathname==='/vendor/browser-resources.json'){
+      try{const response=await fetch(event.request);if(response.ok)await cache.put(path,response.clone());return response;}
+      catch(error){const old=await cache.match(path);if(old)return old;throw error;}
+    }
     if (path.startsWith('/media/')) {
       const stem = '/assets/audio/' + path.slice('/media/'.length);
       path = resources.files.find(f => ['.mp3', '.ogg', '.wav'].some(ext => f.path === stem + ext))?.path || path;
     }
-    const cached = await cache.match(path);
-    return cached || fetch(event.request);
+    const cached = await cache.match(path) || await caches.match(path) || await caches.match(url.pathname);
+    if(cached){await cache.put(path,cached.clone());return cached;}
+    const response=await fetch(event.request);
+    if(response.ok)await cache.put(path,response.clone());
+    return response;
   })());
 });

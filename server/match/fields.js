@@ -31,6 +31,7 @@
 //   syntheticResult(players, progress)     stand-in when a boss field's client never reported
 import { TICK, SNAPSHOT_EVERY } from '../sim/constants.js';
 import { layerGainRoom } from '../../shared/constants.js';
+import { offspringMods } from '../../shared/enemyRewards.js';
 import { uniteLeft } from '../sim/spec.js';
 import { GRANTED_CAP_OVERRIDE } from '../sim/content/garrisons/battle.js';
 
@@ -788,17 +789,17 @@ export function validateClientResult(spec, raw, { gd = null } = {}) {
           if (!counted && !B.uncountedKeys.has(key) && !B.derived.has(key)) return bad('uncounted leak');
         }
         // mods / tag / source come from the spawn schedule (a leak re-enters 联防 with them). An enemy content spawned
-        // (a split, a summon) carries its parent's mods — the round multipliers, a bounty id — so the leak's mods may
-        // equal another schedule entry's: keep those (dropping them would re-enter it weaker and lose its bounty)
+        // (a split, a summon) keeps its parent's combat multipliers, but cannot inherit its bounty reward.
         const cands = spawnMods.get(key) || [];
         const match = cands.find((s) => sameMods(s.mods ?? null, l.mods ?? null)) || null;
         const src = match || cands[0] || null;
-        const parent = match ? null : (spec.spawns || []).find((s) => s && typeof s.enemyKey === 'string' && sameMods(s.mods ?? null, l.mods ?? null)) || null;
+        const parent = match ? null : (spec.spawns || []).find((s) => s && typeof s.enemyKey === 'string' && derivedKeys(gd, s.enemyKey).includes(key)
+          && (sameMods(s.mods ?? null, l.mods ?? null) || sameMods(offspringMods(s.mods), l.mods ?? null))) || null;
         const modsOf = (s) => (s && s.mods ? { ...s.mods } : null);
-        const mods = match ? modsOf(match) : parent ? modsOf(parent) : modsOf(src);
+        const mods = match ? modsOf(match) : parent ? offspringMods(parent.mods) : modsOf(src);
         let sourcePlayerId = typeof l.sourcePlayerId === 'string' ? l.sourcePlayerId : null;
         if (spec.kind === 'unite') {
-          if (!sourcePlayerId || !B.sources.has(sourcePlayerId)) sourcePlayerId = src && typeof src.sourcePlayerId === 'string' ? src.sourcePlayerId : null;
+          if (!sourcePlayerId || !B.sources.has(sourcePlayerId)) sourcePlayerId = (src || parent)?.sourcePlayerId ?? null;
           // whose LP a surviving enemy costs: never more of (key, leaker) than that leaker sent into the 联防 — or, for a
           // split / summon, than the enemies that leaker sent in can leave behind
           if (!takeSource(key, sourcePlayerId) && !takeDerived(key, sourcePlayerId)) return bad('leak source');
@@ -829,10 +830,11 @@ export function validateClientResult(spec, raw, { gd = null } = {}) {
       const seen = new Set();
       for (const u of Array.isArray(p.unitsEnd) ? p.unitsEnd : []) {
         // units the sim created during the battle (no board uid) or not on this player's board carry nothing the match uses
-        if (!u || !Number.isInteger(u.uid) || !own.chess.has(u.uid) || seen.has(u.uid)) continue;
+        // (the board's operators and summon pieces: 联防 carries an operator's HP ratio and SP, a summon's SP — unite.js)
+        if (!u || !Number.isInteger(u.uid) || !own.all.has(u.uid) || seen.has(u.uid)) continue;
         seen.add(u.uid);
         if (!finiteIn(u.hpPct, 0, 1) || !finiteIn(u.sp, 0, 1e5)) return bad('unit state');
-        unitsEnd.push({ uid: u.uid, defId: own.chess.get(u.uid), hpPct: u.hpPct, sp: u.sp, skillActive: !!u.skillActive, alive: !!u.alive && u.hpPct > 0 });
+        unitsEnd.push({ uid: u.uid, defId: own.all.get(u.uid), hpPct: u.hpPct, sp: u.sp, skillActive: !!u.skillActive, alive: !!u.alive && u.hpPct > 0 });
       }
       const unitStats = [];
       for (const u of Array.isArray(p.unitStats) ? p.unitStats : []) {

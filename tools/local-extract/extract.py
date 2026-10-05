@@ -88,6 +88,8 @@ JOBS = [
     *[(f'ui/emoticon/theme/[uc]{theme}.ab', f'emoticon/{sub}', {'Sprite'}, BATTLE_EMOTE) for theme, sub in EMOTE_THEMES],
     ('arts/guidebookpages/[pack]autochess.ab', 'guide', {'Sprite', 'Texture2D'}),
     ('battle/prefabs/[uc]projectiles.ab', 'projectiles', {'Sprite', 'Texture2D'}),
+    ('battle/[pack]common.ab', 'battle/projectiles', {'Sprite'}, r'^projectile_(arrow|crossbow|yuki)(_new)?$'),
+    ('battle/prefabs/effects/buff.ab', 'battle/skill', {'Texture2D', 'Material', 'GameObject', 'Mesh'}),
     # official module (uniequip) type icons, keyed by lower-case type name (e.g. 'mar-x')
     ('spritepack/ui_equip_type_hub_h2_0.ab', 'module', {'Sprite'}),
     ('skinpack/token_10039_ulpia_block.ab', 'spine/token_10039_ulpia_block', {'TextAsset', 'Texture2D'}),

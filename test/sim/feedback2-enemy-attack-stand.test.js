@@ -174,3 +174,11 @@ test('DISAPPEAR / APPEAR legs proceed while an enemy stands for its attacks; lea
   assert.ok(hiddenAt != null && Math.abs(hiddenAt - 1) < 2 * TICK, `disappears after its 1 s wait (${hiddenAt})`);
   assert.ok(appeared && Math.abs(appeared.t - 2) < 2 * TICK && Math.abs(appeared.x - 4) < 0.05 && appeared.y === 9, `appears on (9,4) 1 s later (${JSON.stringify(appeared)})`);
 });
+test('a melee enemy finishes its recovery after killing its blocker before moving',()=>{
+ const guard=chessRec({id:'fragile',stats:{maxHp:1,def:0,atk:0,blockCnt:1}});
+ const enemy={...enemyRec({key:'killer',atk:100,speed:1}),attackAnim:{dur:1,hit:.25},attackTiming:{attack:{dur:1,hit:.25}}};
+ const h=makeBattle({content:'generic',autoFinish:false,defs:{chess:{fragile:guard},enemies:{killer:enemy}},units:[{chessId:'fragile',row:10,col:4}],enemies:[{key:'killer',pos:[10,4]}]});
+ h.step();assert.ok(h.runUntil(()=>!h.unit('fragile').alive,3));const e=h.enemy(),at=e.lastAttackAt,x=e.x,y=e.y;
+ assert.ok(e.atkStandUntil>h.b.time);h.run(.5);assert.equal(e.x,x);assert.equal(e.y,y);
+ h.run(1);assert.ok(Math.hypot(e.x-x,e.y-y)>0);assert.ok(h.b.time>at+.75);
+});

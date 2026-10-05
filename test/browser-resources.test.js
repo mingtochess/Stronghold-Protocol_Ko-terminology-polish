@@ -9,7 +9,7 @@ const chrome = process.env.CHROME_PATH || '/usr/bin/chromium';
 test('first visit consent, retry/resume, atlas normalization, cache reuse, eviction and resource update',
   { skip: !existsSync(chrome), timeout: 60000 }, async () => {
     const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jWZkAAAAASUVORK5CYII=', 'base64');
-    let fail = true, downloads = 0, version = 'fixture-v1';
+    let fail = true, downloads = 0, localDownloads = 0, version = 'fixture-v1';
     const files = [
       { path: '/assets/sample.png', sources: ['https://cdn.jsdelivr.net/sample.png'] },
       { path: '/assets/sample.atlas', sources: ['https://raw.githubusercontent.com/sample.atlas'], atlas: { textures: ['/assets/sample.png'], pma: true } },
@@ -34,6 +34,8 @@ test('first visit consent, retry/resume, atlas normalization, cache reuse, evict
           const url = decodeURIComponent(request.url.slice('/fixture/'.length));
           if (fail && url.endsWith('.mp3')) { response.writeHead(503).end(); return; }
           response.end(url.endsWith('.png') ? png : url.endsWith('.atlas') ? 'sample.png\nformat: RGBA8888\nfilter: Linear,Linear\nrepeat: none\nregion\n  rotate: false\n  xy: 0,0\n  size: 1,1\n' : 'ID3fixture');
+        } else if (request.url === '/assets/local-portrait.png') {
+          localDownloads++;response.setHeader('Content-Type','image/png');response.end(png);
         } else if (request.url === '/js/main.js') {
           response.setHeader('Content-Type', 'text/javascript');
           response.end('window.gameStarted = true; document.getElementById("boot")?.remove();');
@@ -72,17 +74,27 @@ test('first visit consent, retry/resume, atlas normalization, cache reuse, evict
       assert.equal(downloads, 4, 'repeat visit uses persistent cache');
       await page.evaluate(async () => { const cache = await caches.open('stronghold-resources-fixture-v1'); await cache.delete('/assets/sample.png'); });
       await page.reload();
-      await page.waitForSelector('.boot__inner button');
-      assert.equal(await page.evaluate(() => !!window.gameStarted), false, 'evicted file invalidates readiness');
-      await page.click('.boot__inner button');
       await page.waitForFunction(() => window.gameStarted);
-      assert.equal(downloads, 5);
-      version = 'fixture-v2';
+      assert.equal(await page.$('.boot__inner button'),null,'an existing installation repairs evicted resources in the background');
+      await page.waitForFunction(async()=>!!await(await caches.open('stronghold-resources-fixture-v1')).match('/assets/sample.png'));
+      assert.equal(downloads,5,'only the evicted file is downloaded');
+      version='fixture-v2';
+      files.push({path:'/assets/sample-v2.png',sources:['https://cdn.jsdelivr.net/sample-v2.png']});
       await page.reload();
-      await page.waitForSelector('.boot__inner button');
-      await page.click('.boot__inner button');
-      await page.waitForFunction(() => window.gameStarted);
-      assert.equal(downloads, 8, 'new resource version has its own complete cache');
+      await page.waitForFunction(()=>window.gameStarted);
+      assert.equal(await page.$('.boot__inner button'),null,'patching does not require another download confirmation');
+      await page.waitForFunction(async()=>!!await(await caches.open('stronghold-resources-fixture-v2')).match('/__resources_ready__'));
+      assert.equal(downloads,6,'a patch reuses existing resources and downloads only its new image');
+      version='fixture-v3';
+      files.push({path:'/assets/local-portrait.png',local:true,sources:['/assets/local-portrait.png']});
+      await page.reload();await page.waitForFunction(()=>window.gameStarted);
+      await page.waitForFunction(async()=>!!await(await caches.open('stronghold-resources-fixture-v3')).match('/__resources_ready__'));
+      assert.equal(localDownloads,1,'bundled artwork downloads from the same origin once');
+      assert.equal(downloads,6,'bundled artwork does not redownload unchanged mirror assets');
+      await page.reload();await page.waitForFunction(()=>window.gameStarted);
+      assert.equal(localDownloads,1,'bundled artwork is reused from the browser cache');
+
+
     } finally {
       await browser.close();
       await new Promise(resolve => server.close(resolve));

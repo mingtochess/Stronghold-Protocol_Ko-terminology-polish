@@ -1,0 +1,36 @@
+{
+  "checked": 302,
+  "affected": [
+    {
+      "id": "chess_char_2_12_a",
+      "name": "砾",
+      "removedLines": 1
+    },
+    {
+      "id": "chess_char_2_12_b",
+      "name": "砾",
+      "removedLines": 1
+    },
+    {
+      "id": "chess_char_4_15_a",
+      "name": "录武官",
+      "removedLines": 1
+    },
+    {
+      "id": "chess_char_4_15_b",
+      "name": "录武官",
+      "removedLines": 1
+    },
+    {
+      "id": "chess_char_6_07_a",
+      "name": "维娜·维多利亚",
+      "removedLines": 1
+    },
+    {
+      "id": "chess_char_6_07_b",
+      "name": "维娜·维多利亚",
+      "removedLines": 1
+    }
+  ],
+  "removedLines": 6
+}

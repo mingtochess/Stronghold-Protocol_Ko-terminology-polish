@@ -1,3 +1,6 @@
+import {loadoutRecord,resolveRecordLoadout} from '../../../shared/loadoutRecord.js';
+import {audio} from '../audio.js';
+import {checkLoadout} from '../../../shared/protocol.js';
 // 干员调配 (Operator loadout, DESIGN §16): choose the equipped skill of every chess and the module of its elite before a
 // match (official rule: "开始游戏前无法调整干员的等级，但可调整其所携带的技能和模组"). A full-screen overlay opened
 // from the lobby, the room and the briefing (INFO_CHECK) — `openLoadout(from)` / <LoadoutButton/>; <LoadoutHost/> is
@@ -24,7 +27,7 @@ import { data, useData, localAsset } from '../data.js';
 import { useStore } from '../store.js';
 import { PHASE } from '../../../shared/constants.js';
 import {
-  MODULE_NONE, PROF_ORDER, PROF_NAME, rosterOf, filterRoster, recordsOf, chessOptions, effectiveChoice, setChoice, resetChoice,
+  garrisonTexts, MODULE_NONE, PROF_ORDER, PROF_NAME, rosterOf, filterRoster, recordsOf, chessOptions, effectiveChoice, setChoice, resetChoice,
   changedCount, skillLabel, moduleBadge, attrRows, skillTags, serializeExport, parseImport, LOADOUT_IMPORT_MAX_BYTES,
 } from '../ui/loadoutModel.js';
 import { loadoutStore, openLoadout, closeLoadout, setEntries, applyLoadoutEntries } from '../ui/loadoutSync.js';
@@ -143,7 +146,7 @@ function RosterCard({ m, chess, golden, entries, selected, onPick }) {
       class=${cx('lo-card', `lo-card--t${chess.tier}`, selected && 'is-sel', choice.changed && 'is-changed')} onClick=${() => onPick(chess.chessId)}
       title=${`${chess.name} · ${skillRec?.name || ''}`}>
     <span class="lo-card__art">
-      <${Img} src=${chessAvatarUrl(m, chess)} fallback=${html`<span class="lo-card__glyph">${[...(chess.name || '?')][0]}</span>`} />
+      <${Img} src=${chessAvatarUrl(m, {...loadoutRecord(chess,resolveRecordLoadout(chess,choice)),appearanceResolved:true})} fallback=${html`<span class="lo-card__glyph">${[...(chess.name || '?')][0]}</span>`} />
     </span>
     <${TierChip} tier=${chess.tier} size="sm" class="lo-card__tier" />
     ${choice.changed ? html`<span class="lo-card__flag" aria-label="已调整"></span>` : null}
@@ -274,16 +277,18 @@ function Detail({ m, chess, golden, entries, onChange, onReset, locked }) {
   if (!chess) return html`<aside class="lo-detail lo-detail--empty"><p class="t-dim">没有符合条件的干员</p></aside>`;
   const opt = chessOptions(chess, golden);
   const choice = effectiveChoice(entries, chess, golden);
+  const traitTexts=garrisonTexts(statLevel==='elite'&&golden?golden:chess,id=>data.lookup('garrisons',id));
   const modOpt = opt.moduleOptions.find((x) => x.id === choice.module) || null;
   const lv = (c) => c?.status?.skillLevel ?? '—';
   return html`<aside class="lo-detail" aria-label=${`${chess.name} 调配`}>
     <div class="lo-dhead">
       <div class=${cx('lo-dhead__art', `lo-dhead__art--t${chess.tier}`)}>
-        <${Img} src=${chessPortraitUrl(m, golden || chess)} fallback=${html`<${UnitThumb} kind="chess" id=${chess.chessId} size="lg" />`} />
+        <${Img} src=${chessPortraitUrl(m, {...loadoutRecord(golden || chess,resolveRecordLoadout(golden || chess,choice)),appearanceResolved:true})} fallback=${html`<${UnitThumb} kind="chess" id=${chess.chessId} size="lg" />`} />
       </div>
       <div class="lo-dhead__info">
         <div class="lo-dhead__chips"><${TierChip} tier=${chess.tier} size="md" />
           ${choice.changed ? html`<span class="lo-badge lo-badge--changed">已调整</span>` : html`<span class="lo-badge lo-badge--plain">默认配置</span>`}</div>
+        ${(chess.bonds || []).includes('ursusShip') ? html`<span class="lo-badge">커스텀 진영 · 우르수스</span>` : null}
         <h2 class="lo-dhead__name">${chess.name}</h2>
         <span class="lo-dhead__en">${chess.appellation || ''}</span>
         <span class="lo-dhead__class">
@@ -293,9 +298,22 @@ function Detail({ m, chess, golden, entries, onChange, onReset, locked }) {
         <span class="lo-dhead__bonds">${(chess.bonds || []).map((b) => html`<span key=${b} class="lo-bond">
           <${Img} src=${bondIconUrl(m, b)} class="lo-bond__icon" fallback=${html`<i class="lo-bond__dot"></i>`} />${data.lookup('bonds', b)?.name || b}</span>`)}</span>
       </div>
-      <${Button} variant="ghost" size="sm" icon="refresh" class="lo-dhead__reset" disabled=${!choice.changed} onClick=${onReset}>恢复默认<//>
+      <${Button} variant="ghost" size="sm" icon="refresh" class="lo-dhead__reset" disabled=${!choice.changed && !choice.skin} onClick=${onReset}>恢复默认<//>
     </div>
     <div class="lo-detail__body" ref=${bodyRef}>
+      <section class="lo-sec lo-sec--garrison"><header class="lo-sec__head"><h3>특질<${MicroLabel}>GARRISON<//></h3>
+        <div class="lo-seg" role="tablist" aria-label="특질 단계">
+          <button type="button" role="tab" aria-selected=${statLevel==='normal'} class=${cx(statLevel==='normal'&&'is-on')} onClick=${()=>setStatLevel('normal')}>일반</button>
+          <button type="button" role="tab" aria-selected=${statLevel==='elite'} class=${cx(statLevel==='elite'&&'is-on')} disabled=${!golden} onClick=${()=>setStatLevel('elite')}>정예</button>
+        </div></header>
+        ${traitTexts.length ? traitTexts.map((text,i)=>html`<${RichText} key=${i} text=${text} />`) : html`<p class="t-dim">특질 없음</p>`}
+      </section>
+      <section class="lo-sec lo-sec--skins"><header class="lo-sec__head"><h3>스킨<${MicroLabel}>SKIN<//></h3></header>
+        <div class="lo-skin-list" role="radiogroup" aria-label="스킨 선택">
+          <button type="button" role="radio" aria-checked=${!choice.skin} class=${cx('lo-skin',!choice.skin&&'is-on')} onClick=${()=>onChange({skin:'default'})}>기본</button>
+          ${(chess.skins||[]).map(s=>html`<button type="button" key=${s.id} role="radio" aria-checked=${choice.skin===s.id} class=${cx('lo-skin',choice.skin===s.id&&'is-on')} onClick=${()=>onChange({skin:s.id})}><${Img} src=${m?.chars?.[s.id]?.avatar} /><span>${s.name}</span></button>`)}
+        </div>${!chess.skins?.length?html`<p class="t-dim">현재 리소스에서 지원하는 추가 스킨이 없습니다.</p>`:null}
+      </section>
       <section class="lo-sec">
         <header class="lo-sec__head">
           <h3>技能<${MicroLabel}>SKILL<//></h3>
@@ -376,7 +394,7 @@ const SYNC_TEXT = {
 
 /** The overlay screen. */
 function LoadoutScreen({ st }) {
-  const ready = useData('chess', 'bonds', 'assets', 'local');
+  const ready = useData('chess', 'bonds', 'garrisons', 'assets', 'local');
   const phase = useStore((s) => s.match?.public?.phase || null);
   const inMatch = useStore((s) => !!s.room?.inMatch);
   // co-op briefing (INFO_CHECK, 25 s): the overlay covers the briefing's own countdown, so it shows the time left — the
@@ -391,8 +409,14 @@ function LoadoutScreen({ st }) {
     return (data.list('bonds') || []).filter((b) => b && used.has(b.bondId))
       .sort((a, b) => (b.isCore ? 1 : 0) - (a.isCore ? 1 : 0) || (a.bondOrder ?? 0) - (b.bondOrder ?? 0) || String(a.name).localeCompare(String(b.name), 'zh'));
   }, [ready, roster]);
-  const list = filterRoster(roster, st.filters, st.entries, getChess, getBond);
-  const selId = st.sel && roster.some((c) => c.chessId === st.sel) ? st.sel : list[0]?.chessId || roster[0]?.chessId || null;
+  const [tab, setTab] = useState('standard');
+  const candidates = roster.filter(c => c.optionalRecruit && c.tier === 5);
+  const selectedTier = c => [5, 6].find(t => st.entries[c.chessId.replace(/_[56]_a$/, `_${t}_a`)]?.selected) || 0;
+  const visibleRoster = tab === 'recruits'
+    ? candidates.map(c => getChess(c.chessId.replace(/_5_a$/, `_${selectedTier(c) || 5}_a`)))
+    : roster.filter(c => !c.optionalRecruit);
+  const list = tab === 'recruits' ? visibleRoster : filterRoster(visibleRoster, st.filters, st.entries, getChess, getBond);
+  const selId = st.sel && list.some((c) => c.chessId === st.sel) ? st.sel : list[0]?.chessId || roster[0]?.chessId || null;
   const { base, golden } = selId ? recordsOf(selId, getChess) : { base: null, golden: null };
   const nChanged = changedCount(st.entries, getChess);
   const locked = (inMatch && phase && phase !== PHASE.INFO_CHECK && phase !== PHASE.LOBBY) || st.sync === 'locked';
@@ -401,7 +425,18 @@ function LoadoutScreen({ st }) {
   const [narrowDetail, setNarrowDetail] = useState(false); // phones: the detail slides over the roster
   const [io, setIo] = useState(null);                      // 导出 / 导入 dialog: { mode, text } | null
 
-  const pick = (id) => { loadoutStore.set({ sel: id }); setNarrowDetail(true); };
+  const pick = (id) => { const c=data.lookup('chess',id);if(c?.charId){audio.warmVoices([c.charId]);} loadoutStore.set({ sel: id }); setNarrowDetail(true); };
+  const recruit = (c, tier) => {
+    const next = { ...loadoutStore.get().entries }, key = c.chessId.replace(/_[56]_a$/, '');
+    for (const t of [5, 6]) {
+      const id = `${key}_${t}_a`;
+      if (next[id]) { next[id] = { ...next[id] }; delete next[id].selected; if (!Object.keys(next[id]).length) delete next[id]; }
+    }
+    const id = `${key}_${tier || 5}_a`;
+    if (tier) next[id] = { ...next[id], selected: true };
+    if (!checkLoadout(next, getChess).ok) { toast('각 단계는 최대 2명까지 선발할 수 있습니다.', 'warn'); return; }
+    setEntries(next); loadoutStore.set({ sel: id });
+  };
   const change = (patch) => { if (base) setEntries(setChoice(loadoutStore.get().entries, base, golden, patch)); };
   const resetOne = () => { if (base) setEntries(resetChoice(loadoutStore.get().entries, base.chessId)); };
   const resetAll = async () => {
@@ -451,7 +486,7 @@ function LoadoutScreen({ st }) {
       if (e.key === 'Escape') { e.preventDefault(); e.stopImmediatePropagation(); closeLoadout(); return; }
       if (typing) return;
       if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
-        const ids = filterRoster(rosterOf(data.list('chess')), loadoutStore.get().filters, loadoutStore.get().entries, getChess, getBond).map((c) => c.chessId);
+        const ids = list.map((c) => c.chessId);
         if (!ids.length) return;
         const cur = Math.max(0, ids.indexOf(loadoutStore.get().sel));
         const next = ids[(cur + (e.key === 'ArrowRight' ? 1 : -1) + ids.length) % ids.length];
@@ -463,7 +498,7 @@ function LoadoutScreen({ st }) {
     };
     window.addEventListener('keydown', onKey, true);
     return () => window.removeEventListener('keydown', onKey, true);
-  }, []);
+  }, [list.map(c => c.chessId).join('|')]);
 
   // keep the selected card in view
   useEffect(() => {
@@ -495,12 +530,18 @@ function LoadoutScreen({ st }) {
       </div>
     </header>
     <p class=${cx('lo-note', locked && 'is-locked')}><${Icon} name="info" />${locked ? '本局的调配已锁定（确认本局信息后无法修改），修改将在下一局生效' : fromText}</p>
+    <nav class="lo-tabs lo-seg" role="tablist" aria-label="오퍼레이터 구성">
+      ${[['standard', '기존 오퍼레이터'], ['recruits', '추가 선발']].map(([key, label]) => html`<button type="button" role="tab" id=${`lo-tab-${key}`} aria-controls="lo-roster-panel" aria-selected=${tab === key} class=${cx(tab === key && 'is-on')} onClick=${() => { setTab(key); setNarrowDetail(false); }}>${label}</button>`)}
+    </nav>
     ${!ready ? html`<div class="lo-loading"><${Spinner} size="sm" />正在载入干员数据（打开页面后仅载入一次）…</div>` : html`<main class=${cx('lo-body', narrowDetail && 'is-detail')}>
-      <section class="lo-roster">
-        <${Filters} m=${m} filters=${st.filters} bonds=${bonds} onFilters=${(filters) => loadoutStore.set({ filters })} />
-        <div class="lo-grid" role="listbox" aria-label="干员列表" ref=${gridRef}>
-          ${list.length ? list.map((c) => html`<${RosterCard} key=${c.chessId} m=${m} chess=${c} golden=${c.goldenId ? getChess(c.goldenId) : null}
-            entries=${st.entries} selected=${c.chessId === selId} onPick=${pick} />`) : html`<p class="lo-empty t-dim">没有符合条件的干员</p>`}
+      <section class="lo-roster" id="lo-roster-panel" role="tabpanel" aria-labelledby=${`lo-tab-${tab}`}>
+        ${tab === 'standard' ? html`<${Filters} m=${m} filters=${st.filters} bonds=${bonds} onFilters=${(filters) => loadoutStore.set({ filters })} />` : html`<div class="lo-recruit-note"><div>${[5,6].map(t => html`<span>${t}단계 <b class="num">${candidates.filter(c => selectedTier(c) === t).length}/2</b></span>`)}</div><p>선발한 오퍼레이터만 본인의 모집·보상에 등장합니다. 특질은 없습니다.</p></div>`}
+        <div class=${cx('lo-grid', tab === 'recruits' && 'lo-grid--recruits')} role="listbox" aria-label="干员列表" ref=${gridRef}>
+          ${list.length ? list.map((c) => html`<div class=${cx(tab === 'recruits' && 'lo-recruit-card')} key=${c.chessId}>
+            <${RosterCard} m=${m} chess=${c} golden=${c.goldenId ? getChess(c.goldenId) : null}
+              entries=${st.entries} selected=${c.chessId === selId} onPick=${pick} />
+            ${tab === 'recruits' ? html`<div class="lo-seg lo-recruit-choice" aria-label=${`${c.name} 선발 단계`}>${[0,5,6].map(t => html`<button type="button" disabled=${locked} aria-pressed=${selectedTier(c) === t} class=${cx(selectedTier(c) === t && 'is-on')} onClick=${() => recruit(c,t)}>${t ? `${t}단계` : '미선발'}</button>`)}</div>` : null}
+          </div>`) : html`<p class="lo-empty t-dim">没有符合条件的干员</p>`}
         </div>
       </section>
       <div class="lo-detail-wrap">
@@ -520,7 +561,7 @@ function LoadoutScreen({ st }) {
             <${Button} variant="primary" icon="check" data-testid="loadout-io-apply" disabled=${!ioText.trim() || !ready} onClick=${ioApply}>导入<//>`}>
       <p class="lo-io__hint">${io.mode === 'export'
         ? html`共 <b class="num">${nChanged}</b> 名干员已调整。复制或下载这份数据，即可在别的设备或浏览器上导入。`
-        : html`把导出的内容粘贴到下方，或点「选择文件」。${nChanged ? html`导入会<strong>覆盖</strong>当前的 ${nChanged} 名干员调配。` : null}`}</p>
+        : html`把导出的内容粘贴到下方，或点「选择文件」。${nChanged ? html`当前的 ${nChanged} 名干员调配将被覆盖。` : null}`}</p>
       <textarea class="lo-io__text" data-testid="loadout-io-text" spellcheck=${false} readOnly=${io.mode === 'export'} value=${ioText}
         placeholder=${io.mode === 'export' ? '' : '在此粘贴导出的调配内容…'}
         onInput=${(e) => setIo({ mode: io.mode, text: e.currentTarget.value })}></textarea>

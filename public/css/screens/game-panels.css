@@ -236,6 +236,8 @@
 .dfaction { display: inline-flex; align-items: center; gap: .04rem; font-size: .13rem; color: var(--amber); padding: 0 .08rem 0 .02rem; border: 1px solid rgba(246, 163, 41, .45); }
 .dfaction img { width: .22rem; height: .22rem; object-fit: contain; }
 .dabil { margin: 0; padding-left: .2rem; display: flex; flex-direction: column; gap: .05rem; font-size: .15rem; line-height: 1.6; color: var(--text-md); }
+.dabil li.is-off { color: var(--text-dim); }
+.dabil li.is-off .rt-term { color: var(--text-dim); border-bottom-color: transparent; }
 
 /* ---- bond popup ---- */
 .bpop {
@@ -662,3 +664,13 @@ button.bpop__harmony:hover { border-style: solid; color: #fff; }
 .eqr__hint { margin: .04rem 0 0; text-align: center; font-size: .15rem; color: var(--text-lo); min-height: .24rem; }
 .eqr__hint b { color: var(--text-hi); }
 .eqr__ok-icon { width: .2rem; height: .2rem; margin-right: .06rem; vertical-align: -.03rem; filter: brightness(0) invert(1); }
+
+/* Long translated names must not expand the member grid or resize portraits. */
+.bpop__members { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.bpop__member { min-width: 0; }
+.bpop__member .uthumb { flex-shrink: 0; }
+.bpop__mname { width: 100%; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.brief-banned__group { margin-bottom: .16rem; }
+.brief-banned__group h4 { color: var(--mint-400); margin: .08rem 0; font-size: .16rem; }
+
+.draft-detail__desc { margin: 0; padding: 0; text-indent: 0; }

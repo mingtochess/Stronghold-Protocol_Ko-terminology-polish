@@ -1,3 +1,4 @@
+import { customFactionData } from '../../shared/customFactions.js';
 // server/match/Match.js — the match & meta engine: state machine, timers, round loop, co-op orchestration,
 // broadcasting views (DESIGN §6, §8). Rules are documented in the module headers of ./PlayerState.js, ./pool.js,
 // ./board.js, ./bondsMeta.js, ./effectsMeta.js, ./choices.js, ./waves.js, ./unite.js, ./finalAssault.js,
@@ -18,6 +19,8 @@
 //                    Bot playerIds start with 'ai_'. Seat indexes may have gaps (e.g. seats 0 and 2).
 //                    `loadout` (DESIGN §16, optional): the human's operator loadout, already checked by the lobby
 //                    (shared/protocol.js checkLoadout); PlayerState re-checks it against opts.data and ignores it for bots.
+//   opts.spectators  string[] (optional)        the room's spectator seats (remake feature, community report #26;
+//                                              server/lobby.js): never players — see addSpectator below
 //   opts.seed        uint32                     master seed for all match randomness
 //   opts.matchNo     integer ≥ 1 (optional)     the room's match number (lobby: room.matchCount + 1); with the seed it
 //                                              makes this match's battleIds unique within the room (DESIGN §14)
@@ -53,6 +56,15 @@
 //                           treat as quit (AI takes over / eliminated per DESIGN). No onDisconnect follows.
 // dispose()                 Stop every timer/interval and release resources. Idempotent. After dispose the
 //                           platform ignores send/broadcast/onEnd from this instance.
+// addSpectator(id)          (optional for the platform) A spectator seat joined during the match, came back or asked
+//                           for a resync: register it (idempotent) and resend what an ELIMINATED player watching sees —
+//                           m.public and, while a battle runs, the b.start (watch) of the field it watches (default: the
+//                           first field; server-run mode: m.field + b.snap), or m.result once ended. A spectator gets
+//                           every broadcast through the platform, never an m.private / m.toast / m.unitStats, is never
+//                           a field's player or authority, and is shown fields like an eliminated player in every phase.
+//                           handle(id, msg) answers only its 'g.watch' (anything else → SPECTATOR; the platform routes
+//                           nothing else of it).
+// removeSpectator(id)       The spectator left (room.leave / g.leave, removed by the host, reconnect window expired).
 //
 // Bot seats never produce intents or hooks: the match drives bots itself (server/match/bot.js).
 // Messages the match emits are the S2C 'm.*' / 'b.*' frames of DESIGN §8.2 (room.* frames are platform-owned).
@@ -129,7 +141,7 @@ import { RealScheduler } from './scheduler.js';
 import { SharedPool, drawDisabledBonds } from './pool.js';
 import { PlayerState } from './PlayerState.js';
 import { buildDeployMap, boardOrder, pieceDir } from './board.js';
-import { bondList } from './bondsMeta.js';
+import { bondList, offBondCounts } from './bondsMeta.js';
 import { EffectDispatcher, getDefaultRegistry } from './effectsMeta.js';
 import { generateDraft, applyCard, cardView, bountyBattles, isMultiRoundBounty } from './choices.js';
 import { setupMatchWaves, buildNormalWave, buildBossWave, bountySpawns, withBounties, previewOf, weightedPick } from './waves.js';
@@ -235,6 +247,8 @@ export class Match {
     this.broadcastFn = opts.broadcast;
     this.onEndFn = opts.onEnd;
     this.data = opts.data && typeof opts.data === 'object' ? opts.data : {};
+    this.customFactions = opts.customFactions === true;
+    this.data = customFactionData(this.data, this.customFactions);
     this.gd = new GameData(this.data, this.modeId);
     if (!this.difficulty) this.difficulty = this.gd.difficulty;
     this.isSolo = this.mode === 'solo' || this.gd.isSolo;
@@ -299,6 +313,13 @@ export class Match {
     }
     if (!this.players.size) throw new TypeError('Match: seats required');
     this.order = [...this.players.values()].sort((a, b) => a.seat - b.seat);
+    /**
+     * Spectator seats (opts.spectators / addSpectator): playerId → a stand-in every watch path treats like an eliminated
+     * human (alive false; no PlayerState, never a field's player or authority).
+     * @type {Map<string, { playerId: string, isBot: false, left: false, alive: false, connected: true, spectator: true }>}
+     */
+    this.spectators = new Map();
+    for (const id of Array.isArray(opts.spectators) ? opts.spectators : []) this._spectator(id);
     /**
      * Exactly one human seat at the start (独立模拟, or a 同盟 room started alone / with AI teammates only): nobody waits
      * on anybody, so no phase outside a battle is timed — soloUntimed (user playtest #4 item 3). The mode's own rules
@@ -391,8 +412,10 @@ export class Match {
    * @returns {{ ok: true } | { error: string, detail?: string }}
    */
   handle(playerId, msg) {
-    const ps = this.players.get(playerId);
+    const ps = this.players.get(playerId) || this.spectators.get(playerId);
     if (!ps || ps.isBot || ps.left) return fail(ERR.NOT_IN_ROOM);
+    // a spectator seat only watches (the platform routes nothing else of it)
+    if (ps.spectator && (!msg || msg.t !== 'g.watch')) return fail(ERR.SPECTATOR);
     if (this.disposed || this.ended) {
       // a battle report that crossed the match end (the last b.progress of a field) is stale: ignored, never an error
       // (DESIGN §14 — an error frame without a rid would surface as a toast in the browser)
@@ -448,21 +471,66 @@ export class Match {
     this.guard(() => {
       const was = ps.connected;
       ps.connected = true;
-      this.sendTo(playerId, this.publicView());
-      this.sendTo(playerId, { t: 'm.chatHistory', messages: this.chatHistory, faction: ps.chatFaction });
-      if (!this.ended) {
-        ps._lastPriv = null;
-        this._sendPrivate(ps, true);
-        if (this.clientCombat) this._resendBattle(ps);
-        else {
-          const fid = this.watchers.get(playerId);
-          if (fid) this._sendField(playerId, fid);
-        }
-      } else if (this.lastResultMsg) {
-        this.sendTo(playerId, { ...this.lastResultMsg, playerId });
-      }
+      this._resync(ps);
       if (!was) this.markPublic();
     });
+  }
+
+  /**
+   * The full state of one human (a reconnect, a resync, a spectator seat): m.public, its m.private (players only), the
+   * field it is on / watches — a spectator, like an eliminated player, the first field — or the result once ended.
+   */
+  _resync(ps) {
+    const playerId = ps.playerId;
+    this.sendTo(playerId, this.publicView());
+    this.sendTo(playerId, {t:'m.chatHistory',messages:this.chatHistory,faction:ps.chatFaction});
+    if (!this.ended) {
+      if (!ps.spectator) {
+        ps._lastPriv = null;
+        this._sendPrivate(ps, true);
+      }
+      if (this.clientCombat) this._resendBattle(ps);
+      else {
+        let fid = this.watchers.get(playerId);
+        if (!fid && ps.spectator && this.fields.length) { fid = this.fields[0].fieldId; this.watchers.set(playerId, fid); }
+        if (fid) this._sendField(playerId, fid);
+      }
+    } else if (this.lastResultMsg) {
+      this.sendTo(playerId, { ...this.lastResultMsg, playerId });
+    }
+  }
+
+  /**
+   * A spectator seat (community report #26; server/lobby.js spectate) joined during the match, came back or asked for a
+   * resync: registered once, then resent what an eliminated player watching sees (_resync — never an m.private).
+   */
+  addSpectator(playerId) {
+    if (this.disposed) return;
+    const s = this._spectator(playerId);
+    if (s) this.guard(() => this._resync(s));
+  }
+
+  /** The spectator left (room.leave / g.leave, removed by the host, reconnect window expired). */
+  removeSpectator(playerId) {
+    if (this.spectators.delete(playerId)) this.watchers.delete(playerId);
+  }
+
+  /** The stand-in of a spectator seat, created once (null for a player's id or a bad id). */
+  _spectator(playerId) {
+    if (typeof playerId !== 'string' || !playerId || this.players.has(playerId)) return null;
+    let s = this.spectators.get(playerId);
+    if (!s) {
+      s = Object.freeze({ playerId, isBot: false, left: false, alive: false, connected: true, spectator: true });
+      this.spectators.set(playerId, s);
+    }
+    return s;
+  }
+
+  /** Everyone shown fields: the seated humans still in (seat order), then the spectator seats' stand-ins. */
+  _viewers() {
+    const out = this.order.filter((ps) => !ps.isBot && !ps.left);
+    for (const s of this.spectators.values()) out.push(s);
+    return out;
   }
 
   onLeave(playerId) {
@@ -672,7 +740,7 @@ export class Match {
 
   sendTo(playerId, msg) {
     if (this.disposed) return false;
-    const ps = this.players.get(playerId);
+    const ps = this.players.get(playerId) || this.spectators.get(playerId);
     if (!ps || ps.isBot || ps.left) return false;
     try { return !!this.sendFn(playerId, msg); } catch (e) { this.reportError('send', e); return false; }
   }
@@ -720,8 +788,8 @@ export class Match {
       const list = [...this._privDirty];
       this._privDirty.clear();
       for (const ps of list) {
-        if (ps.isBot || ps.left || !ps.connected) continue;
-        this._sendPrivate(ps, false);
+        if (!(ps.isBot || ps.left || !ps.connected)) this._sendPrivate(ps, false);
+        this._notifyPrepScouts(ps);
       }
     }
     if (this._pubDirty || forcePublic) this._maybeSendPublic(forcePublic);
@@ -800,6 +868,7 @@ export class Match {
       serverNow: this.sched.now(),
       modeId: this.modeId,
       difficulty: this.difficulty,
+      customFactions: this.customFactions,
       stageId: this.stageId,
       factions: this.factions.slice(),
       disabledBonds: [...new Set([...this.disabledBonds, ...this.staticInactiveBonds])].sort(),
@@ -831,7 +900,8 @@ export class Match {
         // this round's in-battle gains included once the COMBAT phase ended (PlayerState.bondsView); [] once eliminated —
         // nobody can watch an eliminated player (g.watch refuses them, they have no field) and the result screen reads
         // m.result's own bonds, so their layers would only cost every m.public bytes for the rest of the match
-        bonds: ps.alive ? bondList(this.gd, ps.bondsView()) : [],
+        // (the mode-off bonds with members included, `off: true`, as in m.private — bondsMeta.offBondCounts)
+        bonds: ps.alive ? bondList(this.gd, ps.bondsView(), { off: offBondCounts(this.gd, ps) }) : [],
         fieldId: this.fieldOf(ps),
         status: this.statusOf(ps),
         autoplay: ps.autoplay,
@@ -906,6 +976,35 @@ export class Match {
     let nextEnemies = [];
     try { nextEnemies = this.nextEnemiesFor(ps); } catch (e) { this.reportError('nextEnemies', e); }
     return { t: 'm.field', fieldId: `n:${ps.playerId}`, kind: 'normal', rect: { ...GEO.NORMAL_RECT }, stageId: this.stageId, units, prep: true, nextEnemies };
+  }
+
+  /** Board signature of a prep scout view (units only: a shop or funds change is not a board change). */
+  _prepScoutSig(ps) {
+    const parts = [];
+    for (const { r, c, piece } of boardOrder(ps.board)) {
+      const items = piece.kind === 'chess' && Array.isArray(piece.items) ? piece.items.map((it) => `${it.uid}:${it.id}`).join(',') : '';
+      parts.push(`${piece.uid}:${piece.id}@${r},${c}:${pieceDir(piece)}:${items}`);
+    }
+    return parts.join(';');
+  }
+
+  /**
+   * Push prepFieldMeta to whoever is scouting `ps` during prep (GitHub #87). `to` always receives the current board
+   * (the player who just asked to watch); everyone scouting it receives a new `m.field` only when the board changed.
+   * A live battle field owns the `n:<pid>` id, so this stays quiet once fields exist.
+   */
+  _notifyPrepScouts(ps, { to = null } = {}) {
+    if (!ps || !ps.alive || this.fields.length) return;
+    const fid = `n:${ps.playerId}`;
+    const watchers = this.watchersOf(fid);
+    if (!watchers.length) return;
+    const sig = this._prepScoutSig(ps);
+    const changed = sig !== ps._prepScoutSig;
+    ps._prepScoutSig = sig;
+    const dest = changed ? watchers : (to ? [to] : []);
+    if (!dest.length) return;
+    const meta = this.prepFieldMeta(ps);
+    for (const pid of dest) this.sendTo(pid, meta);
   }
 
   _sendField(playerId, fieldId) {
@@ -1021,14 +1120,15 @@ export class Match {
       return OK;
     }
     if (fieldId.startsWith('n:')) {
-      // prep scouting — a one-shot board view — only while no battle field is up: during 各自行动 / 联防 / 最终攻势 /
-      // 隐秘核心 an 'n:<pid>' id must name a live field (else the boss-group rule above could be bypassed, and the
-      // viewer would stop receiving its own field's snapshots)
+      // prep scouting, only while no battle field is up: during 各自行动 / 联防 / 最终攻势 / 隐秘核心 an 'n:<pid>' id
+      // must name a live field (else the boss-group rule above could be bypassed, and the viewer would stop receiving
+      // its own field's snapshots). The scout stays in `watchers` so a later board change pushes prepFieldMeta again
+      // (GitHub #87); combat start clears the map and reassigns live fields, spectators included.
       if (this.fields.length) return fail(ERR.BAD_TARGET, 'no such field');
       const target = this.players.get(fieldId.slice(2));
       if (!target || !target.alive) return fail(ERR.BAD_TARGET);
-      this.watchers.delete(ps.playerId);
-      this.sendTo(ps.playerId, this.prepFieldMeta(target));
+      this.watchers.set(ps.playerId, fieldId);
+      this._notifyPrepScouts(target, { to: ps.playerId });
       return OK;
     }
     return fail(ERR.BAD_TARGET);
@@ -1079,7 +1179,7 @@ export class Match {
     const b = this.newBattle({
       seed: deriveSeed(this.seed, `preview:${this.round}:${ps.seat}`), kind: 'normal', modeId: this.modeId, round: this.round,
       stageId: this.stageId, rect: { ...GEO.NORMAL_RECT }, timeLimit: 60, players, spawns: [], routes: this.wave ? this.wave.routes : [],
-      sharedBoss: null, flags: { layerGainsEnabled: !bossRound, ...this.gd.dp }, fieldId: `n:${ps.playerId}`, recordEvents: false,
+      sharedBoss: null, flags: { layerGainsEnabled: !bossRound, ...this.gd.dp, deploymentInterval:.2 }, fieldId: `n:${ps.playerId}`, recordEvents: false,
     });
     try {
       if (typeof b.start === 'function') b.start();
@@ -1407,6 +1507,11 @@ export class Match {
     }
     for (const ps of alive) ps.startRound(r);
     for (const ps of alive) this.dispatch(ps, 'onRoundStart', { round: r });
+    // an eliminated player's pending 信标 gift still goes to its teammate (effects flagged afterElimination; GitHub #86)
+    for (const ps of this.order) {
+      if (ps.alive) continue;
+      try { this.dispatcher.dispatchEliminated(ps, 'onRoundStart', { round: r }); } catch (e) { this.reportError('dispatch onRoundStart (eliminated)', e); }
+    }
     for (const ps of alive) ps.recompute();
     this.setDeadline(DELAYS.ROUND_START / 1000, () => this.afterRoundStart(), { silent: this.soloUntimed });
     this.markPublic();
@@ -1574,7 +1679,7 @@ export class Match {
    * pool filtered by `tier` / `minTier` / `maxTier` (number or 'shopLevel') / `bond`; `golden: true` yields the elite id.
    * @returns {{ kind: 'item'|'chess', id: string, golden?: boolean } | null}
    */
-  rollPool(poolId, { shopLevel = 6 } = {}) {
+  rollPool(poolId, { shopLevel = 6, playerId = null } = {}) {
     const pools = this.gd.choices.pools && typeof this.gd.choices.pools === 'object' ? this.gd.choices.pools : {};
     const p = typeof poolId === 'string' && Object.hasOwn(pools, poolId) ? pools[poolId] : null;
     if (!p || typeof p !== 'object') return null;
@@ -1587,6 +1692,7 @@ export class Match {
     const rng = this.rngMeta;
     const free = (id) => {
       if (typeof id !== 'string' || !this.gd.chess(id)) return false;
+      if (this.gd.chess(id).optionalRecruit && !this.players.get(playerId)?.canRecruit(id)) return false;
       const base = this.gd.baseIdOf(id);
       return !this.pool.has(base) || this.pool.left(base) > 0;
     };
@@ -1604,7 +1710,7 @@ export class Match {
       id = this.pool.roll(rng, {
         tier: Number.isInteger(p.tier) ? p.tier : null,
         maxTier,
-        filter: (cid, e) => e.tier >= minTier && (!bond || (Array.isArray(this.gd.chess(cid)?.bonds) && this.gd.chess(cid).bonds.includes(bond))),
+        filter: (cid, e) => free(cid) && e.tier >= minTier && (!bond || (Array.isArray(this.gd.chess(cid)?.bonds) && this.gd.chess(cid).bonds.includes(bond))),
       });
     }
     if (!id) return null;
@@ -1621,6 +1727,11 @@ export class Match {
     const alive = this.alivePlayers();
     for (const ps of alive) {
       ps.ready = false;
+      // Items gained as the previous prep ended waited unmerged (acquireItem deferMerge). Merge them now, before
+      // this prep's onPrepStart grants and before the player acts — not in endPrep, which runs in the same prep
+      // that granted them and would take an equipped copy off for the fight about to start.
+      ps.checkItemMerges();
+      ps.recompute();
       this.dispatch(ps, 'onPrepStart', { round: this.round });
       ps.recompute();
     }
@@ -1792,7 +1903,7 @@ export class Match {
       spawns: this._sanitizeSpawns(Array.isArray(ev.spawns) ? ev.spawns : spawns, ps.playerId),
       routes: wave.routes,
       sharedBoss: null,
-      flags: { layerGainsEnabled: true, ...this.gd.dp },
+      flags: { layerGainsEnabled: true, ...this.gd.dp, deploymentInterval:.2 },
       fieldId: `n:${ps.playerId}`,
       enemyOverrides: wave.overrides,
       waveId: wave.templateId,
@@ -1801,8 +1912,7 @@ export class Match {
 
   _defaultWatch() {
     this.watchers.clear();
-    for (const ps of this.order) {
-      if (ps.isBot || ps.left) continue;
+    for (const ps of this._viewers()) {
       const own = this.fields.find((f) => f.players.includes(ps.playerId));
       const f = own || this.fields[0];
       if (!f) continue;
@@ -1921,7 +2031,7 @@ export class Match {
       spawns: this._sanitizeSpawns(wave.spawns),
       routes: wave.routes,
       sharedBoss: null,
-      flags: { layerGainsEnabled: false, ...this.gd.dp },
+      flags: { layerGainsEnabled: false, ...this.gd.dp, deploymentInterval:.2 },
       fieldId: 'u',
       // leaked enemies re-enter with the stats they had: the round template's stat overrides apply again
       enemyOverrides: this.wave && this.wave.overrides ? this.wave.overrides : {},
@@ -1956,7 +2066,7 @@ export class Match {
     const seq = `${this.battlePrefix}.${this.round}.${++this._battleSeq}`;
     // protocol ids are ≤ 64 chars (shared/protocol.js isId): the field id is informational, the sequence is unique
     const battleId = seq.length + 1 + String(fieldId).length <= 64 ? `${seq}.${fieldId}` : seq;
-    const spec = buildBattleSpec({ ...opts, battleId, fieldId, kind, content: this.battleContent, boss });
+    const spec = buildBattleSpec({ ...opts, flags: {...opts.flags, customFactions:this.customFactions}, battleId, fieldId, kind, content: this.battleContent, boss });
     let total = 0;
     for (const x of spec.spawns) if (x && x.tag !== 'boss' && x.tag !== 'part') total += Math.max(1, Math.floor(Number(x.count) || 1));
     return {
@@ -2105,10 +2215,30 @@ export class Match {
     return best ? best.playerId : null;
   }
 
+  /**
+   * The spec a spectator seat is shown: the field's own, minus the players' `contentInfo.funds` — a private number (the
+   * player's funds at the battle start) that no battle effect reads, so the replica still plays the same battle. The
+   * other contentInfo counters stay: battle effects read them (sim/content: handUnits, roundStats.gainedChess).
+   */
+  _spectatorSpec(f) {
+    if (!f.spectatorSpec) {
+      const s = f.spec;
+      const strip = (p) => {
+        if (!p || !p.contentInfo || !Object.hasOwn(p.contentInfo, 'funds')) return p;
+        const { funds, ...contentInfo } = p.contentInfo;
+        void funds;
+        return { ...p, contentInfo };
+      };
+      f.spectatorSpec = s && Array.isArray(s.players) ? { ...s, players: s.players.map(strip) } : s;
+    }
+    return f.spectatorSpec;
+  }
+
   /** b.start of a field for one recipient (`watch`: not a player of the field). */
   _startMsg(f, pid, { watch = false } = {}) {
     return {
-      t: 'b.start', battleId: f.battleId, fieldId: f.fieldId, kind: f.kind, spec: f.spec,
+      t: 'b.start', battleId: f.battleId, fieldId: f.fieldId, kind: f.kind,
+      spec: this.spectators.has(pid) ? this._spectatorSpec(f) : f.spec,
       authoritative: !!(!f.done && f.mode === 'client' && f.authority === pid && !watch),
       startAt: f.startAt, serverNow: this.sched.now(), elapsed: Math.round(this._fieldElapsed(f) * 1000) / 1000,
       speed: this.gameSpeed, watch: !!watch, done: !!f.done,
@@ -2116,17 +2246,17 @@ export class Match {
   }
 
   _sendStart(pid, f, opts = {}) {
-    const ps = this.players.get(pid);
+    const ps = this.players.get(pid) || this.spectators.get(pid);
     if (!ps || ps.isBot || ps.left || !ps.connected) return false;
     return this.sendTo(pid, this._startMsg(f, pid, opts));
   }
 
-  /** Humans currently shown a field (its players and its watchers). */
+  /** Humans currently shown a field (its players and its watchers, spectator seats included). */
   _humansShowing(f) {
     const out = new Set();
     for (const pid of f.players) out.add(pid);
     for (const [pid, fid] of this.watchers) if (fid === f.fieldId) out.add(pid);
-    return [...out].filter((pid) => { const ps = this.players.get(pid); return ps && !ps.isBot && !ps.left; });
+    return [...out].filter((pid) => { const ps = this.players.get(pid) || this.spectators.get(pid); return ps && !ps.isBot && !ps.left; });
   }
 
   /** Give every field its authority (a connected human) or run it on the server. */
@@ -2275,8 +2405,8 @@ export class Match {
     const limit = this.wave ? this.wave.timeLimit : 60;
     this.deadline = this.sched.instant ? 0 : this.sched.now() + Math.round((limit / this.gameSpeed) * 1000);
     this._launch(fields);
-    // every fighting human runs its own field; eliminated humans keep watching (research 09 §3.1 "Keep-watching
-    // auto-observes the first available field", switching freely with 前往查看): a display replica of the first field
+    // every fighting human runs its own field; eliminated humans (and spectator seats) keep watching (research 09 §3.1
+    // "Keep-watching auto-observes the first available field", switching freely with 前往查看): a replica of the first field
     for (const f of fields) for (const pid of f.players) {
       const ps = this.players.get(pid);
       if (!ps || ps.isBot || ps.left) continue;
@@ -2285,8 +2415,8 @@ export class Match {
     }
     const first = fields.find((f) => f.mode === 'client') || fields[0] || null;
     if (first) {
-      for (const ps of this.order) {
-        if (ps.isBot || ps.left || ps.alive || this.watchers.has(ps.playerId)) continue;
+      for (const ps of this._viewers()) {
+        if (ps.alive || this.watchers.has(ps.playerId)) continue;
         this.watchers.set(ps.playerId, first.fieldId);
         this._sendStart(ps.playerId, first, { watch: true });
       }
@@ -2302,9 +2432,8 @@ export class Match {
     this.deadline = this.sched.instant ? 0 : this.sched.now() + Math.round((limit / this.gameSpeed) * 1000);
     this.watchers.clear();
     this._launch([f]);
-    // helpers and everyone else (as observers) simulate the same 联防 spec locally
-    for (const ps of this.order) {
-      if (ps.isBot || ps.left) continue;
+    // helpers and everyone else (as observers, spectator seats included) simulate the same 联防 spec locally
+    for (const ps of this._viewers()) {
       this.watchers.set(ps.playerId, 'u');
       this._sendStart(ps.playerId, f, { watch: !f.players.includes(ps.playerId) });
     }
@@ -2519,10 +2648,9 @@ export class Match {
     this._bossClock = this.later(BOSS_CLOCK_MS, () => this._bossClockTick());
   }
 
-  /** b.start of the boss fields: players get their own pair field, eliminated humans the first field. */
+  /** b.start of the boss fields: players get their own pair field, eliminated humans and spectator seats the first. */
   _watchBossFields(fields) {
-    for (const ps of this.order) {
-      if (ps.isBot || ps.left) continue;
+    for (const ps of this._viewers()) {
       const own = fields.find((f) => f.players.includes(ps.playerId)) || null;
       const f = own || fields[0];
       if (!f) continue;
@@ -2746,6 +2874,17 @@ export class Match {
     // a 联防 battle that could not run at all (synthetic result) must not wipe the leakers' losses: charge their own leaks
     const uniteRan = !!(plan && uniteResult && !uniteResult.synthetic);
     const survivors = uniteRan ? uniteSurvivors(plan, uniteResult) : null;
+    // 联防 outcome notice (user request: "联防成功后加一个像原版卫戍的提示"): the official shows a 「联防阶段」 banner
+    // and the capsule 「联防开始」 while the helpers fight; the remake announces the RESULT once that battle is over —
+    // every leaked enemy stopped, or how many still got through (the leakers' LP, charged below, is capped per round).
+    if (uniteRan && Array.isArray(plan.leakers) && plan.leakers.length) {
+      let through = 0;
+      for (const lk of plan.leakers) through += Math.max(0, survivors.get(lk.playerId) || 0);
+      const names = plan.helpers.map((p) => p.name).join('、');
+      this.tickerText(through === 0
+        ? `联防成功：${names} 拦下了全部突破防线的敌人`
+        : `联防结束：还有 ${through} 只敌人突破防线`, FLOW_TICKER_PRIORITY);
+    }
     const alive = this.alivePlayers();
     for (const ps of alive) {
       const r = this.lastResults.get(ps.playerId) || { leaked: [], perfect: true, coins: 0, layerGains: {}, killed: 0, damageDealt: 0 };
@@ -2893,7 +3032,7 @@ export class Match {
         spawns: this._sanitizeSpawns(spawns),
         routes: wave.routes,
         sharedBoss: this.bossPool,
-        flags: { layerGainsEnabled: false, ...this.gd.dp },
+        flags: { layerGainsEnabled: false, ...this.gd.dp, deploymentInterval:.2 },
         fieldId,
         enemyOverrides: wave.overrides,
         waveId: wave.templateId,
@@ -3094,7 +3233,8 @@ export class Match {
     this.lastResultMsg = result;
     this.markPublic();
     try { this.flush(true); } catch (e) { this.reportError('flush', e); }
-    for (const ps of this.order) if (!ps.isBot && !ps.left) this.sendTo(ps.playerId, { ...result, playerId: ps.playerId });
+    // every human still here gets the settlement — the spectator seats the same public rows (none of them their own)
+    for (const ps of this._viewers()) this.sendTo(ps.playerId, { ...result, playerId: ps.playerId });
     const { t, ...summary } = result;
     void t;
     summary.errors = this.errorCount;

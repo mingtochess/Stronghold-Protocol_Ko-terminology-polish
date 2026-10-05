@@ -11,7 +11,8 @@
 // is logged. `sync.state` ∈ 'idle' | 'pending' | 'sending' | 'synced' | 'locked' | 'error' is mirrored into the store
 // for the screen's status line.
 
-import { createStore, loadPref, savePref } from '../store.js';
+import {setAppearanceSource} from './appearance.js';
+import { store, createStore, loadPref, savePref } from '../store.js';
 import { data } from '../data.js';
 import { LOADOUT_PREF, parseStored, toStored, sanitizeEntries } from './loadoutModel.js';
 import { toast } from './toasts.js';
@@ -31,6 +32,11 @@ export const loadoutStore = createStore({
   sel: null,           // selected base chess id
   filters: { tier: null, prof: null, bond: null, query: '', changedOnly: false },
   sync: 'idle',
+});
+
+setAppearanceSource(()=>store.get().match?.private?.loadout ?? loadoutStore.get().entries);
+loadoutStore.subscribe((next,prev)=>{
+  if(next.entries!==prev.entries)store.patch('ui',{appearanceRevision:(store.get().ui.appearanceRevision||0)+1});
 });
 
 /** Replace the stored entries (persisted at once; the sync picks the change up). */

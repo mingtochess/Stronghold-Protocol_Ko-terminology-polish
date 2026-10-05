@@ -1,6 +1,7 @@
 // Shared in-match building blocks (Preact + htm): data hook, images with fallbacks, rich text,
 // unit thumbnails, LP tower, coin badge, official UI sprites. Styles: css/screens/game*.css.
 
+import { FactionBadge } from './chatFaction.js';
 import { useState, useMemo } from '../../vendor/hooks.module.js';
 import { html, Icon, TierChip, Tooltip } from './components.js';
 import { data, useData, localAsset } from '../data.js';
@@ -251,6 +252,7 @@ export function PlayerAvatar({ player, size = 'md', self = false, class: cls }) 
     <span class="pavatar__img">
       <${Img} src=${src} fallback=${player?.isBot ? html`<${Icon} name="robot" class="pavatar__bot" />` : html`<span class="pavatar__glyph">${glyph}</span>`} />
     </span>
+    <${FactionBadge} playerId=${player?.playerId} faction=${player?.chatFaction} />
     ${dead ? html`<span class="pavatar__x" aria-label="已淘汰"><${Icon} name="close" /></span>` : null}
     ${left ? html`<span class="pavatar__door" aria-label="已离开"><${Icon} name="exit" /></span>` : null}
   </span>`;

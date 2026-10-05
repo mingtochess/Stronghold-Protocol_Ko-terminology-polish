@@ -12,7 +12,8 @@
 //   * sample(): per unit, lerps x/y/hp/sp between the two snapshots bracketing renderT; flags/anim come from
 //     the older one. A unit missing from the newer snapshot (died/left mid-buffer) holds its last position
 //     until renderT reaches the newer snapshot; a unit that only exists in the newer one (spawned mid-buffer)
-//     appears when renderT reaches it. Moves longer than `teleport` tiles between two snapshots snap.
+//     appears when renderT reaches it. Moves longer than `teleport` tiles between two snapshots snap, and so does a
+//     unit whose deploy animation starts in between (a redeploy while it stays listed: 乌尔比安's 【移动】, a 突袭 jump).
 //   * event queue: a `b.ev` batch is stamped with its game time (`gt`, the snapshot it was drained with); a batch
 //     without one is placed inside the latest snapshot interval (newest snapshot time minus half an interval),
 //     and handed out by `takeEvents()` once renderT passes the stamp. Stale cosmetic events (> `eventMaxLag`
@@ -30,8 +31,11 @@
 // Game times in both (`cooldownEnd`, `respawnAt`) are on the snapshots' clock, so a view compares them with renderT.
 
 import { fxForm } from '../../../shared/protocol.js';
+import { ANIM } from '../../../shared/constants.js';
 
 export const TUPLE = Object.freeze({ ID: 0, X: 1, Y: 2, HP: 3, MAXHP: 4, SP: 5, SPMAX: 6, FLAGS: 7, ANIM: 8, EL: 9, EL_FILL: 10, EL_UNTIL: 11, EL_DUR: 12 });
+/** The unit was (re)deployed between tuples `a` and the newer `b`: `b` plays the deploy animation, `a` did not (sim snapshot animOf). */
+const redeployed = (a, b) => b[8] === ANIM.DEPLOY && a[8] !== ANIM.DEPLOY;
 /** Element keys a snapshot `elem` entry may carry (server/sim/constants.js ELEMENT_ORDER). */
 const ELEMENT_KEYS = new Set(['neural', 'erosion', 'burn', 'apoptosis', 'necrosis']);
 
@@ -40,7 +44,7 @@ const finite = (v, d = 0) => (typeof v === 'number' && Number.isFinite(v) ? v : 
 const clamp = (v, lo, hi) => (v < lo ? lo : v > hi ? hi : v);
 
 /** Cosmetic event kinds that may be dropped when far behind (never state-changing). */
-export const COSMETIC_EVENTS = new Set(['atk', 'dmg', 'heal', 'fx', 'layer', 'bounty']);
+export const COSMETIC_EVENTS = new Set(['atkStart', 'atkRetarget', 'atkCancel', 'atk', 'dmg', 'heal', 'fx', 'layer', 'bounty']);
 /**
  * Whether an event may be dropped when stale or shed from a full queue. An 'fx' that carries an enemy's model `form`
  * (shared/protocol.js fxForm) is state: dropping it left the view on the old model after a long main-thread stall, on a
@@ -86,6 +90,22 @@ export function normalizeSnapshot(snap) {
       if (tu && tu.length === 9) tu.push(e[1], clamp(finite(e[2]), 0, 1), finite(e[3]), Math.max(0, finite(e[4])));
     }
   }
+  if (Array.isArray(snap.ammo)) for (const e of snap.ammo) {
+    const tu = units.get(e?.[0]);
+    if (tu && Number.isInteger(e[1]) && Number.isInteger(e[2]) && e[2] > 0) {
+      tu[13] = Math.max(0, e[1]); tu[14] = e[2];
+    }
+  }
+  if (Array.isArray(snap.states)) for (const e of snap.states) {
+    const tu = units.get(e?.[0]);
+    if (tu && Array.isArray(e[1])) tu[15] = e[1].filter(k => typeof k === 'string');
+  }
+  if (Array.isArray(snap.shifts)) for (const e of snap.shifts) {
+    const tu = units.get(e?.[0]);
+    if (tu && e.length === 7 && e.slice(1).every(Number.isFinite) && e[6]>0) tu[16]=e.slice(1);
+  }
+  if(Array.isArray(snap.snow))for(const [id,tiles]of snap.snow){const tu=units.get(id);if(tu&&Array.isArray(tiles))tu[17]=tiles.filter(p=>Array.isArray(p)&&p.length===3&&p.every(Number.isFinite));}
+  if(Array.isArray(snap.skillRanges))for(const [id,tiles]of snap.skillRanges){const tu=units.get(id);if(tu&&Array.isArray(tiles))tu[18]=tiles.filter(p=>Array.isArray(p)&&p.length===2&&p.every(Number.isFinite));}
   let down = null;
   if (Array.isArray(snap.down)) {
     for (const d of snap.down) {
@@ -279,10 +299,15 @@ export class SnapshotBuffer {
     for (const [id, a] of A.units) {
       let o = out.get(id);
       if (!o) { o = { id, x: 0, y: 0, hp: 0, maxHp: 0, sp: 0, spMax: 0, flags: 0, anim: 0, vx: 0, vy: 0, seen: 0, el: null, elFill: 0, elUntil: 0, elDur: 0 }; out.set(id, o); }
+      o.skillTiles = a[18] ?? null;
+      o.snowTiles = a[17] ?? [];
+      o.states = a[15] ?? null;
+      o.ammoLeft = a[13] ?? null; o.ammoMax = a[14] ?? 0;
       const b = B ? B.units.get(id) : null;
       if (b) {
         const dx = b[1] - a[1], dy = b[2] - a[2];
-        const tele = dx * dx + dy * dy > this.teleport * this.teleport;
+        // (a deployment in between — the newer snapshot starts its deploy animation — lands on its tile, no slide)
+        const tele = dx * dx + dy * dy > this.teleport * this.teleport || redeployed(a, b);
         o.x = tele ? (alpha < 1 ? a[1] : b[1]) : a[1] + dx * alpha;
         o.y = tele ? (alpha < 1 ? a[2] : b[2]) : a[2] + dy * alpha;
         o.vx = !tele && span > 0 ? dx / span : 0;
@@ -298,7 +323,7 @@ export class SnapshotBuffer {
           const dtp = A.t - P.t;
           if (p && dtp > 0) {
             vx = (a[1] - p[1]) / dtp; vy = (a[2] - p[2]) / dtp;
-            if (vx * vx + vy * vy > (this.teleport / dtp) ** 2) { vx = 0; vy = 0; }
+            if (vx * vx + vy * vy > (this.teleport / dtp) ** 2 || redeployed(p, a) || (a[16] && a[16][4]>=P.t)) { vx = 0; vy = 0; }
           }
         }
         o.x = a[1] + vx * ext;
@@ -306,12 +331,23 @@ export class SnapshotBuffer {
         o.vx = vx; o.vy = vy;
         o.hp = a[3]; o.maxHp = a[4]; o.sp = a[5]; o.spMax = a[6];
       }
+      const shift = b?.[16] || a[16];
+      if (shift && time>=shift[4] && time<shift[4]+shift[5]) {
+        const k=clamp((time-shift[4])/shift[5],0,1);
+        const newer = b?.[16] && b[16][4] !== a[16]?.[4];
+        const dx=(newer ? b[1] : o.x)-shift[2],dy=(newer ? b[2] : o.y)-shift[3];
+        o.x=shift[0]+(shift[2]-shift[0])*k+dx*k;
+        o.y=shift[1]+(shift[3]-shift[1])*k+dy*k;
+        o.vx=(shift[2]-shift[0])/shift[5];o.vy=(shift[3]-shift[1])/shift[5];
+      } else if (shift && time<shift[4] && b?.[16] && !a[16]) {
+        o.x=a[1];o.y=a[2];o.vx=0;o.vy=0;
+      }
       // the sim rounds hp up and maxHp to nearest, so a snapshot may say hp = maxHp + 1
       if (o.hp > o.maxHp && o.maxHp > 0) o.hp = o.maxHp;
       else if (!(o.hp > 0)) o.hp = 0;
       o.flags = a[7];
       o.anim = a[8];
-      if (a.length > 9) { o.el = a[9]; o.elFill = a[10]; o.elUntil = a[11]; o.elDur = a[12]; } else if (o.el !== null) { o.el = null; o.elFill = 0; o.elUntil = 0; o.elDur = 0; }
+      if (a.length > 9) { o.el = a[9] ?? null; o.elFill = a[10] || 0; o.elUntil = a[11] || 0; o.elDur = a[12] || 0; } else if (o.el !== null) { o.el = null; o.elFill = 0; o.elUntil = 0; o.elDur = 0; }
       o.seen = stamp;
     }
     for (const id of out.keys()) if (!A.units.has(id)) out.delete(id);

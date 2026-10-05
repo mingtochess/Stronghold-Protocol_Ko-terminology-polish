@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { bgmKeyFor, resolveBgm, SfxLimiter, AudioManager, normalAttackSfx } from '../../public/js/audio.js';
+import { combatTrackFor, bgmKeyFor, resolveBgm, SfxLimiter, AudioManager, VoiceGate, normalAttackSfx } from '../../public/js/audio.js';
 import { mediaUrl } from '../../public/js/media.js';
 import { PHASE } from '../../shared/constants.js';
 
@@ -30,12 +30,23 @@ describe('bgm selection', () => {
     assert.equal(bgmKeyFor('game', { phase: PHASE.PREP }), 'prep');
     assert.equal(bgmKeyFor('game', { phase: PHASE.SP_DRAFT }), 'prep');
     assert.equal(bgmKeyFor('game', { phase: PHASE.COMBAT }), 'combat');
-    assert.equal(bgmKeyFor('game', { phase: PHASE.UNITE }), 'combat');
+    // 联防 has its own track: the official escaped_single / escaped_multi levels declare bgmEvent = corrosion
+    assert.equal(bgmKeyFor('game', { phase: PHASE.UNITE }), 'unite');
     assert.equal(bgmKeyFor('game', { phase: PHASE.FINAL_ASSAULT, bossId: 'boss_4' }), 'boss:boss_4');
     assert.equal(bgmKeyFor('game', { phase: PHASE.FINAL_ASSAULT }), 'boss');
     assert.equal(bgmKeyFor('game', { phase: PHASE.HIDDEN_CORE, bossId: 'boss_1', hiddenBossId: 'boss_9' }), 'boss:boss_9');
     assert.equal(bgmKeyFor('game', { phase: PHASE.RESULT }), 'lobby');
     assert.equal(bgmKeyFor('weird', null), null);
+  });
+  test('combat music switches after round 7 while Unite keeps its official track', () => {
+    for (const round of [1, 4, 7]) assert.equal(combatTrackFor(round), 1);
+    for (const round of [8, 15, 30]) assert.equal(combatTrackFor(round), 0);
+    for (const index of [0, 1]) {
+      assert.equal(bgmKeyFor('game', {phase: PHASE.COMBAT}, index), `combat:${index}`);
+      assert.equal(resolveBgm(manifest, `combat:${index}`).loop, manifest.audio.bgm.combatAlts[index].loop);
+      assert.equal(bgmKeyFor('game', {phase: PHASE.UNITE}, index), 'unite');
+    }
+    assert.equal(resolveBgm({audio:{bgm:{combat:{loop:'/fallback.mp3'}}}}, 'combat:1').loop, '/fallback.mp3');
   });
   test('resolveBgm uses the manifest (boss fallback, intro optional)', () => {
     const lobby = resolveBgm(manifest, 'lobby');
@@ -44,6 +55,14 @@ describe('bgm selection', () => {
     assert.equal(b4.loop, manifest.audio.bossBgm.boss_4.loop);
     assert.equal(resolveBgm(manifest, 'boss:nope').loop, manifest.audio.bgm.boss.loop);
     assert.equal(resolveBgm(manifest, 'prep').intro, manifest.audio.bgm.prep.intro ?? null);
+    // 联防's own track (bgm.unite = corrosion, the official escaped levels' bgmEvent), and the fallback for an older
+    // manifest that has no `unite` entry (the music must not go silent)
+    const unite = manifest.audio.bgm.unite;
+    assert.ok(unite && typeof unite.loop === 'string', 'the manifest carries 联防’s own track');
+    assert.equal(resolveBgm(manifest, 'unite').loop, unite.loop);
+    assert.equal(resolveBgm(manifest, 'unite').intro, unite.intro ?? null);
+    assert.notEqual(unite.loop, manifest.audio.bgm.combat.loop, 'not the shop / default combat loop');
+    assert.equal(resolveBgm({ audio: { bgm: { combat: { loop: '/shop.mp3' } } } }, 'unite').loop, '/shop.mp3');
     assert.equal(resolveBgm(null, 'lobby'), null);
     assert.equal(resolveBgm(manifest, null), null);
     assert.equal(resolveBgm(manifest, 'nope'), null);
@@ -122,7 +141,7 @@ describe('AudioManager', () => {
     assert.equal(a.unit('char_x', 'attack', 1), false);
     a.handleBattleEvents([['atk', 1, 2, 'arrow'], 'junk', null]);
     a.setVolumes({ bgm: 5, sfx: -1, muted: true });
-    assert.deepEqual(a.volumes, { bgm: 1, sfx: 0, muted: true });
+    assert.deepEqual(a.volumes, { bgm: 1, sfx: 0, voice: 0.6, voiceLanguage:'kr', muted: true });
     assert.equal(a.unlocked, false);
   });
   test('unlocks on the first gesture, then plays BGM and SFX from the manifest', async () => {
@@ -372,4 +391,99 @@ describe('impact sounds (user playtest #4 item 6)', () => {
       assert.ok(!asked(urls, manifest.audio.sfx.units[charId].hit), '4 s later: not that attack\'s impact');
     } finally { globalThis.performance = perf; restore(); }
   });
+});
+
+describe('official KR/JP operator voices',()=>{
+  test('equal-priority active skills interrupt; passive skills obey their 10 second cooldown',()=>{
+    const g=new VoiceGate();g.start('skill1',1,0);
+    assert.equal(g.request('skill2',2,10),'preempt');
+    assert.equal(g.request('select',1,10),'drop');
+    g.reset();g.start('passiveImp',1,0);g.release();
+    assert.equal(g.request('passiveImp',1,9999),'drop');
+    assert.equal(g.request('passiveImp',1,10000),'play');
+  });
+  test('language switching picks official bank and stops the old voice before playback',async()=>{
+    const fw=fakeWindow(),saved=globalThis.fetch;
+    globalThis.fetch=async()=>({ok:true,arrayBuffer:async()=>new ArrayBuffer(8)});
+    try{
+      const m={audio:{voice:{kr:{char_test:{select:['/kr.mp3']}},jp:{char_test:{select:['/jp.mp3']}}}}};
+      const a=new AudioManager({win:fw.win,getManifest:()=>m});a.install();fw.fire('pointerdown');await new Promise(r=>setTimeout(r,10));
+      a.setVolumes({voiceLanguage:'kr'});assert.equal(a.voice('char_test','select'),true);
+      await new Promise(r=>setTimeout(r,10));assert.equal(a.voiceNode.url,'/kr.mp3');
+      const old=a.voiceNode;let stopped=false;old.src.stop=()=>{stopped=true};
+      a.setVolumes({voiceLanguage:'jp'});assert.equal(a.voice('char_test','select'),true);
+      assert.equal(stopped,true);await new Promise(r=>setTimeout(r,10));assert.equal(a.voiceNode.url,'/jp.mp3');
+      a.setVolumes({muted:true});assert.equal(a.voiceNode,null);
+      a._stopVoice();
+    }finally{globalThis.fetch=saved}
+  });
+});
+
+test('voice prewarming waits for gesture and shares decoded buffers with playback', async () => {
+  const fw = fakeWindow();
+  const old = globalThis.fetch, urls = [];
+  globalThis.fetch = async url => { urls.push(url); return {ok:true,arrayBuffer:async()=>new ArrayBuffer(8)}; };
+  try {
+    const a = new AudioManager({win:fw.win,getManifest:()=>({audio:{voice:{kr:{char_test:{select:['/assets/audio/test-select.mp3'],place:'/assets/audio/test-place.mp3'}}}}})});
+    a.install(); a.warmVoices(['char_test']);
+    assert.equal(urls.length,0);
+    fw.fire('pointerdown');
+    await new Promise(r=>setTimeout(r,20));
+    assert.equal(urls.length,2);
+    assert.equal(fw.made.started,0,'prewarming does not speak');
+    a.voice('char_test','select');
+    await new Promise(r=>setTimeout(r,20));
+    assert.equal(urls.length,2,'click reuses decoded audio without another request');
+    assert.ok(fw.made.started>0);
+  } finally {globalThis.fetch=old;}
+});
+
+test('BGM coalesces pending same-track requests and keeps its loop alive',async()=>{
+ const fw=fakeWindow(), a=new AudioManager({win:fw.win,getManifest:()=>manifest});
+ a.install();fw.fire('pointerdown');
+ let release; const pending=new Promise(r=>release=r); let calls=0;
+ a._buffer=()=>{calls++;return pending;};
+ a.playBgm('prep');const count=calls;
+ for(let i=0;i<20;i++)a.playBgm('prep');
+ assert.equal(calls,count,'room/private updates must not cancel and decode the same loading track');
+ release({duration:3});await new Promise(r=>setTimeout(r,0));
+ assert.ok(a.bgm);const loop=a.bgm.nodes.at(-1).src;
+ assert.equal(loop.loop,true);assert.equal(loop.loopStart,0);assert.equal(loop.loopEnd,3);
+ const starts=fw.made.started;for(let i=0;i<20;i++)a.playBgm('prep');
+ assert.equal(fw.made.started,starts,'playing track is never restarted by state updates');
+});
+
+test('preparation uses rest music even when a round combat track is selected',()=>{
+ for(const round of [1,7,8,12]){const track=combatTrackFor(round);
+  const combat=bgmKeyFor('game',{phase:PHASE.COMBAT},track);
+  assert.equal(bgmKeyFor('game',{phase:PHASE.PREP},track),'prep');
+  assert.equal(bgmKeyFor('game',{phase:PHASE.SP_DRAFT},track),'prep');
+ }
+});
+
+test('a skill without its own bank never borrows the sound of another equipped skill',()=>{
+ const played=[];const a=new AudioManager({getManifest:()=>({audio:{sfx:{units:{char_test:{skill:'/other.mp3',skills:{0:null,1:'/correct.mp3'}}}}}})});
+ a._play=(url)=>played.push(url);
+ assert.equal(a.unit('char_test','skill',1,0),false);assert.deepEqual(played,[]);
+ assert.equal(a.unit('char_test','skill',1,1),true);assert.deepEqual(played,['/correct.mp3']);
+});
+
+test('battle-start voice randomly selects the field lineup and only fires once',()=>{
+ const a=new AudioManager({getManifest:()=>manifest,random:()=>.99});
+ a.setFieldUnits([{id:1,side:'ally',kind:'op',spine:'char_first'}, {id:2,side:'ally',kind:'op',spine:'char_last'}, {id:3,side:'enemy',kind:'op',spine:'char_enemy'}]);
+ a.ctx={};const lines=[];a.voice=(def,slot)=>{lines.push([def,slot]);return true;};
+ a.handleBattleEvents([['deploy',1],['deploy',2]]);
+ assert.deepEqual(lines,[['char_last','start'],['char_last','place']]);
+});
+
+test('imperial drone warning is quieter and ends when the vertical drop starts at any playback speed',()=>{
+ const a=new AudioManager({getManifest:()=>({audio:{sfx:{battle:{droneAim:'/aim.mp3'}}}})});a.ctx={};const calls=[];a.battle=(name,options)=>calls.push({name,...options});
+ a.handleBattleEvents([['fx','bombardShell',4,10,{id:7,vertical:true,t:3}]],{rate:2});
+ const aim=calls.find(x=>x.name==='droneAim');assert.equal(aim.volume,.22);assert.equal(aim.maxDuration,1.28);
+});
+test('warning audio stop deadline includes decoding time, preventing a delayed warning during the fall',async()=>{
+ const a=new AudioManager();let resolve;const calls=[];
+ a.ctx={currentTime:5,createBufferSource:()=>({playbackRate:{},connect(){},start(){calls.push('start');},stop(t){calls.push(t);}}),createGain:()=>({gain:{},connect(){},disconnect(){}})};
+ a._buffer=()=>new Promise(r=>resolve=r);a._play('/aim',{maxDuration:1});a.ctx.currentTime=6.1;resolve({duration:.01});await new Promise(r=>setImmediate(r));assert.deepEqual(calls,[]);
+ a.ctx.currentTime=7;a._play('/aim',{maxDuration:1});resolve({duration:.01});await new Promise(r=>setImmediate(r));assert.deepEqual(calls,['start',8]);
 });

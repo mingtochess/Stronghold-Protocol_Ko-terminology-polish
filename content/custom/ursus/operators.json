@@ -1,10 +1,96 @@
 [
- {"key":"turdus","charId":"char_4224_turdus","name":"우쿠시크","tier":3,"bonds":["ursusShip","deputShip"],"skillIndex":0,"trait":"ursus"},
- {"key":"helage","charId":"char_188_helage","name":"헬라그","tier":6,"bonds":["ursusShip","soloShip"],"skillIndex":0,"trait":"power"},
- {"key":"headb2","charId":"char_1051_headb2","name":"지마 더 레이징 타이드","tier":6,"bonds":["ursusShip"],"skillIndex":0,"trait":"ursusStart"},
- {"key":"glassb","charId":"char_195_glassb","name":"이스티나","tier":3,"bonds":["ursusShip","emptyShip"],"skillIndex":0,"trait":"all"},
- {"key":"poca","charId":"char_197_poca","name":"로사","tier":5,"bonds":["ursusShip","preciShip"],"skillIndex":0,"trait":"scale"},
- {"key":"leto","charId":"char_194_leto","name":"레토","tier":4,"bonds":["ursusShip"],"skillIndex":0,"trait":"front"},
- {"key":"absin","charId":"char_405_absin","name":"압생트","tier":2,"bonds":["ursusShip","arcaneShip"],"skillIndex":0,"trait":"ursus"},
- {"key":"botany","charId":"char_4223_botany","name":"보타니","tier":3,"bonds":["ursusShip","swiftShip"],"skillIndex":0,"trait":"swift"}
+  {
+    "key": "turdus",
+    "charId": "char_4224_turdus",
+    "name": "우쿠시크",
+    "tier": 3,
+    "bonds": [
+      "ursusShip",
+      "deputShip"
+    ],
+    "skillIndex": 0,
+    "trait": "all"
+  },
+  {
+    "key": "helage",
+    "charId": "char_188_helage",
+    "name": "헬라그",
+    "tier": 6,
+    "bonds": [
+      "ursusShip",
+      "raidShip"
+    ],
+    "skillIndex": 1,
+    "trait": "power"
+  },
+  {
+    "key": "headb2",
+    "charId": "char_1051_headb2",
+    "name": "지마 더 레이징 타이드",
+    "tier": 6,
+    "bonds": [
+      "ursusShip"
+    ],
+    "skillIndex": 1,
+    "trait": "ursusStart"
+  },
+  {
+    "key": "glassb",
+    "charId": "char_195_glassb",
+    "name": "이스티나",
+    "tier": 4,
+    "bonds": [
+      "ursusShip",
+      "visiShip"
+    ],
+    "skillIndex": 1,
+    "trait": "slowedDeaths"
+  },
+  {
+    "key": "poca",
+    "charId": "char_197_poca",
+    "name": "로사",
+    "tier": 5,
+    "bonds": [
+      "ursusShip",
+      "preciShip"
+    ],
+    "skillIndex": 1,
+    "trait": "scale"
+  },
+  {
+    "key": "leto",
+    "charId": "char_194_leto",
+    "name": "레토",
+    "tier": 4,
+    "bonds": [
+      "ursusShip"
+    ],
+    "skillIndex": 1,
+    "trait": "ursusSkill"
+  },
+  {
+    "key": "absin",
+    "charId": "char_405_absin",
+    "name": "압생트",
+    "tier": 2,
+    "bonds": [
+      "ursusShip",
+      "arcaneShip"
+    ],
+    "skillIndex": 0,
+    "trait": "ursus"
+  },
+  {
+    "key": "botany",
+    "charId": "char_4223_botany",
+    "name": "보타니",
+    "tier": 3,
+    "bonds": [
+      "ursusShip",
+      "swiftShip"
+    ],
+    "skillIndex": 0,
+    "trait": "swift"
+  }
 ]

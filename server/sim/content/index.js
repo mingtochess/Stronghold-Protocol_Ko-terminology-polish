@@ -36,6 +36,7 @@ async function safeImport(path) {
 const TIERS = await Promise.all([
   ...[1, 2, 3, 4, 5, 6].map((t) => safeImport(`./kits/tier${t}.js`)),
   safeImport('./kits/ursus.js'),
+  safeImport('./kits/recruits.js'),
 ]);
 const DOMAIN_NAMES = ['tokens', 'devices', 'enemies', 'bosses', 'bonds', 'garrisons', 'items', 'bands', 'choices', 'ursus'];
 const DOMAINS = await Promise.all(DOMAIN_NAMES.map((n) => safeImport(`./${n}.js`)));
@@ -96,8 +97,8 @@ function inputEntry(unit) {
 function inputLoadout(unit) {
   const x = inputEntry(unit);
   if (!x) return null;
-  if (x.skillIndex == null && x.moduleId == null) return {};
-  return { skillIndex: x.skillIndex ?? null, moduleId: x.moduleId ?? null };
+  if (x.skillIndex == null && x.moduleId == null && x.skinId == null) return {};
+  return { skillIndex: x.skillIndex ?? null, moduleId: x.moduleId ?? null, ...(x.skinId ? {skinId: x.skinId} : {}) };
 }
 
 /** Put a def on a not-yet-deployed ally (the fields Battle._makeAlly takes from the def). */

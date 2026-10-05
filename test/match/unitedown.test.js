@@ -71,8 +71,8 @@ for (const clientCombat of [true, false]) {
     const inp = (pid, uid) => players.find((p) => p.playerId === pid).units.find((x) => x.uid === uid);
     assert.deepEqual(inp('p_1', down1.uid)?.carryState, { down: true }, 'the right-hand helper\'s knocked-out operator is in the 联防 battle');
     assert.deepEqual(inp('p_2', down2.uid)?.carryState, { down: true }, 'the left-hand helper\'s too');
-    assert.deepEqual(inp('p_1', up1.uid).carryState, { hpPct: 0.5, sp: 3, skillActive: false });
-    assert.deepEqual(inp('p_2', up2.uid).carryState, { hpPct: 0.5, sp: 3, skillActive: false });
+    assert.deepEqual(inp('p_1', up1.uid).carryState, { hpPct: 0.5, sp: 3 });
+    assert.deepEqual(inp('p_2', up2.uid).carryState, { hpPct: 0.5, sp: 3 });
 
     b.step();
     const unitOf = (uid, pid) => b.allyUnits.find((u) => u.uid === uid && u.ownerId === pid);
@@ -90,7 +90,10 @@ for (const clientCombat of [true, false]) {
     const board1 = [...h.ps('p_1').board.entries()].find(([, p]) => p.uid === down1.uid)[0].split(',').map(Number);
     const u1 = unitOf(down1.uid, 'p_1');
     assert.deepEqual([u1.tileR, u1.tileC], [board1[0], board1[1] + 8], 'the first helper holds the right-hand half (colOffset +8), on its board tile');
-    assert.ok([unitOf(up1.uid, 'p_1'), unitOf(up2.uid, 'p_2')].every((u) => u.alive && u.deployed), 'the standing operators fight');
+    const standing = [unitOf(up1.uid, 'p_1'), unitOf(up2.uid, 'p_2')];
+    // Combat now fields units in 0.2-second order; carrying HP/SP does not bypass that deployment sequence.
+    while (b.time < 3 && !standing.every(u => u.alive && u.deployed)) b.step();
+    assert.ok(standing.every(u => u.alive && u.deployed), 'the standing operators fight after ordered deployment');
 
     // redeploy: after the timer, on its own tile, at full HP (DP init 10 + 1/s ≥ cost by then)
     for (const [piece, pid] of [[down1, 'p_1'], [down2, 'p_2']]) {

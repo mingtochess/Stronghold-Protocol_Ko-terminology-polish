@@ -131,7 +131,9 @@ test('fix: a unit on a fenced tile (围墙) blocks no ground enemy pushed agains
   // control: the same tile made a road — the pushed enemy is blocked as before
   const road = { ...fenced, rows: fenced.rows.map((row, r) => (r === 11 ? `${row.slice(0, 7)}r${row.slice(8)}` : row)) };
   const b = push(road);
-  assert.equal(b.e.blockedBy, b.u, 'on a road tile the same contact blocks');
+  assert.equal(b.e.blockedBy,null,'displacement suppresses blocking');
+  b.h.run(.2);
+  assert.equal(b.e.blockedBy, b.u, 'on a road tile the same contact blocks after displacement ends');
 });
 
 test('fix, real kit: 薄绿 on a 围墙 tile drags enemies against the fence and blocks none of them (0.1.0: held them there)', () => {

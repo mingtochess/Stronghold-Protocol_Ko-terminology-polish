@@ -8,7 +8,9 @@
 // (the plain 源石虫) is drawn tinted toward the slug's own colours (ALIAS_TINT). A model that failed or timed out is
 // loaded again after SPINE_RETRY_MS (bounded), and `retryAssets()` re-resolves a view's picture and model when the
 // asset manifest arrives after the view was built or the tab is shown again (render/app.js; public issue #8 item 5:
-// after a reload whose manifest was slow or failed, every operator stayed the image-less placeholder for good). Every
+// after a reload whose manifest was slow or failed, every operator stayed the image-less placeholder for good); a load
+// begun while the tab was hidden and still in flight SPINE_STUCK_MS after it is shown again is started again
+// (assets.js spine.restart: GitHub #68, such a load may never settle — its view stayed the placeholder). Every
 // bar is a tinted Texture.WHITE sprite, so HUDs batch into few draw calls.
 //
 // Placement: feet anchored at world (x, y, z); scale = camera px-per-tile at the feet × UNIT.modelScale, so
@@ -55,7 +57,7 @@
 //
 // Cost control (low-end devices): a unit whose body is outside the viewport (`ctx.viewport()`, with a margin) is not
 // animated or drawn at all (its clock catches up, ≤ 0.5 s, when it comes back); `opts.lod: 'idle'` (the enemy preview
-// pen: idle loops only) animates through the impostor atlas every 3rd frame; under the view's adaptive load level
+// pen: idle loops only) uses native frame cadence and direct rendering to preserve complete attachments; under the view's adaptive load level
 // (`ctx.loadLevel()` 1–3, app.js) small / far units (< ~56 px per tile) animate every 2nd frame, and from level 2 on
 // every unit does.
 //
@@ -63,11 +65,30 @@
 // screen rect for tooltips and overlays (view.pieceScreenRect). A dragged (lifted) item plate is drawn centred on its
 // ground point, i.e. on the pointer (render/app.js).
 
+import { FORMS } from '../../../shared/animationForms.js';
 import { UF, ANIM } from '../../../shared/constants.js';
 import { SpineActor } from './spine.js';
 import { diamondTexture, shadowTexture, fxAtlas, tierChip, statusTexture, itemTexture, hudRings, ringArc, HUD_DISC, ELEMENT_RING } from './textures.js';
-import { COLORS, TIER_COLORS, ENEMY_FRAME, UNIT, PROJ, statusIconKey } from './style.js';
+import { COLORS, TIER_COLORS, ENEMY_FRAME, UNIT, PROJ, statusIconKey, statusIconSuppressed } from './style.js';
 import { drawCrate, rowDepthKey, ROW_KEY, deviceBoxOf, DEVICE_BOX } from './tiles.js';
+
+// Stable, subdued range styling per operator; independent of runtime unit IDs and skins.
+export function skillRangeStyle(info) {
+  const id = String(info.charId || info.defId || info.spine || 'operator').replace(/_[ab]$/, '');
+  let hash = 2166136261;
+  for (const c of id) hash = Math.imul(hash ^ c.charCodeAt(0), 16777619) >>> 0;
+  const colors = [0x79d9ba, 0x80bfe8, 0xd5a4e6, 0xe4c27d, 0x8ad0ce, 0xe6a5a1];
+  const patterns = [
+    [[-.22,-.22,.22,.22]],
+    [[-.22,.22,.22,-.22]],
+    [[-.2,0,.2,0],[0,-.2,0,.2]],
+    [[-.24,-.12,.16,-.12],[-.16,.12,.24,.12]],
+  ];
+  const base = colors[hash % colors.length], shade = ((hash >>> 8) & 15) - 7;
+  const channel = shift => Math.max(0, Math.min(255, ((base >>> shift) & 255) + shade));
+  const color = (channel(16) << 16) | (channel(8) << 8) | channel(0);
+  return {color, pattern:patterns[Math.floor(hash / colors.length) % patterns.length]};
+}
 
 const clamp = (v, lo, hi) => (v < lo ? lo : v > hi ? hi : v);
 const DIRS = ['UP', 'RIGHT', 'DOWN', 'LEFT'];
@@ -99,6 +120,11 @@ export function dieClipDur(entry) {
 /** World step (x = col, y = row) of a direction. */
 export const DIR_STEP = Object.freeze({ UP: [0, 1], RIGHT: [1, 0], DOWN: [0, -1], LEFT: [-1, 0] });
 const nowMs = () => (globalThis.performance ? globalThis.performance.now() : Date.now());
+/** Units with no art in the game data drawn as an ice diamond: 圣聆初雪 S2's frozen protection point (保护目标（冻结状态）, PRTS
+ *  无头像; data/assets.json has no avatar or model for it, so the token fallback showed 圣聆初雪's own face) — the marker of a
+ *  frozen gate. */
+const ICE_TOKENS = new Set(['token_10058_sbell2_icetgt']);
+const ICE_FRAME = 0x9fe6ff;
 /** How long a view waits for its avatar before showing the image-less placeholder diamond. */
 const PIC_WAIT_MS = 400;
 /**
@@ -107,6 +133,13 @@ const PIC_WAIT_MS = 400;
  * shown again). Counted from the failure; a hidden tab runs no frames, so nothing is retried while hidden.
  */
 export const SPINE_RETRY_MS = Object.freeze([2000, 6000, 15000, 30000]);
+/**
+ * A Spine load begun while the tab was hidden and still in flight this long (ms, real time) after the tab is shown again
+ * is started again (`retryAssets` arms it, `update` fires it; GitHub #68: such a load — a request the hidden tab left
+ * hanging — may never settle, and the view stayed the placeholder). A load that finishes within it is never doubled.
+ * [ASSUMED] the length: a healthy load finishes within a few seconds once the tab is visible.
+ */
+export const SPINE_STUCK_MS = 5000;
 
 /** Heights above this count as standing on a raised top (bench pads are the lowest raised tiles, 0.16). */
 const RAISED_Z = 0.12;
@@ -170,71 +203,7 @@ export const EL_BAR = Object.freeze({ icon: 0.15, min: 8, max: 15, enemy: 0.8, g
  *   built for the knock-out — and one rebuilt while it is down — the 替身's death clip; it stands up as the 本体.
  * A kind without a clip set of this skeleton (barriers, charges, …) changes nothing. 吉兆飞鳞's 晕眩模式 is its Stun clip.
  */
-const loop = (name, via = null) => Object.freeze(via ? { begin: null, loop: name, end: null, via } : { begin: null, loop: name, end: null });
-const clipSet = (idle, move, die, attack = null) => Object.freeze({
-  idle, deploy: idle, die, move: loop(move),
-  attack: attack ? loop(attack, 'attackAny') : null,
-  skill: attack ? Object.freeze({ begin: null, loop: attack, end: null, via: 'attack', index: 0, idle: null }) : null,
-});
-const EMBER = Object.freeze({
-  husk: Object.freeze({ change: 'Die', end: 'Revive', next: 'revived', roles: clipSet('Idle_2', 'Move_2', 'Die_2') }),
-  revived: Object.freeze({ change: null, roles: Object.freeze({}) }),
-});
-/** A 重生 held on `hold` (also while the sim reports the rebirth's stun) after `begin`, closing on `end` as the 重生 ends,
- *  then the second form. */
-const rebirth = (begin, hold, end, form2 = Object.freeze({})) => Object.freeze({
-  reborn: Object.freeze({ change: begin, end, next: 'form2', roles: Object.freeze({ idle: hold, deploy: hold, move: loop(hold), stun: loop(hold), attack: null, skill: null }) }),
-  form2: Object.freeze({ change: null, roles: form2 }),
-});
-const STATUE = Object.freeze({
-  stone: Object.freeze({ change: null, roles: Object.freeze({ idle: 'Sleep', deploy: 'Sleep', move: loop('Sleep'), stun: loop('Sleep'), attack: null, skill: null }) }),
-  fly: Object.freeze({ change: null, roles: clipSet('Idle_2', 'Move_2', 'Die_2', 'Attack_2') }),
-});
-const JAKILL2 = clipSet('C2_Idle', 'C2_Move', 'C2_Die', 'C2_Attack');
-/** A 傀儡师's 替身 roles: idle `idle`, death `die`, attack `attack` (null: none), no skill clip of its own. */
-const dollRoles = (idle, die, attack = null) => Object.freeze({
-  idle, deploy: idle, die, attack: attack ? Object.freeze({ begin: null, loop: attack, end: null }) : null, attackDown: null, skill: null,
-});
-export const FORMS = Object.freeze({
-  char_1023_ghost2: Object.freeze({
-    doll: Object.freeze({ change: 'Start_B', end: 'Die_B', leave: 'Start_2', roles: dollRoles('Idle_B', 'Die_B_2') }),
-  }),
-  char_4016_kazema: Object.freeze({
-    doll: Object.freeze({ change: 'Start_B', leave: 'Start', roles: dollRoles('Idle_B', 'Die_B', 'Attack_B') }),
-  }),
-  enemy_1040_bombd: Object.freeze({
-    bombed: Object.freeze({
-      roles: Object.freeze({
-        idle: 'Idle_2', deploy: 'Idle_2', die: 'Die_2',
-        move: Object.freeze({ begin: 'Move_Begin_2', loop: 'Move_Loop_2', end: 'Move_End_2' }),
-      }),
-    }),
-  }),
-  enemy_2025_syufo: Object.freeze({
-    crawl: Object.freeze({ change: 'Change', roles: clipSet('Idle_02', 'Move_02', 'Die_02', 'Attack_02') }),
-  }),
-  enemy_10081_mpplai: Object.freeze({
-    translator_fuchou: Object.freeze({ change: 'A_Die_B', roles: clipSet('B_Idle', 'B_Move', 'B_Die', 'B_Attack') }),
-    translator_youling: Object.freeze({ change: 'A_Die_C', roles: clipSet('C_Idle', 'C_Move', 'C_Die') }),
-    translator_shushi: Object.freeze({ change: 'A_Die_D', roles: clipSet('D_Idle', 'D_Move', 'D_Die', 'D_Attack') }),
-  }),
-  enemy_1288_duskls: EMBER,
-  enemy_1288_duskls_2: EMBER,
-  enemy_1292_duskld: EMBER,
-  enemy_9010_acpupp: Object.freeze({
-    husk: Object.freeze({ change: 'A_Die', end: 'B_Revive', next: 'revived', roles: clipSet('B_Idle', 'B_Move', 'B_Die') }),
-    revived: Object.freeze({ change: null, roles: Object.freeze({}) }),
-  }),
-  enemy_1525_blkswb: rebirth('Revive1', 'Revive2', 'Revive3', clipSet('B_Idle', 'B_Move', 'B_Die', 'B_Attack')),
-  enemy_1535_wlfmster: rebirth('A_revive_1', 'A_revive_2', 'A_revive_3', clipSet('B_Idle', 'B_Move', 'B_Die', 'B_Attack')),
-  enemy_1539_reid: rebirth('Revive_Begin', 'Revive_Loop', 'Revive_End'),
-  enemy_1516_jakill: Object.freeze({
-    reborn: Object.freeze({ change: 'C1_Die', roles: JAKILL2 }),
-    form2: Object.freeze({ change: null, roles: JAKILL2 }),
-  }),
-  enemy_1172_dugago: STATUE,
-  enemy_1172_dugago_2: STATUE,
-});
+export { FORMS } from '../../../shared/animationForms.js';
 
 /**
  * Keep `obj` in the right layer: the surface container of block row round(y) when it lies on a raised top at
@@ -336,6 +305,12 @@ export class UnitView {
     this._dieForm = null;         // the form it died in (die): a model built while it lies down shows that form's death
 
     // --- display objects
+    this.snowTiles = [];
+    this.snowFx = new P.Graphics();ctx.layers.groundFx.addChild(this.snowFx);
+    this.skillZone = info.skillZoneGrid?.length ? new P.Graphics() : null;
+    if(this.skillZone)ctx.layers.groundFx.addChild(this.skillZone);
+    this.attackRange = (Number(info.rangeRadius)>0 || info.hitArea) ? new P.Graphics() : null;
+    if(this.attackRange)ctx.layers.groundFx.addChild(this.attackRange);
     this.shadow = new P.Sprite(ctx.shadowTex || shadowTexture());
     this.shadow.anchor.set(0.5);
     this.shadow.alpha = 0.55;
@@ -354,6 +329,8 @@ export class UnitView {
       this.aura.blendMode = P.BLEND_MODES.ADD;
       this.root.addChild(this.aura);
     }
+    this.stateFx = new P.Graphics();
+    this.root.addChild(this.stateFx);
     this.body = new P.Container();
     this.root.addChild(this.body);
     this.fallback = new P.Sprite(P.Texture.EMPTY);
@@ -365,6 +342,8 @@ export class UnitView {
     this._spineBusy = false;             // a Spine load of this view is in flight
     this._spineTries = 0;                // failed loads since the last model (SPINE_RETRY_MS)
     this._retryAt = 0;                   // when the next retry is due (ms, performance clock; 0 = none)
+    this._spineHidden = false;           // the load in flight began while the tab was hidden (SPINE_STUCK_MS)
+    this._stuckAt = 0;                   // when that load is started again unless it settled (ms; 0 = none)
     this.baseTint = 0xffffff;            // the drawn model's own tint (ALIAS_TINT), under the status tints
 
     this.hud = new P.Container();
@@ -380,6 +359,7 @@ export class UnitView {
 
   _frameColor() {
     if (this.isEnemy) return this.isBoss ? ENEMY_FRAME.boss : this.tier >= 2 ? ENEMY_FRAME.elite : ENEMY_FRAME.normal;
+    if (ICE_TOKENS.has(this.info.defId)) return ICE_FRAME;
     if (this.golden) return 0xffc600;
     return TIER_COLORS[this.tier] || TIER_COLORS[1];
   }
@@ -390,7 +370,8 @@ export class UnitView {
   // is missing or still loading after PIC_WAIT_MS).
   _loadPicture() {
     const a = this.ctx.assets;
-    const url = a && (a.picture ? a.picture(this.info.avatar) || a.picture(this.info.defId) || a.picture(this.info.spine) : null);
+    // (an ICE_TOKENS unit takes no picture: the token fallback would be its owner's face — assets.js tokenAvatarUrl)
+    const url = ICE_TOKENS.has(this.info.defId) ? null : a && (a.picture ? a.picture(this.info.avatar) || a.picture(this.info.defId) || a.picture(this.info.spine) : null);
     this._pic = { key: String(this.info.avatar || this.info.defId || 'unknown'), color: this._frameColor(), img: null, state: 'none', shown: null, t0: nowMs() };
     if (!url || !a.image) return;
     const cached = typeof a.imageNow === 'function' ? a.imageNow(url) : null;
@@ -409,7 +390,7 @@ export class UnitView {
     let want = pic.state === 'img' ? 'img' : 'placeholder';
     if (pic.state === 'wait' && nowMs() - pic.t0 < PIC_WAIT_MS) want = null;
     if (!want || pic.shown === want) return;
-    this.fallback.texture = diamondTexture(pic.key, want === 'img' ? pic.img : null, pic.color, { enemy: this.isEnemy, golden: this.golden });
+    this.fallback.texture = diamondTexture(pic.key, want === 'img' ? pic.img : null, pic.color, { enemy: this.isEnemy, golden: this.golden, ice: ICE_TOKENS.has(this.info.defId) });
     pic.shown = want;
   }
 
@@ -431,12 +412,16 @@ export class UnitView {
    * Re-resolve what this view could not draw yet (public issue #8 item 5): the picture when it has none (no avatar URL —
    * the asset manifest arrived after the view was built — or the image failed) and, at once, the Spine model when none
    * is shown and none is loading (no manifest entry then, or a load that failed / timed out). render/app.js calls it for
-   * every view when a manifest arrives (assets.js onChange) and when the tab is shown again. Nothing to do otherwise.
+   * every view when a manifest arrives (assets.js onChange) and when the tab is shown again. A load still in flight that
+   * began while the tab was hidden gets SPINE_STUCK_MS from now (the tab visible) to finish, then `update` starts it again
+   * (GitHub #68). Nothing to do otherwise.
    */
   retryAssets() {
     if (this.destroyed) return;
     if (!this._pic || this._pic.state === 'none') this._loadPicture();
-    if (!this.actor && !this._spineBusy) { this._retryAt = 0; this._loadSpine(true); }
+    if (this.actor) return;
+    if (!this._spineBusy) { this._retryAt = 0; this._loadSpine(true); return; }
+    if (this._spineHidden && !this._stuckAt && !globalThis.document?.hidden) this._stuckAt = nowMs() + SPINE_STUCK_MS;
   }
 
   /**
@@ -451,8 +436,10 @@ export class UnitView {
     this.entry = entry;
     const req = this._spineReq = (this._spineReq || 0) + 1;
     this._spineBusy = true;
+    this._spineHidden = !!globalThis.document?.hidden;
+    this._stuckAt = 0;
     a.spine.acquire(entry, retry ? { retry: true } : undefined).then((data) => {
-      if (req === this._spineReq) this._spineBusy = false;
+      if (req === this._spineReq) { this._spineBusy = false; this._stuckAt = 0; }
       if (this.destroyed || req !== this._spineReq) { this._releaseEntry(entry); return; }
       this._spineTries = 0;
       this._retryAt = 0;
@@ -461,7 +448,8 @@ export class UnitView {
         actor = new SpineActor(data, entry);
         actor.setSkillIndex(this.info.skillIndex);
         // enemies play their attack clip once per attack, then walk on (GitHub #58: the sim stands them for that clip)
-        actor.clipPerAttack = this.isEnemy;
+        actor.clipPerAttack = true;
+        actor.continuousAttacks = !this.isEnemy;
       } catch (err) {
         console.warn('[render] spine build failed', id, err?.message || err);
         this._releaseEntry(entry);
@@ -493,10 +481,13 @@ export class UnitView {
       } else {
         if (this.flags & UF.SKILL) this.actor.setSkill(true);
         this.actor.setBase(this._baseFromAnim());
-        if (deployed != null) { this.actor.deploy(); if (deployed > 0) this.actor.update(deployed); }
+        const deployElapsed=deployed ?? this.pendingDeployElapsed;
+        if (deployElapsed != null && deployElapsed < this.actor.dur(this.actor.roles.deploy)) {
+          this.actor.deploy(); if (deployElapsed > 0) this.actor.update(deployElapsed);
+        }
       }
     }, () => {
-      if (req === this._spineReq) this._spineBusy = false;
+      if (req === this._spineReq) { this._spineBusy = false; this._stuckAt = 0; }
       this._releaseEntry(entry);
       if (this.destroyed || req !== this._spineReq) return;
       if (entry.fallback) { this._acquireSpine(entry.fallback, id, retry); return; }
@@ -546,6 +537,7 @@ export class UnitView {
     this.shieldBar = bar(P, h, COLORS.shield, 0.95);
     this.spBg = bar(P, h, COLORS.hpBack, 0.85);
     this.spFill = bar(P, h, COLORS.sp);
+    this.ammoDividers = new P.Graphics(); h.addChild(this.ammoDividers);
     this.spGlow = new P.Sprite(fxAtlas().tex.glow);
     this.spGlow.anchor.set(0.5);
     this.spGlow.tint = COLORS.spReady;
@@ -631,13 +623,17 @@ export class UnitView {
     if (hp < this.hp - 0.5 && this.isBoss) this.shake = 0.25;
     this.hp = hp;
     this.sp = s.sp; this.spMax = s.spMax;
+    this.snowTiles = s.snowTiles || [];
+    this.skillTiles = s.skillTiles;
+    this.ammoLeft = s.ammoLeft; this.ammoMax = s.ammoMax || 0;
+    if (Array.isArray(s.states)) { const skill = this.statuses.has('skill'); this.statuses = new Set(s.states); if (skill) this.statuses.add('skill'); }
     const prevFlags = this.flags;
     this.flags = s.flags | 0;
     this.anim = s.anim | 0;
-    if (this.isEnemy && Math.abs(s.vx) > 0.08) this.visFacing = s.vx < 0 ? -1 : 1;
+    if (this.isEnemy && this.anim===ANIM.MOVE && !['attack','skillCast'].includes(this.actor?.mode) && Math.abs(s.vx) > 0.08) this.visFacing = s.vx < 0 ? -1 : 1;
     if ((prevFlags ^ this.flags) & UF.SKILL) this.setSkill(!!(this.flags & UF.SKILL));
     if (this.anim === ANIM.DIE && this.alive) this.die();
-    if (this.actor && this.alive) this.actor.setBase(this._baseFromAnim());
+    if (this.actor && this.alive && !(this.flags & UF.FROZEN)) this.actor.setBase(this._baseFromAnim());
   }
 
   setWorld(x, y, z = 0) { this.x = x; this.y = y; this.z = z; }
@@ -710,23 +706,19 @@ export class UnitView {
   }
 
   /** An attack was made (b.ev 'atk'). `target` = view or null. */
-  onAttack(target, now, kind) {
+  onAttack(target, now, kind, allInRange=false) {
     if (!this.alive) return;
     // a one-off cast (PROJ[kind].once: 暴鸰's bomb drop) is no attack rhythm: its clip plays once at its own speed
     const once = !!PROJ[kind]?.once;
+    if(!once && this.lastAtk === now)return;
     if (!once) {
       if (this.lastAtk >= 0) {
         const d = now - this.lastAtk;
-        if (d > 0.05 && d < 6) this.atkInterval = this.atkInterval * 0.6 + d * 0.4;
+        if (d > 0.05 && d < 6 && !this.hasAttackInterval) this.atkInterval = d;
       }
       this.lastAtk = now;
     }
-    if (target && !this.isEnemy && this.info.kind !== 'device') {
-      // operators keep their deploy direction (research 09 §1.2); enemies may turn towards their target
-    } else if (target && this.isEnemy) {
-      const dx = target.x - this.x;
-      if (Math.abs(dx) > 0.1) this.visFacing = dx < 0 ? -1 : 1;
-    }
+    if(!this.hasAttackInterval && !allInRange)this.faceTarget(target);
     if (target) {
       const dx = target.x - this.x, dy = target.y - this.y, len = Math.hypot(dx, dy) || 1;
       this.lungeDir.x = dx / len; this.lungeDir.y = dy / len;
@@ -742,20 +734,43 @@ export class UnitView {
    * 'atk' projKind (a one-off cast winds up at the clip's own speed).
    */
   windUp(lead, kind) {
-    if (!this.alive || !this.actor || !this.spineReady) return false;
+    if (!this.alive || !this.actor || !this.spineReady || this.hasAttackInterval) return false;
     const ok = this.actor.windUp(this.atkInterval, lead, !!PROJ[kind]?.once);
     if (ok && this.imp) this.imp.dirty = true;
     return ok;
   }
 
+  faceTarget(target) {
+    if (target && !this.info.fixedFacing && !this.info.omnidirectional && this.info.kind !== 'device' && Math.abs(target.x-this.x)>.25)
+      this.visFacing = target.x<this.x ? -1 : 1;
+  }
+
+  onAttackStart(target, lead, interval, allInRange=false) {
+    this.atkInterval = interval;
+    this.hasAttackInterval = true;
+    if(!allInRange)this.faceTarget(target);
+    if (this.actor) this.actor.beginAttack(interval, lead);
+    if (this.imp) this.imp.dirty = true;
+  }
+
+  onAttackCancel() {
+    this.actor?.cancelAttack();
+    if (this.imp) this.imp.dirty = true;
+  }
+
   onHit() { this.flash = 1; }
 
   setSkill(on) {
-    if (on) this.statuses.add('skill'); else this.statuses.delete('skill');
-    if (this.actor) this.actor.setSkill(on);
+    if (on) this.statuses.add('skill'); else {
+      this.statuses.delete('skill');
+      this.skillTiles = undefined;
+      if (this.skillZone) { this.skillZone.clear(); this.skillZone.visible = false; }
+    }
+    if (this.actor) this.actor.setSkill(on,{instant:this.info.skillDuration===0});
   }
 
   onDeploy() {
+    this.pendingDeployElapsed = 0;
     this.fadeIn = 0;
     if (!this.alive) this.revive();
     if (this.actor) this.actor.deploy();
@@ -779,6 +794,10 @@ export class UnitView {
   die(instant = false) {
     if (!this.alive) return;
     this.alive = false;
+    this.statuses.delete('skill');
+    this.skillTiles = undefined;
+    if (this.skillZone) { this.skillZone.clear(); this.skillZone.visible = false; }
+    this.snowFx.clear();
     this._modelDirty = true;
     this._dieForm = this._formSpec();
     let d = this.actor ? this.actor.die() : 0;
@@ -845,11 +864,21 @@ export class UnitView {
   /** @param {number} dt real seconds @param {any} cam camera @param {number} t real clock */
   update(dt, cam, t) {
     if (this.destroyed) return;
+    if(this.pendingDeployElapsed != null)this.pendingDeployElapsed += dt*(this.ctx.animRate?.() || 1);
     const P = this.P;
+    // Ground overlays have their own layer: invalidate before any off-screen early return.
+    if (this.skillZone && (!this.alive || this.down || !this.statuses.has('skill'))) { this.skillZone.clear(); this.skillZone.visible = false; }
+    if (!this.alive) this.snowFx.clear();
+    if (!this.skillZone && this.skillTiles?.length) { this.skillZone = new P.Graphics(); this.ctx.layers.groundFx.addChild(this.skillZone); }
     // the model for the state the frame's events and snapshot left (Front ⇄ Back when it went down / stood up: die, revive)
     if (this._modelDirty) { this._modelDirty = false; this._syncModel(); }
     // a failed / timed-out model load is tried again once its wait is over (SPINE_RETRY_MS; frames only: never hidden)
     if (this._retryAt && nowMs() >= this._retryAt) { this._retryAt = 0; if (!this.actor && !this._spineBusy) this._loadSpine(true); }
+    // a load begun in a hidden tab and still in flight SPINE_STUCK_MS after it came back: started again (GitHub #68)
+    if (this._stuckAt && nowMs() >= this._stuckAt) {
+      this._stuckAt = 0;
+      if (!this.actor && this._spineBusy && this.entry) { this._spineHidden = false; this.ctx.assets?.spine?.restart?.(this.entry); }
+    }
     if (this.zTarget != null && this.z !== this.zTarget) {
       const d = this.zTarget - this.z;
       this.z = Math.abs(d) < 1e-3 ? this.zTarget : this.z + d * Math.min(1, dt * 12);
@@ -858,6 +887,33 @@ export class UnitView {
     if (this.hover !== hoverTo) this.hover = Math.abs(hoverTo - this.hover) < 1e-3 ? hoverTo : this.hover + (hoverTo - this.hover) * Math.min(1, dt * 6);
     const p = cam.project(this.x, this.y, this.z + this.hover + this.lift, this.screen);
     const s = p.s;
+    // State effects follow the projected unit, including flying height, rather than the camera.
+    const visualStates = this._iconKeys().filter(k=>['freeze','cold','burn','poison','shield','refraction','stealth','stun','sleep','invuln'].includes(k));
+    if (this.statuses.has('ab:rage') || this.statuses.has('ab:lowhp')) visualStates.push('rage');
+    const authoredStates = [...(this.form ? [this.form] : []), ...visualStates, ...[...this.statuses].map(k => k.split(':').at(-1))];
+    if (this.statuses.has('skill')) authoredStates.push(`skill${(this.info.skillIndex ?? 0)+1}`);
+    const authoredState = this.actor?.setVisualStates(authoredStates);
+    this.stateFx.clear();
+    if (this.alive && !this.down && !authoredState && visualStates.length) {
+      const colors = {stun:0xf1ce76,sleep:0xbab7e8,invuln:0xf7dfab,freeze:0x9fd4ff,cold:0xcfe6ff,burn:0xff8e51,poison:0xb899d7,shield:0x80d9c4,refraction:0x89bfe7,stealth:0xaaaaaa,rage:0xff5941};
+      for (const state of visualStates) {
+        this.stateFx.lineStyle(Math.max(.6,s*.008),colors[state],.65);
+        if (state === 'freeze') {
+          this.stateFx.beginFill(0x9fdcff,.22);
+          this.stateFx.drawPolygon([-s*.3,-s*.05,-s*.35,-s*.5,-s*.16,-s*.82,s*.15,-s*.74,s*.33,-s*.4,s*.28,-s*.05]);
+          this.stateFx.endFill();
+          this.stateFx.moveTo(-s*.16,-s*.82).lineTo(0,-s*.3).lineTo(s*.28,-s*.05);
+        } else if (state === 'shield') this.stateFx.drawEllipse(0,-s*.38,s*.32,s*.43);
+        else if (state === 'refraction') {
+          this.stateFx.moveTo(-s*.24,-s*.1).lineTo(-s*.31,-s*.4).lineTo(-s*.16,-s*.7);
+          this.stateFx.moveTo(s*.24,-s*.1).lineTo(s*.31,-s*.4).lineTo(s*.16,-s*.7);
+        } else if (state === 'rage') {
+          for (let i=0;i<3;i++) { const x=(i-1)*s*.18;
+            this.stateFx.moveTo(x,-s*.1).lineTo(x+s*.03*Math.sin(t*7+i),-s*(.4+.1*Math.sin(t*5+i)));
+          }
+        } else this.stateFx.drawEllipse(0,-s*.08,s*.32,s*.12);
+      }
+    }
     // fades
     if (this.fadeIn < 1) this.fadeIn = Math.min(1, this.fadeIn + dt * 4);
     let alpha = this.fadeIn;
@@ -877,17 +933,21 @@ export class UnitView {
     this.alpha = alpha;
 
     // body placement
-    const lungeK = this.lunge > 0 ? Math.sin(this.lunge * Math.PI) * 0.12 : 0;
+    const lungeK = 0;
     this.lunge = Math.max(0, this.lunge - dt * 5);
     const lx = this.lungeDir.x * lungeK, ly = this.lungeDir.y * lungeK;
     let bx = p.x, by = p.y;
     if (lungeK) { const q = cam.project(this.x + lx, this.y + ly, this.z + this.hover + this.lift, LG_P); bx = q.x; by = q.y; }
     this.root.position.set(bx, by);
     this.root.alpha = alpha;
-    this.root.zIndex = unitDepthKey(cam, this.x, this.y, this.lift);
+    this.root.zIndex = unitDepthKey(cam, this.x, this.y, this.lift) + (this.flying ? 100000 : 0);
     // off-screen: nothing to animate or draw (bounds / hit-testing still follow `screen`)
-    if (this._cull(bx, by, s, dt)) return;
-    const flip = this.isEnemy ? (ENEMY_MODEL_FACES_LEFT ? -this.visFacing : this.visFacing) : this.visFacing;
+    if (this._cull(bx, by, s, (this.flags & UF.FROZEN) ? 0 : dt)) return;
+    const flipTarget = this.info.fixedFacing ? 1 : this.isEnemy ? (ENEMY_MODEL_FACES_LEFT ? -this.visFacing : this.visFacing) : this.visFacing;
+    if(this.flipValue == null)this.flipValue=flipTarget;
+    this.flipValue += Math.sign(flipTarget-this.flipValue)*Math.min(Math.abs(flipTarget-this.flipValue),dt*2/.1);
+    const flip=this.flipValue;
+
 
     // shadow (on a raised top it is drawn with that block row, else in the shadow layer under everything)
     placeOnGround(this.ctx, this.shadow, this.ctx.layers.shadow, this.y, this.z);
@@ -897,6 +957,41 @@ export class UnitView {
     this.shadow.scale.set(shw, shw * (this.shadow.texture === shadowTexture() ? 1 : 1.05));
     this.shadow.alpha = 0.5 * alpha * (this.lift > 0 ? 0.6 : 1);
 
+    this.snowFx.clear();
+    if(this.alive && this.snowTiles.length){
+      placeOnGround(this.ctx,this.snowFx,this.ctx.layers.groundFx,this.y,this.z);
+      for(const [r,c,n] of this.snowTiles){
+        this.snowFx.lineStyle(Math.max(.6,s*.009),0xcceeff,.5);
+        this.snowFx.beginFill(0xc5e9ff,Math.min(.35,.09+n*.04));
+        const points=[];for(const [dx,dy]of [[-.46,-.46],[.46,-.46],[.46,.46],[-.46,.46]]){const q=cam.project(c+dx,r+dy,.025);points.push(q.x,q.y);}
+        this.snowFx.drawPolygon(points);this.snowFx.endFill();
+      }
+    }
+    if(this.skillZone){
+      const g=this.skillZone;g.clear();g.visible=this.alive&&!this.down&&this.statuses.has('skill');
+      if(g.visible){
+        placeOnGround(this.ctx,g,this.ctx.layers.groundFx,this.y,this.z);
+        const style = skillRangeStyle(this.info);
+        const edgeWidth = clamp(s*.018, 1.4, 2.6);
+        for(const [dr,dc] of this.skillTiles || this.info.skillZoneGrid || []){
+          const [r,c]=this.skillTiles ? [dr-this.y,dc-this.x] : this.dir==='UP'?[dc,-dr]:this.dir==='LEFT'?[-dr,-dc]:this.dir==='DOWN'?[-dc,dr]:[dr,dc];
+          const pts=[];for(const [dx,dy]of [[-.48,-.48],[.48,-.48],[.48,.48],[-.48,.48]]){const q=cam.project(this.x+c+dx,this.y+r+dy,this.z+.02);pts.push(q.x,q.y);}
+          g.lineStyle(edgeWidth,style.color,.65*alpha);
+          g.beginFill(style.color,.065*alpha);g.drawPolygon(pts);g.endFill();
+          g.lineStyle(Math.max(.8,edgeWidth*.55),style.color,.28*alpha);
+          for(const [x0,y0,x1,y1] of style.pattern){
+            const a=cam.project(this.x+c+x0,this.y+r+y0,this.z+.025);
+            const b=cam.project(this.x+c+x1,this.y+r+y1,this.z+.025);
+            g.moveTo(a.x,a.y);g.lineTo(b.x,b.y);
+          }
+        }
+      }
+    }
+    if(this.attackRange){
+      const g=this.attackRange,r=Number(this.info.rangeRadius);g.clear();g.visible=this.alive&&!this.down;
+      if(g.visible&&this.info.hitArea){const a=this.info.hitArea;placeOnGround(this.ctx,g,this.ctx.layers.groundFx,this.y,this.z);g.lineStyle(2,0xff9c33,.8*alpha);const x=this.x+(a.dx||0),y=this.y+(a.dy||0);for(const [i,p]of [[x-a.w/2,y-a.h/2],[x+a.w/2,y-a.h/2],[x+a.w/2,y+a.h/2],[x-a.w/2,y+a.h/2],[x-a.w/2,y-a.h/2]].entries()){const q=cam.project(p[0],p[1],this.z+.015);if(!i)g.moveTo(q.x,q.y);else g.lineTo(q.x,q.y)}}
+      else if(g.visible){placeOnGround(this.ctx,g,this.ctx.layers.groundFx,this.y,this.z);g.lineStyle(1.5,0x4ed8af,.65*alpha);for(let i=0;i<=64;i++){const a=i/64*Math.PI*2,q=cam.project(this.x+Math.cos(a)*r,this.y+Math.sin(a)*r,this.z+.015);if(i===0)g.moveTo(q.x,q.y);else g.lineTo(q.x,q.y)}}
+    }
     // model / fallback
     const spineShown = this.actor && this.spineReady;
     if (spineShown) {
@@ -912,18 +1007,22 @@ export class UnitView {
       if (flashK > 0) tint = mixTint(tint, 0xff8a80, flashK * 0.8);
       let animDt = dt * (this.ctx.animRate?.() || 1);
       if (this._offDt > 0) { animDt += Math.min(0.5, this._offDt); this._offDt = 0; }
+      if (this.flags & UF.FROZEN) animDt = 0;
       let interval = this.ctx.impostorInterval ? this.ctx.impostorInterval() : 0;
-      if (this.lodIdle) interval = Math.max(interval, 3);
+      // Preview skeletons retain their full attachments and native frame cadence.
+      // Shared atlas masking can erase neighbouring clipped skeletons in a crowded pen.
+      const preview = this.info.preview === true;
       const lvl = this.ctx.loadLevel ? this.ctx.loadLevel() : 0;
       if (lvl > 0) {
         this._far = this._far ? s < 60 : s < 52;
         if (lvl >= 2 || this._far) interval = Math.max(interval, 2);
       }
       if (this.actor.clipped) {
-        const clip = this.ctx.clipAllowed ? this.ctx.clipAllowed() : true;
+        const clip = preview || (this.ctx.clipAllowed ? this.ctx.clipAllowed() : true);
         this.actor.setClipping(clip);
         if (clip && this.ctx.impostors) interval = Math.max(1, interval);
       }
+      if (preview) interval = 0;
       if (interval > 0 && this.ctx.renderer) {
         this._updateImpostor(sc, flip, tint, animDt, interval);
       } else {
@@ -938,7 +1037,7 @@ export class UnitView {
     if (!spineShown) this._ensurePicture();
     if (!spineShown || this.swapT < 1) {
       const size = s * UNIT.diamond * (this.isBoss ? 1.5 : 1);
-      const bob = this.alive ? Math.sin(t * 2.4 + this.bob) * s * 0.03 : 0;
+      const bob = this.alive && this.isEnemy ? Math.sin(t * 2.4 + this.bob) * s * 0.03 : 0;
       this.fallback.scale.set(size / 160);
       this.fallback.position.set(0, -s * 0.08 + bob);
       this.fallback.tint = this.down ? DOWN_LOOK.tint : this.flash > 0 ? mixTint(0xffffff, 0xff8a80, this.flash) : (this.flags & UF.FROZEN ? 0x9fd4ff : 0xffffff);
@@ -1044,16 +1143,24 @@ export class UnitView {
     // SP
     const showSp = showBars && !this.isEnemy && this.spMax > 0;
     this.spBg.visible = this.spFill.visible = showSp;
+    this.ammoDividers.clear(); this.ammoDividers.visible = showSp && this.ammoMax > 0;
     const spH = Math.max(2, bh * 0.6);
     let ready = false;
     if (showSp) {
       const active = !!(this.flags & UF.SKILL);
-      const k = clamp(this.sp / this.spMax, 0, 1);
+      const k = clamp(this.ammoMax > 0 ? this.ammoLeft / this.ammoMax : this.sp / this.spMax, 0, 1);
       ready = !active && k >= 0.999;
       const sy = cy + bh / 2 + spH / 2 + 1.5;
       this.spBg.position.set(x0 - 1, sy); this.spBg.width = bw + 2; this.spBg.height = spH + 2;
       this.spFill.position.set(x0, sy); this.spFill.width = bw * k; this.spFill.height = spH;
       this.spFill.tint = active ? COLORS.spActive : ready ? COLORS.spReady : COLORS.sp;
+      if (this.ammoMax > 1) {
+        this.ammoDividers.lineStyle(Math.min(.7, bw / this.ammoMax * .3), COLORS.hpBack, .9);
+        for (let i = 1; i < this.ammoMax; i++) {
+          const bx = x0 + bw * i / this.ammoMax;
+          this.ammoDividers.moveTo(bx, sy - spH / 2).lineTo(bx, sy + spH / 2);
+        }
+      }
       this._spY = sy;
     }
     this.spGlow.visible = ready;
@@ -1329,6 +1436,7 @@ export class UnitView {
       // a burst's lock ('burnBurst', 'neuralBurst' … — the 爆发冷却) is shown by the element gauge row under the bars
       // (b.snap `elem`); only a feed without gauges (an older recording) shows it as a status
       if (this.el && k.endsWith('Burst')) continue;
+      if (statusIconSuppressed(k, this.statuses)) continue; // 折射 while silenced
       const icon = statusIconKey(k);
       // flag-driven states are authoritative (a stale 'stun' status must not outlive the flag)
       if (!icon || icon === 'stun' || icon === 'freeze' || icon === 'sleep' || icon === 'stealth' || icon === 'invuln') continue;
@@ -1354,6 +1462,9 @@ export class UnitView {
     this.destroyed = true;
     this._dropActor();
     this.shadow.destroy();
+    if(this.attackRange)this.attackRange.destroy();
+    this.snowFx?.destroy();
+    if(this.skillZone)this.skillZone.destroy();
     this.blockIcon.destroy();
     if (this.facingArrow) this.facingArrow.destroy();
     this.hud.destroy({ children: true });

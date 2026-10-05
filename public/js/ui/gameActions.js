@@ -5,6 +5,8 @@
 
 import { net } from '../net.js';
 import { toastError } from './toasts.js';
+import { store } from '../store.js';
+import { data } from '../data.js';
 import { audio } from '../audio.js';
 
 const SUCCESS_SFX = {
@@ -31,7 +33,14 @@ export async function act(t, fields = {}, opts = {}) {
   inflight += 1;
   emitBusy();
   try {
+    const priv = store.get().match?.private;
+    const bought = t === 'g.buy' ? priv?.shop?.slots?.[fields.slot] : null;
+    const moved = t === 'g.move' && fields.to?.area === 'board' ? [...(priv?.board || []), ...(priv?.hand || []), ...(priv?.temp || [])].find(p => p?.uid === fields.uid) : null;
+    const chessId = bought?.chessId || (bought?.kind === 'chess' ? bought.id : null) || moved?.chessId || (moved?.kind === 'chess' ? moved.id : null);
+    const char = chessId ? data.lookup('chess', chessId)?.charId : null;
     await net.request(t, fields);
+    const sameTile = moved && (priv?.board || []).some(p=>p.uid===moved.uid && p.row===fields.to.row && p.col===fields.to.col);
+    if (char && !sameTile) audio.voice(char, 'place', { unitKey: moved?.uid ?? chessId });
     const s = opts.sfx === undefined ? SUCCESS_SFX[t] : opts.sfx;
     if (s) audio.sfx(s);
     return true;
@@ -71,4 +80,7 @@ export const actions = {
   autoplay: (on) => act('g.autoplay', { on }),
   // solo battles only (ui/matchStatus.js pauseAvailable): m.public.paused follows
   pause: (on) => act('g.pause', { on: !!on }, { sfx: on ? 'click' : 'confirm' }),
+  // room-level intent (NOT g.*): the host frees a spectator seat during the match — the server accepts room.removeSpectator
+  // at any time (server/lobby.js), the game screen just had no entry for it before (ui/hud.js SpectatorPill)
+  removeSpectator: (playerId) => act('room.removeSpectator', { playerId }, { sfx: 'back' }),
 };

@@ -1,7 +1,7 @@
 // Normative message catalogue (DESIGN §8). Used by server (validation) and client (building requests).
 // Every client→server message is `{ t, rid?, ...fields }`. Unknown `t` or invalid fields ⇒ ERR.BAD_MSG.
 
-import { DIFFICULTIES, NAME_MAX_LEN, ROOM_CODE_LEN, MAX_SEATS, EMOTES, GEO } from './constants.js';
+import { DIFFICULTIES, NAME_MAX_LEN, ROOM_CODE_LEN, MAX_SEATS, EMOTES, GEO, isSpectatorCap } from './constants.js';
 import { normalizeChatText, chatFaction } from './chat.js';
 
 // ---- tiny validators -------------------------------------------------------
@@ -71,8 +71,8 @@ export function isBattleResult(v) {
 export const LOADOUT_LIMITS = Object.freeze({ entries: 160, skillIndex: 9 });
 /** The "no module" choice of an elite (模组: 不装备). */
 export const MODULE_NONE = 'none';
-const isLoadoutEntry = (e) => isPlain(e) && Object.keys(e).length > 0 && Object.keys(e).every((k) => k === 'skill' || k === 'module')
-  && optional((v) => isInt(v, 0, LOADOUT_LIMITS.skillIndex))(e.skill) && optional(isId)(e.module);
+const isLoadoutEntry = (e) => isPlain(e) && Object.keys(e).length > 0 && Object.keys(e).every((k) => k === 'skill' || k === 'module' || k === 'selected' || k === 'skin')
+  && optional((v) => isInt(v, 0, LOADOUT_LIMITS.skillIndex))(e.skill) && optional(isId)(e.skin) && optional(isId)(e.module) && optional((v) => typeof v === 'boolean')(e.selected);
 /** Structural check of `room.loadout.entries`. */
 export const isLoadoutEntries = (v) => isMap(v, LOADOUT_LIMITS.entries, isId, isLoadoutEntry);
 
@@ -131,11 +131,17 @@ export function loadoutOptions(base, golden = null) {
 export function checkLoadout(entries, getChess) {
   if (!isLoadoutEntries(entries)) return { error: 'BAD_MSG', detail: 'bad loadout entries' };
   const out = {};
+  const selectedChars = new Set(), tierCounts = {5:0,6:0};
   for (const id of Object.keys(entries)) {
     const e = entries[id];
     const base = typeof getChess === 'function' ? getChess(id) : null;
     if (!base || base.isGolden || base.visible === false || base.isHidden || base.isDiy || (base.baseId && base.baseId !== id)) {
       return { error: 'BAD_TARGET', detail: `unknown chess ${id}` };
+    }
+    if (e.selected !== undefined && !base.optionalRecruit) return {error:'BAD_TARGET',detail:'not an optional recruit'};
+    if (e.selected) {
+      if (![5,6].includes(base.tier) || ++tierCounts[base.tier] > 2 || selectedChars.has(base.charId)) return {error:'BAD_TARGET',detail:'최대 2명씩, 동일 오퍼레이터 중복 선발 불가'};
+      selectedChars.add(base.charId);
     }
     const golden = base.goldenId ? getChess(base.goldenId) || null : null;
     const opt = loadoutOptions(base, golden);
@@ -144,8 +150,9 @@ export function checkLoadout(entries, getChess) {
     if (e.module !== undefined && !golden) return { error: 'BAD_TARGET', detail: `${id} has no elite module` };
     const module = golden ? (e.module ?? opt.defaultModule) : null;
     if (golden && !opt.modules.includes(module)) return { error: 'BAD_TARGET', detail: `module ${e.module} not available for ${id}` };
-    if (skill === opt.defaultSkill && module === opt.defaultModule) continue;
-    out[id] = { skill, module };
+    if (e.skin && !base.skins?.some(s=>s.id===e.skin)) return {error:'BAD_TARGET',detail:'unknown skin'};
+    if (!e.skin && skill === opt.defaultSkill && module === opt.defaultModule && !e.selected) continue;
+    out[id] = { skill, module, ...(e.skin ? {skin:e.skin} : {}), ...(e.selected ? {selected:true} : {}) };
   }
   return { ok: true, loadout: out };
 }
@@ -169,7 +176,7 @@ export function resolveLoadout(loadout, chess, getChess) {
   const skillIndex = e && opt.skills.includes(e.skill) ? e.skill : opt.defaultSkill;
   let moduleId = null;
   if (golden) moduleId = e && opt.modules.includes(e.module) ? e.module : opt.defaultModule;
-  return { skillIndex, moduleId };
+  return { skillIndex, moduleId, ...(e?.skin && base.skins?.some(s=>s.id===e.skin) ? {skinId:e.skin} : {}) };
 }
 
 // ---- unit stats (user playtest #4 item 7): m.unitStats units and the browser battle's live stats ---------------------
@@ -220,6 +227,8 @@ export function unitStatsEntry(u, s = null) {
     ...statView(cur),
     base: statView(base),
     ...(range ? { range } : {}),
+    // the enemy card greys a SILENCE-format line (折射) from this; absent flags ⇒ not silenced
+    silenced: !!(cur.flags && cur.flags.silence),
   };
 }
 
@@ -239,16 +248,25 @@ export const C2S = {
   // session & lobby
   hello: { name: (v) => isStr(v, NAME_MAX_LEN) && v.trim().length > 0, token: (v) => v == null || isStr(v, 64), version: (v) => v == null || isInt(v, 0, 1e6), $optional: ['token', 'version'] },
   ping: { c: (v) => typeof v === 'number' && Number.isFinite(v) },
-  'room.create': { mode: (v) => v === 'solo' || v === 'coop', difficulty: (v) => DIFFICULTIES.includes(v) },
+  'room.create': { mode: (v) => v === 'solo' || v === 'coop', difficulty: (v) => DIFFICULTIES.includes(v), spectators: isSpectatorCap, $optional: ['spectators'] },
   'room.join': { code: (v) => isStr(v, ROOM_CODE_LEN + 2) && /^[A-Za-z0-9]+$/.test(v) },
   'room.leave': {},
   'room.ready': { ready: isBool },
+  'room.setCustomFactions': { enabled: isBool },
   'room.setDifficulty': { difficulty: (v) => DIFFICULTIES.includes(v) },
   'room.addBot': {},
   'room.removeBot': { seat: (v) => isInt(v, 0, MAX_SEATS - 1) },
+  // the host removes another human before the match (server/lobby.js kick; community report #17); playerId = the one the
+  // host confirmed — a seat that changed hands meanwhile is refused
+  'room.kick': { seat: (v) => isInt(v, 0, MAX_SEATS - 1), playerId: isId },
   'room.start': {},
   // operator loadout (DESIGN §16): stored per session/seat; accepted until the match leaves INFO_CHECK
   'room.loadout': { entries: isLoadoutEntries },
+  // spectator seats (remake feature, community report #26; MAX_SPECTATORS): take one of a co-op room's spectator seats —
+  // in its lobby or while its match runs — never a player seat; the host frees one by playerId (the spectator gets
+  // room.closed { reason: 'kicked' }). room.leave / g.leave leave a spectator seat like a player seat.
+  'room.spectate': { code: (v) => isStr(v, ROOM_CODE_LEN + 2) && /^[A-Za-z0-9]+$/.test(v) },
+  'room.removeSpectator': { playerId: isId },
 
   // match
   'g.infoReady': {},
@@ -334,7 +352,7 @@ export function validateC2S(msg) {
 
 // Event tuple kinds inside `b.ev` (DESIGN §8.2).
 export const EV = Object.freeze({
-  SPAWN: 'spawn', ATK: 'atk', DMG: 'dmg', HEAL: 'heal', SKILL: 'skill', DIE: 'die', LEAK: 'leak',
+  SPAWN: 'spawn', ATK_START: 'atkStart', ATK_RETARGET: 'atkRetarget', ATK_CANCEL: 'atkCancel', ATK: 'atk', DMG: 'dmg', HEAL: 'heal', SKILL: 'skill', ENGAGE: 'engage', DIE: 'die', LEAK: 'leak',
   STATUS: 'status', FX: 'fx', LAYER: 'layer', BOUNTY: 'bounty', DEPLOY: 'deploy',
 });
 

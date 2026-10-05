@@ -298,6 +298,10 @@ test('余: S3 fire wall adds burn to allied arts damage crossing it and clears c
     enemies: [{ key: 'enemy_dummy', pos: [10, 6] }, { key: 'enemy_shooter', pos: [11, 8] }],
     seed: 11,
   });
+  // the shooter aims at 优等生 behind the wall: a taunt, since 余 (his column further right) now deploys last — the
+  // latest deployed, the shooter's pick at equal taunt (deployment by column since 0.1.3)
+  h.step();
+  h.b.addBuff(h.unit('chess_char_1_15_a'), { key: 'test:taunt', mods: { taunt: 1 }, persist: true });
   const u = h.unit('chess_char_6_03_a');
   assert.ok(h.runUntil(() => u.skill.active, 10));
   h.run(15);
@@ -1194,4 +1198,12 @@ test('default skills: attack-interval rule of the AK calculator — a shortening
       checkInvariants(h.b);
     }
   }
+});
+
+test('snow snapshots preserve exact layers and ground snow does not slow air units',()=>{
+ const h=battle({autoFinish:false,defs:{...DEFS,enemies:{...DEFS.enemies,enemy_air:dummy({key:'enemy_air',motion:'FLY'})}},units:[{chessId:'chess_char_6_02_a',row:10,col:5}],enemies:[{key:'enemy_dummy',pos:[10,6]},{key:'enemy_air',pos:[10,6]}]});
+ h.step();const u=h.unit('chess_char_6_02_a');u.mem.snow.clear();u.mem.snow.set(10*h.b.grid.cols+6,2);h.step();
+ assert.ok(enemyAt(h,'enemy_dummy').findBuff('sbell2:snow'));
+ assert.equal(enemyAt(h,'enemy_air').findBuff('sbell2:snow'),null);
+ assert.deepEqual(h.snapshot().snow.find(t=>t[0]===u.id)[1],[[10,6,2]]);
 });

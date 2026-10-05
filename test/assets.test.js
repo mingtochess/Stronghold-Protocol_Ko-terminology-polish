@@ -532,11 +532,13 @@ describe('emotes and 玩法说明 pages from the public mirror (GitHub issue #42
 // ---------------------------------------------------------------------------
 describe('generated manifest data/assets.json', () => {
   const haveManifest = existsSync(MANIFEST);
-  // Bundled communication art alone is not the optional downloaded game asset set.
-  const haveAssets = existsSync(ASSETS) && readdirSync(ASSETS).some(name => name !== 'emotes');
+  // A sparse browser-cache deployment (custom/local art only) is not the optional full asset installation.
+  // The full downloader records its installation in assets-ledger.json; legacy bundles carry these directories.
+  const haveAssets = process.env.SP_ASSET_TESTS === '1' || existsSync(join(ROOT, '.cache/assets-ledger.json'))
+    || ['band', 'bond', 'item', 'skill'].every(name => existsSync(join(ASSETS, name)));
   const manifest = haveManifest ? JSON.parse(readFileSync(MANIFEST, 'utf8')) : null;
   const skip = !haveManifest ? 'data/assets.json not generated (run npm run assets)'
-    : !haveAssets ? 'public/assets missing (run npm run assets)' : false;
+    : !haveAssets ? 'full asset bundle not installed (browser-cache mode; run npm run assets or SP_ASSET_TESTS=1)' : false;
 
   /** Every '/assets/…' or '/fonts/…' URL in the manifest. */
   function urls(node, out = []) {

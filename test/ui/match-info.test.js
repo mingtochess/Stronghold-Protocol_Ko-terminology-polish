@@ -116,13 +116,14 @@ test('MatchLegend: the grey and the badge; "或本模式禁用" only when the mo
   assert.doesNotMatch(textOf(MatchLegend({ model: hard })), /本模式禁用/);
 });
 
-test('BannedOperators: the count and dimmed avatars in tier order; none ⇒ 本局没有禁用干员', () => {
+test('BannedOperators: the count and colored avatars grouped by bond; none ⇒ 本局没有禁用干员', () => {
   const m = model();
   const block = BannedOperators({ model: m });
   assert.match(textOf(block), /本局禁用干员BANNED OPERATORS4/);
   const thumbs = [...walk(block)].filter((v) => v.type === UnitThumb);
-  assert.deepEqual(thumbs.map((v) => v.props.id), m.banned);
-  assert.ok(thumbs.every((v) => v.props.kind === 'chess' && v.props.dim === true && v.props.size === 'sm'));
+  assert.deepEqual([...new Set(thumbs.map(v=>v.props.id))].sort(), [...m.banned].sort());
+  assert.ok(m.bannedGroups.every(g=>g.ids.every(id=>data.lookup('chess',id).bonds.includes(g.bondId))));
+  assert.ok(thumbs.every((v) => v.props.kind === 'chess' && v.props.dim === false && v.props.size === 'sm'));
   const none = BannedOperators({ model: matchInfoModel({}, SRC('mode_single_normal')) });
   assert.match(textOf(none), /本局没有禁用干员/);
   assert.equal([...walk(none)].filter((v) => v.type === UnitThumb).length, 0);

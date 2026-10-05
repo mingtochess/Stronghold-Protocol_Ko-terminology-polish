@@ -616,21 +616,20 @@ let _fx = null;
  * bottom).
  */
 const FX_DRAW = {
-  glow: [0, 0, 128, 128, (c, x, y, w) => { radial(c, x + w / 2, y + w / 2, w / 2, [[0, 'rgba(255,255,255,1)'], [0.25, 'rgba(255,255,255,0.6)'], [1, 'rgba(255,255,255,0)']]); }],
-  soft: [128, 0, 128, 128, (c, x, y, w) => { radial(c, x + w / 2, y + w / 2, w / 2, [[0, 'rgba(255,255,255,0.8)'], [1, 'rgba(255,255,255,0)']]); }],
+  glow: [0, 0, 128, 128, (c, x, y, w) => { radial(c, x + w / 2, y + w / 2, w / 2, [[0, 'rgba(255,255,255,1)'], [0.18, 'rgba(255,255,255,0.3)'], [0.55, 'rgba(255,255,255,0.06)'], [1, 'rgba(255,255,255,0)']]); }],
+  soft: [128, 0, 128, 128, (c, x, y, w) => { radial(c, x + w / 2, y + w / 2, w / 2, [[0, 'rgba(255,255,255,0.35)'], [0.45, 'rgba(255,255,255,0.08)'], [1, 'rgba(255,255,255,0)']]); }],
   ring: [256, 0, 128, 128, (c, x, y, w) => {
     const cx = x + w / 2, cy = y + w / 2;
-    const g = c.createRadialGradient(cx, cy, w * 0.34, cx, cy, w * 0.5);
-    g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(0.55, 'rgba(255,255,255,1)'); g.addColorStop(0.75, 'rgba(255,255,255,0.5)'); g.addColorStop(1, 'rgba(255,255,255,0)');
-    c.fillStyle = g; c.fillRect(x, y, w, w);
+    c.strokeStyle = 'rgba(255,255,255,0.8)'; c.lineWidth = 1.5;
+    c.beginPath(); c.arc(cx, cy, w * 0.43, 0, Math.PI * 2); c.stroke();
   }],
   hex: [384, 0, 128, 128, (c, x, y, w) => {
     const cx = x + w / 2, cy = y + w / 2;
-    c.strokeStyle = 'rgba(255,255,255,1)'; c.lineWidth = 5;
+    c.strokeStyle = 'rgba(255,255,255,1)'; c.lineWidth = 1.5;
     c.beginPath();
     for (let k = 0; k <= 6; k++) { const a = Math.PI / 6 + (k * Math.PI) / 3; c.lineTo(cx + Math.cos(a) * 54, cy + Math.sin(a) * 54); }
     c.stroke();
-    c.lineWidth = 2; c.globalAlpha = 0.6;
+    c.lineWidth = 1; c.globalAlpha = 0.6;
     c.beginPath();
     for (let k = 0; k <= 6; k++) { const a = Math.PI / 6 + (k * Math.PI) / 3; c.lineTo(cx + Math.cos(a) * 42, cy + Math.sin(a) * 42); }
     c.stroke(); c.globalAlpha = 1;
@@ -638,21 +637,21 @@ const FX_DRAW = {
   }],
   // a thin sharp ring with a faint wake inside: shockwaves (skill bursts, explosions, the bombard warning)
   shock: [512, 0, 128, 128, (c, x, y, w) => {
-    radial(c, x + w / 2, y + w / 2, w / 2 - 1, [[0, 'rgba(255,255,255,0)'], [0.52, 'rgba(255,255,255,0)'], [0.8, 'rgba(255,255,255,0.16)'],
-      [0.9, 'rgba(255,255,255,1)'], [0.96, 'rgba(255,255,255,0.3)'], [1, 'rgba(255,255,255,0)']]);
+    radial(c, x + w / 2, y + w / 2, w / 2 - 1, [[0, 'rgba(255,255,255,0)'], [0.52, 'rgba(255,255,255,0)'], [0.88, 'rgba(255,255,255,0.04)'],
+      [0.93, 'rgba(255,255,255,0.75)'], [0.96, 'rgba(255,255,255,0.04)'], [1, 'rgba(255,255,255,0)']]);
   }],
   // lock-on reticle: circle, cross ticks, corner brackets, centre dot (蕾缪安 locks, marks)
   reticle: [640, 0, 128, 128, (c, x, y, w) => {
     const cx = x + w / 2, cy = y + w / 2;
     c.strokeStyle = '#fff'; c.lineCap = 'round';
-    c.lineWidth = 5; c.beginPath(); c.arc(cx, cy, 36, 0, Math.PI * 2); c.stroke();
-    c.lineWidth = 2; c.globalAlpha = 0.55; c.beginPath(); c.arc(cx, cy, 27, 0, Math.PI * 2); c.stroke(); c.globalAlpha = 1;
-    c.lineWidth = 5;
+    c.lineWidth = 1.5; c.beginPath(); c.arc(cx, cy, 36, 0, Math.PI * 2); c.stroke();
+    c.lineWidth = 1; c.globalAlpha = 0.55; c.beginPath(); c.arc(cx, cy, 27, 0, Math.PI * 2); c.stroke(); c.globalAlpha = 1;
+    c.lineWidth = 1.5;
     for (let k = 0; k < 4; k++) {
       const a = (k * Math.PI) / 2, ca = Math.cos(a), sa = Math.sin(a);
       c.beginPath(); c.moveTo(cx + ca * 22, cy + sa * 22); c.lineTo(cx + ca * 50, cy + sa * 50); c.stroke();
     }
-    c.lineWidth = 4;
+    c.lineWidth = 1.5;
     for (let k = 0; k < 4; k++) {
       const sx = k & 1 ? 1 : -1, sy = k & 2 ? 1 : -1, bx = cx + sx * 52, by = cy + sy * 52;
       c.beginPath(); c.moveTo(bx - sx * 14, by); c.lineTo(bx, by); c.lineTo(bx, by - sy * 14); c.stroke();
@@ -666,7 +665,7 @@ const FX_DRAW = {
   // star flare: hot centre, four long and four short rays (skill flash, explosion core, impacts)
   flare: [896, 0, 128, 128, (c, x, y, w) => {
     const cx = x + w / 2, cy = y + w / 2;
-    radial(c, cx, cy, w / 2 - 1, [[0, 'rgba(255,255,255,0.95)'], [0.12, 'rgba(255,255,255,0.55)'], [0.4, 'rgba(255,255,255,0.1)'], [1, 'rgba(255,255,255,0)']]);
+    radial(c, cx, cy, w / 2 - 1, [[0, 'rgba(255,255,255,0.95)'], [0.08, 'rgba(255,255,255,0.35)'], [0.3, 'rgba(255,255,255,0.04)'], [1, 'rgba(255,255,255,0)']]);
     const ray = (a, len, half) => {
       c.save(); c.translate(cx, cy); c.rotate(a);
       const g = c.createLinearGradient(0, 0, len, 0);
@@ -700,7 +699,7 @@ const FX_DRAW = {
     c.fillRect(cx - 5, cy - 18, 10, 36); c.fillRect(cx - 18, cy - 5, 36, 10);
   }],
   orb: [192, 128, 64, 64, (c, x, y, w) => {
-    radial(c, x + w / 2, y + w / 2, w / 2, [[0, 'rgba(255,255,255,1)'], [0.3, 'rgba(255,255,255,0.85)'], [0.55, 'rgba(255,255,255,0.3)'], [1, 'rgba(255,255,255,0)']]);
+    radial(c, x + w / 2, y + w / 2, w / 2, [[0, 'rgba(255,255,255,1)'], [0.18, 'rgba(255,255,255,0.65)'], [0.45, 'rgba(255,255,255,0.08)'], [1, 'rgba(255,255,255,0)']]);
   }],
   chevron: [256, 128, 64, 64, (c, x, y) => {
     c.fillStyle = '#fff';
@@ -715,7 +714,7 @@ const FX_DRAW = {
     c.quadraticCurveTo(-8, -5, -14, 11); c.quadraticCurveTo(-21, 18, -27, 14); c.quadraticCurveTo(-19, -17, 0, -21);
     c.closePath();
     c.fillStyle = 'rgba(255,255,255,0.9)'; c.fill();
-    c.lineWidth = 2.5; c.lineJoin = 'round'; c.strokeStyle = '#fff'; c.stroke();
+    c.lineWidth = 1.5; c.lineJoin = 'round'; c.strokeStyle = '#fff'; c.stroke();
     c.restore();
   }],
   // muzzle flash pointing right (+x) from a hot spot at (12, 32): sprite anchor (0.19, 0.5), rotated to the shot
@@ -835,7 +834,7 @@ export function fxAtlas() {
   return _fx;
 }
 
-export const STATUS_KEYS = ['stun', 'freeze', 'cold', 'stealth', 'shield', 'fragile', 'sleep', 'invuln', 'silence', 'slow', 'bind', 'fear', 'weaken', 'levitate', 'taunt', 'burn', 'neural', 'necrosis', 'blocked', 'skill', 'doll', 'healFree'];
+export const STATUS_KEYS = ['stun', 'freeze', 'cold', 'stealth', 'shield', 'fragile', 'sleep', 'invuln', 'silence', 'slow', 'bind', 'fear', 'weaken', 'levitate', 'taunt', 'burn', 'neural', 'necrosis', 'blocked', 'skill', 'doll', 'healFree', 'refraction'];
 
 function drawStatusIcon(c, key, x, y, s) {
   const cx = x + s / 2, cy = y + s / 2;
@@ -881,6 +880,13 @@ function drawStatusIcon(c, key, x, y, s) {
     case 'sleep': {
       disc('rgba(20,25,50,0.92)', '#a8b6ff');
       c.fillStyle = '#d8e0ff'; c.font = 'bold 14px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('Zz', cx, cy + 1);
+      break;
+    }
+    case 'refraction': {
+      // 折射: a split beam. Drawn only while the buff is on; units.js drops it under silence.
+      disc('rgba(12,36,48,0.92)', '#7ee0ff');
+      c.strokeStyle = '#d8f7ff'; c.lineWidth = 2;
+      c.beginPath(); c.moveTo(cx - 8, cy + 6); c.lineTo(cx - 1, cy - 8); c.lineTo(cx + 8, cy + 6); c.moveTo(cx + 2, cy - 2); c.lineTo(cx + 9, cy - 8); c.stroke();
       break;
     }
     case 'silence': {
@@ -1077,7 +1083,7 @@ const DIAMOND_MAX = 160;       // ≈ 16 MB of 160×160 canvases at most (plus t
  * @param {{ enemy?: boolean, golden?: boolean }} [o]
  */
 export function diamondTexture(key, img, color, o = {}) {
-  const k = `${key}|${img ? 1 : 0}|${color}|${o.golden ? 1 : 0}`;
+  const k = `${key}|${img ? 1 : 0}|${color}|${o.golden ? 1 : 0}|${o.ice ? 1 : 0}`;
   let tex = _diamonds.get(k);
   if (tex) { _diamonds.delete(k); _diamonds.set(k, tex); return tex; }
   const P = PIXI();
@@ -1095,6 +1101,18 @@ export function diamondTexture(key, img, color, o = {}) {
     const sc = Math.max((S - 20) / img.width, (S - 20) / img.height) * 1.02;
     const w = img.width * sc, hh = img.height * sc;
     try { c.drawImage(img, h - w / 2, h - hh / 2, w, hh); } catch { /* tainted/broken image */ }
+  } else if (o.ice) {
+    // 圣聆初雪's frozen gate (保护目标（冻结状态）, PRTS 无头像, no model in the manifest): a snowflake on a frosty field
+    const g = c.createRadialGradient(h, h, 4, h, h, h);
+    g.addColorStop(0, 'rgba(205,240,255,0.95)'); g.addColorStop(1, 'rgba(0,0,0,0)');
+    c.fillStyle = g; c.fillRect(0, 0, S, S);
+    c.strokeStyle = '#f2fbff'; c.lineWidth = 6; c.lineCap = 'round';
+    for (let i = 0; i < 6; i++) {
+      const a = (i * Math.PI) / 3, x1 = h + Math.cos(a) * 34, y1 = h + Math.sin(a) * 34;
+      c.beginPath(); c.moveTo(h, h); c.lineTo(x1, y1); c.stroke();
+      const bx = h + Math.cos(a) * 20, by = h + Math.sin(a) * 20;
+      for (const s of [-1, 1]) { c.beginPath(); c.moveTo(bx, by); c.lineTo(bx + Math.cos(a + s * 0.8) * 11, by + Math.sin(a + s * 0.8) * 11); c.stroke(); }
+    }
   } else {
     // procedural glyph (e.g. 心烛 enemy_5601_entlec has no art anywhere)
     const g = c.createRadialGradient(h, h, 4, h, h, h);

@@ -40,3 +40,54 @@
 .game-chat__preview { width: 360px; max-width: calc(100vw - 2 * var(--chat-corner-inset)); margin-bottom: 8px; padding: 8px 10px; text-shadow: 0 1px 3px #000, 0 0 5px #000; }
 .game-chat__preview p { margin: 0 0 5px; overflow-wrap: anywhere; }
 .game-chat__preview strong { color: #b8c9c0; margin-right: 7px; }
+
+/* Match the game's dark bordered panels and mint controls. */
+.game-chat { color: var(--text-hi); }
+.game-chat button, .game-chat__panel input { border-radius: 0; border-color: var(--line-2); background: rgba(8, 11, 10, .9); }
+.game-chat__panel { border-radius: 0; border-color: var(--line-2); background: linear-gradient(180deg, rgba(10,14,12,.97), rgba(6,9,8,.97)); }
+.game-chat__panel header { color: var(--mint-400); border-color: var(--line); }
+.game-chat__preview { background: rgba(6,9,8,.78); border: 1px solid var(--line-2); }
+.game-chat__preview strong { color: var(--mint-400); }
+.game-chat__preview p > span { color: #eef3f1; }
+.game-chat--room { top: 1.6rem; bottom: 1.1rem; left: .3rem; width: min(3.6rem, 28vw); display: flex; flex-direction: column; }
+.game-chat--room .game-chat__panel { width: 100%; flex: 1; display: flex; flex-direction: column; min-height: 0; }
+.game-chat--room .game-chat__messages { height: auto; max-height: none; flex: 1; min-height: 0; }
+.game-chat--room .game-chat__toggle { flex-shrink: 0; }
+.room-screen .seats { padding-left: 4.1rem; grid-template-columns: repeat(4, minmax(0, 3.3rem)); }
+@media (max-width: 800px) {
+ .game-chat--room { width: 30vw; top: 1.5rem; }
+ .room-screen .seats { padding-left: calc(30vw + .5rem); gap: .12rem; }
+}
+
+/* Keep room chat controls in place when the expanding panel is closed. */
+.game-chat--room { justify-content: flex-end; align-items: flex-start; }
+.game-chat--room .game-chat__toggle { margin-top: auto; }
+.game-chat--room .game-chat__preview { width: 100%; box-sizing: border-box; }
+.game-chat--room .game-chat__panel header { flex-wrap: wrap; gap: 4px; }
+.game-chat--room .game-chat__faction-toggle { margin-right: 0; }
+
+.game-chat__preview { padding: 0; border: 0; background: none; box-shadow: none; }
+.game-chat__preview p { padding: 4px 6px; margin-bottom: 3px; background: rgba(6,9,8,.82); border: 1px solid var(--line-2); }
+.game-chat__preview strong { margin-right: 5px; }
+.game-chat__factions button, .game-chat__faction-toggle { display: inline-flex; align-items: center; gap: 4px; }
+.game-chat__faction-icon { width: 18px; height: 18px; object-fit: contain; flex: none; }
+
+/* Waiting-room chat unfolds below a fixed header rather than above a floating corner button. */
+.game-chat--room { justify-content: flex-start; gap: 6px; }
+.game-chat__room-header { display: flex; align-items: center; justify-content: space-between; width: 100%; min-height: max(.36rem, 30px); color: var(--mint-400); border-bottom: 1px solid var(--line-2); padding-bottom: 6px; pointer-events: auto; }
+.game-chat--room button.game-chat__toggle { width: max(.36rem, 30px); height: max(.36rem, 30px); margin-top: 0; }
+.game-chat--room .game-chat__panel { margin-bottom: 0; }
+.game-chat--room .game-chat__panel header strong[hidden] { display: none; }
+.game-chat--room .game-chat__panel header .game-chat__close { display: none; }
+/* Waiting-room chat is a permanent panel; only the in-game preview uses message boxes. */
+.game-chat--room .game-chat__messages p { background: none; border: 0; padding: 0; }
+.game-chat--room .game-chat__panel { flex: 1; min-height: 0; }
+.game-chat--room .game-chat__room-header { min-height: max(.36rem,30px); }
+
+/* Keep the fixed waiting-room panel above the actual 1.5rem action bar. */
+.game-chat--room { bottom: 1.74rem; }
+.game-chat__factions { grid-template-columns: repeat(auto-fit, minmax(min(100%, 90px), 1fr)); min-height: 0; max-height: min(240px, 30vh); overflow-y: auto; flex-shrink: 0; }
+.game-chat__factions button { min-width: 0; justify-content: center; white-space: normal; overflow-wrap: anywhere; }
+.game-chat__panel header, .game-chat__panel form { flex-shrink: 0; }
+
+.game-chat__spectator { color: #929b97; font-size: .85em; margin-left: .35em; }

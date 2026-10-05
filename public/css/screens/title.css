@@ -255,3 +255,5 @@
   font-size: .13rem;
   color: var(--text-dim);
 }
+
+.title-settings { position: absolute; top: max(.24rem, env(safe-area-inset-top)); right: max(.3rem, env(safe-area-inset-right)); z-index: 3; }

@@ -70,7 +70,9 @@ test('two browsers chat over real game sockets: toggle, unread, safe text, Korea
       for (const page of players) await page.waitForFunction(() => window.phase === 'INFO_CHECK', { polling: 100 });
       assert.equal(await host.$('.game-chat__panel'), null);
       await host.bringToFront();
-      await host.click('.game-chat__toggle');
+      await host.keyboard.press('Enter');
+      await host.waitForSelector('.game-chat__panel');
+      assert.equal(await host.$eval('.game-chat input',el=>el===document.activeElement),true,'Enter opens and focuses chat');
       await host.type('.game-chat input', '안녕하세요!');
       await host.keyboard.press('Enter');
       await guest.bringToFront();
@@ -136,7 +138,7 @@ test('two browsers chat over real game sockets: toggle, unread, safe text, Korea
       await host.waitForFunction(()=>!document.querySelector('.game-chat__faction-toggle').disabled && document.querySelector('.game-chat input').value==='', {polling:100});
       await host.evaluate(async()=>{window.store.set({chatFaction:null});await window.reconnect();});
       await host.waitForFunction(()=>window.store.get().chatFaction==='염국', {polling:100});
-      await host.waitForFunction(()=>document.querySelector('.game-chat__faction-toggle').textContent==='진영: 염국', {polling:100});
+      await host.waitForFunction(()=>document.querySelector('.game-chat__faction-toggle').textContent==='염국', {polling:100});
       await host.click('.game-chat__faction-toggle');
       await host.screenshot({path:'/tmp/stronghold-chat-factions.png'});
       const room=server.lobby.rooms.get(code);
@@ -152,6 +154,13 @@ test('two browsers chat over real game sockets: toggle, unread, safe text, Korea
       await host.type('.game-chat input', '결과창에서도 대화');
       await host.keyboard.press('Enter');
       await guest.waitForFunction(()=>window.store.get().chat.at(-1)?.text==='결과창에서도 대화', {polling:100,timeout:5000});
+      await host.evaluate(() => window.store.set(s=>({chat:[...s.chat,{id:999,playerId:'viewer',name:'Viewer',text:'관전자 메시지',spectator:true}]})));
+      await host.waitForSelector('.game-chat__messages .game-chat__spectator');
+      assert.equal(await host.$eval('.game-chat__messages .game-chat__spectator', el=>el.textContent),'(관전자)');
+      assert.equal(await host.$eval('.game-chat__messages .game-chat__spectator', el=>getComputedStyle(el).color),'rgb(146, 155, 151)');
+      await host.click('.game-chat__close');
+      await host.waitForSelector('.game-chat__preview .game-chat__spectator');
+      assert.equal(await host.$eval('.game-chat__preview .game-chat__spectator', el=>getComputedStyle(el).color),'rgb(146, 155, 151)');
       await host.evaluate(() => window.request('room.leave'));
       await guest.evaluate(() => window.request('room.leave'));
     } finally { if (browser) await browser.close(); await server.close(); await rm(fixtureDir, { recursive: true, force: true }); }

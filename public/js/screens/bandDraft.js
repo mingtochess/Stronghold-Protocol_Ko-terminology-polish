@@ -47,10 +47,10 @@ export function BandOffNote({ names = [] }) {
  * @param {any[]} bands
  * @param {string|null} modeType 'SINGLE'|'MULTI'
  */
-export function allowedBands(bands, modeType) {
+export function allowedBands(bands, modeType, customFactions = false) {
   const sid = (b) => (Number.isFinite(b.sortId) ? b.sortId : 99);
   return (Array.isArray(bands) ? bands : [])
-    .filter((b) => b && (!modeType || !Array.isArray(b.modeTypeList) || b.modeTypeList.includes(modeType)))
+    .filter((b) => b && (customFactions || !/custom_ursus/.test(b.bandId)) && (!modeType || !Array.isArray(b.modeTypeList) || b.modeTypeList.includes(modeType)))
     .sort((a, b) => sid(a) - sid(b) || (a.bandId < b.bandId ? -1 : a.bandId > b.bandId ? 1 : 0));
 }
 
@@ -176,7 +176,8 @@ export function BandDraftScreen() {
   const mode = gd.config?.modes?.[pub?.modeId];
   const offBonds = modeOffBonds(mode); // the bonds this mode never activates (标准: 10 of 23)
   const solo = roomSolo || mode?.type === 'SINGLE' || String(pub?.modeId || '').includes('single');
-  const bands = useMemo(() => allowedBands(gd.list('bands'), mode?.type || (solo ? 'SINGLE' : 'MULTI')), [gd.ready, mode?.type, solo]);
+  const customFactions = !!pub?.customFactions;
+  const bands = useMemo(() => allowedBands(gd.list('bands'), mode?.type || (solo ? 'SINGLE' : 'MULTI'), customFactions), [gd.ready, mode?.type, solo, customFactions]);
   const players = sortedPlayers(pub);
   const draft = normalizeDraft(pub?.draft, players);
   const myPick = draft.picks.get(myId) || priv?.bandId || null;
@@ -212,7 +213,8 @@ export function BandDraftScreen() {
   const timed = !solo && !!pub?.draft && !pub.draft.untimed;
   const focusSent = useRef(null);
   useEffect(() => {
-    if (!timed || myPick || !sel || focusSent.current === sel) return;
+    // (a spectator seat — community report #26 — is in no draft order: it never reports)
+    if (!timed || myPick || !sel || focusSent.current === sel || !draft.order.includes(myId)) return;
     focusSent.current = sel;
     act('g.bandFocus', { bandId: sel }, { sfx: false, quiet: true });
   }, [sel, timed, myPick]);

@@ -231,6 +231,22 @@ function ammoScope(it, u) {
 }
 
 const INSTALLERS = {
+  custom_ursus_slowed_death(battle,list){
+    battle.on('death',({unit:target,reason})=>{
+      // AK's 停顿 (정지) is distinct from stun/freeze and ordinary movement reductions.
+      if(target?.side!=='enemy'||reason!=='killed'||!target.findBuff('sluggish'))return;
+      for(const it of list){
+        if(!S.onField(it.unit)||!S.inRange(it.unit,target)||(it.cnt||0)>=S.num(it.bb.max_trigger_count,7))continue;
+        if(fireGain(battle,it)>0)it.cnt=(it.cnt||0)+1;
+      }
+    });
+  },
+  custom_ursus_ally_skill(battle,list){
+    battle.on('skillStart',({unit})=>{
+      if(!S.isOp(unit)||!S.onField(unit)||!S.unitBonds(unit).includes('ursusShip'))return;
+      for(const it of list)if(S.onField(it.unit)&&it.unit.ownerId===unit.ownerId)fireGain(battle,it);
+    });
+  },
   act1autochess_gar_event_useskill(battle, list) {
     const m = byUnit(list);
     battle.on('skillStart', ({ unit }) => {

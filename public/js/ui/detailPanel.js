@@ -31,14 +31,16 @@
 // The stats block (chessStatsBlock), the 特性 text (traitText) and the talent list (chessTalents) are exported: the 干员调配
 // screen's 局内数值 section draws the same ones for the chosen skill / module, without a live entry (GitHub issue #64).
 
+import { useEffect } from '../../vendor/hooks.module.js';
 import { html, Icon, TierChip, MicroLabel, Button, confirmDialog, useTicker } from './components.js';
 import { Img, RichText, UnitThumb, BondGlyph, GIcon } from './gameComponents.js';
 import { attackInterval, rangeGridBox, fmtNum, tileKey, chessLoadout, nextThreshold, bondTier, briefingBondTip, pieceBondIds, grantedBonds, morphPairings } from './gameLogic.js';
 import { chessPortraitUrl, skillIconUrl, skillRecordIconUrl, profIconUrl, subProfIconUrl, itemIconUrl, enemyIconUrl, tokenAvatarUrl, factionIconUrl, uiUrl, moduleTypeIconUrl } from './assetUrls.js';
+import { abilityRows } from './abilityLines.js';
 import { data } from '../data.js';
 import { attackRangeGrid } from '../../../shared/loadoutRecord.js';
 import { SKILL_SUMMON_START_DEPLOY } from '../../../shared/constants.js';
-import { moduleBadge } from './loadoutModel.js';
+import { moduleBadge, garrisonTexts } from './loadoutModel.js';
 
 const cx = (...p) => p.flat().filter(Boolean).join(' ');
 
@@ -365,7 +367,9 @@ export function ChessDetail({ chess, piece, unit, snapHp, editable, onSell, bond
   // a chosen skill the manifest has no icon for (only the default skills' icons are fetched): its slot letter
   const skIcon = sk && lo && !lo.defaultSkill ? skillRecordIconUrl(m, sk, { empty: false }) : skillIconUrl(m, c);
   const skSlot = sk && Number.isInteger(sk.index) ? `S${sk.index + 1}` : null;
-  const garrison = Array.isArray(c.garrisonIds) && c.garrisonIds[0] ? data.lookup('garrisons', c.garrisonIds[0]) : null;
+  const firstGarrison = Array.isArray(c.garrisonIds) && c.garrisonIds[0] ? data.lookup('garrisons', c.garrisonIds[0]) : null;
+  const garrisonDescription=garrisonTexts(c,id=>data.lookup('garrisons',id)).join('\n');
+  const garrison=firstGarrison ? (garrisonDescription === (firstGarrison.descRaw || firstGarrison.desc) ? firstGarrison : {...firstGarrison,desc:garrisonDescription,descRaw:garrisonDescription}) : null;
   const items = Array.isArray(piece?.items) ? piece.items : [];
   // the bonds the unit counts for: its own + a 变形同构体 pairing's (its piece's items; without one: `unitItems` — a
   // teammate's unit's UnitInfo items, a bond popup 同构 row's wearer's)
@@ -378,7 +382,7 @@ export function ChessDetail({ chess, piece, unit, snapHp, editable, onSell, bond
   blocks.head = html`
     <div key="head" class="dhead">
       <div class=${cx('dhead__art', golden && 'is-golden', `dhead__art--t${c.tier}`)}>
-        <${Img} src=${chessPortraitUrl(m, c)} fallback=${html`<${UnitThumb} kind="chess" id=${c.chessId} size="lg" />`} />
+        <${Img} src=${chessPortraitUrl(m, {...fr,appearanceResolved:!!loadout})} fallback=${html`<${UnitThumb} kind="chess" id=${c.chessId} size="lg" />`} />
       </div>
       <div class="dhead__info">
         <div class="dhead__chips">
@@ -522,7 +526,7 @@ function EnemyDetail({ enemy, snapHp, count, live = null }) {
     </div>
     ${imm.length ? html`<p class="dhint"><${Icon} name="shield" />免疫：${imm.join('、')}</p>` : null}
     ${Array.isArray(enemy.abilities) && enemy.abilities.length ? html`<${Section} title="能力" micro="ABILITIES">
-      <ul class="dabil">${enemy.abilities.map((a, i) => html`<li key=${i}><${RichText} text=${typeof a === 'string' ? a : a.textRaw || a.text} /></li>`)}</ul>
+      <ul class="dabil">${abilityRows(enemy.abilities, !!live?.silenced).map((a, i) => html`<li key=${i} class=${a.off ? 'is-off' : null}><${RichText} text=${a.text} /></li>`)}</ul>
     <//>` : enemy.descRaw || enemy.desc ? html`<${Section} title="说明"><${RichText} as="p" text=${enemy.descRaw || enemy.desc} class="dtext" /><//>` : null}`;
 }
 
@@ -652,7 +656,7 @@ export function resolveDetail(target, pieces) {
 export function DetailPanel({ detail, editable, snapHp, onClose, onSell, onDestroy, bonds = [], offBonds = null, loadout = null, onBond = null, side = 'left', shopOpen = false, live = null }) {
   const getter = typeof live === 'function' ? live : null;
   useTicker(detail && getter ? 250 : 0);
-  if (!detail) return null;
+  // Selection voices belong to direct click handlers, never panel refreshes.
   let liveNow = null;
   try { liveNow = getter ? getter() : live && typeof live === 'object' ? live : null; } catch { liveNow = null; }
   const sellIt = async (piece, chess) => {

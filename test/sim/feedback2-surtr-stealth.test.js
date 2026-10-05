@@ -172,9 +172,12 @@ describe('#43: a blocked 隐匿 enemy hides again only 3 s after the block ends 
     h.run(0.2);
     assert.equal(hidden(h, e), true, `+${STEALTH_RESTORE + 0.1} s: 隐匿 again`);
     assert.ok(Math.abs(h.b.time - t0 - STEALTH_RESTORE - 0.1) < 0.05);
+    const attacks = h.unit('t_gun').stats.attacks;
+    h.run(.5); // projectiles launched before stealth may still land
     const after = e.stats.taken;
-    h.run(2);
-    assert.equal(e.stats.taken, after, 'no ranged hit once it hides');
+    h.run(1.5);
+    assert.equal(h.unit('t_gun').stats.attacks,attacks,'no new attack selects a hidden enemy');
+    assert.equal(e.stats.taken, after, 'no hit after the pre-stealth projectile drains');
     clean(h);
   });
 

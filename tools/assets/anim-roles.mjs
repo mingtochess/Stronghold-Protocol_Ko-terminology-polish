@@ -175,11 +175,13 @@ function skillFamily(names, find, P, numbered) {
   // Numbered prefixes only: any other P_* variant (e.g. Skill_1_A). Never for plain 'Skill',
   // which would otherwise grab another skill's animations.
   const variant = numbered
-    ? firstLike(names, new RegExp(`^${P}_`, 'i'), (n) => !isDown(n) && !isEdge(n) && !/_idle$/i.test(n))
+    ? firstLike(names, new RegExp(`^${P}_`, 'i'), (n) => !isDown(n) && !isEdge(n) && !/_(idle|die|death)$/i.test(n))
     : null;
-  const loop = find(`${P}_Loop`) ?? attack ?? single ?? variant ?? idle ?? begin;
+  // Attack is the strike animation; Loop can be a persistent skill stance (e.g. Reed S3).
+  const stance = find(`${P}_Loop`);
+  const loop = attack ?? stance ?? single ?? variant ?? idle ?? begin;
   if (!loop) return null;
-  return { ...clip(loop === begin ? null : begin, loop, loop === end ? null : end), idle: idle ?? null };
+  return { ...clip(loop === begin ? null : begin, loop, loop === end ? null : end), idle: idle ?? (attack && stance !== attack ? stance : null) };
 }
 
 function resolveSkill(names, find, index, attack) {

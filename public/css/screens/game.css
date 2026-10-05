@@ -29,7 +29,22 @@
 }
 .gtop > * { pointer-events: auto; }
 .gtop__left { display: flex; align-items: center; gap: .16rem; }
-.gtop__meta { display: flex; flex-direction: column; align-items: flex-start; gap: .06rem; }
+/* latency + 观战席 capsule (+ difficulty): side by side, wrapping to a second row when the bar gets tight, so the
+   capsule can end up BELOW the latency pill instead of squashing the round box in the centre. */
+.gtop__meta { display: flex; flex-wrap: wrap; align-items: center; gap: .06rem .14rem; max-width: 3.6rem; }
+/* the in-match 观战席 capsule (ui/hud.js SpectatorPill): eye + how many are watching; opens the roster. */
+.specpill { display: inline-flex; align-items: center; gap: .05rem; height: .3rem; padding: 0 .1rem; }
+.specpill .icon { width: .18rem; height: .18rem; }
+.specpill__num { font-size: .18rem; font-weight: 700; color: var(--mint-300, #99f6e4); }
+.specpill.is-me { border-color: var(--mint-600, #0d9488); }
+/* the roster inside the modal */
+.spec__roster { display: flex; flex-direction: column; gap: .06rem; margin: 0 0 .1rem; padding: 0; list-style: none; }
+.spec__row { display: flex; align-items: center; gap: .1rem; padding: .06rem .1rem; border-radius: .08rem; background: rgba(255, 255, 255, .03); }
+.spec__row.is-me { background: rgba(45, 212, 191, .1); }
+.spec__ico { width: .18rem; height: .18rem; color: var(--mint-500, #14b8a6); flex: 0 0 auto; }
+.spec__name { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .19rem; color: var(--text-hi, #f1f5f9); }
+.spec__off { font-size: .15rem; flex: 0 0 auto; }
+.spec__hint { margin: .04rem 0 0; font-size: .15rem; line-height: 1.45; }
 .gtop__exit { box-shadow: 0 .06rem .2rem rgba(0, 0, 0, .5); }
 .gtop__center {
   --bk-c: var(--mint-700);
@@ -220,13 +235,13 @@
 .readybtn.is-busy { opacity: .7; }
 
 /* ---- bond strip ---------------------------------------------------------------------------------------- */
-.gm__bonds { position: absolute; left: 1.56rem; top: 1.36rem; right: 5.2rem; pointer-events: none; }
+.gm__bonds { position: absolute; left: 50%; transform: translateX(-50%); top: 1.36rem; right: auto; width: calc(100% - 3.12rem); display: flex; justify-content: center; pointer-events: none; }
 /* Only the bond discs (and the +N chip) take the pointer: the strip's box spans the width under the top bar, where the
    top board row's units stand (row 12 at 16:9 / 21:9 / 720p / phones, the boss field's row 5 in a boss prep) — it used
    to swallow the taps and drags on them (review of user playtest #2 item 8: every own unit reachable). */
 .gm__bonds > *, .gm__bonds .bstrip { pointer-events: none; }
 .gm__bonds .bslot, .gm__bonds .bstrip__more { pointer-events: auto; }
-.bstrip { display: flex; align-items: flex-start; gap: .1rem; flex-wrap: nowrap; }
+.bstrip { display: flex; justify-content: center; align-items: flex-start; gap: .1rem; flex-wrap: nowrap; }
 .bstrip.is-frozen .bslot { opacity: .5; filter: saturate(.4); }
 .bstrip--empty { display: inline-flex; align-items: center; gap: .12rem; padding: .08rem .16rem; font-size: .15rem; color: var(--text-dim); background: rgba(8, 11, 10, .6); border: 1px dashed var(--line-2); }
 /* a watched teammate's bonds (DESIGN §20.15): an amber "👁 name" pill in front of the discs, amber rings. Horizontal at
@@ -256,6 +271,13 @@
 .bslot__count.is-max { border-color: var(--mint-700); color: var(--mint-400); }
 .bslot.is-active .bslot__count { border-color: var(--mint-700); }
 .bslot.is-open .bond__core { box-shadow: 0 0 0 2px var(--mint-400), 0 0 .2rem rgba(23, 249, 183, .6); }
+/* a bond the mode never activates, with members (the server's `off` entry): the briefing's grey ✕ disc, the chips'
+   struck name, 本局禁用 under it instead of the count */
+.bslot.is-off .bond__name { color: var(--text-dim); text-decoration: line-through; text-decoration-color: rgba(255, 84, 84, .6); }
+.bslot.is-off .bslot__off {
+  position: static; margin-top: .02rem; font-size: .11rem; font-weight: 500; color: var(--text-dim); white-space: nowrap;
+  background: rgba(8, 11, 10, .85); border: 1px dashed rgba(255, 255, 255, .25);
+}
 
 /* ---- team panel ------------------------------------------------------------------------------------------- */
 .team { position: absolute; left: .22rem; top: 2.36rem; display: flex; flex-direction: column; gap: .14rem; pointer-events: none; }
@@ -421,6 +443,8 @@
   padding: .1rem .26rem; background: rgba(40, 8, 6, .9); border: 1px solid rgba(255, 84, 84, .5); color: var(--red-premium); font-size: .18rem; font-weight: 700;
 }
 .gm__dead .icon { width: .22rem; height: .22rem; }
+/* a spectator seat (community report #26): the same place, the watching pill's amber — nobody was eliminated */
+.gm__dead--spectator { background: rgba(24, 16, 4, .92); border-color: rgba(246, 163, 41, .6); color: var(--amber); }
 
 .chud { position: absolute; inset: 0; pointer-events: none; }
 .chud > * { pointer-events: auto; }
@@ -586,7 +610,7 @@
 
 /* ---- small screens (1280×720 → root ≈ 66px) ------------------------------------------------------------------------ */
 @media (max-aspect-ratio: 16/10) {
-  .gm__bonds { right: 4.6rem; }
+  .gm__bonds { right: auto; }
 }
 
 /* fallback view: enemy preview pen (setCamera('pen')) */
@@ -615,3 +639,7 @@
 .pauseov__plate h2 { font-size: .5rem; font-weight: 900; letter-spacing: .3em; color: #fff; text-shadow: 0 0 .2rem rgba(0, 0, 0, .8); }
 .pauseov__note { font-size: .17rem; color: var(--text-md); text-shadow: 0 1px 2px #000; }
 .pauseov__btns { display: flex; gap: .2rem; }
+
+.team__ob, .team__back { align-self: center; margin-top: 0; margin-left: .08rem; white-space: nowrap; }
+.profile-faction { position: absolute; right: -3px; bottom: -3px; width: max(.25rem, 18px); height: max(.25rem, 18px); display: grid; place-items: center; background: #101813; border: 1px solid var(--faction-color); z-index: 2; }
+.profile-faction img { width: 90%; height: 90%; object-fit: contain; }

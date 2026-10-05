@@ -36,6 +36,7 @@ export function drawDisabledBonds(gd, rng) {
   const banned = [];
   for (const id of gd.visibleChess) {
     const c = gd.chess(id);
+    if (c.optionalRecruit) continue; // personal selections remain available even when their bonds are disabled
     const bonds = Array.isArray(c.bonds) ? c.bonds : [];
     if (bonds.length > 0 && bonds.every((b) => off.has(b))) banned.push(id);
   }
@@ -96,6 +97,7 @@ export class SharedPool {
     for (const [id, e] of this.entries) {
       if (e.left <= 0) continue;
       if (tier != null ? e.tier !== tier : e.tier > maxTier) continue;
+      if (!filter && this.gd.chess(id)?.optionalRecruit) continue;
       if (filter && !filter(id, e)) continue;
       out.push([id, e.left]);
     }

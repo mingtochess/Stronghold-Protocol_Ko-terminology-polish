@@ -398,3 +398,22 @@
 .lo-io__text:focus { border-color: var(--mint-700); }
 .lo-io__text::placeholder { color: var(--text-lo); }
 .lo-io__file { display: none; }
+
+/* Optional recruits share the loadout screen's quiet borders and mint selection. */
+/* Additional recruits share the loadout cards and segmented controls. */
+.lo-tabs { margin: .08rem .3rem .12rem; align-self: flex-start; }
+.lo-tabs button { height: max(.42rem, 32px); padding-inline: .2rem; }
+.lo-recruit-note { padding: .12rem .16rem; border-bottom: 1px solid var(--line-2); color: var(--text-lo); }
+.lo-recruit-note > div { display: flex; gap: .25rem; color: var(--mint-500); }
+.lo-recruit-note p { margin: .08rem 0 0; }
+.lo-recruit-card .lo-card { width: 100%; }
+.lo-recruit-choice { display: flex; margin: .06rem 0 0; }
+.lo-recruit-choice button { flex: 1; padding-inline: .04rem; }
+
+.lo-grid--recruits { grid-template-columns: repeat(auto-fill, minmax(max(1.65rem, 140px), 1fr)); }
+.lo-recruit-choice button { white-space: nowrap; }
+.lo-skin-list { display: flex; flex-wrap: wrap; gap: 8px; }
+.lo-skin { display: flex; align-items: center; gap: 6px; padding: 6px 8px; border: 1px solid var(--line-2); background: var(--bg-panel); color: var(--text-hi); cursor: pointer; }
+.lo-skin.is-on { border-color: var(--mint-400); color: var(--mint-400); }
+.lo-skin img { width: 44px; height: 44px; object-fit: contain; }
+.lo-sec--garrison { line-height: 1.6; }

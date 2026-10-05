@@ -2,6 +2,7 @@
 // persisted in localStorage (`sp.pref.settings`), applied to the audio manager on every change, plus
 // the settings modal.
 
+import { GIcon } from './gameComponents.js';
 import { useState } from '../../vendor/hooks.module.js';
 import { html, Modal, Button, Icon, MicroLabel } from './components.js';
 import { createStore, useStore, loadPref, savePref } from '../store.js';
@@ -61,6 +62,8 @@ export function SettingsModal({ open, onClose }) {
       <${Button} variant="primary" icon="check" onClick=${onClose}>完成<//>`}>
     <div class="set-list">
       <${Slider} label="背景音乐" micro="BGM" icon="play" value=${s.bgm} onInput=${(v) => updateSettings({ bgm: v })} />
+      <${Slider} label="오퍼레이터 음성" micro="VOICE" icon="signal" value=${s.voice} onInput=${v=>updateSettings({voice:v})} />
+      <div class="set-row" data-i18n-skip><span class="set-row__label">음성 언어<${MicroLabel}>VOICE LANGUAGE<//></span><div class="set-seg" role="radiogroup">${[['kr','한국어'],['jp','日本語']].map(([id,label])=>html`<button type="button" role="radio" aria-checked=${s.voiceLanguage===id} class=${s.voiceLanguage===id?'is-on':''} onClick=${()=>updateSettings({voiceLanguage:id})}>${label}</button>`)}</div></div>
       <${Slider} label="音效" micro="SFX" icon="signal" value=${s.sfx}
         onInput=${(v) => { updateSettings({ sfx: v }); if (!tested) { setTested(true); setTimeout(() => setTested(false), 400); audio.sfx('click'); } }} />
       <${Toggle} label="静音" micro="MUTE" value=${s.muted} onChange=${(v) => updateSettings({ muted: v })} />
@@ -84,4 +87,10 @@ export function SettingsModal({ open, onClose }) {
         : html`<p class="set-hint">快捷键：<kbd>R</kbd> 刷新 · <kbd>F</kbd> 冻结 · <kbd>D</kbd> 升级 · <kbd>Space</kbd> 准备就绪 · <kbd>Esc</kbd> 关闭弹窗 · 右键查看详情</p>`}
     </div>
   <//>`;
+}
+
+/** The same settings entry for title, lobby and waiting room. */
+export function SettingsButton({class: cls = ''}) {
+  const [open, setOpen] = useState(false);
+  return html`<span class=${`settings-entry ${cls}`}><${Button} variant="secondary" size="sm" square=${true} aria-label="设置" title="设置" onClick=${() => setOpen(true)}><${GIcon} name="gear" /><//><${SettingsModal} open=${open} onClose=${() => setOpen(false)} /></span>`;
 }

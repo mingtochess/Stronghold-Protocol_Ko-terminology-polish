@@ -118,11 +118,11 @@ export function TeamPanel({ pub, myId, watching, bubbles, onWatch, compact = fal
             <//>
             ${watched && !self ? html`<span class="team__eye" title="正在查看"><${GIcon} name="eye" /></span>` : null}
           </div>
+        </div>
           ${open ? html`<button type="button" class="btn btn--primary btn--sm team__ob"
             onClick=${() => { setOpenPid(null); onWatch(p); }}><span class="btn__label">前往查看</span></button>` : null}
           ${back ? html`<button type="button" class="btn btn--secondary btn--sm team__back"
             onClick=${() => observe.onBack()}><span class="btn__label">返回战场</span></button>` : null}
-        </div>
         ${bubble ? html`<${EmoteBubble} key=${bubble.seq} id=${bubble.id} class="team__bubble" />` : null}
       </div>`;
     })}

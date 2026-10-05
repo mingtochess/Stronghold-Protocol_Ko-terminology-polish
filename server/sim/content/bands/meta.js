@@ -78,6 +78,15 @@ function rollBond(ctx, bond, { anyTier = false } = {}) {
 // buff key → (params[], bandId) → hooks
 
 const K = {};
+K.custom_ursus_merge_level_discount = (ps) => ({
+  onMerge(ctx, ev) {
+    if (ev.kind !== 'chess' || !metaBonds(ctx, ev.piece).includes('ursusShip')) return;
+    const key = 'band:kaschey:promotions';
+    if (roundCounter(ctx, key) >= Math.max(1, int(ps[0].max_count, 1))) return;
+    ctx.reduceUpgradePrice(Math.max(0, int(ps[0].count, 2)));
+    bumpRound(ctx, key);
+  },
+});
 
 K.prep_finish_char_bond_add_layer = (ps) => ({
   onPrepEnd(ctx) {

@@ -49,7 +49,9 @@ export function parseStored(raw) {
     if (UNSAFE_IDS.has(id) || !/^[A-Za-z0-9_\-.:]{1,64}$/.test(id) || !isObj(e)) continue;
     const x = {};
     if (isInt(e.skill) && e.skill >= 0 && e.skill <= LOADOUT_LIMITS.skillIndex) x.skill = e.skill;
+    if (typeof e.skin === 'string' && /^[A-Za-z0-9_\-.:]{1,64}$/.test(e.skin)) x.skin = e.skin;
     if (typeof e.module === 'string' && /^[A-Za-z0-9_\-.:]{1,64}$/.test(e.module)) x.module = e.module;
+    if (typeof e.selected === 'boolean') x.selected = e.selected;
     if (Object.keys(x).length) out[id] = x;
   }
   return out;
@@ -183,7 +185,8 @@ export function effectiveChoice(entries, base, golden) {
   const e = base && entries && Object.hasOwn(entries, base.chessId) ? entries[base.chessId] : null;
   const skill = e && opt.skills.includes(e.skill) ? e.skill : opt.defaultSkill;
   const module = golden ? (e && opt.modules.includes(e.module) ? e.module : opt.defaultModule) : null;
-  return { skill, module, changed: skill !== opt.defaultSkill || module !== opt.defaultModule };
+  const skin = base?.skins?.find(s=>s.id===e?.skin)?.id;
+  return { skill, module, ...(skin ? {skin} : {}), changed: !!e?.selected || skill !== opt.defaultSkill || module !== opt.defaultModule };
 }
 
 /**
@@ -201,6 +204,9 @@ export function setChoice(entries, base, golden, patch) {
   const out = { ...(entries || {}) };
   delete out[base.chessId];
   const e = {};
+  const skin = patch?.skin === 'default' ? null : base.skins?.find(s=>s.id===(patch?.skin ?? cur.skin))?.id;
+  if (skin) e.skin=skin;
+  if (base.optionalRecruit && (patch?.selected ?? entries?.[base.chessId]?.selected)) e.selected = true;
   if (skill !== opt.defaultSkill && skill != null) e.skill = skill;
   if (golden && module !== opt.defaultModule && module != null) e.module = module;
   if (Object.keys(e).length) out[base.chessId] = e;
@@ -228,19 +234,24 @@ export function sanitizeEntries(entries, getChess) {
     if (Object.keys(out).length >= LOADOUT_LIMITS.entries) break;
     const one = {};
     if (isInt(e?.skill)) one.skill = e.skill;
+    if (typeof e?.skin === 'string') one.skin=e.skin;
     if (typeof e?.module === 'string') one.module = e.module;
+    if (typeof e?.selected === 'boolean') one.selected = e.selected;
     if (!Object.keys(one).length) continue;
     const res = checkLoadout({ [id]: one }, getChess);
     if (!res.ok) {
       // keep the part that is still legal (e.g. the skill when a module disappeared)
-      for (const k of ['skill', 'module']) {
+      for (const k of ['skill', 'module', 'selected','skin']) {
         if (one[k] === undefined) continue;
         const r = checkLoadout({ [id]: { [k]: one[k] } }, getChess);
         if (r.ok && r.loadout[id]) out[id] = { ...(out[id] || {}), [k]: one[k] };
       }
       continue;
     }
-    if (res.loadout[id]) out[id] = one;
+    if (res.loadout[id]) {
+      if (one.selected && !checkLoadout({...out,[id]:one},getChess).ok) delete one.selected;
+      if (Object.keys(one).length) out[id] = one;
+    }
   }
   return out;
 }
@@ -361,4 +372,14 @@ export function skillTags(rec) {
     charges: Number(rec.maxChargeTime) > 1 ? Number(rec.maxChargeTime) : null,
     passive,
   };
+}
+
+/** Display shared multi-effect trait descriptions once without touching their gameplay effects. */
+export function garrisonTexts(chess,getGarrison) {
+  const seen=new Set(),out=[];
+  for(const id of chess?.garrisonIds||[]){
+    const rec=getGarrison(id),text=rec?.descRaw||rec?.desc||'';
+    const unique=text.split(/\n|<br\s*\/?\s*>/i).filter(line=>{const k=line.replace(/<@[^>]+>|<\/>/g,'').replace(/\s+/g,' ').trim();if(!k||seen.has(k))return false;seen.add(k);return true;}).join('\n');
+    if(unique)out.push(unique);
+  }return out;
 }

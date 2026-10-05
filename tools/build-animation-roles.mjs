@@ -1,0 +1,18 @@
+// Re-index existing skeletons for all selectable skills; never replace artwork or models.
+import {readFile,writeFile} from 'node:fs/promises';
+import {join} from 'node:path';
+import {resolveRoles} from './assets/anim-roles.mjs';
+export async function buildAnimationRoles(root,dir){
+ const assets=JSON.parse(await readFile(join(dir,'assets.json'),'utf8'));
+ const audit=[];
+ for(const [id,c]of Object.entries(assets.chars||{}))for(const [side,sp]of Object.entries(c.spine||{})){
+  if(!sp?.animations)continue;
+  const indices=[sp.anims?.skill?.index??0,0,1,2];
+  sp.anims=resolveRoles(Object.keys(sp.animations),{skillIndices:indices,durations:sp.animations});
+  audit.push({id,side,skills:Object.fromEntries(Object.entries(sp.anims.skills||{}).map(([i,r])=>[i,{clip:r.loop,via:r.via||null}]))});
+ }
+ await writeFile(join(dir,'assets.json'),JSON.stringify(assets));
+ await writeFile(join(root,'docs/SKILL-ANIMATION-AUDIT.json'),JSON.stringify(audit,null,2)+'\n');
+ console.log(`Animation roles indexed: ${audit.length} Front/Back models.`);
+}
+if(process.argv[1]?.endsWith('build-animation-roles.mjs'))await buildAnimationRoles(process.cwd(),join(process.cwd(),'.cache/ursus-data'));

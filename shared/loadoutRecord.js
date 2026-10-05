@@ -26,9 +26,10 @@ export function resolveRecordLoadout(rec, loadout = null) {
   const defMod = mods ? (mods.find((m) => m && m.isDefault)?.uniEquipId ?? 'none') : null;
   const wantMod = lo.moduleId ?? lo.module;
   const moduleId = mods && (wantMod === 'none' || (typeof wantMod === 'string' && mods.some((m) => m && m.uniEquipId === wantMod))) ? wantMod : defMod;
+  const skinId = rec.skins?.find(s=>s.id===(lo.skinId ?? lo.skin))?.id;
   const skillIsDefault = skillIndex === defSkill;
   const moduleIsDefault = moduleId === defMod;
-  return { skillIndex, moduleId, skillIsDefault, moduleIsDefault, isDefault: skillIsDefault && moduleIsDefault };
+  return { skillIndex, moduleId, ...(skinId ? {skinId} : {}), skillIsDefault, moduleIsDefault, isDefault: !skinId && skillIsDefault && moduleIsDefault };
 }
 
 const clean6 = (v) => (typeof v !== 'number' || !Number.isFinite(v) || Number.isInteger(v) || Math.abs(v) >= 1e6 ? v : Math.round(v * 1e6) / 1e6);
@@ -99,6 +100,8 @@ export function loadoutRecord(rec, lo) {
       }
     }
   }
+  const skin = rec.skins?.find(s=>s.id===lo.skinId);
+  if (skin) {out.assets={...out.assets,...skin.assets};out.attackTiming=skin.attackTiming;}
   return out;
 }
 

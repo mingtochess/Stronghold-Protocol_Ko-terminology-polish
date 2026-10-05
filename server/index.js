@@ -644,6 +644,7 @@ export async function startServer(opts = {}) {
   const server = http.createServer((req, res) => {
     res.setHeader('X-Content-Type-Options', 'nosniff');
     res.setHeader('Referrer-Policy', 'same-origin');
+    if (opts.handleRequest) res.setHeader('Service-Worker-Allowed', '/');
     handleRequest(req, res).catch((e) => {
       log.error('[http] request failed', e);
       sendError(req, res, 500, '服务器内部错误 · Internal error');
@@ -653,6 +654,7 @@ export async function startServer(opts = {}) {
   async function handleRequest(req, res) {
     const url = req.url || '/';
     if (url.length > MAX_URL_LENGTH) { sendError(req, res, 414, '请求地址过长 · URI too long'); return; }
+    if (opts.handleRequest && await opts.handleRequest(req, res)) return;
     const parts = splitUrl(url);
     if (!parts) { sendError(req, res, 400, '请求地址无效 · Bad request'); return; }
     if (req.method !== 'GET' && req.method !== 'HEAD') {

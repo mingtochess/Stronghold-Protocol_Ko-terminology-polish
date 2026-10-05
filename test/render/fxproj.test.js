@@ -411,34 +411,25 @@ describe('fx placement, quality, melee, skill', () => {
     }
   });
 
-  test('a melee blow draws a slash in the hit colour, swept along the blow', () => {
-    const a = unit(1, 4, 10), b = unit(2, 5, 10, { isEnemy: true });
-    const { fx } = makeFx({ views: [a, b] });
-    fx.attack(a, b, 'none');
-    fx.damage(b, 300, 'arts', a);
-    const slashes = liveTex(fx, 'slash');
-    assert.equal(slashes.length, 2);
-    assert.equal(slashes[0].sp.tint, HIT_TINT.arts);
-    const pa = cam.project(a.x, a.y, 0.54, {}), pb = cam.project(b.x, b.y, 0.54, {});
-    const blow = Math.atan2(pb.y - pa.y, pb.x - pa.x) + Math.PI / 2;
-    const d = Math.atan2(Math.sin(slashes[0].sp.rotation - blow), Math.cos(slashes[0].sp.rotation - blow));
-    assert.ok(Math.abs(d) <= 0.46, `rotation ${slashes[0].sp.rotation} vs blow ${blow}`);
-    assert.equal(fx._slashAt, null);
-    fx.damage(b, 300, 'phys', a);                    // a second hit without a new blow: no slash
-    assert.equal(liveTex(fx, 'slash').length, 2);
+  test('melee contacts accent the Spine weapon swing without a second slash arc',()=>{
+    const a=unit(1,4,10),b=unit(2,5,10,{isEnemy:true});const {fx}=makeFx({views:[a,b]});
+    fx.attack(a,b,'none');fx.damage(b,300,'arts',a);
+    assert.equal(liveTex(fx,'slash').length,0);assert.equal(liveTex(fx,'spark').length,0);assert.equal(liveTex(fx,'glow').length,0);assert.equal(fx.contacts.length,1);assert.equal(fx._slashAt,null);
+
   });
 
-  test('skill activation bursts (pillars, flare, shockwave + hex) and keeps an aura until it ends', () => {
+  test('skill activation stays small and its restrained ongoing marks fade when it ends', () => {
     const v = unit(1, 4, 10);
     const { fx } = makeFx({ views: [v] });
     fx.skill(v, true);
-    assert.equal(liveTex(fx, 'pillar').length, 2);
+    assert.equal(liveTex(fx, 'pillar').length, 0);
     assert.equal(liveTex(fx, 'flare').length, 1);
-    assert.deepEqual(fx.rings.map((r) => texName(fx, r.sp.texture)).sort(), ['hex', 'shock']);
+    assert.ok(liveTex(fx, 'flare')[0].a0 <= .5);
+    assert.equal(fx.rings.length,0);
     assert.equal(fx.auras.size, 1);
     run(fx, 1);
     const a = fx.auras.get(1);
-    assert.ok(a.sp.alpha > 0.9 && a.hex.alpha > 0.5, 'aura shown');
+    assert.ok(a.sp.alpha >= .75 && a.sp.alpha <= .85, 'subtle ongoing effect shown');
     fx.skill(v, false);
     run(fx, 0.6);
     assert.equal(fx.auras.size, 0, 'faded out');
@@ -457,4 +448,27 @@ describe('fx placement, quality, melee, skill', () => {
     fx.update(DT);
     fx.destroy();
   });
+});
+
+test('Drone bombardment marks a fixed point, stays hidden during warning, then drops vertically without a launch arc',()=>{
+ const {fx}=makeFx({ts:1,views:[unit(1,2,10)]});
+ fx.simFx('bombardShell',8,10,{id:1,r:1.2,t:3,vertical:true});
+ const shell=fx.projs[0];assert.equal(shell.vertical,true);
+ assert.ok(fx.rings.some(r=>r.x===8&&r.y===10));
+ run(fx,2.7);assert.equal(shell.core.visible,false);
+ run(fx,.15);assert.equal(shell.core.visible,true);
+ const start=1-.22/shell.dur,u=(shell.t/shell.dur-start)/(1-start);
+ const expected=cam.project(8,10,5.5*(1-u*u));assert.ok(Math.abs(shell.core.position.x-expected.x)<.01);
+ fx.simFx('bombard',8,10,{id:1,r:1.2});run(fx,.05);assert.equal(fx.projs.length,0);
+});
+
+test('Explosion particles keep their world position and scale when the camera changes; screen snow stays on screen',()=>{
+ const {fx}=makeFx();fx.explosion(8,10,0,1.2,0xff7744);
+ const p=fx.parts.find(p=>p.world);assert.ok(p);
+ const next=presetCamera('boss',{width:1280,height:720});fx.ctx.cam=()=>next;
+ fx.update(0);
+ const anchor=next.project(p.world.x,p.world.y,p.world.z||0),ratio=anchor.s/p.as;
+ assert.ok(Math.abs(p.sp.position.x-(anchor.x+(p.x-p.ax)*ratio))<1e-6);
+ assert.ok(Math.abs(p.sp.position.y-(anchor.y+(p.y-p.ay)*ratio))<1e-6);
+ fx.snowfall(0xffffff);const snow=fx.parts.at(-1);assert.equal(snow.world,null);
 });

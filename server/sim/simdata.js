@@ -181,6 +181,7 @@ export function normalizeChess(rec) {
     rangeGrid: toArrayOfPairs(rec.rangeGrid ?? rec.range?.grid) ?? [[0, 0], [0, 1]],
     dmgType: rec.dmgType ? normDmgType(rec.dmgType) : null,
     attackKind: rec.attackKind ?? null,
+    attackTiming: rec.attackTiming ?? null,
     projectile: rec.projectile ?? null,
     canHitFly: rec.canHitFly ?? null,
     targetPriority: rec.targetPriority ?? null,
@@ -212,7 +213,7 @@ export { composeStats, composeTalents, loadoutRecord };
 
 /** Cache key suffix of a resolved non-default loadout ('' for the default). */
 export function loadoutKey(lo) {
-  return lo && !lo.isDefault ? `|s${lo.skillIndex}|m${lo.moduleId ?? ''}` : '';
+  return lo && !lo.isDefault ? `|s${lo.skillIndex}|m${lo.moduleId ?? ''}|skin${lo.skinId ?? ''}` : '';
 }
 
 /** Build an immunity Set from an object `{stun:true,…}` or an array `['stun', 'feared']`. */
@@ -270,6 +271,7 @@ export function normalizeEnemy(key, e) {
     notCountInTotal: !!(e.notCountInTotal),
     hitArea: normHitArea(e.hitArea),   // huge units only (body.js); null = a point
     staticBody: !!e.staticBody,        // 静态刚体: pushes / pulls never move it (Battle._displaceable)
+    attackTiming: e.attackTiming ?? null,
     attackAnim: normAttackAnim(e.attackAnim),   // its attack clip { dur, hit } (ai.js attackStand); null = none known
     attackMoves: !!e.attackMoves,      // 「不停止移动」: never stops to attack (ai.js attackStand)
     tags: e.tags ?? [],
@@ -308,6 +310,7 @@ export function normalizeToken(id, t0, ownerChessId = null, variantOverride = nu
     rangeGrid: toArrayOfPairs(t.rangeGrid) ?? [[0, 0], [0, 1]],
     dmgType: t.dmgType ? normDmgType(t.dmgType) : (/法术/.test(desc) ? 'arts' : /真实/.test(desc) ? 'true' : /恢复|治疗/.test(desc) ? 'heal' : 'phys'),
     attackKind: ak,
+    attackTiming: t.attackTiming ?? null,
     projectile: t.projectile ?? null,
     canHitFly: t.canHitFly ?? null,
     targetPriority: t.targetPriority ?? null,
@@ -703,11 +706,11 @@ export function withUnitLoadouts(ds, players) {
   for (const p of Array.isArray(players) ? players : []) {
     for (const u of (p && Array.isArray(p.units) ? p.units : [])) {
       if (!u || u.kind === 'token' || typeof u.chessId !== 'string') continue;
-      if (u.skillIndex != null || u.moduleId != null) any = true;
-      const lo = { skillIndex: u.skillIndex ?? null, moduleId: u.moduleId ?? null };
+      if (u.skinId != null || u.skillIndex != null || u.moduleId != null) any = true;
+      const lo = { skillIndex: u.skillIndex ?? null, moduleId: u.moduleId ?? null, ...(u.skinId ? {skinId:u.skinId} : {}) };
       const prev = map.get(u.chessId);
       if (!prev) map.set(u.chessId, lo);
-      else if (prev.skillIndex !== lo.skillIndex || prev.moduleId !== lo.moduleId) conflicts.add(u.chessId);
+      else if (prev.skillIndex !== lo.skillIndex || prev.moduleId !== lo.moduleId || prev.skinId !== lo.skinId) conflicts.add(u.chessId);
     }
   }
   if (!any) return ds;

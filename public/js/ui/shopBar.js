@@ -1,3 +1,5 @@
+import { PROF_NAME } from './loadoutModel.js';
+import { store } from '../store.js';
 // Bottom shop bar (research 06 §11.2 / D3): LEVEL card (upgrade price hex, 升级), 3–5 operator cards
 // (tier chip, price hex with discount/markup colours, portrait, bonds — a bond the mode never activates struck through,
 // 本局禁用 — class, frozen overlay, sold state,
@@ -23,7 +25,7 @@ import { useEffect, useState } from '../../vendor/hooks.module.js';
 import { html, Icon, HexBadge, TierChip, Tooltip, MicroLabel } from './components.js';
 import { Img, BondGlyph, CoinGlyph, GIcon, RichText } from './gameComponents.js';
 import { priceTone, mergeProgress, mergeTarget, shopBlockReason, chessLoadout, offerHeader, briefingBondTip } from './gameLogic.js';
-import { chessPortraitUrl, itemIconUrl, profIconUrl, uiUrl, skillIconUrl, skillRecordIconUrl, moduleTypeIconUrl } from './assetUrls.js';
+import { chessPortraitUrl, itemIconUrl, profIconUrl, uiUrl, moduleTypeIconUrl } from './assetUrls.js';
 import { data } from '../data.js';
 
 const cx = (...p) => p.flat().filter(Boolean).join(' ');
@@ -68,16 +70,17 @@ export function ChessCard({ slot, idx, priv, frozen = false, reason = null, free
   const prog = mergeProgress(priv, slot.id, (id) => data.lookup('chess', id));
   const hint = mergeHint(priv, slot.id);
   const willMerge = !!hint;
-  const bonds = Array.isArray(c?.bonds) ? c.bonds : [];
+  const bonds = (Array.isArray(c?.bonds) ? c.bonds : []).filter(b=>b!=='ursusShip' || store.get().match.public?.customFactions);
   const disabled = !!reason;
   const lo = c ? chessLoadout(c, priv?.loadout, LOOKUPS.getChess) : null;
+  const mod=lo?.module && !lo.module.none ? lo.module : null;
   const tap = () => { if (onTap) onTap(idx); else if (!disabled) onBuy(idx); else onDetail(slot.id, 'chess', hint); };
   const card = html`<button type="button" class=${cx('scard', `scard--t${tier}`, frozen && 'is-frozen', disabled && 'is-disabled', willMerge && 'is-merge', armed && 'is-armed')}
       onClick=${tap} onContextMenu=${(e) => { e.preventDefault(); onDetail(slot.id, 'chess', hint); }}
       aria-label=${`${c?.name || '干员'}，价格 ${slot.price}${armed ? (disabled ? '，无法购买' : '，再次点击确认') : ''}`} aria-pressed=${onTap ? String(!!armed) : undefined}>
     <span class="scard__bg" aria-hidden="true"></span>
     <span class="scard__water" aria-hidden="true">${bonds[0] ? html`<${BondGlyph} bondId=${bonds[0]} />` : null}</span>
-    <${Img} src=${chessPortraitUrl(m, c)} class="scard__art" />
+    <${Img} src=${chessPortraitUrl(m, {...(lo?.record || c),appearanceResolved:!!priv?.loadout})} class="scard__art" />
     <span class="scard__top">
       <${TierChip} tier=${tier} size="md" />
       <${PriceHex} slot=${slot} free=${free} poor=${reason === '资金不足'} />
@@ -86,7 +89,7 @@ export function ChessCard({ slot, idx, priv, frozen = false, reason = null, free
       </span>` : null}
     </span>
     <span class="scard__body">
-      ${lo?.skill ? html`<${SkillBadge} chess=${c} lo=${lo} />` : null}
+      <span class="scard__skill" title=${PROF_NAME[c?.profession] || c?.profession}><${Img} src=${m?.prof?.large?.[String(c?.profession || '').toLowerCase()] || profIconUrl(m,c?.profession)} class="scard__profession" />${mod?.typeName ? html`<span class="scard__mod"><${Img} src=${moduleTypeIconUrl(data.get('local'), mod.typeName)} class="scard__modicon" />${mod.typeName}</span>` : null}</span>
       <span class="scard__name">${c?.name || slot.id}</span>
       <span class="scard__bonds">
         ${bonds.slice(0, 3).map((b) => {
@@ -95,31 +98,13 @@ export function ChessCard({ slot, idx, priv, frozen = false, reason = null, free
           return html`<span key=${b} class=${cx('scard__bond', off && 'is-off')} title=${off ? briefingBondTip(name, 'off') : undefined}><${BondGlyph} bondId=${b} /><span>${name}</span></span>`;
         })}
       </span>
-      <span class="scard__class">
-        <${Img} src=${profIconUrl(m, c?.profession)} class="scard__prof" />
-        <span>${c?.subProfessionName || ''}</span>
-      </span>
+
     </span>
     ${willMerge ? html`<span class="scard__mergetag" title=${hint}>可晋升</span>` : null}
     ${frozen ? html`<span class="scard__ice" aria-hidden="true"><${Icon} name="snow" /></span>` : null}
     ${armed ? html`<${ArmedTag} reason=${reason} free=${free} />` : null}
   </button>`;
   return reason && reason !== '已售出' && !armed ? html`<${Tooltip} text=${reason} block=${true} class="scard-wrap">${card}<//>` : card;
-}
-
-/** The loadout's skill (icon; name + 已调配 in the tooltip) and an elite's module type, on an operator card. */
-function SkillBadge({ chess, lo }) {
-  const m = data.get('assets');
-  const custom = !lo.defaultSkill;
-  // a chosen skill without an icon in the manifest: its slot letter (S1–S3) instead of the blank skill sprite
-  const src = custom ? skillRecordIconUrl(m, lo.skill, { empty: false }) : skillIconUrl(m, chess);
-  const slot = Number.isInteger(lo.skill.index) ? `S${lo.skill.index + 1}` : null;
-  const mod = lo.module && !lo.module.none ? lo.module : null;
-  const tip = `技能${slot ? ` ${slot}` : ''}：${lo.skill.name || ''}${custom ? '（已调配）' : ''}${mod ? ` · 模组：${mod.name}` : lo.module?.none ? ' · 未装备模组' : ''}`;
-  return html`<span class=${cx('scard__skill', custom && 'is-custom')} title=${tip} aria-label=${tip} data-skill=${lo.skill.skillId || ''}>
-    <${Img} src=${src} fallback=${slot ? html`<span class="scard__sglyph num">${slot}</span>` : html`<${GIcon} name="bolt" />`} />
-    ${mod && mod.typeName ? html`<span class="scard__mod" data-type=${mod.typeName}><${Img} src=${moduleTypeIconUrl(data.get('local'), mod.typeName)} class="scard__modicon" />${mod.typeName}</span>` : null}
-  </span>`;
 }
 
 /**
