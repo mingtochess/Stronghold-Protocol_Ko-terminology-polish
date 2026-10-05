@@ -54,7 +54,7 @@ test('a spectator seat watches a whole match (各自行动, 联防, 最终攻势
   assert.equal(end.victory, true);
 
   const got = frames(h, S);
-  for (const x of got) assert.ok(['m.public', 'm.field', 'b.start', 'b.end', 'm.result'].includes(x.t), `${x.t} sent to a spectator`);
+  for (const x of got) assert.ok(['m.public', 'm.field', 'm.bench', 'b.start', 'b.end', 'm.result'].includes(x.t), `${x.t} sent to a spectator`);
   assert.equal(h.allTo(S, 'm.private').length, 0, 'no private player view');
   const starts = h.allTo(S, 'b.start');
   assert.ok(starts.length > 0);
@@ -142,4 +142,38 @@ test('server-run combat (SP_COMBAT=server): a spectator is streamed the first fi
   assert.ok(h.allTo(S, 'b.snap').length > 0, 'its snapshots');
   assert.equal(h.allTo(S, 'm.private').length, 0);
   m.dispose();
+});
+
+test('boss prep scouting carries the boss-field rectangle and mirrored player placement',()=>{
+ const h=makeMatch({humans:2,fake:true}),m=h.m;
+ try{
+  m.bossWaves=[{players:['p_0','p_1'],wave:{spawns:[{enemyKey:'boss',tag:'boss',count:1,time:0,preview:{boss:true,start:[3,10]}}]}}];
+  for(const pid of ['p_0','p_1']){
+   const ps=h.ps(pid),piece=ps.newPiece('chess','chess_char_1_01_a');ps.board.set('10,3',piece);
+   const meta=m.prepFieldMeta(ps);
+   assert.equal(meta.kind,'boss');assert.equal(meta.prep,true);
+   assert.ok(meta.rect.r1<9,'camera frames the boss rows');
+   assert.equal(meta.units[0].y,3);
+   assert.equal(meta.units[0].x,pid==='p_1'?17:3);
+   assert.ok(meta.nextEnemies.some(e=>e.boss&&e.start[0]===3));
+  }
+ }finally{m.dispose();}
+});
+
+
+test('spectators see only the watched player bench, updated after purchases or moves', () => {
+  const h = makeMatch({ humans: 2, fake: true, spectators: [S] }).start();
+  h.autoHumans(); h.toPrep(1);
+  const ps = h.ps('p_1');
+  h.m.handle(S, { t: 'g.watch', fieldId: 'n:p_1' });
+  let packet = h.lastTo(S, 'm.bench');
+  assert.equal(packet.fieldId, 'n:p_1');
+  assert.deepEqual(packet.benches.map(b => b.playerId), ['p_1']);
+  assert.deepEqual(packet.benches[0].pieces, ps.hand.map(p => p ? ps.pieceView(p) : null));
+  ps.hand[0] = ps.newPiece('chess', 'chess_char_1_01_a');
+  h.m.markPrivate(ps); h.m.flush();
+  packet = h.lastTo(S, 'm.bench');
+  assert.equal(packet.benches[0].pieces[0].uid, ps.hand[0].uid);
+  assert.deepEqual(privateKeys(packet), []);
+  assert.equal(h.allTo(S, 'm.private').length, 0);
 });

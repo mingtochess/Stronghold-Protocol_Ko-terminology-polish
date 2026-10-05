@@ -208,3 +208,14 @@ test('the briefing, the strategy draft and the in-game 本局信息 tab all read
   assert.match(drawer, /matchInfoModel\(pub, \{\s*bonds: data\.list\('bonds'\), chess: \(id\) => data\.lookup\('chess', id\), mode: data\.get\('config'\)\?\.modes\?\.\[pub\?\.modeId\],/);
   assert.doesNotMatch(drawer, /bannedPerBond|disabledBondSets/, 'the drawer derives nothing on its own');
 });
+
+test('match briefing hides disabled custom Ursus instead of implying it protects banned Gummy',()=>{
+ const bonds=[{bondId:'steadShip',name:'고수',members:['gum']},{bondId:'ursusShip',name:'우르수스',isCore:true,members:['gum']}];
+ const chess=()=>({tier:2,bonds:['steadShip','ursusShip']});
+ const off=matchInfoModel({customFactions:false,bannedChess:['gum'],drawnDisabledBonds:['steadShip']},{bonds,chess});
+ assert.deepEqual(off.bonds.map(b=>b.bondId),['steadShip']);
+ assert.deepEqual(off.bannedGroups.map(g=>g.bondId),['steadShip']);
+ const on=matchInfoModel({customFactions:true,bannedChess:[]},{bonds,chess});
+ assert.ok(on.bonds.some(b=>b.bondId==='ursusShip'));
+ assert.equal(on.banned.length,0);
+});

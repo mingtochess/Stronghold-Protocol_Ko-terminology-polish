@@ -18,3 +18,12 @@ test('initial units deploy sequentially down the left column before the next col
  h.run(.15);assert.equal(units.filter(u=>u.deployed).length,3);
  assert.ok(units.find(u=>u.homeC===4).deployedAt>=.2-1e-6);
 });
+
+test('wave spawns wait for initial deployment while preserving their relative spacing',()=>{
+ const op=chessRec({id:'roster',skill:null});
+ const h=makeBattle({content:'generic',autoFinish:false,flags:{deploymentInterval:.2},defs:{chess:{roster:op},enemies:{dummy:enemyRec({key:'dummy',speed:0,hp:10000,atk:0})}},units:[{chessId:'roster',row:10,col:3},{chessId:'roster',row:10,col:4},{chessId:'roster',row:10,col:5}],enemies:[{key:'dummy',time:0,pos:[9,10]},{key:'dummy',time:.3,pos:[9,10]}]});
+ h.run(.3);assert.equal(h.enemies().length,0);
+ h.run(.2);assert.equal(h.enemies().length,1);
+ h.run(.3);assert.equal(h.enemies().length,2);
+ assert.equal(h.hooksOf('battleStart').length,1);
+});

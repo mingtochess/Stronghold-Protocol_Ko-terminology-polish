@@ -26,7 +26,7 @@ import { html, Icon, HexBadge, TierChip, Tooltip, MicroLabel } from './component
 import { Img, BondGlyph, CoinGlyph, GIcon, RichText } from './gameComponents.js';
 import { priceTone, mergeProgress, mergeTarget, shopBlockReason, chessLoadout, offerHeader, briefingBondTip } from './gameLogic.js';
 import { chessPortraitUrl, itemIconUrl, profIconUrl, uiUrl, moduleTypeIconUrl } from './assetUrls.js';
-import { data } from '../data.js';
+import { matchData as data } from '../data.js';
 
 const cx = (...p) => p.flat().filter(Boolean).join(' ');
 

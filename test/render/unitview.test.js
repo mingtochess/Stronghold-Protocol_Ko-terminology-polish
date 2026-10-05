@@ -321,3 +321,24 @@ test('fixed-facing aerial units never flip towards attack targets',()=>{
  v.visFacing=1;v.faceTarget({x:3,y:10});assert.equal(v.visFacing,1);
  v.visFacing=-1;v.update(1/60,cam(),0);assert.equal(v.flipValue,1);
 });
+
+
+test('instant skill footprint can outlive skill-on event without outliving its snapshot or operator',()=>{
+ const v=view({charId:'char_102_texas'});v.setSkill(true);v.setSkill(false);
+ v.skillTiles=[[10,3],[10,4]];v.update(1/60,cam(),0);assert.equal(v.skillZone.visible,true);
+ v.skillTiles=null;v.update(1/60,cam(),.1);assert.equal(v.skillZone.visible,false);
+ v.skillTiles=[[10,3]];v.update(1/60,cam(),.2);v.die();assert.equal(v.skillZone.visible,false);
+});
+
+
+test('concealed allies stay fully opaque and have fog; refraction draws only while active', async () => {
+ const {UF}=await import('../../shared/constants.js');
+ const v=view({side:'ally'}); v.fadeIn=1; v.flags=UF.STEALTH;
+ let clouds=0; v.stateFx.drawEllipse=()=>{clouds++;return v.stateFx;};
+ v.update(1/60,cam(),0);
+ assert.equal(v.root.alpha,1); assert.ok(clouds>=5);
+ const e=view({side:'enemy'}); e.statuses.add('ab:refraction');
+ let arcs=0; e.stateFx.quadraticCurveTo=()=>{arcs++;return e.stateFx;};
+ e.update(1/60,cam(),0); assert.equal(arcs,3);
+ arcs=0; e.statuses.delete('ab:refraction'); e.update(1/60,cam(),1); assert.equal(arcs,0);
+});

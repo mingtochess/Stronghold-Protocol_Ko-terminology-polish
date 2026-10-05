@@ -215,9 +215,16 @@ export function absorbShields(battle, target, amount) {
 /**
  * Full damage pipeline. Returns the HP actually removed (0 when dodged/cancelled/absorbed).
  */
+// Terrain concealment protects allies from area hits even when a zone ignores target selection.
+function smogEvadesArea(target, dmg) {
+  return target.side === 'ally' && !!target.findBuff('terrain:smog') &&
+    (dmg.isSplash || (dmg.tags || []).some(t => ['area', 'zone', 'shell', 'pollution', 'aoeAttack', 'faithLink', 'entranceBarrage'].includes(t)));
+}
+
 export function dealDamage(battle, source, target, dmgIn) {
   if (!target || !target.alive || target.removed || target.hidden || !target.deployed) return 0;
   const dmg = dmgIn && dmgIn._norm ? dmgIn : makeDamageInfo(dmgIn);
+  if (smogEvadesArea(target, dmg)) return 0;
   if (dmg.type === 'element') return applyElement(battle, source, target, dmg);
   // 无来源 (dmg.sourceless, element bursts): hooks see no source — nothing keyed on "damage dealt by X" (ATK-up vs a
   // tag, 伤害提升 items / bonds / modules, reflect, "受到来自…的伤害") can recognise it; `credit` names the unit that still
@@ -379,6 +386,7 @@ export function elementIntake(target) {
 
 /** Element gauge accumulation + burst. Fires `elementHit` { source, target, dmg } first (mutable amount/mul, cancel). */
 export function applyElement(battle, source, target, dmg) {
+  if (target && smogEvadesArea(target, dmg)) return 0;
   const el = dmg.element;
   if (!el || !(el in target.elem)) return 0;
   if (!hasHp(target)) return 0; // a killing blow's rider: the target is dead, nothing fills or bursts (header)

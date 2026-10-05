@@ -37,7 +37,8 @@ import { Img, RichText, UnitThumb, BondGlyph, GIcon } from './gameComponents.js'
 import { attackInterval, rangeGridBox, fmtNum, tileKey, chessLoadout, nextThreshold, bondTier, briefingBondTip, pieceBondIds, grantedBonds, morphPairings } from './gameLogic.js';
 import { chessPortraitUrl, skillIconUrl, skillRecordIconUrl, profIconUrl, subProfIconUrl, itemIconUrl, enemyIconUrl, tokenAvatarUrl, factionIconUrl, uiUrl, moduleTypeIconUrl } from './assetUrls.js';
 import { abilityRows } from './abilityLines.js';
-import { data } from '../data.js';
+import { matchData as data } from '../data.js';
+import { store } from '../store.js';
 import { attackRangeGrid } from '../../../shared/loadoutRecord.js';
 import { SKILL_SUMMON_START_DEPLOY } from '../../../shared/constants.js';
 import { moduleBadge, garrisonTexts } from './loadoutModel.js';
@@ -375,7 +376,7 @@ export function ChessDetail({ chess, piece, unit, snapHp, editable, onSell, bond
   // teammate's unit's UnitInfo items, a bond popup 同构 row's wearer's)
   const carried = piece ? items : (Array.isArray(unitItems) ? unitItems : []);
   const getItem = (id) => data.lookup('items', id);
-  const bondIds = pieceBondIds(c, carried, getItem);
+  const bondIds = pieceBondIds(c, carried, getItem).filter(id => id !== 'ursusShip' || store.get().match.public?.customFactions === true);
   const grantedIds = bondIds.filter((b) => !(Array.isArray(c.bonds) && c.bonds.includes(b)));
   const sell = c.sellPrice ?? 1;
   const blocks = {};
@@ -683,4 +684,3 @@ export function DetailPanel({ detail, editable, snapHp, onClose, onSell, onDestr
     </div>
   </aside>`;
 }
-

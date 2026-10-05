@@ -84,8 +84,8 @@ export class SpineActor {
     this.names = new Set((spineData.animations || []).map((a) => a.name));
     /**
      * Clipping attachments render as stencil masks (≈1.5 ms of GPU each per frame on tiled GPUs): such skeletons
-     * are drawn through the impostor atlas while clipping is on, and clipping is switched off (unclipped slots,
-     * visually negligible on battle chibis) when too many of them share a field (app.js budget).
+     * are drawn through the impostor atlas while clipping is on. Masks are
+     * required for correct artwork even when crowded (e.g. Archet's eyes).
      */
     this.clipped = hasClipping(spineData);
     this.clipOn = true;
@@ -148,10 +148,11 @@ export class SpineActor {
     const base = skeleton?.data?.defaultSkin || skins.find(s=>s.name==='default');
     const aliases = {stun:['stun','stunned'],sleep:['sleep'],invuln:['invuln','invincible'],freeze:['freeze','frozen'],cold:['cold'],burn:['burn','burning'],poison:['poison'],rage:['rage','angry','enrage','berserk','lowhp'],shield:['shield'],refraction:['refraction'],stealth:['stealth','invisible']};
     const chosen = [];
+    this.authoredVisualStates = new Set();
     for (const state of states || []) {
       const names = aliases[state] || (/^skill[123]$/.test(state) ? [state,state.replace('skill','skill_')] : [state]);
       const skin = skins.find(s=>names.includes(String(s.name).toLowerCase()));
-      if (skin && skin !== base && !chosen.includes(skin)) chosen.push(skin);
+      if (skin && skin !== base) { this.authoredVisualStates.add(state); if (!chosen.includes(skin)) chosen.push(skin); }
     }
     const key = chosen.map(s=>s.name).sort().join('|');
     if (key === this.visualSkinKey) return chosen.length > 0;
@@ -280,6 +281,7 @@ export class SpineActor {
    * false when it is still too early (call again next frame) or there is nothing to wind up.
    */
   windUp(interval, lead, once = false) {
+    if (this._continuousSkillLoop()) return false;
     if (this.dead || this.mode === 'stun' || this.mode === 'die' || this.mode === 'change' || this.mode === 'skillCast' || this.mode === 'skillBegin' || !(lead >= 0)) return false;
     const clip = this._attackClip();
     if (!clip) return false;
@@ -305,6 +307,7 @@ export class SpineActor {
 
   /** Explicit sim wind-up: retain the entire clip before its OnAttack frame. */
   beginAttack(interval, lead) {
+    if (this._continuousSkillLoop()) return false;
     if (this.dead || this.mode === 'stun' || this.mode === 'die' || this.mode === 'change' || this.mode === 'skillCast' || this.mode === 'skillBegin') return false;
     const clip = this._attackClip(); if (!clip) return false;
     const dur = this.dur(clip.loop), hit = this._hitTime(clip.loop, dur);
@@ -328,6 +331,7 @@ export class SpineActor {
    * cast (no rhythm): the clip plays once at its own speed from its strike frame, then the resting state.
    */
   attack(interval, once = false) {
+    if (this._continuousSkillLoop()) return;
     if (this.dead || this.mode === 'stun' || this.mode === 'die' || this.mode === 'change' || this.mode === 'skillCast' || this.mode === 'skillBegin') return;   // a form change plays out
     if (!once) this.interval = clampN(Number.isFinite(interval) && interval > 0 ? interval : this.interval, 0.08, 8);
     const clip = this._attackClip();
@@ -380,6 +384,13 @@ export class SpineActor {
   _skillIsBuffOnly() {
     const sk = this.roles.skill;
     return !!sk && (sk.loop === this.roles.idle || skillIsStance(this.entry,sk));
+  }
+
+  // A hit-less Skill_Loop is a continuous channel/stance (e.g. Indigo and
+  // Ptilopsis S2), rather than a separate clip to restart on every attack/heal.
+  _continuousSkillLoop() {
+    const sk = this.roles.skill;
+    return this.skillOn && sk && sk.loop !== this.roles.idle && this.has(sk.loop) && skillIsStance(this.entry, sk);
   }
 
   /**

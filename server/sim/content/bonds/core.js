@@ -195,7 +195,8 @@ function installYan(battle, pid, bb, members) {
       atk += num(u.s.atk, 0);
       hp += num(u.s.maxHp, 0);
     }
-    if (!(hp > 0)) return;
+    // The six-member condition was checked above. Carry-over knockouts may leave
+    // no surviving Yan stat contributors, but must not suppress the base dragon.
     const share = yanyouShare();
     const out = spawnYanyou(battle, pid, {
       atk: atk * share, hp: hp * share, count: ex ? 2 : 1,

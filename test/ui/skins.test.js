@@ -57,3 +57,45 @@ test('in-game loadout composition preserves selected costume',async()=>{
  assert.equal(result.record.assets.spine,'skin_test');
  assert.equal(result.changed,false);
 });
+
+
+test('Korean trait descriptions translate whole records before deduplication across the complete roster', async () => {
+ const {readFile,access}=await import('node:fs/promises');
+ const {garrisonTexts}=await import('../../public/js/ui/loadoutModel.js');
+ const read=async p=>JSON.parse(await readFile(new URL(p,import.meta.url),'utf8'));
+ let root='../../data/';
+ try { await access(new URL('../../.cache/ursus-data/chess.json',import.meta.url)); root='../../.cache/ursus-data/'; } catch {}
+ const [chess,gs]=await Promise.all([read(root+'chess.json'),read(root+'garrisons.json')]);
+ const dictionary=Object.assign({},...await Promise.all(['official','data','manual','ui','patterns'].map(n=>read('../../public/i18n/ko/'+n+'.json'))));
+ const translate=s=>dictionary[s]||dictionary[s.replace(/\\n/g,'\n')]||s;
+ for(const c of Object.values(chess)) {
+  const text=garrisonTexts(c,id=>gs[id],translate).join('\n');
+  assert.ok(!/[\u3400-\u9fff]/u.test(text),c.chessId+': '+text);
+ }
+ const gravel=Object.values(chess).find(c=>c.charId==='char_237_gravel'&&!c.isGolden);
+ assert.ok(gravel);
+ const text=garrisonTexts(gravel,id=>gs[id],translate).join('\n');
+ assert.equal((text.match(/배치 시/g)||[]).length,1,'Gravel does not repeat the deployment clause');
+ assert.ok(text.includes('쓰러질 시'));
+});
+
+test('Santalla combined rest triggers and Vigil shared clauses are shown once without losing distinct effects',async()=>{
+ const {garrisonTexts}=await import('../../public/js/ui/loadoutModel.js');
+ const {readFile}=await import('node:fs/promises');
+ const read=async p=>JSON.parse(await readFile(new URL(p,import.meta.url),'utf8'));
+ const [cs,gs,ko]=await Promise.all([read('../../data/chess.json'),read('../../data/garrisons.json'),read('../../public/i18n/ko/data.json')]);
+ for(const elite of [false,true]){
+  const santalla=Object.values(cs).find(c=>c.charId==='char_464_sntlla'&&c.isGolden===elite) || Object.values(cs).find(c=>c.charId?.includes('sntlla')&&!!c.isGolden===elite);
+  const text=garrisonTexts(santalla,id=>gs[id],s=>ko[s]||s).join('\n');
+  assert.equal((text.match(/휴식 기간 진입 시/g)||[]).length,1);
+  assert.equal((text.match(/휴식 기간 종료 시/g)||[]).length,1);
+  assert.ok(text.includes(elite?'+8':'+4'));
+  const luna=cs['chess_char_3_19_'+(elite?'b':'a')];
+  assert.ok(luna);
+  const lt=garrisonTexts(luna,id=>gs[id],s=>ko[s]||s).join('\n');
+  assert.equal((lt.match(/약점 대미지로 변경/g)||[]).length,1);
+  assert.ok(lt.includes('첫 3회'));
+ }
+ const entries={end:{desc:'<휴식 기간 종료 시> 맹약 중첩 +4'},both:{desc:'<휴식 기간 진입 시> <휴식 기간 종료 시> 맹약 중첩 +4'}};
+ assert.deepEqual(garrisonTexts({garrisonIds:['end','both']},id=>entries[id]),['<휴식 기간 종료 시> 맹약 중첩 +4','<휴식 기간 진입 시> 맹약 중첩 +4']);
+});

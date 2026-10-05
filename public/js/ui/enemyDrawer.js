@@ -12,7 +12,7 @@ import { Img, UnitThumb, BondGlyph, BandIcon, RichText, GIcon } from './gameComp
 import { groupEnemies, factionTypes, briefingBondTip } from './gameLogic.js';
 import { matchInfoModel } from './matchInfo.js';
 import { factionIconUrl } from './assetUrls.js';
-import { data } from '../data.js';
+import { matchData as data } from '../data.js';
 
 const cx = (...p) => p.flat().filter(Boolean).join(' ');
 const TAG = { boss: '领袖', bounty: '悬赏', escort: '护卫' };

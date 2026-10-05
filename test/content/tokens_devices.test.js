@@ -1321,3 +1321,28 @@ test('“双眼皮” off-field position (act2 m01 row 8): the turret takes a vo
   assert.ok(h.enemy('enemy_dummy').hp < 1e7, 'still shoots its data range (the gate)');
   checkInvariants(h.b);
 });
+
+
+test('smog protects allies from splash and ground-zone damage, but not direct blocked attacks; enemies gain nothing', REAL, () => {
+  const h = makeBattle({ stageId: 'act2autochess_m03', defs: { chess: { test_guard: guard() }, enemies: { enemy_dummy: dummy({ atk: 100 }) } }, units: [{ chessId: 'test_guard', row: 12, col: 6, uid: 1 }], enemies: [{ key: 'enemy_dummy', pos: [12, 6] }], autoFinish: false });
+  h.step();
+  const u = h.unit(1), e = h.enemy('enemy_dummy');
+  assert.ok(u.findBuff('terrain:smog'));
+  assert.equal(e.findBuff('terrain:smog'), null);
+  for (const dmg of [{amount:100,type:'phys',isSplash:true}, {amount:100,type:'arts',tags:['pollution']}, {amount:100,type:'element',element:'neural',tags:['shell']}]) {
+    assert.equal(h.b.dealDamage(e,u,dmg),0);
+  }
+  assert.ok(h.b.dealDamage(e,u,{amount:100,type:'phys',isAttack:true}) > 0);
+});
+
+test('Yan dragon acquires enemies inside its circular range even across rounded tile boundaries', REAL, () => {
+  const h = makeBattle({ defs: { enemies: { enemy_dummy: dummy() } }, units: [], enemies: [{ key:'enemy_dummy',pos:[11.89,6.89] }], autoFinish:false });
+  h.step();
+  const y=h.b.spawnToken('p1', TOKEN_IDS.yanyou,10,5);
+  y.x=5.49; y.y=10.49;
+  const e=h.enemy('enemy_dummy');
+  assert.ok(Math.hypot(e.x-y.x,e.y-y.y)<2);
+  y.rangeKeys=[]; y.rangeKeySet=new Set();
+  assert.ok(y.profile.acquireTargets(h.b,y).includes(e));
+  assert.equal(y.skill._defaultCondition(),true,'channel uses the same circular targeting');
+});

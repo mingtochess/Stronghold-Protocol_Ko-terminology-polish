@@ -1,8 +1,8 @@
-import { useEffect, useRef, useState } from '../../vendor/hooks.module.js';
+import { useEffect, useLayoutEffect, useRef, useState } from '../../vendor/hooks.module.js';
 import { data, useData } from '../data.js';
 import { bondIconUrl } from './assetUrls.js';
 import { html } from './components.js';
-import { store, useStore } from '../store.js';
+import { store, useStore, loadPref, savePref } from '../store.js';
 import { net } from '../net.js';
 import { toastError } from './toasts.js';
 import { CHAT_MAX_LENGTH, CHAT_FACTIONS, chatFaction, normalizeChatText } from '../../../shared/chat.js';
@@ -12,9 +12,10 @@ export function ChatPanel({room = false}) {
   const m = data.get('assets');
   const messages = useStore((s) => s.chat);
   const online = useStore((s) => s.connection.status === 'online');
-  const customFactions = useStore(s => !!(s.room?.customFactions || s.match.public?.customFactions));
+  const customFactions = useStore(s => !!(s.room?.inMatch ? s.match.public?.customFactions : s.room?.customFactions));
   const faction = useStore((s) => s.chatFaction);
   const [expanded, setOpen] = useState(false);
+  const [previewVisible, setPreviewVisible] = useState(() => loadPref('chatPreview', true) !== false);
   const open = room || expanded;
   useEffect(() => { setOpen(false); setChoosingFaction(false); }, [room]);
   const [text, setText] = useState('');
@@ -24,14 +25,15 @@ export function ChatPanel({room = false}) {
   const input = useRef(null);
   const list = useRef(null);
   const composing = useRef(false);
+  const followLatest = useRef(true);
   const lastId = messages.at(-1)?.id || 0;
   const unread = messages.filter((m) => m.id > readId).length;
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!messages.length || open) setReadId(lastId);
-    if (open && list.current) list.current.scrollTop = list.current.scrollHeight;
+    if (open && followLatest.current && list.current) list.current.scrollTop = list.current.scrollHeight;
   }, [open, messages]);
-  useEffect(() => { if (open) input.current?.focus(); }, [open]);
+  useEffect(() => { if (open) { followLatest.current = true; if (list.current) list.current.scrollTop = list.current.scrollHeight; input.current?.focus(); } }, [open]);
   useEffect(() => {
     const onKey = (event) => {
       if (event.key !== 'Enter' || event.defaultPrevented || event.repeat || event.isComposing || event.keyCode === 229 || event.ctrlKey || event.altKey || event.metaKey || event.shiftKey) return;
@@ -105,12 +107,13 @@ export function ChatPanel({room = false}) {
       <header><strong hidden=${room}>게임 채팅</strong><button type="button" class="game-chat__faction-toggle"
         aria-expanded=${choosingFaction} aria-controls="game-chat-factions" disabled=${!online || sending}
         style=${faction ? { color: chatFaction(faction)?.color } : null} onClick=${() => setChoosingFaction(!choosingFaction)}>${faction ? html`<img src=${bondIconUrl(m,chatFaction(faction)?.bondId)} class="game-chat__faction-icon" />${faction}` : '진영 선택'}</button>
+        ${!room ? html`<button type="button" class="game-chat__visibility" aria-label=${previewVisible ? '채팅 완전히 숨기기' : '최근 채팅 표시'} title=${previewVisible ? '채팅 완전히 숨기기' : '최근 채팅 표시'} aria-pressed=${!previewVisible} onClick=${() => { const next = !previewVisible; setPreviewVisible(next); savePref('chatPreview', next); if (!next) setOpen(false); }}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/>${previewVisible ? html`<path d="M3 3l18 18"/>` : null}</svg></button>` : null}
         <button type="button" class="game-chat__close" aria-label="채팅 닫기" onClick=${() => setOpen(false)}>×</button></header>
       ${choosingFaction ? html`<div id="game-chat-factions" class="game-chat__factions" role="group" aria-label="채팅 진영 선택">
         ${CHAT_FACTIONS.filter(f => f.name !== '우르수스' || customFactions).map((f) => html`<button key=${f.name} type="button" style=${{ '--faction-color': f.color }}
           aria-pressed=${faction === f.name} disabled=${sending} onClick=${() => selectFaction(f.name)}><img src=${bondIconUrl(m,f.bondId)} class="game-chat__faction-icon" />${f.name}</button>`)}
       </div>` : null}
-      <div class="game-chat__messages" ref=${list} role="log" aria-live="polite" aria-relevant="additions" data-i18n-skip>
+      <div class="game-chat__messages" ref=${list} onScroll=${e => { const el=e.currentTarget; followLatest.current=el.scrollHeight-el.clientHeight-el.scrollTop <= 24; }} role="log" aria-live="polite" aria-relevant="additions" data-i18n-skip>
         ${!messages.length ? html`<p class="game-chat__empty">같은 방의 참가자에게 메시지를 보내세요.</p>` : messages.map((m) => html`<p key=${m.id} class=${m.playerId === store.get().me.playerId ? 'is-own' : ''}><strong>${m.name}${m.spectator ? html`<span class="game-chat__spectator">(관전자)</span>` : null}${chatFaction(m.faction) ? html`<span class="game-chat__faction" style=${{ color: chatFaction(m.faction).color }}>(${m.faction})</span>` : null}</strong><span>${m.text}</span></p>`)}
       </div>
       <form onSubmit=${send}>
@@ -119,7 +122,7 @@ export function ChatPanel({room = false}) {
           onInput=${(e) => setText(e.currentTarget.value)} onCompositionStart=${() => { composing.current = true; }} onCompositionEnd=${() => { composing.current = false; }} />
         <button type="submit" disabled=${sending || !online || !normalizeChatText(text)}>전송</button>
       </form>
-    </section>` : messages.length ? html`<div class="game-chat__preview" aria-label="최근 채팅" data-i18n-skip>
+    </section>` : previewVisible && messages.length ? html`<div class="game-chat__preview" aria-label="최근 채팅" data-i18n-skip>
       ${messages.slice(-3).map((m, i, recent) => html`<p key=${m.id} style=${{opacity: [1, .6, .25][recent.length - 1 - i]}}>
         <strong>${m.name}${m.spectator ? html`<span class="game-chat__spectator">(관전자)</span>` : null}${chatFaction(m.faction) ? html`<span class="game-chat__faction" style=${{color:chatFaction(m.faction).color}}>(${m.faction})</span>` : null}</strong><span>${m.text}</span>
       </p>`)}

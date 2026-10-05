@@ -1268,8 +1268,11 @@ test(`${nm('enemy_10027_vtsk')}: entrance barrage (${skb('enemy_10027_vtsk', 'Ap
   const h = arena({ units: [{ chessId: 't_wall', row: 10, col: 7 }, { chessId: 't_gun', row: 12, col: 3 }], captureNoisy: true, hooks: ['damaged'], chess: { t_wall: WALL('t_wall', { stats: { maxHp: 2e7 } }) } });
   h.step();
   const e = put(h, 'enemy_10027_vtsk', [10, 8]);
-  h.run(0.6);
+  h.run(1.3);
+  assert.equal(h.hooksOf('damaged').filter(c => c.source === e && !c.dmg.isAttack).length, 0, 'no damage before the first shell');
+  h.run(4);
   const barrage = h.hooksOf('damaged').filter((c) => c.source === e && !c.dmg.isAttack);
+  for (let i=1;i<barrage.length;i++) assert.ok(barrage[i].t-barrage[i-1].t >= .5, 'barrage hits are spaced, never simultaneous');
   assert.equal(barrage.length, skb('enemy_10027_vtsk', 'Appear').bb.times);
   assert.ok(barrage.every((c) => c.target === h.unit('t_wall')), 'the highest-HP unit');
   approx(barrage[0].amount, e.s.atk);
@@ -1278,6 +1281,13 @@ test(`${nm('enemy_10027_vtsk')}: entrance barrage (${skb('enemy_10027_vtsk', 'Ap
   approx(d.amount, e.s.atk * tb('enemy_10027_vtsk', 'range.attack@atk_scale_range'));
   h.run(skb('enemy_10027_vtsk', 'MultiCombat').initCooldown + 6);
   assert.ok(h.hooksOf('damaged').filter((c) => c.source === e && !c.dmg.isAttack).length > skb('enemy_10027_vtsk', 'Appear').bb.times);
+});
+
+test('entrance barrage retains its fixed zone and cached damage after the shooter dies',()=>{
+ const h=arena({units:[{chessId:'t_wall',row:10,col:7}],captureNoisy:true,hooks:['damaged']});h.step();
+ const e=put(h,'enemy_10027_vtsk',[10,8]);const atk=e.s.atk;h.b.kill(e,null);h.run(5.2);
+ const hits=h.hooksOf('damaged').filter(c=>c.dmg.tags.includes('entranceBarrage'));
+ assert.equal(hits.length,8);assert.ok(hits.every(c=>c.amount===atk));
 });
 
 test(`${nm('enemy_10044_wintun')}: fast with its barrel; first hit ×${skb('enemy_10044_wintun', 'BlockedBoom').bb.blockee_atk_scale} and a buff zone for enemies`, () => {
@@ -2434,6 +2444,16 @@ test('假想敌：铳 (h07_02 override) never uses 最终之罚 in the regular b
   put(h, 'enemy_9017_achunt', [3, 10], { tag: 'boss' });
   h.run(60);
   assert.ok(!h.eventsOf('fx').some((f) => f[1] === 'charge'));
+});
+
+test('hidden gun: overlapping faith chains cause only one damage tick',()=>{
+ const h=bossArena({units:[{chessId:'t_wall',row:10,col:7}],captureNoisy:true,hooks:['damaged']});h.step();
+ const g=put(h,'enemy_9017_achunt_2',[3,10],{tag:'boss'});
+ put(h,'enemy_9020_actrpc',[3,4],{tag:'part'});put(h,'enemy_9020_actrpc',[3,5],{tag:'part'});
+ const link=g.mem.ab.list.find(a=>a&&a.iv===skb('enemy_9017_achunt_2','3').bb.interval&&a.tick);
+ assert.ok(link);link.tick(h.b,g);link.tick(h.b,g);
+ const hits=h.hooksOf('damaged').filter(c=>c.dmg.tags.includes('faithLink'));
+ assert.equal(hits.length,1);approx(hits[0].amount,skb('enemy_9017_achunt_2','3').bb.value);
 });
 
 test('假想敌：铳 (隐秘核心): damage ×0.2 while springs live; 盲信之誓 lines hurt operators on them; 末日布道 dash', () => {

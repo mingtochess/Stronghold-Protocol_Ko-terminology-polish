@@ -19,6 +19,8 @@
 // `loadData(...)` to await, or the `useData(...)` hook to re-render when files arrive.
 
 import { useEffect, useReducer } from '../vendor/hooks.module.js';
+import { store } from './store.js';
+import { customFactionData } from '../../shared/customFactions.js';
 
 /** Known data files (name → URL basename). Unknown names are allowed too (`/data/<name>.json`). */
 export const DATA_FILES = Object.freeze({
@@ -261,6 +263,29 @@ export function createDataStore(opts = {}) {
 
 /** Browser data store singleton. */
 export const data = createDataStore();
+
+// The saved configuration catalogue stays complete; gameplay reads a per-match filtered view.
+const matchViews = new WeakMap();
+const matchIndices = new WeakMap();
+function matchIndex(name, raw) {
+  if (!raw || typeof raw !== 'object') return new Map();
+  let files = matchIndices.get(raw);
+  if (!files) { files = new Map(); matchIndices.set(raw,files); }
+  if (!files.has(name)) files.set(name,buildIndex(name,raw));
+  return files.get(name);
+}
+export const matchData = {
+  get(name) {
+    const raw = data.get(name), pub = store.get().match?.public;
+    if (!raw || !pub || pub.customFactions === true || !['chess','bonds','items','bands'].includes(name)) return raw;
+    let cached = matchViews.get(raw);
+    if (!cached) { cached = customFactionData({[name]:raw},false)[name]; matchViews.set(raw,cached); }
+    return cached;
+  },
+  lookup(name,id) { return id == null ? null : matchIndex(name,this.get(name)).get(String(id)) || null; },
+  list(name) { return [...matchIndex(name,this.get(name)).values()]; },
+};
+
 
 /** @param {...string} names @returns {Promise<any[]>} */
 export const loadData = (...names) => data.loadAll(...names);

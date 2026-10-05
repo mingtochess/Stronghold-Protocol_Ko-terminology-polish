@@ -106,7 +106,7 @@ import { ResultScreen } from './result.js';
 import { net } from '../net.js';
 import { store, useStore, shallowEqual, serverNow, emptyMatch, isSpectating } from '../store.js';
 import { battleRunner } from '../battle/runner.js';
-import { isClientCombat, observeTarget, teammateProgress, cameraLayers, layerCamera, sidesOf, resumedWatch } from '../battle/observe.js';
+import { isClientCombat, observeTarget, teammateProgress, cameraLayers, layerCamera, sidesOf, resumedWatch, spectatorTarget } from '../battle/observe.js';
 import { screenStrip, playerBonds, playerLayer, detailBondOwner, toggleBond, popupView } from '../ui/watchBonds.js';
 import { data, localAsset, getMode } from '../data.js';
 import { audio } from '../audio.js';
@@ -206,7 +206,9 @@ function MatchScreen() {
   const { view, kind: viewKind } = useFieldView(hostRef);
 
   const [watching, setWatching] = useState(null);        // fieldId the player chose to watch (null = home)
+  const [observedBenches, setObservedBenches] = useState(null);
   const [watchWho, setWatchWho] = useState(null);        // { fieldId, playerId }: the teammate picked with 前往查看
+  useEffect(() => net.on('m.bench', setObservedBenches), []);
   const [drawer, setDrawer] = useState(null);            // 'enemies' | 'info' | null
   const [bondOpen, setBondOpen] = useState(null);        // { id, ownerId, from }: the bond popup and whose bond it shows
   const [detail, setDetail] = useState(null);            // detail target
@@ -454,6 +456,13 @@ function MatchScreen() {
     }
   }, [view, showPrep, priv, editable, field, combat, mode, watchingOther, watching, holdSeq]);
 
+  useEffect(() => {
+    if (!view || !spectator) return;
+    const packet = observedBenches?.fieldId === field?.fieldId ? observedBenches : null;
+    const bench = packet?.benches?.find(b => b.playerId === watchWho?.playerId) || packet?.benches?.[0];
+    view.setObservedBench?.(bench || null, { boss: field?.kind === 'boss' || field?.kind === 'hidden', unite: field?.kind === 'unite', side: bench?.side || field?.sides?.[bench?.playerId] || 'L' });
+  }, [view, spectator, observedBenches, field, watchWho]);
+
   // battle frames straight from the socket (server-run combat, 20 Hz) or from the local simulation (client-side combat,
   // battle/runner.js, every animation frame) — never through the store. Frames go to the view as received: the game
   // time travels as `gt` and the render engine reads it (render/interp.js frameTime).
@@ -700,6 +709,7 @@ function MatchScreen() {
   // other pair's boss field) must not move the eye icon / switcher label away from what is actually on screen.
   // `playerId`: the teammate picked (a team row) — a shared field shows two players, the strip follows the picked one
   // (DESIGN §20.15); null for a field picked as such (the legacy switcher).
+  const spectatorChoice = useRef(null);
   const requestWatch = useCallback(async (fid, playerId = null) => {
     const prev = live.current.watching;
     const prevWho = live.current.watchWho;
@@ -707,6 +717,7 @@ function MatchScreen() {
     setWatching(fid);
     setWatchWho(who);
     const ok = await actions.watch(fid);
+    if (ok && playerId) spectatorChoice.current = playerId;
     if (!ok) {
       setWatching((w) => (w === fid ? prev : w));
       setWatchWho((w) => (w === who ? prevWho : w));
@@ -756,13 +767,12 @@ function MatchScreen() {
   // tap on that row would — g.watch 'n:<pid>', the read-only board), once per phase; a row switches to another player
   const scoutedRef = useRef(null);
   useEffect(() => {
-    if (!spectator || watching || !pub || scoutedRef.current === phaseKey) return;
-    if (phase !== PHASE.PREP && phase !== PHASE.SP_DRAFT && phase !== PHASE.ROUND_START) return;
-    const first = players.find((p) => p.alive !== false && p.status !== 'left');
-    if (!first) return;
+    if (!spectator || !pub || scoutedRef.current === phaseKey) return;
+    const target = spectatorTarget(pub, spectatorChoice.current);
+    if (!target) return;
     scoutedRef.current = phaseKey;
-    requestWatch(ownFieldId(first.playerId), first.playerId);
-  }, [spectator, phaseKey, watching]);
+    requestWatch(target.fieldId, target.playerId); // one attempt per phase; avoid failure/rollback retry loops
+  }, [spectator, phaseKey, pub?.fields, watching]);
 
   // ---- view events (drag & drop, clicks) ----------------------------------------------------------------------
   useEffect(() => {
@@ -1365,4 +1375,3 @@ function MatchScreen() {
     <${ExitModal} open=${exitOpen} onClose=${() => setExitOpen(false)} solo=${solo} />
   </div>`;
 }
-

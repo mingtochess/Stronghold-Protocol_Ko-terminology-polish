@@ -105,6 +105,7 @@ export function updateAlly(b, u, dt) {
   if (!targets.length) { u.trait.hadTarget = false; return; }
   u.trait.hadTarget = true;
   if (sk && sk.onAboutToAttack()) {
+    if (u.atkCd > 1e-9) return; // onStart may have already performed the attack
     prof = effectiveProfile(u);
     if (prof.noAttack || !u.alive) return;
     targets = acquireTargets(b, u, prof);

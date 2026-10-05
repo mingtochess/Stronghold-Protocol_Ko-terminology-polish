@@ -98,8 +98,8 @@ export function createFallbackView(host, opts = {}) {
     const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 100;
     const r = st.rect;
     const cols = r.c1 - r.c0 + 1;
-    const prep = st.mode === 'prep';
-    const hasTemp = prep && Array.isArray(st.priv?.temp) && st.priv.temp.some(Boolean);
+    const prep = st.mode === 'prep' || !!st.observedBench;
+    const hasTemp = prep && (st.observedBench?.tempPieces || st.priv?.temp || []).some(Boolean);
     const rows = r.r1 - r.r0 + 1 + (prep ? 2.6 + (hasTemp ? 1.2 : 0) : 0); // + gap + hand (+ temp) rows
     // keep clear of the HUD: top bar + bond strip above, shop bar (prep) / switcher (combat) below
     const top0 = rem * 2.0;
@@ -316,9 +316,10 @@ export function createFallbackView(host, opts = {}) {
     const pieces = [];
     const hand = [];
     const now = performance.now();
-    if (st.mode === 'prep' && st.priv) {
+    const benchState = st.observedBench ? {board:[],hand:st.observedBench.pieces,temp:st.observedBench.tempPieces} : st.priv;
+    if ((st.mode === 'prep' || st.observedBench) && benchState) {
       const heldPos = (p) => { const t = st.held.get(p.uid); return t ? tilePos(L, t.row, t.col) : null; };
-      for (const p of Array.isArray(st.priv.board) ? st.priv.board : []) {
+      for (const p of Array.isArray(benchState.board) ? benchState.board : []) {
         if (!p || !Number.isInteger(p.row)) continue;
         const pos = heldPos(p) || tilePos(L, p.row, p.col);
         pieces.push(html`<${Piece} key=${p.uid} p=${p} x=${pos.x} y=${pos.y} L=${L} area="board" />`);
@@ -328,10 +329,10 @@ export function createFallbackView(host, opts = {}) {
         const hov = st.hoverTarget?.area === 'hand' && st.hoverTarget.idx === i ? dropState(st.hoverTarget) : null;
         hand.push(html`<div key=${`h${i}`} class=${cx('ff-slot', hov && `is-hover-${hov}`)} data-drop="hand" data-idx=${i}
           style=${`transform:translate(${pos.x}px,${pos.y}px);width:${L.tile}px;height:${L.tile}px`}><span class="num">${i + 1}</span></div>`);
-        const p = st.priv.hand?.[i];
+        const p = benchState.hand?.[i];
         if (p) { const hp = heldPos(p) || pos; pieces.push(html`<${Piece} key=${p.uid} p=${p} x=${hp.x} y=${hp.y} L=${L} area="hand" />`); }
       }
-      const temp = Array.isArray(st.priv.temp) ? st.priv.temp : [];
+      const temp = Array.isArray(benchState.temp) ? benchState.temp : [];
       if (temp.some(Boolean)) {
         for (let i = 0; i < GEO.TEMP_SIZE; i++) {
           const pos = tempPos(L, i);
@@ -395,7 +396,9 @@ export function createFallbackView(host, opts = {}) {
       if (!st.editable && st.drag) { endDrag(); st.drag = null; st.hoverTarget = null; }
       schedule();
     },
+    setObservedBench(bench) { st.observedBench = bench || null; st.editable = false; schedule(); },
     enterBattle(field) {
+      st.observedBench = null;
       st.mode = 'battle';
       st.field = field || null;
       // a scouted teammate's prep board brings their pen; a real battle empties it

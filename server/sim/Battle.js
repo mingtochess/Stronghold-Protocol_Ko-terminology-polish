@@ -25,7 +25,7 @@
 // Robustness: every content callback and every step phase is wrapped; errors are logged once per key and the
 // battle continues. After MAX_INTERNAL_ERRORS the battle force-ends as a timeout.
 
-import {showsSkillArea} from './skillArea.js';
+import {visibleSkillAreaKeys} from './skillArea.js';
 import { TICK, ROWS, COLS, BLOCK_RADIUS_SQ, DP_DEFAULTS, DOWN_STATE, FORCED_EXIT, MAX_BATTLE_TIME, MAX_INTERNAL_ERRORS, COLD_FREEZE_DURATION, OBSTACLE_DEVICES, EVENT_BUFFER_CAP, BOSS_ROW_OFFSET, MAX_HOOK_DEPTH, MAX_ALIVE_ENEMIES, LEVITATE_HALF_WEIGHT, RESIST_DEFAULT, RESIST_PALSY_DECAY, PUSH_TILES, PUSH_TILES_EFFECT, PULL_WEAK_SHARE, PULL_CRAWL, PULL_ORIGIN, PULL_STOP_RADIUS, PUSH_DIRECTIONAL_MIN_DIST, AUTO_OP_COOLDOWN, STEALTH_RESTORE } from './constants.js';
 import { GEO, layerGainRoom } from '../../shared/constants.js';
 import { createRng } from './rng.js';
@@ -126,6 +126,7 @@ export class Battle {
     this.reason = null;
     this.started = false;
     this._startDeploying = false;
+    this._initialDeploymentPending = false;
     /** @type {Unit[]} every unit ever created */
     this.units = [];
     /** @type {Unit[]} alive enemies (compacted each tick) */
@@ -376,32 +377,44 @@ export class Battle {
       for (let i = 0; i < n; i++, deploymentIndex++) for (const l of per) if (l[i]) {
         const unit = l[i], delay = deploymentIndex * Math.max(0, Number(this.flags.deploymentInterval) || 0);
         const deploy = () => { this._startDeploying=true; this._safe(() => this._deploy(unit,{initial:true}), 'initialDeploy',unit); this._startDeploying=false;
-          if(delay>0 && unit.kind==='op' && unit.deployed && unit.carry?.down){unit.hp=0;this.retreat(unit,{reason:FORCED_EXIT});} };
+          if(unit.kind==='op' && unit.deployed && unit.carry?.down){unit.hp=0;this.retreat(unit,{reason:FORCED_EXIT});} };
         if (delay > 0) this.after(delay, deploy); else deploy();
       }
     }
     this._startDeploying = false;
-    // 仇恨 (targeting.js sortAllyTargets: the later deployed is attacked first): every summon that came in during the
-    // initial deployment — also one an operator's deploy brought along (a tactician's 援军, a start-of-battle summon)
-    // — ranks after all the operators (of every player on the field [ASSUMED]), in the order it came
-    const summons = this.allyUnits.filter((u) => u.kind === 'token' && u.alive && u.deployed && u.deploySeq > seq0).sort((a, b) => a.deploySeq - b.deploySeq);
-    for (const t of summons) t.aggroSeq = ++this._deploySeq;
-    // 联防 (PRTS 卫戍协议/帮助 "部署完成后…上一阶段为退场状态的干员强制退场"): an operator knocked out at the end of its
-    // own combat is withdrawn right after the deployment — down on its tile, its redeploy timer starting now (re-read
-    // after battleStart below; DESIGN §5.5). Its HP ratio is the end-of-phase one (0, as after kill()) until it
-    // redeploys at full HP.
-    for (const u of this.allyUnits) {
-      if (u.kind === 'op' && u.alive && u.carry && u.carry.down === true) {
-        this._safe(() => { u.hp = 0; this.retreat(u, { reason: FORCED_EXIT }); }, 'forcedExit', u);
+    const finishDeployment = () => {
+      this._initialDeploymentPending = false;
+      // 仇恨 (targeting.js sortAllyTargets: the later deployed is attacked first): every summon that came in during the
+      // initial deployment — also one an operator's deploy brought along (a tactician's 援军, a start-of-battle summon)
+      // — ranks after all the operators (of every player on the field [ASSUMED]), in the order it came
+      const summons = this.allyUnits.filter((u) => u.kind === 'token' && u.alive && u.deployed && u.deploySeq > seq0).sort((a, b) => a.deploySeq - b.deploySeq);
+      for (const t of summons) t.aggroSeq = ++this._deploySeq;
+      // 联防 (PRTS 卫戍协议/帮助 "部署完成后…上一阶段为退场状态的干员强制退场"): an operator knocked out at the end of its
+      // own combat is withdrawn right after the deployment — down on its tile, its redeploy timer starting now (re-read
+      // after battleStart below; DESIGN §5.5). Its HP ratio is the end-of-phase one (0, as after kill()) until it
+      // redeploys at full HP.
+      for (const u of this.allyUnits) {
+        if (u.kind === 'op' && u.alive && u.carry && u.carry.down === true) {
+          this._safe(() => { u.hp = 0; this.retreat(u, { reason: FORCED_EXIT }); }, 'forcedExit', u);
+        }
       }
+      this.emit('battleStart', {});
+      // redeploy-time effects that start with the battle (机变 征召 "所有干员的再部署时间-50%", added by a battleStart
+      // handler) cover the operators forced out above too: their timer is re-read with them, as a later knock-out's is
+      for (const u of this.allyUnits) {
+        if (u.kind !== 'op' || u.alive || u.removed || u.removeReason !== FORCED_EXIT) continue;
+        u.respawnAt = u.deathAt + Math.max(0, u.base.respawnTime * u.persist.redeployMul * u.s.redeployMul);
+      }
+    };
+    const deploymentDelay = Math.max(0, deploymentIndex - 1) * Math.max(0, Number(this.flags.deploymentInterval) || 0);
+    this._initialDeploymentPending = deploymentDelay > 0;
+    if (deploymentDelay > 0) {
+      // Preserve wave spacing; overdue spawns must not all arrive together as
+      // soon as the initial roster finishes deploying.
+      for (const spawn of this._pending) spawn.time += deploymentDelay;
+      this.after(deploymentDelay, finishDeployment);
     }
-    this.emit('battleStart', {});
-    // redeploy-time effects that start with the battle (机变 征召 "所有干员的再部署时间-50%", added by a battleStart
-    // handler) cover the operators forced out above too: their timer is re-read with them, as a later knock-out's is
-    for (const u of this.allyUnits) {
-      if (u.kind !== 'op' || u.alive || u.removed || u.removeReason !== FORCED_EXIT) continue;
-      u.respawnAt = u.deathAt + Math.max(0, u.base.respawnTime * u.persist.redeployMul * u.s.redeployMul);
-    }
+    else finishDeployment();
   }
 
   step() {
@@ -750,6 +763,7 @@ export class Battle {
   }
 
   _processSpawns() {
+    if (this._initialDeploymentPending) return;
     const now = this.time + 1e-9;
     while (this._pending.length && this._pending[0].time <= now) {
       const p = this._pending.shift();
@@ -2385,7 +2399,7 @@ export class Battle {
     const shifts = this.units.filter(u=>u.alive && u.mem.visualShift && this.time-u.mem.visualShift[4]<u.mem.visualShift[5]+.2)
       .map(u=>[u.id,...u.mem.visualShift]);
     if(shifts.length) snap.shifts=shifts;
-    snap.skillRanges = this.allyUnits.filter(u=>u.alive&&u.deployed&&u.skill?.active&&showsSkillArea(u)).map(u=>[u.id,(u.rangeKeys||[]).map(k=>[Math.floor(k/COLS),k%COLS])]);
+    snap.skillRanges = this.allyUnits.flatMap(u=>{const keys=visibleSkillAreaKeys(u,this.time);return keys ? [[u.id,keys.map(k=>[Math.floor(k/COLS),k%COLS])]] : [];});
     snap.snow = this.allyUnits.filter(u=>u.alive&&u.deployed&&u.mem.snow instanceof Map).map(u=>[u.id,[...u.mem.snow].map(([k,n])=>[Math.floor(k/COLS),k%COLS,n])]);
     snap.states = this.units.filter(u => u.alive && u.deployed && !u.hidden).map(u => [u.id,
       [...new Set(u.buffs.filter(b => b.visible).map(b => b.key))]]);
@@ -2482,6 +2496,9 @@ export class Battle {
    */
   forceAttack(u, targets = null, { noAmmo = false } = {}) {
     if (!u || !u.alive || !u.profile) return false;
+    // A charged next attack must not bypass the normal recovery/wind-up.
+    // Genuine extra attacks of running skills remain independent.
+    if (u.skill?.pending && (u.atkCd > 1e-9 || u.mem.attackWindup)) return false;
     const prof = effectiveProfile(u);
     const t = targets ?? acquireTargets(this, u, prof);
     if (!t || !t.length) return false;

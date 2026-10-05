@@ -9,6 +9,7 @@
 // them only the default skill / module is offered. The option rules are shared with the server
 // (shared/protocol.js loadoutOptions / checkLoadout), so a sanitised loadout is always accepted.
 
+import { tr } from '../i18n/i18n.js';
 import { loadoutOptions, checkLoadout, resolveLoadout, MODULE_NONE, LOADOUT_LIMITS } from '../../../shared/protocol.js';
 
 export { MODULE_NONE };
@@ -375,11 +376,26 @@ export function skillTags(rec) {
 }
 
 /** Display shared multi-effect trait descriptions once without touching their gameplay effects. */
-export function garrisonTexts(chess,getGarrison) {
-  const seen=new Set(),out=[];
-  for(const id of chess?.garrisonIds||[]){
-    const rec=getGarrison(id),text=rec?.descRaw||rec?.desc||'';
-    const unique=text.split(/\n|<br\s*\/?\s*>/i).filter(line=>{const k=line.replace(/<@[^>]+>|<\/>/g,'').replace(/\s+/g,' ').trim();if(!k||seen.has(k))return false;seen.add(k);return true;}).join('\n');
-    if(unique)out.push(unique);
-  }return out;
+export function garrisonTexts(chess,getGarrison,translate=tr) {
+  const seen=new Set(),groups=new Map();
+  const key=text=>text.replace(/<@[^>]+>|<\/>/g,'').replace(/[【】]/g,c=>c==='【'?'[':']')
+    .replace(/맹약의\s*중첩/g,'맹약 중첩').replace(/\s+/g,'');
+  const lines=(chess?.garrisonIds||[]).flatMap(id=>{
+    const rec=getGarrison(id);
+    return translate(rec?.descRaw||rec?.desc||'').replace(/\\n/g,'\n').split(/\n|<br\s*\/?\s*>/i).map(line=>({line,id}));
+  });
+  const keys=lines.map(({line})=>key(line));
+  for(const [index,{line,id}] of lines.entries()) {
+    const k=keys[index];
+    // A combined description may repeat a complete opening clause in another record.
+    if(k && keys.some(other=>other.startsWith(k) && /^[,，;]/.test(other.slice(k.length)))) continue;
+    // Some records describe both rest boundaries; another record repeats just one boundary.
+    // Compare each independent trigger, preserving any trigger that has not been shown yet.
+    const prefix=line.match(/^(?:<(?:휴식 기간 진입 시|휴식 기간 종료 시)>\s*)+/)?.[0];
+    const triggers=prefix?.match(/<[^>]+>/g)||[];
+    const clauses=triggers.length>1 ? triggers.map(t=>t+' '+line.slice(prefix.length)) : [line];
+    const fresh=clauses.filter(clause=>{const k=key(clause);if(!k||seen.has(k))return false;seen.add(k);return true;});
+    if(fresh.length) { if(!groups.has(id))groups.set(id,[]);groups.get(id).push(fresh.length===clauses.length?line:fresh.join('\n')); }
+  }
+  return [...groups.values()].map(lines=>lines.join('\n'));
 }

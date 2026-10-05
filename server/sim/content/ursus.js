@@ -4,6 +4,7 @@ import {attackClipTiming} from '../../../shared/attackTiming.js';
 import {tileFree} from './tokens.js';
 import {MOVE_SCALE,COLS,ROWS} from '../constants.js';
 import {canTargetEnemy} from '../targeting.js';
+import {bodyDist} from '../body.js';
 export const DRONE_ID='token_custom_ursus_drone';
 export const DRONE_RANGE=2,DRONE_FLIGHT=3,DRONE_BLAST=1.2;
 export function droneCenter(battle,pid){
@@ -31,12 +32,13 @@ export function installDroneBombardment(battle,u){
 }
 
 export function droneTargets(b,u,inRange=false){
- return b.enemies.filter(e=>canTargetEnemy(u,e,u.profile)&&(!inRange||Math.hypot(e.x-u.x,e.y-u.y)<=DRONE_RANGE+1e-9)).sort((a,c)=>b.remainingDistance(a)-b.remainingDistance(c)||a.spawnSeq-c.spawnSeq||a.id-c.id);
+ return b.enemies.filter(e=>canTargetEnemy(u,e,u.profile)&&(!inRange||bodyDist(e,u.x,u.y)<=DRONE_RANGE+1e-9)).sort((a,c)=>b.remainingDistance(a)-b.remainingDistance(c)||a.spawnSeq-c.spawnSeq||a.id-c.id);
 }
 
 // Like the existing flying Yan summon, keep its spawn tile reserved but move the airborne world position.
 export function installDroneFlight(battle,u){
  u.profile.fixedFacing=true;
+ u.profile.noHeal=true;
  u.profile.acquireTargets=(b,unit)=>droneTargets(b,unit,true).slice(0,1);
  const radius=DRONE_RANGE,speed=(u.def.raw.stats.moveSpeed??.5)*MOVE_SCALE;
  const refresh=()=>{const keys=[];for(let r=Math.max(0,Math.floor(u.y-radius));r<=Math.min(ROWS-1,Math.ceil(u.y+radius));r++)for(let c=Math.max(0,Math.floor(u.x-radius));c<=Math.min(COLS-1,Math.ceil(u.x+radius));c++)if(Math.hypot(c-u.x,r-u.y)<=radius+1e-9)keys.push(r*COLS+c);u.rangeKeys=keys;u.rangeKeySet=new Set(keys);u.baseRangeKeys=keys;};
@@ -64,7 +66,7 @@ export function install(battle){
   const active=()=>S.bondActive(battle,pid,'ursusShip');
   const six=()=>active()&&(S.bondState(battle,pid,'ursusShip').count>=6||S.bondTier(battle,pid,'ursusShip')>=2);
   const refresh=()=>{
-   if(drone){const layers=S.bondLayers(battle,pid,'ursusShip');S.passiveBuff(battle,drone,'bond:ursus:drone',S.directMods({atk:.25+.015*layers,hp:.25+.015*layers},{aspd:six()?50:0}));}
+   if(drone){const layers=S.bondLayers(battle,pid,'ursusShip');S.passiveBuff(battle,drone,'bond:ursus:drone',S.directMods({atk:.25+.02*layers,hp:.25+.02*layers},{aspd:six()?50:0}));}
    for(const u of battle.allyUnits)if(u.ownerId===pid&&u.kind==='op'&&S.unitBonds(u).includes('ursusShip'))S.passiveBuff(battle,u,'bond:ursus:speed',{aspd:six()?50:0});
   };
   battle.on('battleStart',()=>{

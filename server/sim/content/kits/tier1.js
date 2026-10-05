@@ -598,7 +598,7 @@ export default {
       },
     },
     skill: {
-      kind: 'instant',
+      kind: 'instant', areaDuration: 2.15,
       onStart({ battle, unit }) {
         battle.addDp(unit.ownerId, num(bb.cost));
         battle.fx('dp', { x: unit.x, y: unit.y, n: num(bb.cost), id: unit.id });

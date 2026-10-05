@@ -2970,18 +2970,17 @@ export const KITS = Object.freeze({
     return [{
       spawn(b, e) {
         const n = ap ? ap.bb.times ?? 0 : 0;
-        b.after(0.5, () => {
-          if (!e.alive || !n) return;
-          const lock = allTargets(b, e).sort((p, q) => q.hp - p.hp)[0];
-          if (!lock) return;
-          b.fx('telegraph', { x: lock.x, y: lock.y, r: 1, kind: 'barrage', id: e.id });
-          for (let i = 0; i < n; i++) {
-            // "对碰撞范围内的1名当前生命值最高的我方单位" — an area selection: never an airborne 起飞 ally nor an unblocking
-            // 隐匿 one (PRTS “帝国的甲胄”; areaAlliesInTiles)
-            const t = areaAlliesInTiles(b, e, lock.tileR, lock.tileC, 'box', 1).sort((p, q) => q.hp - p.hp)[0];
-            if (t) hurt(b, e, t, e.s.atk, 'phys');
-          }
-        }, { owner: e });
+        if (!n) return;
+        const lock = allTargets(b, e).sort((p, q) => q.hp - p.hp)[0] ?? e;
+        const r = lock.tileR, c = lock.tileC, atk = e.s.atk;
+        // PRTS “帝国的甲胄” / Appear: fixed 3×3 projectile zone, first hit at 1.33 s,
+        // then every 0.53 s, at most eight. It persists independently of the shooter.
+        b.fx('telegraph', { x: c, y: r, r: 1, tiles: 'box', dur: 5.85, kind: 'barrage', id: e.id });
+        for (let i = 0; i < n; i++) b.after(1.33 + i * 0.53, () => {
+          const t = areaAlliesInTiles(b, e, r, c, 'box', 1).sort((p, q) => q.hp - p.hp)[0];
+          b.fx('bombard', { x: c, y: r, r: 1, kind: 'barrage' });
+          if (t) hurt(b, e, t, atk, 'phys', {tags:['entranceBarrage']});
+        });
       },
       hitOut(c, b, e) { if (c.dmg.isAttack && c.target !== e.blockedBy) c.dmg.amount *= T(ab, 'range.attack@atk_scale_range') ?? 1; },
     }, mc ? {

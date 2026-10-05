@@ -216,6 +216,10 @@ export class PlayerState {
     const entries = {};
     if (loadout && typeof loadout === 'object' && !Array.isArray(loadout)) {
       for (const [id, e] of Object.entries(loadout)) {
+        // Session preferences include custom operators even in rooms that disable
+        // them. Ignore only those unavailable entries; keep the saved catalogue
+        // preferences and validate all operators available in this match normally.
+        if (!this.m.customFactions && /custom_ursus/.test(id) && !this.gd.chess(id)) continue;
         if (!e || typeof e !== 'object') continue;
         const x = {};
         if (Number.isInteger(e.skill)) x.skill = e.skill;

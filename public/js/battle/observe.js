@@ -24,6 +24,16 @@ export function fieldOf(pub, playerId) {
   return fields(pub).find((f) => Array.isArray(f.players) && f.players.includes(playerId)) || null;
 }
 
+/** Keep a spectator on the same person when that person's field changes. */
+export function spectatorTarget(pub, preferredId) {
+  const eligible = players(pub).filter(p => p.alive !== false && p.status !== 'left');
+  const player = eligible.find(p => p.playerId === preferredId) || eligible[0];
+  if (!player) return null;
+  const prep = [PHASE.PREP, PHASE.SP_DRAFT, PHASE.ROUND_START].includes(pub?.phase);
+  const fieldId = prep ? `n:${player.playerId}` : fieldOf(pub, player.playerId)?.fieldId;
+  return fieldId ? {fieldId, playerId: player.playerId} : null;
+}
+
 /** Display name of a player id ('队友' when unknown). */
 export function nameOf(pub, playerId) {
   return players(pub).find((p) => p.playerId === playerId)?.name || '队友';

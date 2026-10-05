@@ -101,3 +101,13 @@ test('Reed S3 resolves its strike separately from the persistent skill stance', 
  assert.equal(sp.anims.skills[2].idle,'Skill_3_Loop');
  assert.equal(spineAttackTiming(sp).skills[2].hit,.467);
 });
+
+test('Indigo and Ptilopsis S2 continuous loops are never interrupted by normal attacks or heals',()=>{
+ for(const id of ['char_469_indigo','char_128_plosis']){
+  const a=actor(id,1);a.setSkill(true);run(a,3);
+  const current=a.current;a.log.length=0;
+  for(let i=0;i<3;i++){a.beginAttack(1,.5);a.attack(1);run(a,1);}
+  assert.equal(a.current,current,id);assert.equal(a.log.length,0,'no replacement normal attack animation');
+  a.setSkill(false);run(a,3);assert.equal(a.skillOn,false);
+ }
+});

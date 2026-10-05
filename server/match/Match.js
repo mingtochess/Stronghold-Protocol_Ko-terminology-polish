@@ -1,3 +1,4 @@
+import {loadoutRecord, resolveRecordLoadout} from '../../shared/loadoutRecord.js';
 import { customFactionData } from '../../shared/customFactions.js';
 // server/match/Match.js — the match & meta engine: state machine, timers, round loop, co-op orchestration,
 // broadcasting views (DESIGN §6, §8). Rules are documented in the module headers of ./PlayerState.js, ./pool.js,
@@ -140,7 +141,7 @@ import { GameData } from './gamedata.js';
 import { RealScheduler } from './scheduler.js';
 import { SharedPool, drawDisabledBonds } from './pool.js';
 import { PlayerState } from './PlayerState.js';
-import { buildDeployMap, boardOrder, pieceDir } from './board.js';
+import { buildDeployMap, boardOrder, pieceDir, fieldTile } from './board.js';
 import { bondList, offBondCounts } from './bondsMeta.js';
 import { EffectDispatcher, getDefaultRegistry } from './effectsMeta.js';
 import { generateDraft, applyCard, cardView, bountyBattles, isMultiRoundBounty } from './choices.js';
@@ -374,6 +375,7 @@ export class Match {
     this.runner = null;
     /** playerId → fieldId */
     this.watchers = new Map();
+    this._benchSignatures = new Map();
     this.lastResults = new Map();
     this.unitePlan = null;
     /** server-run 联防: the leakers' counts last published (_uniteTick) */
@@ -431,6 +433,7 @@ export class Match {
     }
     try { this.flush(); } catch (e) { this.reportError('flush', e); }
     if (res && typeof res === 'object' && res.error) return res;
+    if (ps.spectator && msg.t === 'g.watch') this._sendSpectatorBench(ps.playerId, true);
     return OK;
   }
 
@@ -512,7 +515,7 @@ export class Match {
 
   /** The spectator left (room.leave / g.leave, removed by the host, reconnect window expired). */
   removeSpectator(playerId) {
-    if (this.spectators.delete(playerId)) this.watchers.delete(playerId);
+    if (this.spectators.delete(playerId)) { this.watchers.delete(playerId); this._benchSignatures.delete(playerId); }
   }
 
   /** The stand-in of a spectator seat, created once (null for a player's id or a bad id). */
@@ -790,6 +793,7 @@ export class Match {
       for (const ps of list) {
         if (!(ps.isBot || ps.left || !ps.connected)) this._sendPrivate(ps, false);
         this._notifyPrepScouts(ps);
+        for (const sid of this.spectators.keys()) this._sendSpectatorBench(sid);
       }
     }
     if (this._pubDirty || forcePublic) this._maybeSendPublic(forcePublic);
@@ -954,17 +958,20 @@ export class Match {
   /** UnitInfo list of a player's board (prep scouting). */
   prepFieldMeta(ps) {
     const units = [];
+    const group = this.bossGroupOf(ps);
+    const bossPrep = !!group;
     for (const { r, c, piece } of boardOrder(ps.board)) {
       const rec = piece.kind === 'token' ? this.gd.token(piece.id) : this.gd.chess(piece.id);
       const assets = (rec && rec.assets) || {};
       // DESIGN §16: the skill / module THIS player's operator fights with (the scout's detail card shows it, like the
       // sim's UnitInfo in a shared field); moduleId only for an elite
       const lo = piece.kind === 'chess' && rec ? ps.loadoutFor(rec) : null;
+      const [row, col] = fieldTile(bossPrep ? (group.side === 'R' ? 'bossR' : 'bossL') : 'normal', r, c);
       units.push({
         id: piece.uid, uid: piece.uid, kind: piece.kind === 'token' ? 'token' : 'op', side: 'ally', ownerId: ps.playerId, defId: piece.id,
         name: rec ? rec.name : piece.id, tier: rec && Number.isInteger(rec.tier) ? rec.tier : 1, golden: !!(rec && rec.isGolden),
         spine: assets.spine || (rec && rec.charId) || piece.id, avatar: assets.avatar || (rec && rec.charId) || piece.id,
-        x: c, y: r, dir: pieceDir(piece), facing: pieceDir(piece) === 'LEFT' ? -1 : 1, maxHp: rec && rec.stats && Number.isFinite(rec.stats.maxHp) ? rec.stats.maxHp : 1,
+        x: col, y: row, dir: pieceDir(piece), facing: pieceDir(piece) === 'LEFT' ? -1 : 1, maxHp: rec && rec.stats && Number.isFinite(rec.stats.maxHp) ? rec.stats.maxHp : 1,
         skillIndex: lo && Number.isInteger(lo.skillIndex) ? lo.skillIndex : undefined,
         moduleId: lo && typeof lo.moduleId === 'string' ? lo.moduleId : undefined,
         // the equipped items (like the sim's UnitInfo): a 变形同构体 wearer shows as a member of the bond it grants
@@ -975,7 +982,7 @@ export class Match {
     // §2.2 "Teammates"; render/app.js enterBattle({ prep: true, nextEnemies }))
     let nextEnemies = [];
     try { nextEnemies = this.nextEnemiesFor(ps); } catch (e) { this.reportError('nextEnemies', e); }
-    return { t: 'm.field', fieldId: `n:${ps.playerId}`, kind: 'normal', rect: { ...GEO.NORMAL_RECT }, stageId: this.stageId, units, prep: true, nextEnemies };
+    return { t: 'm.field', fieldId: `n:${ps.playerId}`, kind: bossPrep ? 'boss' : 'normal', rect: { ...(bossPrep ? GEO.BOSS_RECT : GEO.NORMAL_RECT) }, stageId: this.stageId, units, prep: true, nextEnemies };
   }
 
   /** Board signature of a prep scout view (units only: a shop or funds change is not a board change). */
@@ -1104,6 +1111,30 @@ export class Match {
     ps.lastEmoteAt = now;
     this.broadcast({ t: 'm.emote', playerId: ps.playerId, id });
     return OK;
+  }
+
+  _sendSpectatorBench(sid, force = false) {
+    const fieldId = this.watchers.get(sid);
+    if (!fieldId || !this.spectators.has(sid)) return;
+    const field = this.fields.find(f => f.fieldId === fieldId);
+    const ids = fieldId.startsWith('n:') ? [fieldId.slice(2)] : (field?.players || []);
+    const piece = (ps,p) => {
+      if (!p) return null;
+      const rec = p.kind === 'chess' ? this.gd.chess(p.id) : null;
+      const appearance = rec ? loadoutRecord(rec,resolveRecordLoadout(rec,ps.loadoutFor(rec))) : null;
+      return {...ps.pieceView(p), ...(appearance?.assets ? {assets:appearance.assets} : {})};
+    };
+    const benches = ids.map(id => typeof id === 'string' ? this.players.get(id) : this.players.get(id.playerId)).filter(Boolean).map(ps => ({
+      playerId: ps.playerId,
+      side: this.bossGroupOf(ps)?.side || (ids.indexOf(ps.playerId) === 1 ? 'R' : 'L'),
+      pieces: ps.hand.map(p => piece(ps,p)),
+      tempPieces: ps.temp.map(p => piece(ps,p)),
+    }));
+    const packet = { t: 'm.bench', fieldId, benches };
+    const signature = JSON.stringify(packet);
+    if (!force && this._benchSignatures.get(sid) === signature) return;
+    this._benchSignatures.set(sid, signature);
+    this.sendTo(sid, packet);
   }
 
   watch(ps, fieldId) {

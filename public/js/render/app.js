@@ -256,7 +256,7 @@ export function fieldRows(kind) {
 /** Are the pen's figures shown for a view kind (a camera flight shows them when either end is the pen)? */
 export const penShown = (vk, prevVk = null) => vk === 'pen' || prevVk === 'pen';
 /** Is the prep's leader on the boss field shown for a view kind (a flight shows it when either end is the boss-field prep)? */
-export const leaderShown = (vk, prevVk = null) => vk === 'bossPrep' || prevVk === 'bossPrep';
+export const leaderShown = (vk, prevVk = null) => ['bossPrep','boss','hidden'].includes(vk) || ['bossPrep','boss','hidden'].includes(prevVk);
 
 /**
  * 'die' reason of an operator that enters the battle already knocked out — a 联防 helper's operator down at the end of
@@ -296,7 +296,7 @@ export function renderInfo(u) {
     // DESIGN §16 loadout of an ally (UnitInfo.skillIndex / moduleId): the Spine actor plays that skill's clip, and a
     // tap hands them to the detail card (a teammate's unit shows its owner's skill / module)
     skillIndex: Number.isInteger(u.skillIndex) ? u.skillIndex : undefined,
-    skillDuration:u.skillDuration,skillZoneGrid:u.skillZoneGrid,omnidirectional:!!u.omnidirectional,fixedFacing:!!u.fixedFacing,
+    skillDuration:u.skillDuration,skillNextAttack:!!u.skillNextAttack,skillZoneGrid:u.skillZoneGrid,omnidirectional:!!u.omnidirectional,fixedFacing:!!u.fixedFacing,
     skinId: u.skinId, charId: u.charId,
     profession:u.profession,subProf:u.subProf,attackType:u.attackType,
     moduleId: typeof u.moduleId === 'string' ? u.moduleId : undefined,
@@ -888,7 +888,7 @@ export async function createFieldView(host, options = {}) {
     const rec = loadoutRecord(original,resolveRecordLoadout(original,selected));
     return {
       kind: 'op', side: 'ally', defId: piece.id,
-      spine: rec?.assets?.spine || rec?.charId || null, avatar: rec?.assets?.avatar || rec?.charId || null,
+      spine: piece.assets?.spine || rec?.assets?.spine || rec?.charId || null, avatar: piece.assets?.avatar || rec?.assets?.avatar || rec?.charId || null,
       tier: rec?.tier || piece.tier || 1, golden: !!(piece.golden || rec?.isGolden), dir,
     };
   }
@@ -914,6 +914,26 @@ export async function createFieldView(host, options = {}) {
     const t = pieceTile(p);
     if (!t) return null;
     return boardWorld(t.row, t.col, p.area === 'hand' || p.area === 'temp');
+  }
+
+  function setObservedBench(bench, options = {}) {
+    for (const key of [...views.keys()]) if (String(key).startsWith('wb:')) dropView(key);
+    if (!bench || destroyed) return;
+    for (const [area, arr] of [['hand', bench.pieces], ['temp', bench.tempPieces]]) {
+      (arr || []).forEach((piece, idx) => {
+        if (!piece) return;
+        const tile = pieceTile({ uid: piece.uid, area, idx });
+        const xf = options.boss ? bossPrepField(options.side === 'R' ? 'R' : 'L') : IDENTITY;
+        const d = tile && xf.toDisp(tile.row, tile.col);
+        const w = d ? { x: d.col + (options.unite && options.side === 'R' ? 8 : 0), y: d.row, z: TILE_H.bench } : null;
+        if (!w) return;
+        const key = 'wb:' + piece.uid;
+        const info = { ...pieceInfo(piece, area), id: key, uid: piece.uid, x: w.x, y: w.y, maxHp: 1 };
+        const v = info.kind === 'item' ? new ItemView(ctx, info) : new UnitView(ctx, info, { prep: true });
+        v.setWorld(w.x, w.y, w.z);
+        views.set(key, v);
+      });
+    }
   }
 
   function setPrep(ps, options) {
@@ -1689,7 +1709,7 @@ export async function createFieldView(host, options = {}) {
     const now = performance.now();
     for (const [id, v] of views) {
       if (v.down && v._downSeq !== downSeq) v.setDown(null, renderT);
-      if (sample.has(id) || v.down) continue;
+      if (String(id).startsWith('wb:') || sample.has(id) || v.down) continue;
       if (v._seen) {
         // left the snapshot: removed (leaked / hidden / died and its DIE window passed)
         if (v.alive) { v.alive = false; v.dying = 0.25; v.dieDur = 0.25; }
@@ -1729,13 +1749,11 @@ export async function createFieldView(host, options = {}) {
   // Crowded fields render skeletons through staggered RenderTexture impostors (units.js): the interval grows with
   // the number of Spine units so the per-frame vertex work stays roughly constant (hysteresis: re-evaluated
   // every 30 frames). Prep and ordinary fields keep full-rate direct rendering.
-  // Spine clipping masks (only eyeball clips on the current roster, invisible at chibi scale) each cost a stencil
-  // render-pass break (~2–5 ms of GPU on tiled GPUs): kept only for a lone clipped skeleton at high quality
+  // Clipping is part of the artwork, especially eye/eyelid masks. Keep it at
+  // every quality; crowded fields already amortise rendering through impostors.
   let clipAllowed = true;
   function pickClipping() {
-    let n = 0;
-    for (const v of views.values()) if (v.actor && v.actor.clipped && v.alive !== false) n++;
-    return settings.quality === 'high' && n <= 1;
+    return true;
   }
   function pickImpostorInterval() {
     let n = 0;
@@ -1876,6 +1894,7 @@ export async function createFieldView(host, options = {}) {
     setStage,
     setCamera,
     setPrep,
+    setObservedBench,
     /** Enemy preview pen: a list in m.private.nextEnemies shape, or null to empty it (setPrep does this itself). */
     setPen(list) { if (destroyed) return false; setPenList(Array.isArray(list) ? list : null); return true; },
     enterBattle,

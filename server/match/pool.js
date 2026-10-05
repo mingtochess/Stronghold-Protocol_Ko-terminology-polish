@@ -31,7 +31,8 @@ export function drawDisabledBonds(gd, rng) {
   });
   const core = eligible.filter((b) => gd.bond(b).isCore);
   const addon = eligible.filter((b) => !gd.bond(b).isCore);
-  const drawn = [...sample(core, nCore, rng), ...sample(addon, nAddon, rng)].sort();
+  const extraCore = core.includes('ursusShip') ? 1 : 0;
+  const drawn = [...sample(core, nCore + extraCore, rng), ...sample(addon, nAddon, rng)].sort();
   const off = new Set([...drawn, ...staticOff]);
   const banned = [];
   for (const id of gd.visibleChess) {

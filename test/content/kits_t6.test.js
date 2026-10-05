@@ -1207,3 +1207,16 @@ test('snow snapshots preserve exact layers and ground snow does not slow air uni
  assert.equal(enemyAt(h,'enemy_air').findBuff('sbell2:snow'),null);
  assert.deepEqual(h.snapshot().snow.find(t=>t[0]===u.id)[1],[[10,6,2]]);
 });
+
+
+test('Lemuen S3 shells remain area attacks after their marked enemy dies, damaging a nearby survivor', () => {
+  const h=battle({units:[{chessId:'chess_char_6_01_a',row:10,col:3,carryState:{sp:99}}],enemies:[{key:'enemy_dummy',pos:[10,5]},{key:'enemy_dummy2',pos:[10,5.3]}],autoFinish:false});
+  const u=h.unit('chess_char_6_01_a');
+  assert.ok(h.runUntil(()=>u.skill.active,10));
+  assert.ok(h.runUntil(()=>!u.skill.active,10));
+  const marked=enemyAt(h,'enemy_dummy'), survivor=enemyAt(h,'enemy_dummy2');
+  const count=lemFx(h,'lock').length;
+  h.b.kill(marked); h.run(SHELL_IV*(count+2));
+  assert.equal(lemFx(h,'bombard').length,count);
+  assert.ok(h.dmg.some(d=>d.tgt===survivor.id&&d.tags.includes('bombard')));
+});

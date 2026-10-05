@@ -47,6 +47,7 @@ export function unitInfo(u) {
     uid: u.uid ?? undefined,
     // DESIGN §16: the equipped skill's index (the renderer / audio pick that skill's Spine clip and sound)
     skillDuration: u.skill && ['instant','charges'].includes(u.skill.kind) ? 0 : undefined,
+    skillNextAttack: !!(u.skill && !u.skill.isTimed && u.skill.spec.attack),
     skillZoneGrid: showsSkillArea(u) ? (d.skill.rangeGrid?.length ? d.skill.rangeGrid : d.rangeGrid) : undefined,
     omnidirectional: !!u.profile?.allInRange, fixedFacing:!!u.profile?.fixedFacing,
     skinId: d.loadout?.skinId, charId: d.raw?.charId,

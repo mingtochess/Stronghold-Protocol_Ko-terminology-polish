@@ -4,7 +4,7 @@
 import { FactionBadge } from './chatFaction.js';
 import { useState, useMemo } from '../../vendor/hooks.module.js';
 import { html, Icon, TierChip, Tooltip } from './components.js';
-import { data, useData, localAsset } from '../data.js';
+import { data, matchData, useData, localAsset } from '../data.js';
 import { parseRichText, rtClassName } from './richText.js';
 import {
   uiUrl, chessAvatarUrl, chessPortraitUrl, itemIconUrl, tokenAvatarUrl, enemyIconUrl, bondIconUrl, bandIconUrl,
@@ -31,21 +31,21 @@ export function useGameData() {
 export function makeLookups(ready = true) {
   return {
     ready,
-    m: data.get('assets'),
-    config: data.get('config'),
-    chess: (id) => data.lookup('chess', id),
-    bond: (id) => data.lookup('bonds', id),
-    item: (id) => data.lookup('items', id),
-    band: (id) => data.lookup('bands', id),
-    enemy: (k) => data.lookup('enemies', k),
-    boss: (id) => data.lookup('bosses', id),
-    stage: (id) => data.lookup('stages', id),
-    token: (id) => data.lookup('tokens', id),
-    effect: (id) => data.lookup('effects', id),
-    garrison: (id) => data.lookup('garrisons', id),
-    factions: data.get('factions'),
-    choices: data.get('choices'),
-    list: (name) => data.list(name),
+    m: matchData.get('assets'),
+    config: matchData.get('config'),
+    chess: (id) => matchData.lookup('chess', id),
+    bond: (id) => matchData.lookup('bonds', id),
+    item: (id) => matchData.lookup('items', id),
+    band: (id) => matchData.lookup('bands', id),
+    enemy: (k) => matchData.lookup('enemies', k),
+    boss: (id) => matchData.lookup('bosses', id),
+    stage: (id) => matchData.lookup('stages', id),
+    token: (id) => matchData.lookup('tokens', id),
+    effect: (id) => matchData.lookup('effects', id),
+    garrison: (id) => matchData.lookup('garrisons', id),
+    factions: matchData.get('factions'),
+    choices: matchData.get('choices'),
+    list: (name) => matchData.list(name),
   };
 }
 

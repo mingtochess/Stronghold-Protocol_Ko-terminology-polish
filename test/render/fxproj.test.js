@@ -173,8 +173,9 @@ describe('shots', () => {
     while (!pr.hit && t < 1) { fx.update(DT); t += DT; }
     assert.ok(Math.abs(t - pr.dur) <= DT + 1e-9, `arrived after ${t} (dur ${pr.dur})`);
     assert.equal(pr.tx, 9.5);
-    const flares = liveTex(fx, 'flare').length;
-    assert.ok(flares >= 1, 'arrival flare');
+    const contacts = liveTex(fx, 'dot').length;
+    assert.ok(contacts >= 1, 'short arrival contact');
+    assert.equal(liveTex(fx, 'flare').length,0,'no star-shaped hit sparkle');
     run(fx, 0.2);
     assert.equal(fx.projs.length, 0, 'released after its short fade');
     assert.equal(pr.trail.visible || pr.halo.visible || pr.core.visible, false);
@@ -471,4 +472,19 @@ test('Explosion particles keep their world position and scale when the camera ch
  assert.ok(Math.abs(p.sp.position.x-(anchor.x+(p.x-p.ax)*ratio))<1e-6);
  assert.ok(Math.abs(p.sp.position.y-(anchor.y+(p.y-p.ay)*ratio))<1e-6);
  fx.snowfall(0xffffff);const snow=fx.parts.at(-1);assert.equal(snow.world,null);
+});
+
+test('ranged projectile heads and widths are 20 percent larger without changing flight time',()=>{
+ const a=unit(90,4,10),b=unit(91,8,10,{isEnemy:true}),{fx}=makeFx({views:[a,b]});
+ fx.attack(a,b,'orb');const pr=fx.projs[0];
+ assert.ok(Math.abs(pr.spec.head-PROJ.orb.head*1.2)<1e-9);
+ assert.ok(Math.abs(pr.spec.width-PROJ.orb.width*1.2)<1e-9);
+ assert.ok(Math.abs(pr.dur-4/PROJ.orb.speed/2)<1e-9);
+});
+test('interleaved melee attacks retain their individual flat contact effects',()=>{
+ const a=unit(90,4,10),b=unit(91,5,10),target=unit(92,6,10,{isEnemy:true}),{fx}=makeFx({views:[a,b,target]});
+ fx.attack(a,target,'none');fx.attack(b,target,'none');
+ fx.damage(target,100,'phys',a);fx.damage(target,100,'phys',b);
+ assert.equal(fx.contacts.length,2);
+ assert.equal(liveTex(fx,'spark').length,0);assert.equal(liveTex(fx,'glow').length,0);
 });

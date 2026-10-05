@@ -19,7 +19,7 @@ import { html, Button, Icon, MicroLabel, BondDisc, Tooltip, Modal } from './comp
 import { UnitThumb } from './gameComponents.js';
 import { bannedPerBond, disabledBondSets, briefingBondTip } from './gameLogic.js';
 import { bondIconUrl } from './assetUrls.js';
-import { data } from '../data.js';
+import { matchData as data } from '../data.js';
 
 const cx = (...p) => p.flat().filter(Boolean).join(' ');
 
@@ -41,6 +41,7 @@ export function matchInfoModel(pub, { bonds = [], chess = () => null, mode = nul
   const sets = disabledBondSets(pub, mode?.inactiveBondIds);
   const stateOf = (id) => (sets.off.has(id) ? 'off' : sets.drawn.has(id) ? 'drawn' : null);
   const list = (Array.isArray(bonds) ? bonds : []).filter((b) => !!b && typeof b === 'object' && typeof b.bondId === 'string')
+    .filter(b => b.bondId !== 'ursusShip' || pub?.customFactions === true)
     .sort((a, b) => (a.bondOrder ?? 0) - (b.bondOrder ?? 0) || (a.identifier ?? 0) - (b.identifier ?? 0));
   const tierOf = (id) => chess(id)?.tier ?? 0;
   const banned = (Array.isArray(pub?.bannedChess) ? pub.bannedChess : []).filter((id) => typeof id === 'string' && !!chess(id) && !chess(id).optionalRecruit)

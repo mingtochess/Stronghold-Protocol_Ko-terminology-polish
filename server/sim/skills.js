@@ -1,3 +1,4 @@
+import {showsSkillArea,skillAreaKeys} from './skillArea.js';
 // server/sim/skills.js — skill runtime: SP, charges, trigger rules, kinds, SkillSpec interpretation (DESIGN §5.6).
 //
 // SP types: 'time' (+spRecovery/s), 'attack' (+1 per attack), 'hurt' (+1 per hit taken), 'none'.
@@ -194,6 +195,7 @@ export class SkillRuntime {
   reset(carry = null) {
     this.active = false;
     this.pending = false;
+    this.unit.mem.skillArea = null;
     this.timeLeft = 0;
     this.ammoLeft = 0;
     this.ammoMax = 0;
@@ -385,6 +387,7 @@ export class SkillRuntime {
     const b = this.battle;
     const u = this.unit;
     if (b.rangeChanged(u)) b._refreshRange(u);
+    if (typeof this.spec.hasTargets === 'function') return !!this.spec.hasTargets({ battle: b, unit: u });
     const keys = u.baseRangeKeys || u.rangeKeys;
     if (keys) {
       if (this.healSkill) return b.injuredAlliesInKeys(keys, u).length > 0;
@@ -453,7 +456,10 @@ export class SkillRuntime {
     // bullets added in skillStart (拉特兰's ×(1.05 + 0.015 × layers), 逃犯引渡手续, talents): the bar's full mark
     // (community report #35: the extra bullets sat above a full bar until fewer than the base count were left)
     if (this.active && this.ammoLeft > this.ammoMax) this.ammoMax = this.ammoLeft;
-    if (!this.isTimed && !this.pending) this.end('instant');
+    if (!this.isTimed && !this.pending) {
+      if (showsSkillArea(u)) u.mem.skillArea = {keys:skillAreaKeys(u).slice(),until:b.time+Math.max(.5,Number(this.spec.areaDuration)||0)};
+      this.end('instant');
+    }
     return true;
   }
 

@@ -433,3 +433,14 @@ test('spCostMul changes (绝技-style) keep SP within bounds and convert overflo
   assert.equal(u.skill.charges, 1);
   assert.ok(u.skill.sp <= u.skill.spCost);
 });
+
+test('a charged next attack triggered during recovery cannot force a second immediate attack',()=>{
+ const rec=chessRec({id:'next_clock',profession:'SNIPER',rangeGrid:RANGE3,stats:{bat:2,blockCnt:0},skill:{skillId:'next_clock_skill',spCost:1,initSp:0,duration:0}});
+ const h=makeBattle({content:'generic',autoFinish:false,defs:{chess:{next_clock:rec},enemies:{enemy_dummy:dummy()}},units:[{chessId:'next_clock',row:10,col:3}],enemies:[{key:'enemy_dummy',pos:[10,4]}],kits:{next_clock:()=>({skill:{kind:'instant',trigger:'NEVER',spCost:1,attack:{atkScale:2},onStart:({battle,unit})=>battle.forceAttack(unit)}})}});
+ h.step();const u=h.unit('next_clock'),sk=u.skill;
+ u.atkCd=1;sk.gainSp(10);const before=u.stats.attacks;
+ assert.ok(sk.activate());assert.equal(u.stats.attacks,before);assert.equal(sk.pending,true);
+ h.run(.8);assert.equal(u.stats.attacks,before);
+ h.run(.5);assert.equal(u.stats.attacks,before+1);assert.equal(sk.pending,false);
+ h.run(.5);assert.equal(u.stats.attacks,before+1,'no duplicate normal attack after the enhanced attack');
+});

@@ -526,10 +526,13 @@ export class FxSystem {
   /** b.ev 'atk' visual. src/tgt are views (tgt may be null). */
   _attack(src, tgt, kind) {
     if (!src) return;
+    if (!this.attackKinds) this.attackKinds = new Map();
+    this.attackKinds.set(src.id, kind || 'none');
     // chain: the source is the previous target of the bounce (sim ai.js), so the arc hops unit to unit
     if (kind === 'chain' || kind === 'chainHeal') { if (tgt && tgt !== src) this._beam(src, tgt, kind === 'chainHeal' ? 0x7dffa8 : 0xc9a2ff, 0.22, 1, true); return; }
     if (kind === 'beam') { if (tgt && tgt !== src) this._beam(src, tgt, src.isEnemy ? 0xff7a5a : 0xffe6a8, 0.18, 0.15); return; }
-    const spec = projectileStyle(kind,src.info,src.isEnemy);
+    const original = projectileStyle(kind,src.info,src.isEnemy);
+    const spec = original && {...original, width: original.width * 1.2, head: original.head * 1.2};
     if (!spec || !tgt) {
       if (kind === 'none' || !kind) this._slashAt = src.id;
       return;
@@ -897,15 +900,14 @@ export class FxSystem {
       case 'boom': this.explosion(pr.tx, pr.ty, this._groundZ(pr.tx, pr.ty), 1, pr.glow, { smoke: spec.smoke, small: true }); break;
       case 'splash': this.explosion(pr.tx, pr.ty, this._groundZ(pr.tx, pr.ty), 0.7, pr.glow, { smoke: spec.smoke, small: true }); break;
       case 'zap':
-        this.particle('flare', x, y, { tint: spec.glow, life: 0.16, s0: (s / 128) * 0.7, s1: (s / 128) * 0.25, a0: 1, a1: 0, rot: Math.random() });
-        if (rich) this.burst(x, y, s, 3, spec.glow, { speed: 2.4, life: 0.22, size: 0.35 });
+        this.particle('shock', x, y, { tint: spec.glow, life: 0.16, s0: (s / 128) * 0.2, s1: (s / 128) * 0.55, a0: .7, a1: 0 });
+        if (rich) this.burst(x, y, s, 3, spec.glow, { speed: 2.4, life: 0.22, size: 0.25, tex:'dot' });
         break;
       case 'enemy':
-        this.particle('glow', x, y, { tint: spec.glow, life: 0.2, s0: (s / 128) * 0.6, s1: (s / 128) * 1.0, a0: 0.9, a1: 0 });
-        this.particle('flare', x, y, { tint: 0xffb0a0, life: 0.16, s0: (s / 128) * 0.8, s1: (s / 128) * 0.3, a0: 1, a1: 0, rot: Math.random() });
+        this.particle('dot', x, y, { tint: 0xffb0a0, life: 0.12, s0: (s / 32) * 0.12, s1: 0, a0: .8, a1: 0 });
         break;
       default:   // 'spark': bullets, boomerang hits (the hit's own sparks come with its damage number)
-        this.particle('flare', x, y, { tint: spec.glow, life: 0.11, s0: (s / 128) * 0.55, s1: (s / 128) * 0.2, a0: 1, a1: 0, rot: Math.random() });
+        this.particle('dot', x, y, { tint: spec.tint, life: 0.09, s0: (s / 32) * 0.09, s1: 0, a0: .8, a1: 0 });
     }
   }
 
@@ -1229,10 +1231,9 @@ export class FxSystem {
     const px = p.x, py = p.y, s = p.s;
     const tint = HIT_TINT[style] || 0xffffff;
     const big = view.maxHp > 0 && amount >= view.maxHp * 0.18;
-    const melee = !!srcView && this._slashAt === srcView.id;
-    if(!melee)this.particle('glow', px, py, { tint, life: 0.18, s0: (s / 128) * (melee ? .18 : big ? 1.0 : .6), s1: (s / 128) * (melee ? .24 : big ? 1.5 : .9), a0: melee ? .25 : .9, a1: 0 });
+    const melee = !!srcView && (this.attackKinds?.get(srcView.id) === 'none' || this._slashAt === srcView.id);
+    if(!melee)this.particle(style === 'phys' ? 'dot' : 'shock', px, py, { tint, life: .12, s0: (s / (style === 'phys' ? 32 : 128)) * .12, s1: style === 'phys' ? 0 : (s / 128) * .35, a0: .6, a1: 0 });
     if (melee) { this._slashAt = null; this._slash(view, srcView, px, py, s, style, big); }
-    if(!melee)this.burst(px, py, s, big ? 8 : 4, tint, { speed: melee ? 2.8 : 2.4, size: melee ? .18 : big ? 0.6 : 0.46 });
     if (srcView && this.ctx.subProfOf && SPLASH_SUBS.has(this.ctx.subProfOf(srcView.info?.defId))) {
       if (!this._lastRing || this.time - this._lastRing > 0.08) {
         this._lastRing = this.time;
@@ -2197,6 +2198,7 @@ export class FxSystem {
     for (const L of this.locks) this._freeLock(L);
     this.locks.length = 0;
     this._slashAt = null;
+    this.attackKinds?.clear();
     for (const t of this.nums) this._releaseNum(t);
     this.nums.length = 0;
     for (const r of this.rings) { r.sp.visible = false; this.ringFree.push(r); }

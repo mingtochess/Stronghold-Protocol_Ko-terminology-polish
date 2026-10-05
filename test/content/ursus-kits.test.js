@@ -95,7 +95,7 @@ test('Ursus drone approaches and attacks stationary ground and flying targets wi
  setGameData(data);try{for(const motion of ['WALK','FLY']){
  const raw={...data,enemies:{...data.enemies,drone_target:enemyRec({key:'drone_target',hp:1e7,atk:0,speed:0,motion})}};
  const h=makeBattle({data:raw,autoFinish:false,captureNoisy:true,units:[{chessId:id('turdus'),row:10,col:3}],bonds:{ursusShip:{count:3,active:true,tier:1,layers:20}},enemies:[{key:'drone_target',time:0,route:{motion,start:[10,6],end:[9,2],checkpoints:[]}}]});
- h.run(18);const drone=h.b.allyUnits.find(u=>u.defId==='token_custom_ursus_drone'),enemy=h.enemy();assert.ok(drone);assert.ok(drone.stats.attacks>=2);assert.ok(enemy.hp<enemy.s.maxHp);assert.ok(h.hooksOf('hit').some(c=>c.credit===drone&&c.target===enemy));assert.equal(drone.s.atk,1550);assert.equal(drone.s.maxHp,20150);assert.equal(h.b.errorCount,0);checkInvariants(h.b);
+ h.run(18);const drone=h.b.allyUnits.find(u=>u.defId==='token_custom_ursus_drone'),enemy=h.enemy();assert.ok(drone);assert.ok(drone.stats.attacks>=2);assert.ok(enemy.hp<enemy.s.maxHp);assert.ok(h.hooksOf('hit').some(c=>c.credit===drone&&c.target===enemy));assert.equal(drone.s.atk,1650);assert.equal(drone.s.maxHp,21450);assert.equal(h.b.errorCount,0);checkInvariants(h.b);
  }}finally{setGameData(null)}
 });
 test('Airborne Ursus drone pursues distant enemies, stops in range, and resumes pursuit after target loss',{skip:!ready},()=>{
@@ -175,7 +175,7 @@ for(const elite of [false,true])test(`Istina ${elite?'elite':'normal'}: only slu
  const h=combat('glassb',0,elite,{flags:{layerGainsEnabled:true},bonds:{ursusShip:state(),visiShip:state()},enemies:[]});const u=h.unit(id('glassb',elite));
  const layers=()=>['ursusShip','visiShip'].map(k=>h.b.getPlayer('p1').bonds[k].layers);
  const death=(status,pos=[10,4],killer=null)=>{const e=h.spawn('dummy',{pos,route:{motion:'WALK',start:pos,end:[10,2],checkpoints:[]}});if(status)h.b.applyStatus(e,status,{duration:5,source:u,value:.5});h.b.kill(e,killer);};
- assert.match(data.garrisons[u.def.raw.garrisonIds[0]].desc,/정지.*각각 \+2.*최대 7회/);
+ assert.match(data.garrisons[u.def.raw.garrisonIds[0]].desc,/정지.*\[우르수스\]\/\[예견\].*\+2.*전투당 최대 7회 발동/);
  death('slow');death('stun');death('freeze');death(null);death('sluggish',[12,9]);assert.deepEqual(layers(),[0,0]);
  death('sluggish');assert.deepEqual(layers(),[2,2],'another source or no credited killer still qualifies');
  for(let i=0;i<9;i++)death('sluggish');assert.deepEqual(layers(),[14,14],'one death is one trigger even when both bonds gain');

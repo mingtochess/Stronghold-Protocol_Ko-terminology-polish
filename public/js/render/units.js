@@ -766,7 +766,7 @@ export class UnitView {
       this.skillTiles = undefined;
       if (this.skillZone) { this.skillZone.clear(); this.skillZone.visible = false; }
     }
-    if (this.actor) this.actor.setSkill(on,{instant:this.info.skillDuration===0});
+    if (this.actor) this.actor.setSkill(on,{instant:this.info.skillDuration===0 && !this.info.skillNextAttack});
   }
 
   onDeploy() {
@@ -867,7 +867,7 @@ export class UnitView {
     if(this.pendingDeployElapsed != null)this.pendingDeployElapsed += dt*(this.ctx.animRate?.() || 1);
     const P = this.P;
     // Ground overlays have their own layer: invalidate before any off-screen early return.
-    if (this.skillZone && (!this.alive || this.down || !this.statuses.has('skill'))) { this.skillZone.clear(); this.skillZone.visible = false; }
+    if (this.skillZone && (!this.alive || this.down || (!this.statuses.has('skill') && !this.skillTiles?.length))) { this.skillZone.clear(); this.skillZone.visible = false; }
     if (!this.alive) this.snowFx.clear();
     if (!this.skillZone && this.skillTiles?.length) { this.skillZone = new P.Graphics(); this.ctx.layers.groundFx.addChild(this.skillZone); }
     // the model for the state the frame's events and snapshot left (Front ⇄ Back when it went down / stood up: die, revive)
@@ -894,19 +894,33 @@ export class UnitView {
     if (this.statuses.has('skill')) authoredStates.push(`skill${(this.info.skillIndex ?? 0)+1}`);
     const authoredState = this.actor?.setVisualStates(authoredStates);
     this.stateFx.clear();
-    if (this.alive && !this.down && !authoredState && visualStates.length) {
+    if (this.alive && !this.down && visualStates.length) {
       const colors = {stun:0xf1ce76,sleep:0xbab7e8,invuln:0xf7dfab,freeze:0x9fd4ff,cold:0xcfe6ff,burn:0xff8e51,poison:0xb899d7,shield:0x80d9c4,refraction:0x89bfe7,stealth:0xaaaaaa,rage:0xff5941};
       for (const state of visualStates) {
+        if (this.actor?.authoredVisualStates?.has(state) || (authoredState && !this.actor?.authoredVisualStates)) continue;
         this.stateFx.lineStyle(Math.max(.6,s*.008),colors[state],.65);
         if (state === 'freeze') {
           this.stateFx.beginFill(0x9fdcff,.22);
           this.stateFx.drawPolygon([-s*.3,-s*.05,-s*.35,-s*.5,-s*.16,-s*.82,s*.15,-s*.74,s*.33,-s*.4,s*.28,-s*.05]);
           this.stateFx.endFill();
           this.stateFx.moveTo(-s*.16,-s*.82).lineTo(0,-s*.3).lineTo(s*.28,-s*.05);
+        } else if (state === 'stealth' && this.info.side === 'ally') {
+          this.stateFx.lineStyle(0);
+          for (let i=0;i<5;i++) {
+            this.stateFx.beginFill(0xc4cdca,.12);
+            this.stateFx.drawEllipse(Math.sin(t*.7+i*2)*s*.2,-s*(.12+i*.1),s*(.24+i*.02),s*.1);
+            this.stateFx.endFill();
+          }
         } else if (state === 'shield') this.stateFx.drawEllipse(0,-s*.38,s*.32,s*.43);
         else if (state === 'refraction') {
-          this.stateFx.moveTo(-s*.24,-s*.1).lineTo(-s*.31,-s*.4).lineTo(-s*.16,-s*.7);
-          this.stateFx.moveTo(s*.24,-s*.1).lineTo(s*.31,-s*.4).lineTo(s*.16,-s*.7);
+          // Translucent refracting arcs shimmer around the body while the RES trait is active.
+          this.stateFx.lineStyle(Math.max(.7,s*.009),0xaecbff,.42+.13*Math.sin(t*4));
+          this.stateFx.drawEllipse(0,-s*.38,s*.34,s*.43);
+          for (let i=0;i<3;i++) {
+            const y=-s*(.16+i*.2);
+            const dx=s*.03*Math.sin(t*3+i*2);
+            this.stateFx.moveTo(-s*.27+dx,y).quadraticCurveTo(0,y-s*.06,s*.27+dx,y);
+          }
         } else if (state === 'rage') {
           for (let i=0;i<3;i++) { const x=(i-1)*s*.18;
             this.stateFx.moveTo(x,-s*.1).lineTo(x+s*.03*Math.sin(t*7+i),-s*(.4+.1*Math.sin(t*5+i)));
@@ -928,7 +942,7 @@ export class UnitView {
       if (this.dying < tail) alpha *= Math.max(0, this.dying / tail);
       if (this.dying <= 0) { this.dying = 0; this.remove = true; alpha = 0; }
     }
-    if (this.flags & UF.STEALTH) alpha *= 0.45;
+    if ((this.flags & UF.STEALTH) && this.info.side !== 'ally') alpha *= 0.45;
     if (this.dimmed) alpha *= 0.35;
     this.alpha = alpha;
 
@@ -968,7 +982,7 @@ export class UnitView {
       }
     }
     if(this.skillZone){
-      const g=this.skillZone;g.clear();g.visible=this.alive&&!this.down&&this.statuses.has('skill');
+      const g=this.skillZone;g.clear();g.visible=this.alive&&!this.down&&(this.statuses.has('skill')||!!this.skillTiles?.length);
       if(g.visible){
         placeOnGround(this.ctx,g,this.ctx.layers.groundFx,this.y,this.z);
         const style = skillRangeStyle(this.info);

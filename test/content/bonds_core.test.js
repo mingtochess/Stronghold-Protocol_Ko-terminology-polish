@@ -748,3 +748,42 @@ test('boss field, two players: bonds only touch their owner’s operators; devou
   assert.equal(h.b.errors.length, 0, JSON.stringify(h.b.errors));
   checkInvariants(h.b);
 });
+
+test('staggered deployment completes before Egir devour, including a Harmony member supplied by Pith',()=>{
+ const list=[['g1_a',['egirShip']],['g2_a',['egirShip']],['g3_a',['egirShip']],['mani_a',['maniShip']],['fod_a',['preciShip']]];
+ const units=list.map(([chessId],i)=>({chessId,row:i<3?10:12,col:i<3?3+i:i}));
+ const build=interval=>makeBattle({defs:defsOf(list),units,bonds:{egirShip:bondOn(4,0,null,[3,5]),maniShip:{count:1,active:true,tier:1,layers:0}},flags:{deploymentInterval:interval},hooks:['damaged','battleStart','deploy'],captureNoisy:true});
+ const fast=build(0),slow=build(.2);fast.step();slow.step();
+ assert.equal(slow.hooksOf('battleStart').length,0,'not while only the first operator has deployed');
+ slow.run(1);
+ assert.equal(slow.hooksOf('battleStart').length,1);
+ const pairs=h=>tagged(h,'bond:egir:devour').map(c=>[c.source.defId,c.target.defId]);
+ assert.deepEqual(pairs(slow),pairs(fast));
+ assert.ok(pairs(slow).some(([src])=>src==='mani_a'),'Harmony receives the core devour effect');
+ for(const [id] of list){
+  const buff=h=>h.unit(id).buffs.find(b=>b.key==='bond:egir:devour')?.mods;
+  assert.deepEqual(buff(slow),buff(fast),id);
+ }
+});
+
+
+test('exactly six Yan members summon one dragon, also with staggered deployment and Harmony (seven is not required)', () => {
+ for(const count of [5,6,7]) for(const interval of [0,.2]) for(const harmony of [false,true]) {
+  const real=count-(harmony?1:0);
+  const list=Array.from({length:real},(_,i)=>['yan_exact_'+i,['yanShip']]);
+  if(harmony)list.push(['mani_exact',['maniShip']]);
+  const h=makeBattle({defs:defsOf(list),units:lineup(list.map(x=>x[0])),bonds:{yanShip:bondOn(count,0),...(harmony?{maniShip:{count:1,active:true,tier:1,layers:0}}:{})},flags:{deploymentInterval:interval},autoFinish:false});
+  h.run(2);
+  const dragons=h.b.allyUnits.filter(u=>u.defId===TOKEN_IDS.yanyou&&u.alive);
+  assert.equal(dragons.length,count>=6?1:0,`count=${count}, interval=${interval}, harmony=${harmony}`);
+ }
+});
+
+test('six Yan still summon the template dragon when all six operators enter the field forced out from the previous combat', () => {
+ const list=Array.from({length:6},(_,i)=>['yan_carry_'+i,['yanShip']]);
+ const h=makeBattle({defs:defsOf(list),units:lineup(list.map(x=>x[0])).map(u=>({...u,carryState:{down:true}})),bonds:{yanShip:bondOn(6,0)},flags:{deploymentInterval:.2},autoFinish:false});
+ h.run(2);
+ const yy=h.b.allyUnits.filter(u=>u.defId===TOKEN_IDS.yanyou&&u.alive);
+ assert.equal(yy.length,1,'the summon condition is bond count, not a positive surviving operator HP sum');
+ close(yy[0].s.maxHp,DATA.tokens.enemy_9012_acloon.stats.maxHp);
+});

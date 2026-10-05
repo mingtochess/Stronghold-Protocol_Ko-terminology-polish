@@ -78,7 +78,7 @@
 
 import { COLS, ROWS, MOVE_SCALE } from '../constants.js';
 import { absoluteRangeKeys, sortEnemyTargets, canTargetEnemy } from '../targeting.js';
-import { bodyInKeys, bodyOnTile } from '../body.js';
+import { bodyInKeys, bodyOnTile, bodyDist } from '../body.js';
 import { hasHp } from '../damage.js';
 import { genericKit } from './generic.js';
 import { normDir, localOrder } from '../dir.js';
@@ -1063,6 +1063,11 @@ function yanyouKit(bb, raw) {
   const epRatio = num(tal['2.ep_damage_ratio'], 0);
   const fragMul = num(tal['2.damage_scale'], 1);
   const radius = num(raw?.stats?.rangeRadius, 0) > 0 ? num(raw.stats.rangeRadius, 0) : 2;
+  const targetsInRadius = (battle, unit) => {
+    const targets = battle.enemies.filter(e => canTargetEnemy(unit, e, YANYOU_PROFILE) && bodyDist(e, unit.x, unit.y) <= radius + 1e-9);
+    sortEnemyTargets(battle, unit, targets, null);
+    return targets;
+  };
   const moveSpeed = num(raw?.stats?.moveSpeed, 1);
   const cd = num(sk.cooldown, 0);
   const initCd = num(sk.initCooldown, cd);
@@ -1092,10 +1097,11 @@ function yanyouKit(bb, raw) {
   return {
     skill: cd > 0 && flameDur > 0 ? {
       kind: 'duration', duration: flameDur, spType: 'time', spCost: cd, initSp: Math.max(0, cd - initCd), trigger: 'DEFAULT',
+      hasTargets: ({ battle, unit }) => targetsInRadius(battle, unit).length > 0,
       attack: { noAttack: true },                                  // channelling: no normal attacks
       onStart({ battle, unit }) {
         // "触发索敌和普通攻击相同": the normal attack's first target
-        const list = battle.enemiesInKeys(unit.rangeKeys, unit, YANYOU_PROFILE);
+        const list = targetsInRadius(battle, unit);
         sortEnemyTargets(battle, unit, list, null);
         unit.mem.flame = { target: list[0] ?? null, acc: 1 };
         if (!list[0]) unit.skill.end('noTarget');
@@ -1120,6 +1126,7 @@ function yanyouKit(bb, raw) {
     } : null,
     trait: { attack: 'ranged', dmgType: 'arts', projectile: 'bolt', canHitFly: true, maxTargets, heal: null, noAttack: false },
     install(battle, unit) {
+      unit.profile.acquireTargets = (b, u) => targetsInRadius(b, u).slice(0, maxTargets);
       unit.motion = 'FLY';
       if (!(unit.base.spRecovery > 0)) unit.base.spRecovery = 1; // the cooldown ticks as time SP (data spRecovery 0)
       unit.base.blockCnt = 0;

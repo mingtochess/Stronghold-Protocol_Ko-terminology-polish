@@ -4,6 +4,7 @@
 // a reloaded screen that watched a teammate's battle takes the watch back (resumedWatch).
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import {PHASE} from '../../shared/constants.js';
 import { observeTarget, teammateProgress, cameraLayers, layerCamera, isClientCombat, resumedWatch } from '../../public/js/battle/observe.js';
 
 const P = (id, seat, extra = {}) => ({ playerId: id, seat, name: id.toUpperCase(), alive: true, ...extra });
@@ -76,4 +77,19 @@ test('resumedWatch: a reload while watching a teammate\'s battle adopts the rese
   assert.deepEqual(resumedWatch(watched, { ...o, pub: { ...pub, phase: 'UNITE' } }), { seen: 'r3-n:b', fieldId: null });
   assert.deepEqual(resumedWatch(watched, { ...o, pub: { ...pub, combatMode: 'server' } }), { seen: 'r3-n:b', fieldId: null });
   assert.deepEqual(resumedWatch({ ...watched, fieldId: 'n:x' }, o), { seen: 'r3-n:b', fieldId: null }, 'a field not listed');
+});
+
+test('spectator target follows the selected player through prep, ordinary combat and boss pairing',async()=>{
+ const {spectatorTarget}=await import('../../public/js/battle/observe.js');
+ const players=['p0','p1','p2','p3'].map(playerId=>({playerId,alive:true}));
+ const pub={players,phase:PHASE.PREP,fields:[]};
+ assert.deepEqual(spectatorTarget(pub,'p2'),{playerId:'p2',fieldId:'n:p2'});
+ pub.phase=PHASE.COMBAT;pub.fields=players.map(p=>({fieldId:'n:'+p.playerId,players:[p.playerId]}));
+ assert.deepEqual(spectatorTarget(pub,'p2'),{playerId:'p2',fieldId:'n:p2'});
+ pub.phase=PHASE.FINAL_ASSAULT;pub.fields=[{fieldId:'boss:0',players:['p0','p1']},{fieldId:'boss:1',players:['p2','p3']}];
+ assert.deepEqual(spectatorTarget(pub,'p2'),{playerId:'p2',fieldId:'boss:1'});
+ pub.phase=PHASE.PREP;pub.fields=[];
+ assert.deepEqual(spectatorTarget(pub,'p2'),{playerId:'p2',fieldId:'n:p2'});
+ players[2].alive=false;
+ assert.equal(spectatorTarget(pub,'p2').playerId,'p0','fallback only after the chosen player is unavailable');
 });
