@@ -15,6 +15,22 @@ test('prepared production catalogue includes every referenced asset and current 
  assert.match(bands.band_custom_ursus_kaschey.desc,/^\[영광과 번영\]<우르수스>/);
  assert.equal(bands.band_custom_ursus_kaschey.totalHp,22);
  assert.match(bands.band_custom_ursus_kaschey.desc,/라운드당 최대 1회/);
- for(const [key,skill] of Object.entries({absin:0,turdus:0,botany:0,glassb:1,leto:1,poca:1,helage:1,headb2:1}))for(const suffix of ['a','b'])assert.equal(chess[`chess_custom_ursus_${key}_${suffix}`].skill.index,skill);
+ for(const [key,skill] of Object.entries({absin:0,turdus:0,botany:0,glassb:1,leto:1,poca:1,helage:1,headb2:2}))for(const suffix of ['a','b'])assert.equal(chess[`chess_custom_ursus_${key}_${suffix}`].skill.index,skill);
  assert.ok(Object.keys(assets.audio.voice.kr).length>100);assert.ok(Object.keys(assets.audio.voice.jp).length>100);
+});
+
+test('production Ursus balance matches the release and custom operator definitions',()=>{
+ const bonds=read('data/bonds.json'),chess=read('data/chess.json'),garrisons=read('data/garrisons.json');
+ assert.equal(bonds.ursusShip.bb.base_bonus,.2);
+ assert.equal(bonds.ursusShip.bb.atk_per_stack,.01);
+ assert.equal(bonds.ursusShip.bb.hp_per_stack,.01);
+ assert.equal(bonds.ursusShip.bb.donation_ratio,.05);
+ assert.equal(bonds.ursusShip.bb.donation_per_stack,.00025);
+ const definitions=JSON.parse(readFileSync(new URL('../content/custom/ursus/operators.json',import.meta.url)));
+ for(const op of definitions)for(const suffix of ['a','b']){
+  const rec=chess[`chess_custom_ursus_${op.key}_${suffix}`];
+  assert.equal(rec.tier,op.tier,op.name);
+  assert.equal(rec.skill.index,op.skillIndex,op.name);
+ }
+ assert.match(JSON.stringify(garrisons),/공격 속도/);
 });

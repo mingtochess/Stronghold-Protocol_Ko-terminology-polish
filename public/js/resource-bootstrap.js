@@ -68,7 +68,27 @@ async function boot() {
   const fonts = document.getElementById('resource-fonts');
   if (fonts) fonts.href = '/fonts/fonts.css?resources=' + resources.version;
   await import('./main.js');
-  if (!cacheStatus.ready || cacheStatus.patch) message('preparePatch').catch(error=>console.warn('Background resource download:',error.message));
+  if (!cacheStatus.ready || cacheStatus.patch) {
+    const notice = document.createElement('div');
+    notice.setAttribute('role', 'status');
+    notice.style.cssText = 'position:fixed;right:16px;bottom:16px;z-index:10000;max-width:min(360px,calc(100vw - 32px));padding:12px 16px;background:#101b18ee;color:#dce9e4;border:1px solid #4bbda1;font:14px/1.5 sans-serif;box-shadow:0 2px 12px #0006';
+    notice.textContent = '누락된 리소스를 백그라운드에서 다운로드합니다. 기존 캐시는 재사용합니다.';
+    document.body.append(notice);
+    const download = () => message('preparePatch', progress => {
+      notice.textContent = `리소스 확인·다운로드 ${progress.done}/${progress.total} · 게임을 이용할 수 있습니다.`;
+    }).then(() => {
+      notice.textContent = '리소스 다운로드 완료';
+      setTimeout(() => notice.remove(), 4000);
+    }).catch(error => {
+      notice.textContent = '리소스 다운로드가 중단되었습니다. 받은 파일은 유지됩니다. ';
+      const retry = document.createElement('button');
+      retry.type = 'button'; retry.textContent = '다시 시도';
+      retry.onclick = () => { retry.disabled = true; download(); };
+      notice.append(retry);
+      console.warn('Background resource download:', error.message);
+    });
+    download();
+  }
 }
 boot().catch(error => {
   console.error('[resources]', error);
