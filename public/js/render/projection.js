@@ -84,7 +84,7 @@ export const CAMERA_PRESETS = Object.freeze({
     rect: Object.freeze({ r0: 7, r1: 12, c0: 0, c1: 10 }), margin: 0.35, headroom: 1.25, tilt: 30, dist: 13,
     official: Object.freeze({ L: 'left_shop_camera_param', R: 'left_shop_camera_param' }),
     officialNoShop: Object.freeze({ L: 'left_prepare_camera_param', R: 'left_prepare_camera_param' }),
-    keep: Object.freeze({ near: 6.5, zNear: KEEP_Z_BENCH, far: 12.5, zFar: KEEP_Z_HIGH }),
+    keep: Object.freeze({ near: 6.5, zNear: KEEP_Z_BENCH, far: 12.5, zFar: KEEP_Z_HIGH, headFar: 12, zHeadFar: 2.2 }),
   }),
   normal: Object.freeze({
     rect: Object.freeze({ r0: 9, r1: 12, c0: 0, c1: 10 }), margin: 0.45, headroom: 1.35, tilt: 30, dist: 13,
@@ -104,7 +104,7 @@ export const CAMERA_PRESETS = Object.freeze({
     rect: Object.freeze({ r0: 0, r1: 5, c0: 0, c1: 10 }), margin: 0.35, headroom: 1.25, tilt: 30, dist: 13,
     official: Object.freeze({ L: 'left_boss_shop_camera_param', R: 'right_boss_shop_camera_param' }),
     officialNoShop: Object.freeze({ L: 'left_boss_prepare_camera_param', R: 'right_boss_prepare_camera_param' }),
-    keep: Object.freeze({ near: -0.5, zNear: KEEP_Z_BENCH, far: 5.5, zFar: KEEP_Z_HIGH }),
+    keep: Object.freeze({ near: -0.5, zNear: KEEP_Z_BENCH, far: 5.5, zFar: KEEP_Z_HIGH, headFar: 5, zHeadFar: 2.2 }),
   }),
   pen: Object.freeze({
     rect: Object.freeze({ r0: 14, r1: 18, c0: 7, c1: 13 }), margin: 0.3, headroom: 1.2, tilt: 30, dist: 11,
@@ -409,7 +409,8 @@ export function clearHud(cam, hud, keep, viewport) {
   const top = Math.max(0, finite(hud.top, 0)), bottom = H - Math.max(0, finite(hud.bottom, 0));
   if (!(bottom - top > 16)) return cam; // no usable space: keep the official framing
   const yNear = cam.project(cam.tx, keep.near, finite(keep.zNear, 0)).y;
-  const yFar = cam.project(cam.tx, keep.far, finite(keep.zFar, 0)).y;
+  const yFar = Math.min(cam.project(cam.tx, keep.far, finite(keep.zFar, 0)).y,
+    Number.isFinite(keep.headFar) ? cam.project(cam.tx, keep.headFar, finite(keep.zHeadFar, 2.2)).y : Infinity);
   if (!Number.isFinite(yNear) || !Number.isFinite(yFar) || !(yNear > yFar)) return cam;
   if (yNear <= bottom + HUD_TOLERANCE && yFar >= top - HUD_TOLERANCE) return cam;
   const spare = bottom - top - (yNear - yFar);
@@ -450,14 +451,15 @@ export function presetCamera(kind, viewport, options) {
   const knownRect = !rect || sameRect(rect, preset.rect) || (k === 'prep' && rect.r0 >= 6 && rect.r1 <= 12 && rect.c1 <= 10)
     || (k === 'normal' && rect.r0 >= 6 && rect.r1 <= 13) || (k === 'unite' && rect.r0 >= 6 && rect.r1 <= 13)
     || (k === 'boss' && rect.r1 <= 6) || k === 'bossPrep' || k === 'pen';
-  const useOfficial = !opts.fit && !frameBench && knownRect && W / H >= 4 / 3 - 1e-6;
+  const useOfficial = !opts.fit && (!frameBench || k === 'normal') && knownRect && W / H >= 4 / 3 - 1e-6;
   if (useOfficial) {
-    const table = opts.half && preset.half ? preset.half : opts.shop === false && preset.officialNoShop ? preset.officialNoShop : preset.official;
+    const observedPreset = frameBench ? CAMERA_PRESETS[k === 'boss' ? 'bossPrep' : 'prep'] : preset;
+    const table = opts.half && preset.half ? preset.half : opts.shop === false && observedPreset.officialNoShop ? observedPreset.officialNoShop : observedPreset.official;
     const key = table[side];
     const cfg = opts.config && typeof opts.config === 'object' ? opts.config : null;
     const param = (cfg && parseCameraParam(cfg[key])) || parseCameraParam(OFFICIAL_PARAMS[key]);
     const cam = officialCamera(param, { width: W, height: H }, opts);
-    return preset.keep && opts.hud ? clearHud(cam, opts.hud, preset.keep, { width: W, height: H }) : cam;
+    return observedPreset.keep && opts.hud ? clearHud(cam, opts.hud, observedPreset.keep, { width: W, height: H }) : cam;
   }
   if (!rect) {
     rect = { ...preset.rect };

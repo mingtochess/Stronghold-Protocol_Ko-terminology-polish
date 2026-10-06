@@ -919,6 +919,7 @@ export class Match {
         alive: ps.alive,
         lp: Math.max(0, ps.lp),
         bandId: ps.bandId,
+        selectedRecruits: Object.entries(ps.loadout || {}).filter(([, e]) => e.selected === true).map(([id]) => id),
         shopLevel: ps.shop.level,
         boardCount: ps.deployCount,
         ready: this.phase === PHASE.INFO_CHECK ? ps.infoReady : ps.ready,
@@ -985,7 +986,8 @@ export class Match {
     return previewOf([...this.wave.spawns, ...bounty]);
   }
 
-  /** UnitInfo list of a player's board (prep scouting). */
+  /** UnitInfo list of a player's board and hand (prep scouting): board pieces on their tiles, held pieces on the
+   *   hand row (row 7) — the scout renders like the own prep bench. */
   prepFieldMeta(ps) {
     const units = [];
     const group = this.bossGroupOf(ps);
@@ -1002,7 +1004,7 @@ export class Match {
         id: piece.uid, uid: piece.uid, kind: piece.kind === 'token' ? 'token' : 'op', side: 'ally', ownerId: ps.playerId, defId: piece.id,
         name: rec ? rec.name : piece.id, tier: rec && Number.isInteger(rec.tier) ? rec.tier : 1, golden: !!(rec && rec.isGolden),
         spine: assets.spine || (rec && rec.charId) || piece.id, avatar: assets.avatar || (rec && rec.charId) || piece.id,
-        x: col, y: row, dir: pieceDir(piece), facing: pieceDir(piece) === 'LEFT' ? -1 : 1, maxHp: rec && rec.stats && Number.isFinite(rec.stats.maxHp) ? rec.stats.maxHp : 1,
+        x: col, y: row, dir: bossPrep && group.side === 'R' ? ({RIGHT:'LEFT',LEFT:'RIGHT',UP:'UP',DOWN:'DOWN'}[pieceDir(piece)]) : pieceDir(piece), facing: (bossPrep && group.side === 'R' ? pieceDir(piece) === 'RIGHT' : pieceDir(piece) === 'LEFT') ? -1 : 1, maxHp: rec && rec.stats && Number.isFinite(rec.stats.maxHp) ? rec.stats.maxHp : 1,
         skillIndex: lo && Number.isInteger(lo.skillIndex) ? lo.skillIndex : undefined,
         moduleId: lo && typeof lo.moduleId === 'string' ? lo.moduleId : undefined,
         skinId: lo?.skinId, charId: rec?.charId,
@@ -1010,19 +1012,60 @@ export class Match {
         items: piece.kind === 'chess' && Array.isArray(piece.items) && piece.items.length ? piece.items.map((it) => it.id) : undefined,
       });
     }
+    // the hand (整备区) and the 临时整备区 scout exactly like the own prep bench renders them: pieces as units on
+    // their rows (hand row 7, col = hand slot; temp row 8, cols 4..8 = temp slots; no dir — bench pieces face right),
+    // items included (the client draws their floating plates). PRTS 帮助 counts the temp area with the hand (review of
+    // PR #129). Part of the meta for every watcher alike — the spectator seat's copy equals a teammate's
+    // (test/match/spectator.test.js). User playtest #2 item 1 (GitHub #44).
+    const benchUnit = (piece, i, y) => {
+      const rec = piece.kind === 'item' ? this.gd.item(piece.id) : piece.kind === 'token' ? this.gd.token(piece.id) : this.gd.chess(piece.id);
+      const assets = (rec && rec.assets) || {};
+      const lo = piece.kind === 'chess' && rec ? ps.loadoutFor(rec) : null;
+      units.push({
+        id: piece.uid, uid: piece.uid, kind: piece.kind === 'token' ? 'token' : piece.kind === 'item' ? 'item' : 'op',
+        side: 'ally', ownerId: ps.playerId, defId: piece.id,
+        name: rec ? rec.name : piece.id, tier: rec && Number.isInteger(rec.tier) ? rec.tier : 1, golden: !!(rec && rec.isGolden),
+        spine: assets.spine || (rec && rec.charId) || piece.id, avatar: assets.avatar || (rec && rec.charId) || piece.id,
+        x: i, y, maxHp: rec && rec.stats && Number.isFinite(rec.stats.maxHp) ? rec.stats.maxHp : 1,
+        skillIndex: lo && Number.isInteger(lo.skillIndex) ? lo.skillIndex : undefined,
+        moduleId: lo && typeof lo.moduleId === 'string' ? lo.moduleId : undefined,
+        items: piece.kind === 'chess' && Array.isArray(piece.items) && piece.items.length ? piece.items.map((it) => it.id) : undefined,
+      });
+    };
+    for (let i = 0; i < ps.hand.length; i++) {
+      if (ps.hand[i]) benchUnit(ps.hand[i], i, GEO.HAND_ROW);
+    }
+    for (let i = 0; i < ps.temp.length; i++) {
+      if (ps.temp[i]) benchUnit(ps.temp[i], GEO.TEMP_C0 + i, GEO.TEMP_ROW);
+    }
     // `nextEnemies`: the scouted player's coming enemies — their preview pen shows on the scouting board too (research 09
     // §2.2 "Teammates"; render/app.js enterBattle({ prep: true, nextEnemies }))
     let nextEnemies = [];
     try { nextEnemies = this.nextEnemiesFor(ps); } catch (e) { this.reportError('nextEnemies', e); }
-    return { t: 'm.field', fieldId: `n:${ps.playerId}`, kind: bossPrep ? 'boss' : 'normal', rect: { ...(bossPrep ? GEO.BOSS_RECT : GEO.NORMAL_RECT) }, stageId: this.stageId, units, prep: true, nextEnemies };
+    return { t: 'm.field', fieldId: `n:${ps.playerId}`, kind: bossPrep ? 'boss' : 'normal', rect: { ...(bossPrep ? GEO.BOSS_RECT : GEO.NORMAL_RECT) }, stageId: this.stageId, units, effects: ps.effectsView(), prep: true, ...(bossPrep ? { prepSide: group.side } : {}), nextEnemies };
   }
 
-  /** Board signature of a prep scout view (units only: a shop or funds change is not a board change). */
+  /** Board signature of a prep scout view (units and hand: a shop or funds change is not a board change). */
+  /** Board signature of a prep scout view (board, hand and temp rows: a shop or funds change is not a board change).
+   *  Hand / temp entries carry their slot — `prepFieldMeta` draws x from it, so a piece moved to another slot is a
+   *  change (review of PR #129). */
   _prepScoutSig(ps) {
     const parts = [];
     for (const { r, c, piece } of boardOrder(ps.board)) {
       const items = piece.kind === 'chess' && Array.isArray(piece.items) ? piece.items.map((it) => `${it.uid}:${it.id}`).join(',') : '';
       parts.push(`${piece.uid}:${piece.id}@${r},${c}:${pieceDir(piece)}:${items}:${JSON.stringify(ps.loadoutFor(this.gd.chess(piece.id)) || {})}`);
+    }
+    for (let i = 0; i < ps.hand.length; i++) {
+      const piece = ps.hand[i];
+      if (!piece) continue;
+      const items = piece.kind === 'chess' && Array.isArray(piece.items) ? piece.items.map((it) => `${it.uid}:${it.id}`).join(',') : '';
+      parts.push(`h${i}:${piece.uid}:${piece.id}:${items}`);
+    }
+    for (let i = 0; i < ps.temp.length; i++) {
+      const piece = ps.temp[i];
+      if (!piece) continue;
+      const items = piece.kind === 'chess' && Array.isArray(piece.items) ? piece.items.map((it) => `${it.uid}:${it.id}`).join(',') : '';
+      parts.push(`t${i}:${piece.uid}:${piece.id}:${items}`);
     }
     return parts.join(';');
   }
@@ -1051,7 +1094,7 @@ export class Match {
     if (f) {
       let meta;
       try { meta = f.battle.fieldMeta(); } catch (e) { this.reportError('fieldMeta', e); return; }
-      this.sendTo(playerId, { t: 'm.field', ...meta, fieldId: f.fieldId, kind: f.kind, live: !!f.live });
+      this.sendTo(playerId, { t: 'm.field', ...meta, fieldId: f.fieldId, kind: f.kind, players: [...f.players], live: !!f.live });
       try { this.sendTo(playerId, snapFrame(f.fieldId, f.battle.snapshot())); } catch (e) { this.reportError('snapshot', e); }
       return;
     }
@@ -1119,18 +1162,18 @@ export class Match {
   }
 
   selectChatFaction(ps, faction) {
-    if (!chatFaction(faction)) return fail(ERR.BAD_MSG, 'unknown chat faction');
+    if (faction !== null && !chatFaction(faction)) return fail(ERR.BAD_MSG, 'unknown chat faction');
     if (ps.chatFaction === faction) return OK;
     const now = this.sched.now();
     if (now - ps.lastChatFactionAt < CHAT_COOLDOWN_MS) return fail(ERR.RATE);
     ps.lastChatFactionAt = now;
     ps.chatFaction = faction;
-    this.publishChat(ps, `진영 선택: ${faction}`);
+    this.publishChat(ps, faction === null ? '진영 선택 취소' : `진영 선택: ${faction}`, 'faction');
     return OK;
   }
 
-  publishChat(ps, text) {
-    const message = { id: ++this.chatSequence, playerId: ps.playerId, name: ps.name, faction: ps.chatFaction, text, at: this.sched.now() };
+  publishChat(ps, text, kind = 'text') {
+    const message = { id: ++this.chatSequence, playerId: ps.playerId, name: ps.name, faction: ps.chatFaction, text, kind, at: this.sched.now() };
     this.chatHistory.push(message);
     if (this.chatHistory.length > CHAT_HISTORY_LIMIT) this.chatHistory.shift();
     this.broadcast({ t: 'm.chat', ...message });
@@ -2123,7 +2166,7 @@ export class Match {
       modeId: this.modeId,
       round: this.round,
       stageId: this.stageId,
-      rect: { ...GEO.UNITE_RECT },
+      rect: { ...(plan.helpers.length === 1 ? GEO.NORMAL_RECT : GEO.UNITE_RECT) },
       timeLimit: limit,
       players,
       spawns: this._sanitizeSpawns(wave.spawns),
@@ -3046,21 +3089,8 @@ export class Match {
    * lineup has kinds of.
    */
   _charDamageTickers(ps, r) {
-    const steps = (Array.isArray(this.gd.config.broadcasts) ? this.gd.config.broadcasts : []).filter((b) => b.type === 'CHAR_DAMAGE' && Array.isArray(b.params)).map((b) => Number(b.params[0])).filter((n) => n > 0).sort((a, b) => b - a);
-    if (!steps.length) return;
-    const board = new Set();
-    for (const p of ps.board.values()) board.add(p.uid);
-    const best = new Map();
-    for (const u of r.unitStats || []) {
-      if (!u) continue;
-      const key = Number.isInteger(u.uid) && board.has(u.uid) ? `uid:${u.uid}` : `def:${u.defId}`;
-      const cur = best.get(key);
-      if (!cur || (Number(u.dmg) || 0) > (Number(cur.dmg) || 0)) best.set(key, u);
-    }
-    for (const u of best.values()) {
-      const hit = steps.find((s) => (u.dmg || 0) >= s);
-      if (hit) this.tickerFor('CHAR_DAMAGE', [ps.name, u.name || u.defId, String(hit)], { playerId: ps.playerId, param: String(hit) });
-    }
+    // Absolute operator damage milestones are intentionally hidden; BOSS_HIT percentages remain.
+    return;
   }
 
   afterSettle() {

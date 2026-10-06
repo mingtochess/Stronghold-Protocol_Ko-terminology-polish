@@ -11,7 +11,9 @@
 // path always follows `motion` — a hovering (近地悬浮) enemy is an air unit for targeting and blocking (Unit.isFlying)
 // but walks the ground. An unblocked enemy touching an ally with free block capacity — within its block radius (0.7071
 // ground, 0.8944 air, devices 0.4472; Battle._checkBlock) — is blocked, moving or not, so an enemy overlapping an
-// operator is taken over once its blocker is gone. Blocked enemies fight their blocker (ranged ones may pick anyone in
+// operator is taken over once its blocker is gone; never one holding 不可阻挡 (恐惧, 诱导, 浮空, 沉睡): an enemy falling
+// asleep is let go by its blocker, whose slot frees, and stays where it is until it wakes (DESIGN §24.9). Blocked
+// enemies fight their blocker (ranged ones may pick anyone in
 // range, blocker first); every blocker whose attack hits enemies — a ranged operator on a melee tile included — may
 // always target the enemies it blocks, in range or not, whatever its facing, and targets them first (acquireTargets,
 // Battle.blockedTargets; user playtest #6: "阻挡了就一定要能打到"); a heal attack keeps selecting injured allies while
@@ -70,6 +72,7 @@ export function updateAlly(b, u, dt) {
   if (u.atkCd > 0 && u.canAct) u.atkCd = Math.max(0, u.atkCd - dt);
   if (u.blocking.length) enforceBlockCapacity(b, u);
   if (!u.canAct || !u.profile) { cancelWindup(b, u); return; }
+  if(b.time < (u.mem.skillCastUntil || 0))return;
   // a rangeExtend change (buff added / expired) rebuilds the range — also for units that never attack (auras)
   if (b.rangeChanged(u)) b._refreshRange(u);
   const sk = u.skill;
@@ -79,7 +82,13 @@ export function updateAlly(b, u, dt) {
   if (u.s.flags.disarm) { cancelWindup(b, u); return; }
   if (u.mem.attackWindup) {
     const pending = u.mem.attackWindup;
-    if (pending.seq !== u.deploySeq || pending.skillActive !== !!sk?.active) { cancelWindup(b, u); return; }
+    if (pending.seq !== u.deploySeq) { cancelWindup(b, u); return; }
+    if (pending.skillActive !== !!sk?.active) {
+      // A stance/stat skill changes the pending hit, not its deadline or the attack cooldown.
+      if (!!pending.profile.heal !== !!prof.heal) { cancelWindup(b,u); return; }
+      pending.profile=prof;
+      pending.skillActive=!!sk?.active;
+    }
     const candidates = acquireTargets(b, u, pending.profile);
     const previous = pending.targets;
     // Once an attack starts, walking outside its range does not cancel it.
@@ -106,7 +115,7 @@ export function updateAlly(b, u, dt) {
   if (!targets.length) { u.trait.hadTarget = false; return; }
   u.trait.hadTarget = true;
   if (sk && sk.onAboutToAttack()) {
-    if (u.atkCd > 1e-9) return; // onStart may have already performed the attack
+    if (u.atkCd > 1e-9 || b.time < (u.mem.skillCastUntil || 0)) return; // an independent cast owns its full animation
     prof = effectiveProfile(u);
     if (prof.noAttack || !u.alive) return;
     targets = acquireTargets(b, u, prof);
@@ -270,7 +279,7 @@ export function resolveHit(b, u, prof, target, info, x, y) {
     const hits = prof.hitsFn ? prof.hitsFn(b, u) : Math.max(1, prof.hits || 1);
     let dealtMain = 0;
     for (let h = 0; h < hits && target.alive; h++) {
-      dealtMain += b.dealDamage(u, target, { amount: atk * scale * mulT, type: baseType, isAttack: true, isSkill: info.isSkill, tags: prof.tags || [], attackId });
+      dealtMain += b.dealDamage(u, target, { amount: atk * scale * mulT, expectedAmount: atk * scale, type: baseType, isAttack: true, isSkill: info.isSkill, tags: prof.tags || [], attackId });
     }
     dealtTotal += dealtMain;
     if (prof.onHitStatus && target.alive) b.applyStatus(target, prof.onHitStatus.key, { duration: prof.onHitStatus.duration, source: u, value: prof.onHitStatus.value });
@@ -286,7 +295,7 @@ export function resolveHit(b, u, prof, target, info, x, y) {
       if (prof.groundOnly && e.isFlying) continue;
       if (!prof.canHitFly && e.isFlying && !prof.splashHitsFly) continue;
       if (e.s.flags.untargetable) continue;
-      const d = b.dealDamage(u, e, { amount: atk * scale * sc * skillMul, type: baseType, isAttack: true, isSplash: true, isSkill: info.isSkill, attackId });
+      const d = b.dealDamage(u, e, { amount: atk * scale * sc * skillMul, expectedAmount: atk * scale * sc, type: baseType, isAttack: true, isSplash: true, isSkill: info.isSkill, attackId });
       dealtTotal += d;
       if (each) each(e, d, 'splash');
     }
@@ -306,7 +315,7 @@ export function resolveHit(b, u, prof, target, info, x, y) {
       if (!best) break;
       hit.add(best.id);
       b._ev(['atk', prev.id, best.id, 'chain']);
-      const d = b.dealDamage(u, best, { amount: atk * scale * skillMul * Math.pow(1 - (prof.chain.falloff ?? 0.15), k), type: baseType, isAttack: true, isSkill: info.isSkill, tags: ['chain'], attackId });
+      const d = b.dealDamage(u, best, { amount: atk * scale * skillMul * Math.pow(1 - (prof.chain.falloff ?? 0.15), k), expectedAmount: atk * scale * Math.pow(1 - (prof.chain.falloff ?? 0.15), k), type: baseType, isAttack: true, isSkill: info.isSkill, tags: ['chain'], attackId });
       dealtTotal += d;
       if (prof.chain.sluggish && best.alive) b.applyStatus(best, 'sluggish', { duration: prof.chain.sluggish, source: u });
       if (each) each(best, d, 'chain');
@@ -376,11 +385,13 @@ export function compileRoute(route, rect = null) {
   const cr = (r) => (rect ? Math.max(rect.r0, Math.min(rect.r1, r)) : r);
   const cc = (c) => (rect ? Math.max(rect.c0, Math.min(rect.c1, c)) : c);
   for (const cp of route.checkpoints || []) {
-    if (cp.type === 'MOVE') legs.push({ t: 'move', r: cr(cp.pos[0]), c: cc(cp.pos[1]) });
+    if (cp.type === 'MOVE' || cp.type === 'PATROL') legs.push({ t: 'move', r: cr(cp.pos[0]), c: cc(cp.pos[1]), ...(cp.type === 'PATROL' ? {patrol:true} : {}) });
     else if (cp.type === 'WAIT') legs.push({ t: 'wait', time: Number.isFinite(cp.time) ? Math.max(0, cp.time) : 0 });
     else if (cp.type === 'DISAPPEAR') legs.push({ t: 'disappear' });
     else if (cp.type === 'APPEAR') legs.push({ t: 'appear', r: cr(cp.pos[0]), c: cc(cp.pos[1]) });
   }
+  const firstPatrol=legs.findIndex(l=>l.patrol),lastPatrol=legs.findLastIndex(l=>l.patrol);
+  if (firstPatrol>=0) legs[lastPatrol].loopTo=firstPatrol;
   if (route.end) legs.push({ t: 'move', r: cr(route.end[0]), c: cc(route.end[1]), final: true });
   return legs;
 }
@@ -499,17 +510,17 @@ export function updateEnemy(b, e, dt) {
   if (e.hidden) cancelWindup(b, e);
   // hidden (teleporting) enemies only advance wait legs
   const stunned = e.s.flags.stun;
-  if(e.mem.visualShift && b.time<e.mem.visualShift[4]+e.mem.visualShift[5]) {
+  if (e.atkCd > 0 && !stunned && !e.hidden) e.atkCd = Math.max(0, e.atkCd - dt);
+  if(b.time < (e.mem.abilityAnimUntil || 0) || (e.mem.visualShift && b.time<e.mem.visualShift[4]+e.mem.visualShift[5])) {
     cancelWindup(b,e);e.atkStandUntil=-Infinity;e.moving=false;
     if(!e.hidden && !stunned) b._checkBlock(e);
     return;
   }
-  if (e.atkCd > 0 && !stunned && !e.hidden) e.atkCd = Math.max(0, e.atkCd - dt);
   // true: an unblocked ranged enemy in the wind-up of its next attack with a target in range (it stands)
   const winding = !e.hidden && !stunned && enemyAttack(b, e);
   if (!e.alive) return;
   // a stun / freeze / sleep cuts the attack clip short: no stand left once it ends [ASSUMED]
-  if (stunned && !e.hidden) { cancelWindup(b, e); e.atkStandUntil = -Infinity; return; }
+  if (stunned && !e.hidden) { cancelWindup(b, e); e.atkStandUntil = -Infinity; if (e.blockedBy && e.s.flags.sleep) b._unblock(e); return; }
   if (e.blockedBy) {
     const bl = e.blockedBy;
     // (unblockable/levitate/fear may also arrive through a plain addBuff, which does not unblock by itself; a
@@ -635,7 +646,7 @@ function advanceRoute(b, e, dt, R, standing = false) {
     budget = dist / speed;
     if (R.pts && R.ptIdx >= R.pts.length) {
       if (leg.final) { b.leak(e); return; }
-      R.legIdx++;
+      R.legIdx = Number.isInteger(leg.loopTo) ? leg.loopTo : R.legIdx + 1;
       R.pts = null;
     }
   }

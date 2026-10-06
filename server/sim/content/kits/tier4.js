@@ -588,11 +588,12 @@ const kits = {
         } },
         { install(battle, unit) { // 影哨: reveal + −30 % move speed in range; a sentry keeps it after she leaves (max 1)
           const mods = { moveMul: Math.max(0, 1 + num(t1.move_speed, -0.3)) };
+          // priority 20: before 不屈's redeploy (death priority 10), whose deployment starts S3 and its recall
           battle.on('death', (c) => {
             if (c.unit !== unit || c.reason === 'expired') return;
             unit.mem.sentry = new Set(unit.baseRangeKeys || unit.rangeKeys || []);
             battle.fx('sentry', { x: unit.x, y: unit.y, id: unit.id });
-          }, { owner: unit });
+          }, { owner: unit, priority: 20 });
           battle.every(AURA, () => {
             const set = new Set();
             if (unit.alive && unit.deployed) for (const k of unit.rangeKeys || []) set.add(k);
@@ -604,8 +605,25 @@ const kits = {
       ],
       install(battle, unit) {
         if (S3) {
+          battle.on('deploy', (c) => {
+            if (c.unit !== unit || c.move) return;
+            if (unit.mem.inesS3Placed) {
+              unit.skill.activate('deploy');
+              return;
+            }
+            // 首次部署 only places a 影哨 and retreats; it is not a skill activation.
+            // 立刻刷新再部署时间: redeploy as soon as its DP cost is affordable.
+            unit.mem.inesS3Placed = true;
+            battle.after(0, () => {
+              if (!unit.alive || !unit.deployed) return;
+              battle.retreat(unit, { reason: 'retreat' });
+              unit.respawnAt = battle.time;
+              battle.fx('sentry', { x: unit.x, y: unit.y, id: unit.id });
+            }, { owner: unit });
+          }, { owner: unit });
           // where the talent's 影哨 stays (every leave but an expiry), for the recall of the next deployment
-          battle.on('death', (c) => { if (c.unit === unit && c.reason !== 'expired') unit.mem.inesSentryAt = { x: unit.x, y: unit.y }; }, { owner: unit, priority: 5 });
+          // (priority 20: recorded before 不屈's redeploy at death priority 10 starts the next deployment's S3 and its recall)
+          battle.on('death', (c) => { if (c.unit === unit && c.reason !== 'expired') unit.mem.inesSentryAt = { x: unit.x, y: unit.y }; }, { owner: unit, priority: 20 });
           // 技能期间每对一个敌人造成伤害就获得1点部署费用
           battle.on('damaged', (c) => {
             if (c.source !== unit || c.target.side !== 'enemy' || !(c.amount > 0) || c.type === 'element' || !unit.skill?.active || !(unit.skill.timeLeft > 0)) return;
@@ -1499,8 +1517,8 @@ const kits = {
         }),
         skchr_flamtl_2: () => ({
           kind: 'instant',
+          onCastStart({battle,unit}) { battle.addDp(unit.ownerId,num(bb.cost,11)); },
           onStart({ battle, unit }) {
-            battle.addDp(unit.ownerId, num(bb.cost, 11));
             const area = g || [[0, 0], [0, 1]];
             const foes = targetsInGrid(battle, unit, area);
             sortEnemyTargets(battle, unit, foes, null);

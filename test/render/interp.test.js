@@ -237,3 +237,11 @@ describe('SnapshotBuffer', () => {
     }
   });
 });
+
+
+test('boss elemental snapshots preserve the exact accumulated value alongside the gauge',()=>{
+ const s=normalizeSnapshot({gt:2,units:[U(1,2,3)],elem:[[1,'burn',.137,0,0,273.75]]});
+ assert.equal(s.units.get(1)[19],273.75);
+ const legacy=normalizeSnapshot({gt:2,units:[U(1,2,3)],elem:[[1,'burn',.137,0,0]]});
+ assert.equal(legacy.units.get(1)[19],undefined);
+});

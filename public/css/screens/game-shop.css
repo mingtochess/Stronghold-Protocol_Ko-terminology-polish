@@ -16,7 +16,7 @@
    on bench slots 5–9. */
 .gm__hud > .shopbar { pointer-events: none; }
 .shopbar__row, .shopbar__tools > button { pointer-events: auto; }
-.shopbar__tools { display: grid; grid-template-columns: auto auto; justify-content: end; align-items: center; gap: .06rem .12rem; }
+.shopbar__tools { display: grid; grid-template-columns: auto auto auto; justify-content: end; align-items: center; gap: .06rem .12rem; }
 .shopbar__remain {
   grid-column: 1 / -1; justify-self: end; pointer-events: none;
   font-size: .16rem; color: var(--text-md); padding: .04rem .14rem; background: rgba(8, 11, 10, .78);
@@ -60,7 +60,7 @@
 
 /* ---- level card ---- */
 .lvcard {
-  position: relative; width: 1.24rem; height: 2.24rem; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .12rem;
+  position: relative; width: 1.24rem; height: 2rem; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .12rem;
   padding: .2rem .1rem .1rem; background: linear-gradient(180deg, #5fe0b9, #36b690); border: 0; color: var(--text-on-mint);
   clip-path: polygon(0 0, 100% 0, 100% calc(100% - .14rem), calc(100% - .14rem) 100%, 0 100%);
   transition: filter var(--t-fast), transform var(--t-fast);
@@ -87,7 +87,7 @@
 .scard-wrap { display: flex; }
 .scard {
   --tc: var(--tier-1);
-  position: relative; width: 1.56rem; height: 2.24rem; padding: 0; overflow: hidden; text-align: left;
+  position: relative; width: 1.56rem; height: 2rem; padding: 0; overflow: hidden; text-align: left;
   display: flex; flex-direction: column; justify-content: flex-end;
   background: #151a18; border: 1px solid rgba(78, 216, 175, .35);
   transition: transform var(--t-fast) var(--ease-out), border-color var(--t-fast), box-shadow var(--t-fast);
@@ -101,7 +101,7 @@
   linear-gradient(180deg, #1c2320, #0f1311); }
 .scard__water { position: absolute; left: -.2rem; top: .34rem; width: 1.1rem; height: 1.1rem; opacity: .1; }
 .scard__water .bglyph { width: 100%; height: 100%; }
-.scard__art { position: absolute; inset: 0; height: 100%; width: 100%; max-width: none; object-fit: cover; object-position: center top; pointer-events: none;
+.scard__art { position: absolute; inset: -.08rem 0 auto; height: calc(100% + .08rem); width: 100%; max-width: none; object-fit: cover; object-position: center top; pointer-events: none;
   -webkit-mask-image: none; mask-image: none; }
 .scard__top { position: absolute; left: .06rem; right: .06rem; top: .06rem; display: flex; align-items: flex-start; justify-content: space-between; z-index: 2; }
 .scard__price { position: absolute; left: 50%; top: 0; transform: translateX(-50%); filter: drop-shadow(0 1px 3px #000); }
@@ -109,7 +109,7 @@
 .scard__pips { display: flex; gap: .03rem; padding: .03rem .04rem; background: rgba(0, 0, 0, .6); }
 .scard__pips i { width: .07rem; height: .07rem; border: 1px solid var(--gold); transform: rotate(45deg); }
 .scard__pips i.on { background: var(--gold); }
-.scard__body { position: relative; z-index: 2; display: flex; flex-direction: column; gap: .03rem; padding: .3rem .08rem .08rem; background: linear-gradient(0deg, rgba(8, 11, 10, .98) 60%, transparent); }
+.scard__body { position: relative; z-index: 2; display: flex; flex-direction: column; gap: .03rem; padding: .2rem .08rem .08rem; background: linear-gradient(0deg, rgba(8, 11, 10, .98) 48%, transparent); }
 /* the loadout's skill (DESIGN §16) above the name; mint frame = not the default skill */
 .scard__skill { position: absolute; right: .07rem; top: -.02rem; width: .3rem; height: .3rem; display: grid; place-items: center;
   background: #0a0d0c; border: 1px solid var(--line-3); box-shadow: 0 1px 3px rgba(0, 0, 0, .8); }
@@ -161,9 +161,12 @@
 .funds__coin { width: .34rem; height: .34rem; fill: var(--gold); filter: drop-shadow(0 0 .06rem rgba(255, 198, 0, .6)); }
 .funds__num { font-size: .36rem; line-height: 1; font-weight: 700; color: #fff; }
 .funds__label { font-size: .14rem; color: var(--text-lo); letter-spacing: .1em; }
-.funds__collapse { display: flex; align-items: center; gap: .04rem; font-size: .15rem; background: none; border: 1px solid var(--line-2); color: var(--text-lo); padding: .02rem .1rem; }
-.funds__collapse .icon { width: .14rem; height: .14rem; }
-.funds__collapse:hover { color: var(--text-hi); border-color: var(--line-3); }
+ .funds__collapse { display: flex; align-items: center; justify-content: center; gap: .08rem; min-width: max(.8rem, 64px); min-height: 44px; font-size: max(.19rem, 14px); font-weight: 700; background: #17362e; border: 2px solid var(--mint-400); color: var(--mint-400); padding: .08rem .14rem; }
+.funds__collapse .icon { width: max(.23rem, 18px); height: max(.23rem, 18px); }
+.funds__collapse:hover { color: var(--text-hi); background: #225044; }
+.toolbtn--collapse { --tb: var(--mint-400); }
+.shopbar-tab__btn { min-height: 44px; font-size: max(.19rem, 14px); }
+
 .coin-glyph { fill: var(--gold); }
 
 /* collapsed tab */
@@ -230,3 +233,5 @@
 .lvcard.is-armed .lvcard__label { letter-spacing: .12em; padding-left: .12em; }
 
 .scard__skill .scard__profession { width: 100%; height: 100%; object-fit: contain; filter: invert(1); mix-blend-mode: screen; padding: .02rem; }
+
+.funds__collapse .icon, .toolbtn--collapse .icon { transform: rotate(-90deg); }

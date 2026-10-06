@@ -80,7 +80,7 @@ test('Ursus descriptions use the same highlighted thresholds and live layer form
  assert.deepEqual(bond.thresholds,[3,6]);
  assert.ok(bond.descRaw.includes('<@autochess.dgreen>3</>'));
  const effect=formatBondEffect(bond,10);
- assert.ok(effect.includes('+75%'));
+ assert.ok(effect.includes('30%</>'));
  assert.ok(!effect.includes('{0:'));
  assert.ok(parseRichText(effect).some(s=>s.cls.includes('ba.vup')));
  assert.ok(effect.includes('[우르수스]'));

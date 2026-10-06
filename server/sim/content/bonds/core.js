@@ -33,7 +33,7 @@
 // Two players in one field: everything is per player (own members, own deployments); the 谢拉格 wind and 炎佑 act on
 // every enemy of the field (debuffs on shared enemies help both, research 06 §8.6).
 // Hook priorities: 拉特兰 skillStart −10 (after kits' own ammo changes), 阿戈尔 death 11 (5-tier revive, before 不屈's
-// death 10), layerGain −100 (after 魔王-style modifiers).
+// death 10; every `fatal` saver runs before any death hook), layerGain −100 (after 魔王-style modifiers).
 
 import * as S from '../support/index.js';
 import { mitigate } from '../../damage.js';
@@ -352,7 +352,10 @@ function egirDownAtStart(battle, u) {
  * the operator on the tile in front of them (one step along each member's own direction `dir`), and through marked
  * members the tiles in front of
  * those (chain); never themselves, a unit already marked by them or a unit that marked them. The marker gains the base
- * ATK (atkFlat) and block count of everything it marked; then each mark makes its target lose damage_value HP as a
+ * ATK and block count of everything it marked — the ATK as a 最终加算 (`atkFinal`, PRTS 盟约记录 "该付与来源获得所有标记单位
+ * 的基础攻击力（最终加算）和阻挡数"): added after its percentages, so its skill's ATK +% does not scale it (it was `atkFlat`
+ * until 0.1.3: 1000 base ATK, +100 %, +2000 devoured gave 6000 instead of 4000; GitHub #165 point 2, PR #176, the owner's
+ * decision of 2026-10-06, DESIGN §24.7). Then each mark makes its target lose damage_value HP as a
  * 物理流失 (PRTS 盟约记录: "造成5000点物理流失", 修正 "【吞噬】的物理流失来源为被付与目标自身；单位被【吞噬】击杀时，击杀来源始终为
  * 对应标记的付与来源"; PRTS 作战机制: a 物理流失 "会受到目标当前防御力…影响而相应衰减") — less the target's DEF as a physical hit
  * (its own source: no DEF ignore), then battle.loseHp: no shields, dodge or damage multipliers (DEF-free until 0.1.1); the
@@ -361,11 +364,14 @@ function egirDownAtStart(battle, u) {
  * 击倒后解除自身被付与但还未触发的【吞噬】效果". Marks already placed still resolve after their marker leaves the field.
  * 联防: the operators down since the end of their own combat (forced out by Battle.start) mark, are marked and resolve
  * their marks like standing ones, but nothing resolves on them (below; per players' reports, owner's decision 2026-10-04).
- * Each devoured operator adds its tier to 阿戈尔 once (IN_BATTLE gain, disabled in 联防 / boss fields).
+ * Whose operator stands in front does not matter (PRTS "依次吞噬身前一格干员", no own-side limit; the owner's decision of
+ * 2026-10-05 after GitHub #140 comment 4): on a shared field (联防, boss) a teammate's operator — standing, or entering
+ * 联防 down — is marked like an own one, gives the same base ATK / block count, and the chain goes on through it when it
+ * is an 阿戈尔 (S.isMember: its own bonds). Its knock-out is its owner's (their bonds' revives, 不屈 …), credited to the
+ * marker as usual. Each devoured operator adds its tier to 阿戈尔 once (IN_BATTLE gain, disabled in 联防 / boss fields).
  * Tokens / devices / empty tiles are never devoured.
  */
 function devour(battle, pid, bb, members) {
-  const memberSet = new Set(members);
   // 联防: an operator down at the end of its own combat (carryState.down — Battle.start forced it out right before
   // battleStart, FORCED_EXIT) takes part in the devour as if it stood on its tile, then stays out: it marks in its turn,
   // it is "the unit in front" of another (the chain goes on through it when it is a member), its base ATK / block count
@@ -374,12 +380,14 @@ function devour(battle, pid, bb, members) {
   // report #3, GitHub #33 item 3), owner's decision 2026-10-04; until 0.1.2 the forced exit came first and the chain broke.
   const downAtStart = (u) => egirDownAtStart(battle, u);
   const order = members.filter((u) => S.onField(u) || downAtStart(u)).sort(egirOrder);
+  // the operator in front, whoever owns it (until 0.1.3 only the player's own): a living one, else one lying there since
+  // the 联防 start (carry.down, forced out) — a teammate's included
   const opAt = (u) => {
     const [r, c] = S.frontTile(u);
-    const a = S.allyAt(battle, r, c, pid);
+    const a = S.allyAt(battle, r, c);
     if (a) return S.isOp(a) && a.alive ? a : null;
     const d = battle.downOn(r, c);
-    return d && d.ownerId === pid && downAtStart(d) ? d : null;
+    return d && downAtStart(d) ? d : null;
   };
   const markedBy = new Map(); // marker → [targets]
   const marks = [];
@@ -394,14 +402,15 @@ function devour(battle, pid, bb, members) {
       if ((markedBy.get(t) ?? []).includes(m)) continue;
       seen.add(t);
       mine.push(t);
-      if (memberSet.has(t)) queue.push(t);
+      // through a marked 阿戈尔 (for the player's own operators: exactly its members; a teammate's by its own bonds)
+      if (S.isMember(battle, t, 'egirShip')) queue.push(t);
     }
     markedBy.set(m, mine);
     if (!mine.length) continue;
     let atk = 0, block = 0;
     for (const t of mine) { atk += num(t.base.atk, 0); block += num(t.base.blockCnt, 0); marks.push([m, t]); }
     const mods = {};
-    if (atk > 0) mods.atkFlat = atk;
+    if (atk > 0) mods.atkFinal = atk; // 最终加算 (units.js _recalc)
     if (block > 0) mods.blockCnt = block;
     if (Object.keys(mods).length) {
       m.mem.egirDevourMods = { ...mods };
@@ -437,9 +446,8 @@ function installEgir(battle, pid, bb, members) {
   apply();
   onLayers(battle, pid, 'egirShip', apply);
   const max = reached(battle, pid, 'egirShip', bb.power_bond_char_cnt) ? Math.max(0, Math.floor(num(bb.max_free_respawn_cnt, 0))) : 0;
-  const holders = new Map();
+  const holders = new Map(members.filter(x => S.isOp(x)).map(u => [u,u.mem.revives | 0]));
   battle.on('battleStart', () => {
-    for (const u of members.filter((x) => S.isOp(x))) holders.set(u, u.mem.revives | 0);
     // Unite continues the same round. Carry the completed devour, not a fresh battle-start pass.
     const continued = battle.kind === 'unite' && members.some(u => u.carry?.egirDevour?.processed === true);
     if (continued) {
@@ -447,9 +455,9 @@ function installEgir(battle, pid, bb, members) {
         const carry = u.carry?.egirDevour;
         if (!carry?.processed) continue;
         u.mem.egirDevourProcessed = true;
-        const mods = { atkFlat: Math.max(0, Number(carry.atkFlat) || 0), blockCnt: Math.max(0, Number(carry.blockCnt) || 0) };
+        const mods = { atkFinal: Math.max(0, Number(carry.atkFinal ?? carry.atkFlat) || 0), blockCnt: Math.max(0, Number(carry.blockCnt) || 0) };
         u.mem.egirDevourMods = { ...mods };
-        if (mods.atkFlat || mods.blockCnt) S.passiveBuff(battle, u, 'bond:egir:devour', mods);
+        if (mods.atkFinal || mods.blockCnt) S.passiveBuff(battle, u, 'bond:egir:devour', mods);
       }
     } else {
       devour(battle, pid, bb, members);

@@ -2,6 +2,7 @@
 // and the competent-board model of tools/balance.mjs, which now only MEASURES difficulty (docs/BALANCE.md).
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { makeBattle } from '../helpers/battleHarness.js';
 import { GameData } from '../../server/match/gamedata.js';
 import { buildNormalWave, setupMatchWaves } from '../../server/match/waves.js';
 import { computeBonds } from '../../server/match/bondsMeta.js';
@@ -28,8 +29,7 @@ test('no custom balance: legacy tuning multipliers are ignored; enemy scale = th
     assert.deepEqual(hard.enemyScale(r), { hpMul: e.hp, atkMul: e.atk, speedMul: e.speed }, `R${r}: the config (PRTS) table`);
   }
   assert.equal(hard.bossHpMul('boss_1'), 1);
-  // co-op: one pool = bloodPoint[difficulty] whatever the alive count (× alive / 4 only with config aliveScaling, off —
-  // DESIGN §20.10); solo: ×0.25 [ASSUMED, flagged]
+  // Custom boss rule: solo bloodPoint × 1; co-op × alive participants sampled at battle start.
   for (const [modeId, key] of [['mode_multi_funny', 'FUNNY'], ['mode_multi_normal', 'NORMAL'], ['mode_multi_hard', 'HARD'], ['mode_multi_abyss', 'ABYSS']]) {
     const gd = new GameData(RAW, modeId);
     for (const b of ['boss_1', 'boss_5', 'boss_8']) {
@@ -104,4 +104,18 @@ test('runNormal / runBoss return consistent samples (real sim, full content)', (
   assert.ok(b.pool > 0 && b.dmg150 >= 0 && b.dmg150 <= b.pool);
   assert.ok(b.ratio150 >= 0 && b.ratio150 <= 1);
   assert.equal(b.teamLp0, 15);
+});
+
+
+test('basic solo and co-op coefficients reach every normal enemy record once',()=>{
+ for(const [mode,hp,atk] of [['mode_single_normal',.75,.7],['mode_multi_normal',.8,.8]]){
+  const gd=new GameData(RAW,mode),mods=gd.enemyScale(1);
+  assert.equal(mods.hpMul,hp);assert.equal(mods.atkMul,atk);
+  const h=makeBattle({content:'none',autoFinish:false});
+  for(const key of Object.keys(DATA.enemies)){
+   const a=h.spawn(key,{pos:[10,5]}),b=h.spawn(key,{pos:[10,6],mods});
+   assert.ok(Math.abs(b.s.maxHp-a.s.maxHp*hp)<1e-6,`${mode} ${key} HP`);
+   assert.ok(Math.abs(b.s.atk-a.s.atk*atk)<1e-6,`${mode} ${key} ATK`);
+  }
+ }
 });

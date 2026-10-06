@@ -20,7 +20,9 @@ test('room chat stays private and survives waiting, game, results and reconnect'
     await ok(guest,{t:'room.join',code});
     await ok(outsider,{t:'room.create',mode:'coop',difficulty:'NORMAL'});
     await ok(host,{t:'g.chatFaction',faction:'염국'});
-    assert.equal((await guest.waitFor('m.chat')).text,'진영 선택: 염국');
+    const selected=await guest.waitFor('m.chat');
+    assert.equal(selected.text,'진영 선택: 염국');
+    assert.equal(selected.kind,'faction');
     await ok(host,{t:'g.chat',text:'대기실 대화',name:'Forged'});
     const waiting=await guest.waitFor('m.chat');assert.equal(waiting.name,'Host');
     assert.equal(waiting.faction,'염국');
@@ -39,6 +41,15 @@ test('room chat stays private and survives waiting, game, results and reconnect'
     const history=await resumed.waitFor('m.chatHistory',m=>m.messages.length===4);
     assert.equal(history.faction,'염국');
     assert.deepEqual(history.messages.map(m=>m.text),['진영 선택: 염국','대기실 대화','게임 중 대화','결과창 대화']);
+    now+=1100;
+    await ok(resumed,{t:'g.chatFaction',faction:null});
+    const cleared=await guest.waitFor('m.chat',m=>m.text==='진영 선택 취소');
+    assert.equal(cleared.faction,null);
+    assert.equal(cleared.kind,'faction');
+    await ok(resumed,{t:'g.chat',text:'진영 선택 취소',kind:'faction'});
+    const ordinary=await guest.waitFor('m.chat',m=>m.kind==='text'&&m.text==='진영 선택 취소');
+    assert.equal(ordinary.faction,null);
+    assert.equal(ordinary.kind,'text');
     await ok(resumed,{t:'room.leave'});
     assert.equal((await resumed.request({t:'g.chat',text:'left'})).code,'NOT_IN_ROOM');
   } finally {for(const c of clients) await c.terminate();await server.close();}

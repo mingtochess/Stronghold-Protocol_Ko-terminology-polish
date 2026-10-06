@@ -1,4 +1,5 @@
 import {absoluteRangeKeys} from './targeting.js';
+import {unlimitedSkillRange} from '../../shared/skillRangeDisplay.js';
 // Area effects and expanded attack ranges; ordinary stat buffs remain unmarked.
 const AREA_SKILLS = new Set([
   'skchr_lisa_3', 'skchr_mostma_2', 'skchr_mostma_3',
@@ -9,6 +10,7 @@ const AREA_SKILLS = new Set([
 ]);
 export function showsSkillArea(u) {
   if (u?.side !== 'ally') return false;
+  if (unlimitedSkillRange(u.def?.skill,u.skill?.spec?.targeting)) return false;
   // A queued next-attack effect is not a sustained area, even with its own grid.
   if (u.skill?.pending || (!u.skill?.isTimed && u.skill?.spec?.attack && ['instant','charges'].includes(u.skill.kind))) return false;
   // Compare live tiles with the permanent base range: also handles kit-generated
@@ -34,6 +36,7 @@ export function skillAreaKeys(u) {
 }
 export function visibleSkillAreaKeys(u, time) {
   if (!u.alive || !u.deployed) return null;
+  if (unlimitedSkillRange(u.def?.skill,u.skill?.spec?.targeting)) return null;
   if (u.skill?.active && showsSkillArea(u)) return skillAreaKeys(u);
   const pulse = u.mem?.skillArea;
   return pulse && time < pulse.until ? pulse.keys : null;

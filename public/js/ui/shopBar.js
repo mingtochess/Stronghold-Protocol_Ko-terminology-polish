@@ -295,6 +295,7 @@ export function ShopBar({ priv, editable, collapsed, onCollapse, onBuy, onLevel,
   return html`<section class=${cx('shopbar', frozen && 'is-frozen', !editable && 'is-locked', showReward && 'has-reward', armed && 'has-armed')} ref=${barRef} aria-label="调度中心">
     <div class="shopbar__tools">
       <span class="shopbar__remain">剩余可放置角色：<b class=${cx('num', remaining === 0 && 't-orange')}>${remaining}</b></span>
+      <button type="button" class="toolbtn toolbtn--collapse" title="상점 접기" aria-label="상점 접기" onClick=${() => onCollapse(true)}><${Icon} name="chevronLeft" /><span>접기</span></button>
       <button type="button" class=${cx('toolbtn', 'toolbtn--ice', frozen && 'is-on')} disabled=${!!frzReason} onClick=${onFreeze}
         title=${frzReason || (frozen ? '解冻商店 · F' : '冻结商店（下回合保留） · F')}>
         <${Img} src=${uiUrl(data.get('assets'), frozen ? 'shopPanel/frozen_icon2' : 'shopPanel/frozen_icon')} class="toolbtn__img" fallback=${html`<${Icon} name="snow" />`} />
@@ -335,7 +336,7 @@ export function ShopBar({ priv, editable, collapsed, onCollapse, onBuy, onLevel,
           <b class="funds__num num">${funds}</b>
         </div>
         <span class="funds__label">目前资金</span>
-        <button type="button" class="funds__collapse" onClick=${() => onCollapse(true)}><${Icon} name="close" />收起</button>
+        <button type="button" class="funds__collapse" onClick=${() => onCollapse(true)}><${Icon} name="chevronLeft" />접기</button>
       </div>
     </div>
   </section>`;

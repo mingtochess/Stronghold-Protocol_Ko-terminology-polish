@@ -3,6 +3,7 @@ import { normalizeAtlas } from './vendor/resource-atlas.mjs';
 const PREFIX = 'stronghold-resources-';
 let indexPromise;
 let preparing;
+const downloads = new Map();
 const listeners = new Set();
 const contentType = path => path.endsWith('.png') ? 'image/png' : path.endsWith('.atlas') ? 'text/plain' :
   path.endsWith('.mp3') ? 'audio/mpeg' : path.endsWith('.ogg') ? 'audio/ogg' :
@@ -22,7 +23,15 @@ async function complete(cache, resources) {
   return resources.files.every(file => keys.has(file.path)) && keys.has('/fonts/fonts.css') && keys.has('/__resources_ready__');
 }
 
-async function download(file, cache) {
+function download(file, cache, resources) {
+  const key = resources.version + ':' + file.path;
+  if (downloads.has(key)) return downloads.get(key);
+  const job = downloadOne(file, cache, resources).finally(() => downloads.delete(key));
+  downloads.set(key, job);
+  return job;
+}
+
+async function downloadOne(file, cache, resources) {
   if (await cache.match(file.path)) return;
   const previous=await caches.match(file.path);
   if(previous){await cache.put(file.path,previous);return;}
@@ -38,7 +47,22 @@ async function download(file, cache) {
       const body = await response.arrayBuffer();
       if (!body.byteLength) throw new Error('빈 파일');
       if (file.path.endsWith('.png') && new DataView(body).getUint32(0) !== 0x89504e47) throw new Error('잘못된 PNG');
-      await cache.put(file.path, new Response(body, { headers: { 'Content-Type': contentType(file.path) } }));
+      let payload = body;
+      if (file.atlas) {
+        const sizes = new Map();
+        for (const path of file.atlas.textures) {
+          const texture = resources.files.find(f => f.path === path);
+          if (!texture) throw new Error('Missing atlas texture: ' + path);
+          await download(texture, cache, resources);
+          const png = await (await cache.match(path)).arrayBuffer();
+          const view = new DataView(png);
+          sizes.set(path.split('/').at(-1), {width:view.getUint32(16),height:view.getUint32(20)});
+        }
+        const normalized = normalizeAtlas(new TextDecoder().decode(body), {pma:file.atlas.pma, renamePage:name=>name.replace(/[^A-Za-z0-9._-]/g,'_'), pageSize:name=>sizes.get(name.replace(/[^A-Za-z0-9._-]/g,'_'))});
+        if (normalized.missingSize.length) throw new Error('Missing atlas texture dimensions');
+        payload = normalized.text;
+      }
+      await cache.put(file.path, new Response(payload, { headers: { 'Content-Type': contentType(file.path) } }));
       return;
     } catch (error) { lastError = error; }
   }
@@ -49,12 +73,13 @@ async function prepare(background = false) {
   const resources = await index();
   const cache = await caches.open(PREFIX + resources.version);
   if(!background)await cache.delete('/__resources_ready__');
+  await cache.put('/fonts/fonts.css', new Response(resources.fontCss, {headers:{'Content-Type':'text/css'}}));
   const failures = [];
   let next = 0, done = 0;
   const run = async () => {
     while (next < resources.files.length) {
       const file = resources.files[next++];
-      try { await download(file, cache); } catch (error) { failures.push(error.message); }
+      try { await download(file, cache, resources); } catch (error) { failures.push(error.message); }
       send({ type: 'progress', done: ++done, total: resources.files.length });
     }
   };
@@ -121,12 +146,15 @@ self.addEventListener('fetch', event => {
       try{const response=await fetch(event.request);if(response.ok)await cache.put(path,response.clone());return response;}
       catch(error){const old=await cache.match(path);if(old)return old;throw error;}
     }
+    if (path === '/fonts/fonts.css') { const response = new Response(resources.fontCss,{headers:{'Content-Type':'text/css'}}); await cache.put(path,response.clone()); return response; }
     if (path.startsWith('/media/')) {
       const stem = '/assets/audio/' + path.slice('/media/'.length);
       path = resources.files.find(f => ['.mp3', '.ogg', '.wav'].some(ext => f.path === stem + ext))?.path || path;
     }
     const cached = await cache.match(path) || await caches.match(path) || await caches.match(url.pathname);
     if(cached){await cache.put(path,cached.clone());return cached;}
+    const file = resources.files.find(f => f.path === path);
+    if (file) { await download(file, cache, resources); return cache.match(path); }
     const response=await fetch(event.request);
     if(response.ok)await cache.put(path,response.clone());
     return response;

@@ -143,6 +143,13 @@ function translate(s, noPieces = false) {
   let out = dict.get(core);
   if (out === undefined && core.includes('\n')) out = dict.get(core.replace(/\n/g, '\\n'));
   if (out === undefined) out = viaPattern(core);
+  if (out == null) {
+    const shortcut = /^(.*?)(\s*\[[A-Z0-9]+\])$/.exec(core);
+    if (shortcut) {
+      const label = translate(shortcut[1], true);
+      if (label !== shortcut[1]) out = label + shortcut[2];
+    }
+  }
   if (out == null && /[【「]/.test(core)) out = viaBrackets(core);
   if (out == null && !noPieces) out = viaPieces(core);
   let body = fixPunct(out == null ? core : out);

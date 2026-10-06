@@ -18,6 +18,7 @@ ROOT = Path(__file__).resolve().parents[1]
 CACHE = ROOT / '.cache/battle-bundles'
 INDEX = 'https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets2/cn/bundles/hot_update_list.json'
 NAMES = {
+    *[f'battle/prefabs/effects/{nick}.ab' for nick in ['chen3', 'titi', 'wisdel', 'narant', 'ascln']],
     'arts/maps/map_autochess/res.ab', 'arts/maps/map_autochesssand/res.ab',
     'arts/maps/map_autochess/bkg_mesh.ab',
     'arts/maps/common/meshes/s_background_common.ab',

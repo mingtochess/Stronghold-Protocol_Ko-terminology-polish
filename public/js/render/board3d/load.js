@@ -86,7 +86,12 @@ async function fetchText(url) {
   try { const r = await fetch(url, { cache: 'no-cache' }); return r.ok ? await r.text() : null; } catch { return null; }
 }
 async function fetchJson(url) {
-  try { const r = await fetch(url, { cache: 'no-cache' }); return r.ok ? await r.json() : null; } catch { return null; }
+  try {
+    const r = await fetch(url, { cache: url.includes('/map/original/') ? 'force-cache' : 'no-cache' });
+    if (!r.ok) return null;
+    if (url.endsWith('.gz')) return await new Response(r.body.pipeThrough(new DecompressionStream('gzip'))).json();
+    return await r.json();
+  } catch { return null; }
 }
 
 /**
@@ -118,6 +123,43 @@ export function loadBoardPack(assets) {
       (async () => { const u = url('map/fx', 'prefab'); return u ? fetchJson(u) : null; })(),
     ]);
     const meshes = { gate: {} };
+    // Original Unity scenes preserve the artist's mesh, UVs and object placement.
+    // The tile-grid builder remains a fallback for installations without these optional assets.
+    const original = { scenes: {}, materials: {}, images: {}, pending: {}, recent: [] };
+    original.loadStage = (id) => {
+      const u = url('map/original', id);
+      if (!u) return Promise.resolve(null);
+      if (original.scenes[id]) {
+        original.recent = [...original.recent.filter(k => k !== id), id];
+        return Promise.resolve(original.scenes[id]);
+      }
+      return original.pending[id] ||= fetchJson(u).then((scene) => {
+        if (scene?.stageId === id && scene.buckets) {
+          original.scenes[id] = scene;
+          original.recent = [...original.recent.filter(k => k !== id), id];
+          // Browser resource caching retains the compressed file; keep only two decoded scenes in RAM.
+          while (original.recent.length > 2) delete original.scenes[original.recent.shift()];
+        }
+        return original.scenes[id] || null;
+      }).finally(() => { delete original.pending[id]; });
+    };
+    const originalEntries = manifest.groups?.['map/original'] || {};
+    // Optional scene files warm in a bounded background queue. The fallback board
+    // and input stay available while any scene or its textures are downloading.
+    const sceneQueue = Object.entries(originalEntries).filter(([,entry]) => entry.kind === 'original-unity-scene');
+    const warmScene = async () => { while (sceneQueue.length) { const [name] = sceneQueue.shift(); const u = url('map/original', name); if (u) await fetch(u, {cache:'force-cache'}).then(r => r.ok ? r.arrayBuffer() : null).catch(() => null); } };
+    original.warm = Promise.all([warmScene(), warmScene()]);
+    await Promise.all(Object.entries(originalEntries).map(async ([name, entry]) => {
+      const u = url('map/original', name);
+      if (!u) return;
+      if (entry.kind === 'original-unity-scene') return;
+      else if (name === 'crate') original.crate = await fetchJson(u);
+      else if (name === 'materials') original.materials = await fetchJson(u) || {};
+      else if (entry.kind === 'Texture2D') {
+        const image = await assets.image(u).catch(() => null);
+        if (image) original.images[name] = image;
+      }
+    }));
     await Promise.all(Object.entries(PACK_MESHES).map(async ([k, [g, n]]) => {
       const u = url(g, n);
       const text = u ? await fetchText(u) : null;
@@ -135,7 +177,7 @@ export function loadBoardPack(assets) {
     }));
     return {
       key: `${dUrl}#${tiles?.version || 0}`,
-      images, meshes, tiles: isObj(tiles) ? tiles : null, uv: resolveUvTable(isObj(tiles) ? tiles : null),
+      images, meshes, original, tiles: isObj(tiles) ? tiles : null, uv: resolveUvTable(isObj(tiles) ? tiles : null),
       materials: { theme: isObj(theme) ? theme : null, fx: isObj(fxMats) ? fxMats : null },
     };
   })().catch((err) => { console.warn('[board3d] art load failed', err); return null; });

@@ -291,7 +291,7 @@ export function resultDigest(result) {
       (Array.isArray(p.leaked) ? p.leaked : []).map((l) => `${l && l.enemyKey}|${l && l.counted === false ? 0 : 1}|${(l && l.sourcePlayerId) || ''}|${modsKey(l && l.mods)}`).sort(),
       Math.round(Number(p.damageDealt) || 0), Math.round(Number(p.bossDamage) || 0),
       (Array.isArray(p.unitsEnd) ? p.unitsEnd : []).map((u) => [u && u.uid, r4(u && u.hpPct), r4(u && u.sp), !!(u && u.alive),
-        ...(u?.egirDevour?.processed ? [[r4(u.egirDevour.atkFlat), r4(u.egirDevour.blockCnt), u.egirDevour.revives, !!u.egirDevour.revived]] : [])]),
+        ...(u?.egirDevour?.processed ? [[r4(u.egirDevour.atkFinal ?? u.egirDevour.atkFlat), r4(u.egirDevour.blockCnt), u.egirDevour.revives, !!u.egirDevour.revived]] : [])]),
     ];
   });
   const json = JSON.stringify([res.reason ?? null, r4(res.time), res.killed | 0, res.total | 0, players]);
@@ -350,7 +350,7 @@ export function compactResult(res) {
         uid: uidOr(u.uid), defId: keyOr(u.defId), hpPct: Math.max(0, Math.min(1, fnum(u.hpPct))), sp: Math.max(0, Math.min(1e5, fnum(u.sp))),
         skillActive: !!u.skillActive, alive: !!u.alive,
         ...(u.egirDevour?.processed === true ? { egirDevour: {
-          processed: true, atkFlat: fnum(u.egirDevour.atkFlat), blockCnt: fnum(u.egirDevour.blockCnt),
+          processed: true, atkFinal: fnum(u.egirDevour.atkFinal ?? u.egirDevour.atkFlat), blockCnt: fnum(u.egirDevour.blockCnt),
           revives: fnum(u.egirDevour.revives), revived: !!u.egirDevour.revived,
         } } : {}),
       })),

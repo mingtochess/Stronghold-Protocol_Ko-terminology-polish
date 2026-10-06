@@ -323,6 +323,7 @@ export class Battle {
     }
     u.kit = kit || {};
     u.profile = resolveProfile(u.def, u.kit.trait || null);
+    if (u.profile.sub === 'bard') u.mem.noInspire = true;
     if (u.def.untargetable) this.addBuff(u, { key: 'trait:untargetable', flags: { untargetable: true }, persist: true, allowDead: true });
     // abnormal effects a summon holds (tokens.json `abnormal`, PRTS; user playtest #6 item 18): 禁疗 — no heal reaches it;
     // 孤立 ("无法被同阵营选中") — no ally heal or ally selection (auras over a range) reaches it
@@ -577,7 +578,7 @@ export class Battle {
         alive: !!u.alive,
         ...(u.mem.egirDevourProcessed ? { egirDevour: {
           processed: true,
-          atkFlat: u.mem.egirDevourMods?.atkFlat || 0,
+          atkFinal: u.mem.egirDevourMods?.atkFinal ?? u.mem.egirDevourMods?.atkFlat ?? 0,
           blockCnt: u.mem.egirDevourMods?.blockCnt || 0,
           revives: u.mem.egirRevives || 0,
           revived: !!u.mem.egirRevived,
@@ -980,6 +981,7 @@ export class Battle {
     // while the removal bookkeeping runs, a skill onEnd handler must not redeploy the unit (it would come back
     // alive but without its tile in _occ, its buffs wiped and a respawn timer pending) — redeploy from `death` instead
     unit._removing = true;
+    delete unit.mem.skillCastUntil;
     if (unit.skill && unit.skill.active) {
       this._safe(() => unit.skill.end('death'), 'skill.end', unit);
       unit.skill.active = false;
@@ -1144,12 +1146,14 @@ export class Battle {
    * a fenced tile blocks no ground enemy, _blockerFor). Checked every tick for every
    * unblocked enemy, moving or not, so an enemy overlapping an operator is taken over as soon as its blocker is gone or
    * the operator's capacity frees up (user playtest #5 item 4). Several blockers in contact → the nearest [ASSUMED],
-   * ties → the first in row-then-column scan order.
+   * ties → the first in row-then-column scan order. Never blocked: an enemy holding 不可阻挡 (PRTS 异常效果 BLOCK_FREE
+   * 「无法阻挡/被阻挡，自动解除阻挡」) — the flag itself (恐惧 / 诱导 carry it), 浮空, and 沉睡 (SLEEPING = 无法行动+无敌+不可阻挡:
+   * a sleeper takes no block slot, DESIGN §24.9); once it wakes it is blocked again only by a blocker with room.
    */
   _checkBlock(e) {
     if (e.blockedBy || e.hidden || !e.alive) return !!e.blockedBy;
     const f = e.s.flags;
-    if (f.unblockable || f.levitate || f.fear || this.time < (e.mem?.displacedUntil ?? -Infinity)) return false;
+    if (f.unblockable || f.levitate || f.fear || f.sleep || this.time < (e.mem?.displacedUntil ?? -Infinity)) return false;
     const r0 = Math.round(e.y), c0 = Math.round(e.x);
     const w = e.blockWeight ?? 1;
     let u = null, bd = Infinity;
@@ -1253,6 +1257,8 @@ export class Battle {
 
   addBuff(unit, b) {
     if (!unit || (!unit.alive && !b.allowDead)) return null;
+    // Bard immunity is a branch trait, including inspiration from summons and HP/DEF auras.
+    if (unit.mem?.noInspire && (b.status === 'inspire' || b.key === 'inspire' || b.key?.startsWith('inspire:') || b.key?.endsWith(':inspire'))) return null;
     const buff = makeBuff(b);
     const list = unit.buffs;
     let idx = -1;
@@ -1371,7 +1377,7 @@ export class Battle {
   }
 
   /**
-   * Apply a catalogue status. opts: { duration, source, value, force, refresh, point, resistApplied } — returns true
+   * Apply a catalogue status. opts: { duration, source, value, force, refresh, point, resistApplied, reenter } — returns true
    * when applied. Honours enemy immunities (stun/silence/sleep/frozen/levitate/feared) unless `force`. `beforeStatus`
    * handlers may cancel it or change `duration` / `value`. Official rules (buffs.js STATUS): 抵抗 (the `resist` status)
    * shortens the RESIST_STATUSES by its value (default half; applied after `beforeStatus`; `resistApplied` skips that
@@ -1382,8 +1388,11 @@ export class Battle {
    * then resumes); other statuses refresh to the longer duration. 诱导 (`attract`) walks the enemy to `point`
    * ([r, c] or {x, y}; default the source's tile — a new application moves the point); 恐惧 (`fear`) stamps where it
    * was applied and from where (fear.js stampFear: the fan of 恐惧可达地块 its movement uses). A stunned/sleeping operator
-   * releases the enemies it blocks; a feared/levitated/unblockable/attracted enemy is released by its blocker.
-   * `statusApplied` reports the final duration and `entered` (the target did not carry the status before).
+   * releases the enemies it blocks; a feared/levitated/unblockable/attracted/sleeping enemy is released by its blocker
+   * (沉睡 = 无法行动+无敌+不可阻挡, PRTS 异常效果: the slot frees for the next enemy, the sleeper stays put — DESIGN §24.9).
+   * `statusApplied` reports the final duration and `entered` (the target did not carry the status before) — or, with
+   * `reenter`, entered anyway: a pulse whose own short status the caller re-applies as a fresh one each time (缇缇 S2's
+   * sleep ward, DESIGN §24.8); the buff itself is refreshed as usual.
    * A unit that is 无敌 and 无法选中 at once (a 重生 in progress, a hovering or 永久无敌 leader part) takes no status from
    * the other side, `force` included — PRTS 无敌 "无法被不同阵营选中": so a status carried by the very hit that knocked an
    * enemy out does not land after its 重生's cleanse (DESIGN §21.4). A ground enemy's status never lands on an airborne
@@ -1437,7 +1446,7 @@ export class Battle {
     }
     const source = opts.source ?? null;
     let entered = true;
-    for (const b of target.buffs) if ((b.status ?? b.key) === key) { entered = false; break; }
+    if (opts.reenter !== true) for (const b of target.buffs) if ((b.status ?? b.key) === key) { entered = false; break; }
     if (tpl.palsy) {
       this.addBuff(target, { ...palsyBuff(value ?? 1), duration, source });
     } else if (tpl.valued != null && typeof tpl.mods === 'function' && opts.refresh == null) {
@@ -1450,7 +1459,7 @@ export class Battle {
       if (key === 'fear' && b && target.side === 'enemy') stampFear(this, target, b, source);
     }
     const f = tpl.flags;
-    if (f && target.side === 'enemy' && (f.levitate || f.unblockable || f.fear)) this._unblock(target);
+    if (f && target.side === 'enemy' && (f.levitate || f.unblockable || f.fear || f.sleep)) this._unblock(target);
     if (f && target.side === 'ally' && f.noBlock) this.releaseBlocked(target);
     if (this._hooks.statusApplied) this.emit('statusApplied', { source, target, status: key, duration, value, entered });
     return true;
@@ -2179,6 +2188,15 @@ export class Battle {
   _layBody(u) {
     const r = u.tileR, c = u.tileC, hr = u.homeR, hc = u.homeC;
     u.body = [r, c];
+    // a skill-ending return that its death interrupted (乌尔比安's anchor, content/kits/tier5.js): the body lies on
+    // the anchor tile — the marker has already retreated — so every redeploy path (restTile) brings him home
+    const anchor = u.mem?.anchorReturn;
+    if (anchor && Number.isInteger(anchor.r) && this.grid.inRect(anchor.r, anchor.c) && !this.isReservedTile(anchor.r, anchor.c)) {
+      u.body = [anchor.r, anchor.c];
+      u.mem.anchorReturn = null;
+      return;
+    }
+    u.mem.anchorReturn = null;
     if (r === hr && c === hc) return;
     if (!this.allyUnits.some((a) => a !== u && a.uid != null && (a.kind === 'op' || a.kind === 'token') && a.homeR === r && a.homeC === c)) return;
     if (!this.grid.inRect(hr, hc) || this.isReservedTile(hr, hc)) return;
@@ -2394,7 +2412,7 @@ export class Battle {
     for (const u of this.units) {
       if (!u.alive || !u.deployed || u.hidden) continue;
       const v = elementView(u, this.time);
-      if (v) (elem || (elem = [])).push([u.id, v[0], v[1], v[2], v[3]]);
+      if (v) (elem || (elem = [])).push([u.id, v[0], v[1], v[2], v[3], r2(u.elem[v[0]] || 0)]);
     }
     if (elem) snap.elem = elem;
     const ammo = this.units.filter(u => u.alive && u.deployed && !u.hidden && u.skill?.active && u.skill.kind === 'ammo')
@@ -2498,11 +2516,11 @@ export class Battle {
    * attack that spends no ammo (no `ammoUsed`, the skill never ends on it; 圣约送葬人 "不额外消耗弹药").
    * Returns true when an attack was made.
    */
-  forceAttack(u, targets = null, { noAmmo = false } = {}) {
+  forceAttack(u, targets = null, { noAmmo = false, castImpact = false } = {}) {
     if (!u || !u.alive || !u.profile) return false;
     // A charged next attack must not bypass the normal recovery/wind-up.
     // Genuine extra attacks of running skills remain independent.
-    if (u.skill?.pending && (u.atkCd > 1e-9 || u.mem.attackWindup)) return false;
+    if (u.skill?.pending && !castImpact && (u.atkCd > 1e-9 || u.mem.attackWindup)) return false;
     const prof = effectiveProfile(u);
     const t = targets ?? acquireTargets(this, u, prof);
     if (!t || !t.length) return false;

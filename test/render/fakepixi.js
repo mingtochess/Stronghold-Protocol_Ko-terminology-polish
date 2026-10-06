@@ -103,7 +103,7 @@ export function installFakePixi() {
         setEmptyAnimation: () => track(), addEmptyAnimation: () => track(), clearTrack() {}, clearTracks() {}, addListener() {}, update() {}, apply() {},
       };
     }
-    update() {}
+    update(dt) { for (const e of this.state.tracks) if (e) e.trackTime += dt * e.timeScale * this.state.timeScale; }
   }
   const modes = new Proxy({}, { get: () => 0 });
   const P = {

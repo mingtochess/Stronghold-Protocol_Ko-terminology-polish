@@ -71,6 +71,8 @@ describe('phases', () => {
     assert.equal(phaseBanner(PHASE.COMBAT, {}).title, '作战开始');
     assert.match(phaseBanner(PHASE.ROUND_START, { round: 7 }).title, /7/);
     assert.equal(phaseBanner(PHASE.SETTLE, {}), null);
+    assert.equal(phaseBanner(PHASE.ROUND_START, { round: 7 }, 'viewer', false).sub, '观战中');
+    assert.equal(phaseBanner(PHASE.ROUND_START, { round: 7 }, 'viewer', true).sub, '资金已到账');
     assert.equal(prepCapsuleLabel(PHASE.PREP), '休息一下');
   });
   test('战斗结束 SFX: the official BATTLEOVER_* variant for the round', () => {
@@ -254,28 +256,21 @@ describe('placement mirror (canPlace)', () => {
     assert.equal(canPlace(ctx, m.uid, null).ok, false);
     assert.equal(canPlace(ctx, m.uid, { area: 'temp', idx: 0 }).ok, false, 'no temp target');
   });
-  test('only elite 歌蕾蒂娅 carrying HOK-Y lights the 高台; 崖心, 见行者, a normal record and other modules stay on the ground', () => {
-    const HOK_Y = 'uniequip_003_glady';
-    const gladE = piece('chess_char_4_12_b');
-    const gladN = piece('chess_char_4_12_a');
-    const cliff = piece('chess_char_2_03_b');
-    const forcer = piece('chess_char_3_07_b');
+  test('every trait holder (歌蕾蒂娅, 崖心, 见行者, normal and elite) lights the 高台 whatever the module; a plain melee stays on the ground', () => {
+    const holders = ['chess_char_4_12_a', 'chess_char_4_12_b', 'chess_char_2_03_a', 'chess_char_2_03_b', 'chess_char_3_07_a', 'chess_char_3_07_b'].map((id) => piece(id));
     const m = piece(MELEE);
-    const loadout = { chess_char_4_12_a: { module: HOK_Y } };
-    const ctx = ctxFor(privWith({ hand: [gladE, gladN, cliff, forcer, m], loadout }));
-    for (const [row, col] of [[10, 4], [11, 4], [12, 4], [9, 3]]) assert.equal(canPlace(ctx, gladE.uid, { area: 'board', row, col }).ok, true, `elite HOK-Y on ${row},${col}`);
-    const lit = boardTargets(ctx, gladE.uid).legal.map(([a, b]) => tileKey(a, b));
-    assert.equal(lit.length, STAGE.deployTiles.normal.melee.length + STAGE.deployTiles.normal.rangedOnly.length, 'every deploy tile lit');
-    for (const p of [gladN, cliff, forcer, m]) {
-      assert.deepEqual(canPlace(ctx, p.uid, { area: 'board', row: 10, col: 4 }), { ok: false, code: 'BAD_TILE', reason: '近战单位只能部署在地面' }, p.id);
-      assert.equal(canPlace(ctx, p.uid, { area: 'board', row: 9, col: 3 }).ok, true, `${p.id} on the ground`);
+    const every = STAGE.deployTiles.normal.melee.length + STAGE.deployTiles.normal.rangedOnly.length;
+    // the module does not matter: the default, HOK-Y, HOK-X and none on 歌蕾蒂娅; 崖心's HOK-X; none on 见行者
+    for (const loadout of [null, { chess_char_4_12_a: { module: 'uniequip_003_glady' } }, { chess_char_4_12_a: { module: 'uniequip_002_glady' } },
+      { chess_char_4_12_a: { module: 'none' }, chess_char_2_03_a: { module: 'none' }, chess_char_3_07_a: { module: 'none' } }]) {
+      const ctx = ctxFor(privWith({ hand: [...holders, m], loadout }));
+      for (const p of holders) {
+        for (const [row, col] of [[10, 4], [11, 4], [12, 4], [9, 3]]) assert.equal(canPlace(ctx, p.uid, { area: 'board', row, col }).ok, true, `${p.id} on ${row},${col} (${JSON.stringify(loadout)})`);
+        assert.equal(boardTargets(ctx, p.uid).legal.length, every, `${p.id}: every deploy tile lit`);
+      }
+      assert.deepEqual(canPlace(ctx, m.uid, { area: 'board', row: 10, col: 4 }), { ok: false, code: 'BAD_TILE', reason: '近战单位只能部署在地面' }, '角峰');
+      assert.equal(canPlace(ctx, m.uid, { area: 'board', row: 9, col: 3 }).ok, true, '角峰 on the ground');
     }
-    const none = ctxFor(privWith({ hand: [gladE], loadout: { chess_char_4_12_a: { module: 'none' } } }));
-    assert.equal(canPlace(none, gladE.uid, { area: 'board', row: 10, col: 4 }).ok, false, 'no module');
-    const xmod = ctxFor(privWith({ hand: [gladE], loadout: { chess_char_4_12_a: { module: 'uniequip_002_glady' } } }));
-    assert.equal(canPlace(xmod, gladE.uid, { area: 'board', row: 10, col: 4 }).ok, false, 'HOK-X');
-    const bare = ctxFor(privWith({ hand: [gladE] }));
-    assert.equal(canPlace(bare, gladE.uid, { area: 'board', row: 10, col: 4 }).ok, false, 'default module is HOK-X');
   });
   test('not editable ⇒ nothing is legal', () => {
     const m = piece(MELEE);
@@ -503,6 +498,20 @@ describe('keyboard & settings', () => {
     assert.equal(shortcutFor({ key: 'r', code: 'KeyR' }), 'refresh');
     assert.equal(shortcutFor({ key: 'F', code: 'KeyF' }), 'freeze');
     assert.equal(shortcutFor({ key: 'd' }), 'levelUp');
+    assert.equal(shortcutFor({ key: 'q', code: 'KeyQ' }), 'retreat');
+    assert.equal(shortcutFor({ key: 'Q' }), 'retreat');
+    assert.equal(shortcutFor({ code: 'KeyX' }), 'sell');
+    assert.equal(shortcutFor({ key: 'X' }), 'sell');
+    for (const key of ['q', 'x']) {
+      assert.equal(shortcutFor({ key, repeat: true }), null);
+      assert.equal(shortcutFor({ key, ctrlKey: true }), null);
+      assert.equal(shortcutFor({ key, metaKey: true }), null);
+      assert.equal(shortcutFor({ key, altKey: true }), null);
+      for (const tagName of ['INPUT', 'TEXTAREA', 'SELECT']) {
+        assert.equal(shortcutFor({ key, target: { tagName } }), null);
+      }
+      assert.equal(shortcutFor({ key, target: { isContentEditable: true } }), null);
+    }
     assert.equal(shortcutFor({ key: ' ', code: 'Space' }), 'ready');
     assert.equal(shortcutFor({ key: 'Escape' }), 'escape');
     assert.equal(shortcutFor({ key: 'r', ctrlKey: true }), null);
@@ -512,15 +521,25 @@ describe('keyboard & settings', () => {
     assert.equal(shortcutFor({ key: ' ', code: 'Space', target: { tagName: 'BUTTON' } }), 'ready', 'space readies even with a HUD button focused');
     assert.equal(shortcutFor({ key: ' ', code: 'Space', target: { tagName: 'TEXTAREA' } }), null);
     assert.equal(shortcutFor({ key: 'd', target: { tagName: 'DIV', isContentEditable: true } }), null);
-    assert.equal(shortcutFor({ key: 'x' }), null);
+    assert.equal(shortcutFor({ key: 'z' }), null);
     assert.equal(shortcutFor(null), null);
   });
   test('sanitizeSettings', () => {
     assert.deepEqual(sanitizeSettings(null), { ...DEFAULT_SETTINGS });
     assert.deepEqual(sanitizeSettings({ bgm: 3, sfx: -1, muted: 'yes', damageNumbers: false, quality: 'ultra' }),
-      { bgm: 1, sfx: 0, voice: 0.6, voiceLanguage:'kr', muted: false, damageNumbers: false, quality: 'high' });
+      { ...DEFAULT_SETTINGS, bgm: 1, sfx: 0, muted: false, damageNumbers: false, damageNumberMode: 'none', quality: 'high' });
     assert.equal(sanitizeSettings({ bgm: 0.333 }).bgm, 0.33);
     assert.equal(sanitizeSettings({ quality: 'low' }).quality, 'low');
+    assert.equal(sanitizeSettings({chatVolume: 3}).chatVolume, 1);
+    assert.equal(sanitizeSettings({chatVolume: -1}).chatVolume, 0);
+    assert.equal(sanitizeSettings({chatSound: 'off'}).chatSound, 'off');
+    assert.equal(sanitizeSettings({chatSound: 'unknown'}).chatSound, DEFAULT_SETTINGS.chatSound);
+    assert.equal(sanitizeSettings({chatSound: 'melantha-etto'}).chatCooldown, 2);
+    assert.equal(sanitizeSettings({chatSound: 'melantha-etto', chatCooldown: 3.1}).chatCooldown, 3);
+    assert.equal(sanitizeSettings({chatCooldown: 0}).chatCooldown, 1);
+    assert.equal(sanitizeSettings({chatCooldown: 100}).chatCooldown, 5);
+    assert.equal(sanitizeSettings({chatFactionNotifications: true}).chatFactionNotifications, true);
+    assert.equal(sanitizeSettings({chatFactionNotifications: 'true'}).chatFactionNotifications, false);
   });
 });
 
@@ -694,3 +713,14 @@ describe('special terrain tip', () => {
     assert.match(terrainInfo(mire, 0, 0).lines[2], /最多 10 层/);
   });
 });
+
+ test('bond member list includes only selected optional recruits, preserving owned and watched selections', () => {
+  const records = {normal: {name:'Normal'}, recruit: {name:'Recruit',optionalRecruit:true,baseId:'recruit'}};
+  const bond = {members:['normal','recruit']};
+  const rows = priv => bondMembers(bond,priv,[],id=>records[id]).map(r=>r.id).sort();
+  assert.deepEqual(rows({}),['normal']);
+  assert.deepEqual(rows({loadout:{recruit:{selected:false}}}),['normal']);
+  assert.deepEqual(rows({loadout:{recruit:{selected:true}}}),['normal','recruit']);
+  assert.deepEqual(rows({selectedRecruits:['recruit']}),['normal','recruit']);
+  assert.deepEqual(rows({board:[{kind:'chess',id:'recruit'}]}),['normal','recruit']);
+ });

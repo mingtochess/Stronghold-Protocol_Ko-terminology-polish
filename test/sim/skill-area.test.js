@@ -56,3 +56,12 @@ test('pending next-attack skills never expose persistent skill fields',()=>{
  }
  const u=unit('skchr_gumer_1');u.skill.pending=true;u.skill.spec.areaEffect=true;assert.equal(showsSkillArea(u),false);
 });
+test('whole-field and unlimited skills expose neither persistent fields nor lingering instant pulses',async()=>{
+ const {visibleSkillAreaKeys}=await import('../../server/sim/skillArea.js');
+ const u=unit('skchr_gdglow_3');u.alive=true;u.deployed=true;u.skill.active=true;
+ u.skill.spec.targeting={rangeGrid:Array.from({length:19*21},(_,i)=>[Math.floor(i/21)-9,i%21-10])};
+ u.rangeKeys=[1,2,3];u.baseRangeKeys=[1];u.mem={skillArea:{keys:[1,2],until:10}};
+ assert.equal(showsSkillArea(u),false);assert.equal(visibleSkillAreaKeys(u,1),null);
+ u.skill.spec.targeting={rangeExtend:99};assert.equal(showsSkillArea(u),false);
+ u.skill.spec.targeting={rangeGrid:[[0,0],[0,1]]};assert.equal(showsSkillArea(u),true);
+});

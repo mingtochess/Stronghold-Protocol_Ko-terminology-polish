@@ -222,7 +222,7 @@ function wireNet() {
     toast(msg.text, kind);
   });
   net.on('m.ticker', (msg) => {
-    if (typeof msg.text !== 'string') return;
+    if (typeof msg.text !== 'string' || msg.type === 'CHAR_DAMAGE') return;
     // type, player + the round it came in: a BOSS_HIT line is dropped once its boss round is over and superseded by the
     // same player's next one (ui/ticker.js tickerLineLive / tickerSupersedes)
     const type = typeof msg.type === 'string' ? msg.type : null;

@@ -463,7 +463,7 @@ function lemuen(bb, chess, def) {
     for (const e of battle.foesInRadius(x, y, d2)) {
       if (e.s.flags.untargetable) continue;
       const d = bodyDist(e, x, y);
-      battle.dealDamage(unit, e, { amount: atk * (d <= d1 + 1e-9 ? s1 : s2), type: 'phys', isSkill: true, isSplash: true, tags: ['skill', 'bombard'] });
+      battle.dealDamage(unit, e, { amount: atk * (d <= d1 + 1e-9 ? s1 : s2), cachedAttack: atk, forceCritical: true, type: 'phys', isSkill: true, isSplash: true, tags: ['skill', 'bombard'] });
     }
   };
   const bombard = (battle, unit, locks) => {
@@ -524,7 +524,7 @@ function lemuen(bb, chess, def) {
         if (A.t + 1e-9 < aimS.dur && !(unit.s.atk * scale > e.hp + e.s.def)) return;
         endAim(battle, unit);
         battle.fx('crit', { x: e.x, y: e.y, id: e.id, src: unit.id });
-        battle.dealDamage(unit, e, { amount: unit.s.atk * scale, type: 'phys', canDodge: false, isSkill: true, tags: ['skill', 'snipe'] });
+        battle.dealDamage(unit, e, { amount: unit.s.atk * scale, type: 'phys', canDodge: false, forceCritical: true, isSkill: true, tags: ['skill', 'snipe'] });
         if (skill.active && skill.ammoLeft <= 0) skill.end('ammo');
       },
       onEnd({ battle, unit }) { endAim(battle, unit); },

@@ -129,3 +129,9 @@ test('stun aliases in a skin play their own loop and ignore attacks', () => {
  assert.equal(a.roles.stun.loop,'Stun_Loop');a.attack(1);assert.equal(a.current,'Stun_Start');
  a.setBase('idle');assert.equal(a.current,'Idle');
 });
+
+test('form-specific stun animation resolves from the equipped model idle suffix',()=>{
+ const entry={anims:{idle:'Idle_B',deploy:'Idle_B',attack:{loop:'Attack_B'},stun:null},animations:{Idle_B:1,Stun_B:1,Attack_B:1},hits:{}};
+ const a=new SpineActor({animations:Object.keys(entry.animations).map(name=>({name}))},entry);
+ a.setBase('stun');assert.equal(a.current,'Stun_B');a.attack(1);assert.equal(a.current,'Stun_B');a.setBase('idle');assert.equal(a.current,'Idle_B');
+});

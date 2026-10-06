@@ -461,3 +461,9 @@ test('a charged next attack triggered during recovery cannot force a second imme
  h.run(.5);assert.equal(u.stats.attacks,before+1);assert.equal(sk.pending,false);
  h.run(.5);assert.equal(u.stats.attacks,before+1,'no duplicate normal attack after the enhanced attack');
 });
+
+test('SKILL_RANGE skills without a separate trigger grid use their authored skill range',()=>{
+ const rec=chessRec({id:'wide_cast',rangeGrid:[[0,0],[0,1]],skill:{spCost:1,initSp:1,duration:5,skillType:'AUTO',trigger:{rule:'SKILL_RANGE'}}});
+ const h=makeBattle({defs:{chess:{wide_cast:rec},enemies:{enemy_dummy:dummy()}},units:[{chessId:'wide_cast',row:10,col:3}],enemies:[{key:'enemy_dummy',pos:[10,6]}],kits:{wide_cast:()=>({skill:{kind:'duration',duration:5,targeting:{rangeGrid:[[0,0],[0,1],[0,2],[0,3]]}}})}});
+ h.run(.2);assert.ok(h.unit('wide_cast').skill.active);assert.equal(h.unit('wide_cast').skill.activations,1);
+});

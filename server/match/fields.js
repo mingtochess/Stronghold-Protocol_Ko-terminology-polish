@@ -834,8 +834,8 @@ export function validateClientResult(spec, raw, { gd = null } = {}) {
         if (!finiteIn(u.hpPct, 0, 1) || !finiteIn(u.sp, 0, 1e5)) return bad('unit state');
         let egirDevour;
         if (u.egirDevour?.processed === true) {
-          if (!own.bonds.has('egirShip') || !finiteIn(u.egirDevour.atkFlat, 0, 1e5) || !finiteIn(u.egirDevour.blockCnt, 0, 200) || !Number.isInteger(u.egirDevour.revives) || !finiteIn(u.egirDevour.revives, 0, 3)) return bad('egir state');
-          egirDevour = { processed: true, atkFlat: u.egirDevour.atkFlat, blockCnt: u.egirDevour.blockCnt, revives: u.egirDevour.revives, revived: !!u.egirDevour.revived };
+          if (!own.bonds.has('egirShip') || !finiteIn(u.egirDevour.atkFinal ?? u.egirDevour.atkFlat, 0, 1e5) || !finiteIn(u.egirDevour.blockCnt, 0, 200) || !Number.isInteger(u.egirDevour.revives) || !finiteIn(u.egirDevour.revives, 0, 3)) return bad('egir state');
+          egirDevour = { processed: true, atkFinal: u.egirDevour.atkFinal ?? u.egirDevour.atkFlat, blockCnt: u.egirDevour.blockCnt, revives: u.egirDevour.revives, revived: !!u.egirDevour.revived };
         }
         unitsEnd.push({ uid: u.uid, defId: own.all.get(u.uid), hpPct: u.hpPct, sp: u.sp, skillActive: !!u.skillActive, alive: !!u.alive && u.hpPct > 0, ...(egirDevour ? { egirDevour } : {}) });
       }

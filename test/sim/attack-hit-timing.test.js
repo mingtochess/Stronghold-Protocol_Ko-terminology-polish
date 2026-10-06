@@ -2,6 +2,7 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {makeBattle, chessRec, enemyRec} from '../helpers/battleHarness.js';
 import {spineAttackTiming, attackWindup} from '../../shared/attackTiming.js';
+import {updateAlly} from '../../server/sim/ai.js';
 const timing = {front:{attack:{dur:1,hit:.4},skills:{}},back:null};
 function scenario(side='ally') {
  const op={...chessRec({id:'timed',skill:null,stats:{atk:side==='ally'?100:0,blockCnt:0,bat:1}}),attackTiming:timing};
@@ -16,6 +17,14 @@ for (const side of ['ally','enemy']) test(`${side}: no damage before OnAttack; o
 test('a living target leaving range does not cancel the committed attack',()=>{
  const h=scenario();h.step();const u=h.unit('timed'),e=h.enemies()[0];e.x=18;e.y=10;e.tileC=18;h.run(.6);
  assert.equal(u.stats.attacks,1);assert.equal(u.mem.attackWindup,undefined);assert.ok(!h.events.some(e=>e[0]==='atkCancel'));assert.ok(e.hp<e.s.maxHp);
+});
+test('an immediate attack-enhancing skill preserves the in-progress hit deadline',()=>{
+ const h=scenario();h.step();const u=h.unit('timed'),until=u.mem.attackWindup.until;
+ u.skill={active:true,index:2,attackOverride:()=>({dmgMul:2}),targetingOverride:()=>null};
+ updateAlly(h.b,u,.05);assert.equal(u.mem.attackWindup.until,until);
+ assert.equal(u.mem.attackWindup.profile.skillDmgMul,2);
+ assert.equal(h.eventsOf('atkStart').filter(e=>e[1]===u.id).length,1);
+ assert.equal(h.eventsOf('atkCancel').filter(e=>e[1]===u.id).length,0);
 });
 test('Spine extraction keeps skill OnAttack; attack speed compresses wind-up in the same ratio',()=>{
  const sp={anims:{idle:'Idle',attack:{loop:'Attack'},skills:{2:{loop:'Skill'}}},animations:{Attack:1,Skill:2},hits:{Attack:[.4],Skill:[.8]}};

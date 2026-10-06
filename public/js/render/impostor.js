@@ -28,9 +28,10 @@ const GRID = 16;
 
 export class ImpostorAtlas {
   /** @param {any} renderer PIXI renderer */
-  constructor(renderer) {
+  constructor(renderer, { isolated = false } = {}) {
     this.P = globalThis.PIXI;
     this.R = renderer;
+    this.isolated = isolated;
     this.res = Math.max(1, Math.min(2, renderer.resolution || 1));
     this.pages = [];
     this.parked = new this.P.Container(); // skeletons of impostor units (never rendered directly)
@@ -59,6 +60,9 @@ export class ImpostorAtlas {
 
   /** Allocate a slot of at least w×h CSS px (rounded up to the grid); null when every page is full. */
   alloc(w, h, { clip = false } = {}) {
+    // Mobile tiled GPUs can retain neighbouring slots after masked/ERASE passes.
+    // A private target is cleared before every redraw by UnitView instead.
+    if (this.isolated) return null;
     const kind = clip ? 'clip' : 'main';
     const W = Math.max(GRID, Math.ceil(w / GRID) * GRID), H = Math.max(GRID, Math.ceil(h / GRID) * GRID);
     if (W > this.sizeOf(kind) || H > this.sizeOf(kind)) return null;

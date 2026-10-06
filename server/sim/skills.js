@@ -1,3 +1,4 @@
+import {skillImpactTiming} from '../../shared/attackTiming.js';
 import {showsSkillArea,skillAreaKeys} from './skillArea.js';
 // server/sim/skills.js — skill runtime: SP, charges, trigger rules, kinds, SkillSpec interpretation (DESIGN §5.6).
 //
@@ -53,6 +54,12 @@ const TRIGGER_PROFILE = Object.freeze({ canHitFly: true });
 /** Every tile of the stage (GDGLOW_SKILL_2: the whole field). */
 const ALL_TILES = new Set(Array.from({ length: ROWS * COLS }, (_, i) => i));
 
+/**
+ * The 'skill' animation window the sim reports to the client: `unit.skillAnimUntil` (snapshot.js `animOf` → ANIM.SKILL,
+ * and the `['skill', id, 1]` / `0` events). An instant cast and a deploy-time passive both use it.
+ */
+const SKILL_ANIM_WINDOW = 0.5;
+
 export class SkillRuntime {
   /**
    * @param {object} battle
@@ -83,7 +90,7 @@ export class SkillRuntime {
     if (this.rule === 'ALWAYS') this.rule = 'SP_FULL';
     if (this.rule === 'MANUAL') this.rule = 'NEVER';
     if (this.rule.startsWith('CUSTOM_RANGE')) this.rule = 'CUSTOM_RANGE';
-    this.triggerGrid = trig.grid ?? trig.rangeGrid ?? d.trigger?.grid ?? null;
+    this.triggerGrid = trig.grid ?? trig.rangeGrid ?? d.trigger?.grid ?? (this.rule === 'SKILL_RANGE' ? (s.targeting?.rangeGrid ?? d.rangeGrid) : null);
     // kit options: an injured, healable ally of the trigger grid with an HP ratio of at most `hpAtMost` (SKILL_RANGE:
     // instead of an enemy; DEFAULT: in addition to the basic rule)
     this.triggerAllies = !!trig.allies;
@@ -224,6 +231,20 @@ export class SkillRuntime {
     this.active = true;
     this._applyMods();
     this._call('onStart', { reason: 'passive' });
+    // A deploy-time passive (琳琅诗怀雅 S1 仗义疏财 / S2 “见面礼”: kind 'passive' with no duration) never goes through
+    // `activate()`, so the client saw no 'skill' event at all and its model never played the skill clip the manifest
+    // carries for it (player report follow-up: the 57 instant clips with no Begin / own Idle — 2 of them passives;
+    // 凯瑟琳 S1 is `kind: instant` in the sim and already casts). Fire the same bounded window an instant cast uses, so
+    // the actor plays that clip once and then goes back to its idle with attacks on the normal clip. A passive WITH a
+    // duration (缄默德克萨斯 S1–S3, 野鬃 S1, 伊内丝 S3, 耀骑士临光 S2) is left alone: the sim keeps it active until
+    // death, so "how long should its stance show" is a separate question.
+    if (!this.noSkill && !(this.duration > 0)) {
+      const b = this.battle;
+      const u = this.unit;
+      b._ev(['skill', u.id, 1]);
+      u.skillAnimUntil = b.time + SKILL_ANIM_WINDOW;
+      b.after(SKILL_ANIM_WINDOW, () => { if (u.alive) b._ev(['skill', u.id, 0]); }, { owner: u });
+    }
   }
 
   _applyMods() {
@@ -299,7 +320,7 @@ export class SkillRuntime {
     // natural SP recovery stops only under 阻回 (noSp; a running timed skill holds it too) — not while 晕眩 / 冻结 / 浮空
     // keep the unit from acting: PRTS 技能 "在阻回状态或技力条已满时，保留剩余冷却时间，计时暂停"; PRTS 异常效果 STUNNED
     // "无法攻击、释放技能、阻挡敌人类单位" says nothing of SP (community report #18: 洛洛's S2 self-stun froze her SP)
-    if (this.spType === 'time' && !(this.active && this.isTimed) && !u.s.flags.noSp && u.alive && u.deployed && !u.hidden) {
+    if (this.spType === 'time' && !(this.active && this.isTimed) && this.battle.time >= (u.mem.skillCastUntil || 0) && !u.s.flags.noSp && u.alive && u.deployed && !u.hidden) {
       const rate = u.s.spRecovery;
       if (rate > 0) this.gainSp(rate * dt, 'time');
     }
@@ -428,7 +449,7 @@ export class SkillRuntime {
     if (this.active && this.isTimed) return false;
     const u = this.unit;
     if (!u.alive || !u.deployed) return false;
-    if (this.battle.time < (u.deployUntil || 0)) return false;
+    if (this.battle.time < (u.deployUntil || 0) || this.battle.time < (u.mem.skillCastUntil || 0)) return false;
     if (!free) {
       const wasFull = this.charges >= this.maxCharges;
       this.charges--;
@@ -453,13 +474,32 @@ export class SkillRuntime {
       if (this.spec.mods || this.spec.flags || this.spec.targeting) this._applyMods();
     }
     b._ev(['skill', u.id, 1]);
-    u.skillAnimUntil = b.time + 0.5;
-    this._call('onStart', { reason });
+    u.skillAnimUntil = b.time + SKILL_ANIM_WINDOW;
+    const cast = !this.isTimed ? skillImpactTiming(u) : null;
+    const finishStart = () => {
+      this._call('onStart', { reason });
+      if (!this.isTimed && !this.pending) {
+        if (showsSkillArea(u)) u.mem.skillArea = {keys:skillAreaKeys(u).slice(),until:b.time+Math.max(.5,Number(this.spec.areaDuration)||0)};
+        this.end('instant');
+      }
+    };
+    this._call('onCastStart', {reason});
+    if (cast) {
+      const seq=u.deploySeq, activation=this.activations;
+      u.mem.skillCastUntil=b.time+cast.dur;
+      if(u.mem.attackWindup){delete u.mem.attackWindup;b._ev(['atkCancel',u.id]);}
+      u.skillAnimUntil=b.time+cast.dur;
+      b.after(cast.hit,()=>{
+        if(!u.alive || !u.deployed || u.deploySeq!==seq || this.activations!==activation || !this.active)return;
+        if(u.s.flags.stun || u.s.flags.frozen || u.s.flags.sleep){delete u.mem.skillCastUntil;this.end('interrupted');return;}
+        finishStart();
+      },{owner:u});
+    } else this._call('onStart', { reason });
     if (b._hooks.skillStart) b.emit('skillStart', { unit: u, skill: this, reason });
     // bullets added in skillStart (拉特兰's ×(1.05 + 0.015 × layers), 逃犯引渡手续, talents): the bar's full mark
     // (community report #35: the extra bullets sat above a full bar until fewer than the base count were left)
     if (this.active && this.ammoLeft > this.ammoMax) this.ammoMax = this.ammoLeft;
-    if (!this.isTimed && !this.pending) {
+    if (!cast && !this.isTimed && !this.pending) {
       if (showsSkillArea(u)) u.mem.skillArea = {keys:skillAreaKeys(u).slice(),until:b.time+Math.max(.5,Number(this.spec.areaDuration)||0)};
       this.end('instant');
     }
@@ -497,8 +537,8 @@ export class SkillRuntime {
 
   /**
    * End the active skill. onEnd runs while the skill's mods / range are still applied (end-of-skill effects — finishers,
-   * bombardments — use the skill's stats and range; `active` is already false), then they are removed (kept when onEnd
-   * re-activated the skill), then `skillEnd` fires.
+   * bombardments — use the skill's stats and range; `active` is already false), then they are removed and `skillEnd`
+   * fires — neither when onEnd re-activated the skill (the new cast owns both).
    */
   end(reason = 'end') {
     if (!this.active || this.kind === 'passive' && reason !== 'death') return;
@@ -511,7 +551,11 @@ export class SkillRuntime {
     this.ammoMax = 0;
     const n = this.activations;
     this._call('onEnd', { reason });
-    if (!this.active && this.activations === n) this._removeMods();
+    // onEnd started the next cast (耀骑士临光 S2 retreats on its duration end and 不屈 redeploys her inside that call; the
+    // deploy-timed skill starts again, PR #109): that cast owns the mods and its events — a trailing skillEnd would make
+    // listeners (骑士戒律) clear the new cast and the client would see the skill off while it runs
+    if (this.active || this.activations !== n) return;
+    this._removeMods();
     if (b._hooks.skillEnd) b.emit('skillEnd', { unit: u, skill: this, reason });
     if (this.kind !== 'passive') b._ev(['skill', u.id, 0]);
   }

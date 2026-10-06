@@ -1,0 +1,78 @@
+{
+  "targetLUFS": -18,
+  "truePeakCeilingDBTP": -2,
+  "clips": [
+    {
+      "id": "kroos-kokodayo",
+      "label": "크루스 — 코코다요",
+      "sourceUrl": "https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets2/voice/assets/dyn/audio/sound_beta_2/voice/char_124_kroos/cn_026.mp3",
+      "sourceSha256": "b71bc28118bb17846debf00461fae48d8f9397a18dcf6dc7f33396c756eb4890",
+      "startSeconds": 0,
+      "endSeconds": 2.9,
+      "durationSeconds": 2.9,
+      "loudnessLUFS": -18.45,
+      "truePeakDBTP": -3.76,
+      "path": "/audio/chat-notification/kroos-kokodayo.mp3"
+    },
+    {
+      "id": "melantha-etto",
+      "label": "멜란사 — 에또",
+      "sourceUrl": "https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets2/voice/assets/dyn/audio/sound_beta_2/voice/char_208_melan/cn_011.mp3",
+      "sourceSha256": "8707d729f51c711b927bdb80b3e3cc47d91e0b94cf60552f34e506c61b35b733",
+      "startSeconds": 0,
+      "endSeconds": 0.8,
+      "durationSeconds": 0.8,
+      "loudnessLUFS": -18.42,
+      "truePeakDBTP": -6.02,
+      "path": "/audio/chat-notification/melantha-etto.mp3"
+    },
+    {
+      "id": "swire-gao",
+      "label": "스와이어 — 갸오",
+      "sourceUrl": "https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets2/voice/assets/dyn/audio/sound_beta_2/voice/char_308_swire/cn_042.mp3",
+      "sourceSha256": "20279ef26d376d518819dff343e962202c0f6cceb3a3a0848040f580ab991452",
+      "startSeconds": 1.1,
+      "endSeconds": 2.65,
+      "durationSeconds": 1.55,
+      "loudnessLUFS": -18.45,
+      "truePeakDBTP": -7.03,
+      "path": "/audio/chat-notification/swire-gao.mp3"
+    },
+    {
+      "id": "exusiai-apple-pie",
+      "label": "엑시아 — 애플파이",
+      "sourceUrl": "https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets2/voice/assets/dyn/audio/sound_beta_2/voice/char_103_angel/cn_028.mp3",
+      "sourceSha256": "e680f82ee32280224edbd8adb41039ba6f86dc6bd3b24e302ca2ef4280fec461",
+      "startSeconds": 0,
+      "endSeconds": 0.95,
+      "durationSeconds": 0.95,
+      "loudnessLUFS": -18.43,
+      "truePeakDBTP": -4.65,
+      "path": "/audio/chat-notification/exusiai-apple-pie.mp3"
+    },
+    {
+      "id": "exusiai-alter-char-siu-apple-pie",
+      "label": "신시아 — 차슈 애플파이",
+      "sourceUrl": "https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets2/voice/assets/dyn/audio/sound_beta_2/voice/char_1041_angel2/cn_028.mp3",
+      "sourceSha256": "82b6cfb16333261b3aab704d2583b91244494bbb7603e9c4aac5d090d660ced7",
+      "startSeconds": 0,
+      "endSeconds": 2.16,
+      "durationSeconds": 2.16,
+      "loudnessLUFS": -18.45,
+      "truePeakDBTP": -8.0,
+      "path": "/audio/chat-notification/exusiai-alter-char-siu-apple-pie.mp3"
+    },
+    {
+      "id": "ceobe-dadada",
+      "label": "케오베 — 다다다",
+      "sourceUrl": "https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets2/voice/assets/dyn/audio/sound_beta_2/voice/char_2013_cerber/cn_027.mp3",
+      "sourceSha256": "2ee9955253606d656fe4d1f23674d7b3a000145bff368b07ae81510683a0416d",
+      "startSeconds": 0,
+      "endSeconds": 0.92,
+      "durationSeconds": 0.92,
+      "loudnessLUFS": -18.44,
+      "truePeakDBTP": -5.86,
+      "path": "/audio/chat-notification/ceobe-dadada.mp3"
+    }
+  ]
+}

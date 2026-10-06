@@ -10,8 +10,8 @@ function setup(n,layers=0){
 }
 test('Ursus 2: no drone or speed buff',()=>{const h=setup(2);h.step(1);assert.equal(h.b.allyUnits.filter(u=>u.defId===DRONE_ID).length,0);close(h.unit('u0_a').s.aspd,100)});
 for(const n of [3,5,6])test(`Ursus ${n}: one drone, layer scaling, selective +50 ASPD`,()=>{
- const h=setup(n,10);h.step(1);const d=h.b.allyUnits.find(u=>u.defId===DRONE_ID);assert.ok(d);close(d.s.atk,1750);close(d.s.maxHp,22750);close(d.hp,d.s.maxHp);close(d.s.aspd,n===6?150:100);close(h.unit('u0_a').s.aspd,n===6?150:100);close(h.unit('u6_a').s.aspd,100);
- h.b.addLayers('p1','ursusShip',20,'test');h.step(2);close(d.s.atk,2250);close(d.s.maxHp,29250);close(d.s.aspd,n===6?150:100);assert.equal(h.b.allyUnits.filter(u=>u.defId===DRONE_ID).length,1);checkInvariants(h.b);
+ const h=setup(n,10);h.step(1);const d=h.b.allyUnits.find(u=>u.defId===DRONE_ID);assert.ok(d);close(d.s.atk,n===6?1566.175:1300);close(d.s.maxHp,16900);close(d.hp,d.s.maxHp);close(d.s.aspd,n===6?150:100);close(h.unit('u0_a').s.aspd,100);close(h.unit('u0_a').s.atk,650);close(h.unit('u0_a').s.maxHp,2600);close(h.unit('u6_a').s.aspd,100);
+ h.b.addLayers('p1','ursusShip',20,'test');h.step(2);close(d.s.atk,n===6?1888.125:1500);close(d.s.maxHp,19500);close(d.s.aspd,n===6?150:100);assert.equal(h.b.allyUnits.filter(u=>u.defId===DRONE_ID).length,1);checkInvariants(h.b);
 });
 test('Default official data has no experimental faction, operators, or drone',()=>{
  for(const [file,key]of [['bonds','ursusShip'],['tokens',DRONE_ID],['chess','chess_custom_ursus_helage_a']])assert.equal(JSON.parse(readFileSync(new URL(`../../data/${file}.json`,import.meta.url)))[key],undefined);
@@ -22,9 +22,9 @@ test('Coop Ursus effects and live layer gains stay with the owning player',()=>{
  const h=makeBattle({kind:'unite',flags:{layerGainsEnabled:true},rect:{r0:9,r1:12,c0:2,c1:18},defs:{chess,tokens:{[DRONE_ID]:drone},enemies:{dummy:enemyRec({key:'dummy',hp:1e8,speed:0,atk:0})}},players:[
  {playerId:'p1',units:[{chessId:'u_a',row:10,col:3}],bonds:state(6,0)},
  {playerId:'p2',colOffset:8,units:[{chessId:'u_a',row:10,col:12}],bonds:state(3,20)}]});
- h.step(1);const d1=h.b.allyUnits.find(u=>u.defId===DRONE_ID&&u.ownerId==='p1'),d2=h.b.allyUnits.find(u=>u.defId===DRONE_ID&&u.ownerId==='p2');assert.ok(d1&&d2);close(d1.s.atk,1500);close(d2.s.atk,2000);close(d1.s.aspd,150);close(d2.s.aspd,100);
- for(const u of h.b.allyUnits.filter(u=>u.kind==='op'))close(u.s.aspd,u.ownerId==='p1'?150:100);
- h.b.addLayers('p2','ursusShip',10,'test');h.step(2);close(d1.s.atk,1500);close(d2.s.atk,2250);checkInvariants(h.b);
+ h.step(1);const d1=h.b.allyUnits.find(u=>u.defId===DRONE_ID&&u.ownerId==='p1'),d2=h.b.allyUnits.find(u=>u.defId===DRONE_ID&&u.ownerId==='p2');assert.ok(d1&&d2);close(d1.s.atk,1236);close(d2.s.atk,1400);close(d1.s.aspd,150);close(d2.s.aspd,100);
+ for(const u of h.b.allyUnits.filter(u=>u.kind==='op'))close(u.s.aspd,100);
+ h.b.addLayers('p2','ursusShip',10,'test');h.step(2);close(d1.s.atk,1236);close(d2.s.atk,1500);checkInvariants(h.b);
 });
 
 test('Drone +50 ASPD shortens actual launches from five seconds to 3.33 seconds',()=>{
@@ -133,4 +133,14 @@ test('aim follows a moving target and changes dead or out-of-range targets witho
  const hit=h.eventsOf('fx').find(e=>e[1]==='bombard');assert.ok(hit);close(hit[2],spot);
  assert.equal(h.eventsOf('fx').filter(e=>e[1]==='bombardShell').length,1,'retarget never restarts the bombardment');
  }
+});
+
+
+test('six Ursus adds donated total ATK before the three-member percentage, tracks skill buffs and deaths without recursion',()=>{
+ const h=setup(6,10);h.step();const d=h.b.allyUnits.find(u=>u.defId===DRONE_ID),u=h.unit('u0_a');
+ const expected=()=> (1000+h.b.allyUnits.filter(a=>a.kind==='op'&&a.ownerId==='p1'&&a.alive&&a.deployed&&a.def.bonds.includes('ursusShip')).reduce((sum,a)=>sum+a.s.atk,0)*.0525)*1.3;
+ close(d.s.atk,expected());
+ h.b.addBuff(u,{key:'test:skill-strength',mods:{atkPct:1},duration:10});h.step();close(d.s.atk,expected());
+ const buffed=d.s.atk;h.step(10);close(d.s.atk,buffed);
+ h.b.kill(u,null);h.step();assert.ok(d.s.atk<buffed);close(d.s.atk,expected());
 });

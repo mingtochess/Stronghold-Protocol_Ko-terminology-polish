@@ -1,11 +1,12 @@
+import { DAMAGE_NUMBER_MODES, damageNumberMode } from '../../../shared/damageDisplay.js';
 // Pure in-match UI logic (no DOM, no Preact) — unit-tested in Node (test/ui/*.test.js).
 //
 // Placement legality (`canPlace`) mirrors the server rules of DESIGN §3/§6.2 so the render view can
 // light legal tiles while dragging; the server stays authoritative and may still refuse a move.
 //
 //   Board = own normal field (GEO.FIELD rows 9–12, cols 2–10). Melee chess stand on `melee` deploy tiles
-//   (LOW, buildable ALL/MELEE) — elite 歌蕾蒂娅 carrying HOK-Y (shared/highGround.js, the player's loadout) on any
-//   deploy tile, the 高台 included (piecePosition 'ALL'); ranged chess on `melee ∪ rangedOnly` (stages.json → deployTiles.normal,
+//   (LOW, buildable ALL/MELEE) — a melee chess whose trait reads 「可以放置于远程位」 (shared/highGround.js: 歌蕾蒂娅, 崖心,
+//   见行者, any module) on any deploy tile, the 高台 included (piecePosition 'ALL'); ranged chess on `melee ∪ rangedOnly` (stages.json → deployTiles.normal,
 //   derived from the tile legend when missing — the legend's `buildable` is the effective type: 深水区 tile_deepsea
 //   refuses deployment, PRTS 深水区 地形信息 "拒绝部署（待补充）", player report #3 after 0.1.0). Tokens follow their
 //   own `position`; a summon whose text reads "只能部署在召唤者攻击范围内" (tokens.json `ownerRange`: 伺夜's 狼群,
@@ -22,6 +23,7 @@
 //   (research 09 §1.2); board drops of units go through the wheel before g.move {uid, to, dir} (ui/facing.js).
 
 import { GEO, PHASE, UF } from '../../../shared/constants.js';
+import { chatNotificationSound, defaultChatCooldown } from '../chatNotificationSounds.js';
 import { resolveLoadout, loadoutOptions, MODULE_NONE } from '../../../shared/protocol.js';
 import { resolveRecordLoadout, loadoutRecord, attackRangeGrid } from '../../../shared/loadoutRecord.js';
 import { meleeOnHighGround } from '../../../shared/highGround.js';
@@ -160,12 +162,12 @@ export function ownerBandId(pub, ownerId) {
 
 /** Banner shown when a phase starts: { title, sub?, tone } or null. `myId`: the viewer, to name the players sharing
  *   their battlefield (最终攻势 / 隐秘核心 pair, 联防 field — user playtest #5); null keeps the generic copy. */
-export function phaseBanner(phase, pub, myId = null) {
+export function phaseBanner(phase, pub, myId = null, alive = true) {
   const r = int(pub?.round, 0);
   const mates = () => sameFieldmates(pub, myId).map((id) => nameOf(pub, id));
   switch (phase) {
     case PHASE.BATTLE_CHECK: return { title: '协议启动', micro: 'PROTOCOL START', tone: 'mint', sub: '模拟即将开始', duration: 2600 };
-    case PHASE.ROUND_START: return { title: `第 ${r} 回合`, micro: `ROUND ${String(r).padStart(2, '0')}`, tone: 'mint', sub: '资金已到账' };
+    case PHASE.ROUND_START: return { title: `第 ${r} 回合`, micro: `ROUND ${String(r).padStart(2, '0')}`, tone: 'mint', sub: alive === false ? '观战中' : '资金已到账' };
     case PHASE.SP_DRAFT: return { title: '机变阶段', micro: 'CONTINGENCY', tone: 'gold', sub: '依次选择机变' };
     case PHASE.PREP: return { title: '休整期', micro: `ROUND ${String(r).padStart(2, '0')} // REST`, tone: 'mint', sub: '部署干员，准备迎敌' };
     case PHASE.COMBAT: return { title: '作战开始', micro: 'COMBAT', tone: 'orange', sub: '各自行动阶段' };
@@ -587,7 +589,10 @@ export function bondMembers(bond, priv, banned = [], getChess = () => null, getI
       else if (hand) g.hand = true;
     }
   }
-  const rows = members.map((id) => {
+  const rows = members.filter(id => {
+    const c = getChess(id);
+    return !c?.optionalRecruit || owned.has(baseOf(id)) || priv?.loadout?.[baseOf(id)]?.selected === true || priv?.selectedRecruits?.includes(baseOf(id));
+  }).map((id) => {
     const c = getChess(id);
     return { id, tier: c?.tier ?? 0, name: c?.name ?? id, onBoard: onBoard.has(id), owned: owned.has(id), inHand: inHand.has(id), banned: bannedSet.has(id) };
   });
@@ -1186,17 +1191,16 @@ export function placementContext({ priv, stage, editable, field = 'normal', getC
 }
 
 /**
- * Deploy position ('MELEE'|'RANGED'|'ALL') of a chess/token piece, or null for items. Elite 歌蕾蒂娅 carrying HOK-Y
- * (the viewer's loadout, shared/highGround.js) is 'ALL': any deployable tile, the 高台 included
- * (server/match/board.js placeClass; owner's decision 2026-10-04). Every other MELEE chess is ground-only.
+ * Deploy position ('MELEE'|'RANGED'|'ALL') of a chess/token piece, or null for items. A MELEE chess whose trait reads
+ * 「可以放置于远程位」 (shared/highGround.js: 歌蕾蒂娅, 崖心, 见行者, normal and elite, any module) is 'ALL': any deployable
+ * tile, the 高台 included (server/match/board.js positionClass; the owner's decision of 2026-10-05). Every other MELEE
+ * chess is ground-only.
  */
 export function piecePosition(ctx, piece) {
   if (!isObj(piece)) return null;
   if (piece.kind === 'chess') {
     const rec = ctx.getChess(piece.id);
-    let moduleId = null;
-    try { moduleId = resolveLoadout(ctx.priv?.loadout ?? null, rec, ctx.getChess)?.moduleId ?? null; } catch { moduleId = null; }
-    if (meleeOnHighGround(rec, moduleId)) return 'ALL';
+    if (meleeOnHighGround(rec)) return 'ALL';
     return rec?.position === 'MELEE' ? 'MELEE' : 'RANGED';
   }
   // tokens: MELEE → ground only; RANGED / ALL → any deployable tile
@@ -1672,11 +1676,11 @@ export function rangeGridBox(grid, mirror = false) {
 // ---- keyboard ---------------------------------------------------------------------------------------------------
 
 /**
- * Map a keydown to a game shortcut (R refresh, F freeze, D level-up, Space ready, Esc close).
+ * Map a keydown to a game shortcut (R refresh, F freeze, D level-up, Q retreat, X sell, Space ready, Esc close).
  * Space means ready even while a HUD button has focus (a mouse click leaves the shop card / 刷新 focused, and
  * Space must not re-trigger it); the caller prevents the button's own activation. Enter still activates buttons.
  * @param {{ key?: string, code?: string, ctrlKey?: boolean, metaKey?: boolean, altKey?: boolean, repeat?: boolean, target?: any }} e
- * @returns {'refresh'|'freeze'|'levelUp'|'ready'|'escape'|null}
+ * @returns {'refresh'|'freeze'|'levelUp'|'retreat'|'sell'|'ready'|'escape'|null}
  */
 export function shortcutFor(e) {
   if (!e || e.ctrlKey || e.metaKey || e.altKey) return null;
@@ -1690,6 +1694,8 @@ export function shortcutFor(e) {
   if (code === 'KeyR' || key === 'r') return 'refresh';
   if (code === 'KeyF' || key === 'f') return 'freeze';
   if (code === 'KeyD' || key === 'd') return 'levelUp';
+  if (code === 'KeyQ' || key === 'q') return 'retreat';
+  if (code === 'KeyX' || key === 'x') return 'sell';
   if (code === 'Space' || key === ' ') return 'ready';
   return null;
 }
@@ -1707,7 +1713,7 @@ export const closesOnFieldPress = (detail) => detail?.kind === 'piece' || detail
  * Whether an open overlay swallows a game shortcut: a modal / the guide own the keyboard (Esc included — they close
  * themselves); the 本局信息 / 敌方情报 drawer is a dialog too — only Esc (it closes the drawer) passes, R / F / D / Space
  * never act behind it.
- * @param {'refresh'|'freeze'|'levelUp'|'ready'|'escape'|null} act shortcutFor
+ * @param {'refresh'|'freeze'|'levelUp'|'retreat'|'sell'|'ready'|'escape'|null} act shortcutFor
  * @param {{ modal?: boolean, drawer?: boolean }} open
  */
 export function shortcutBlocked(act, { modal = false, drawer = false } = {}) {
@@ -1718,7 +1724,7 @@ export function shortcutBlocked(act, { modal = false, drawer = false } = {}) {
 
 // ---- settings ------------------------------------------------------------------------------------------------------
 
-export const DEFAULT_SETTINGS = Object.freeze({ bgm: 0.6, sfx: 0.8, voice: 0.6, voiceLanguage: 'kr', muted: false, damageNumbers: true, quality: 'high' });
+export const DEFAULT_SETTINGS = Object.freeze({ bgm: 0.6, sfx: 0.8, voice: 0.6, voiceLanguage: 'kr', chatVolume: 0.5, chatSound: 'notification-glass', chatFactionNotifications: false, chatCooldown: defaultChatCooldown('notification-glass'), muted: false, damageNumbers: true, damageNumberMode: 'basic', quality: 'high' });
 const QUALITIES = ['high', 'medium', 'low'];
 
 /**
@@ -1729,13 +1735,19 @@ const QUALITIES = ['high', 'medium', 'low'];
 export function sanitizeSettings(raw) {
   const r = isObj(raw) ? raw : {};
   const vol = (v, d) => (Number.isFinite(v) ? clamp(Math.round(v * 100) / 100, 0, 1) : d);
+  const chatSound = r.chatSound === 'off' || chatNotificationSound(r.chatSound) ? r.chatSound : DEFAULT_SETTINGS.chatSound;
   return {
     bgm: vol(r.bgm, DEFAULT_SETTINGS.bgm),
     sfx: vol(r.sfx, DEFAULT_SETTINGS.sfx),
     voice: vol(r.voice, DEFAULT_SETTINGS.voice),
+    chatVolume: vol(r.chatVolume, DEFAULT_SETTINGS.chatVolume),
+    chatSound,
+    chatFactionNotifications: typeof r.chatFactionNotifications === 'boolean' ? r.chatFactionNotifications : DEFAULT_SETTINGS.chatFactionNotifications,
+    chatCooldown: Number.isFinite(r.chatCooldown) ? clamp(Math.round(r.chatCooldown), 1, 5) : defaultChatCooldown(chatSound),
     voiceLanguage: r.voiceLanguage === 'jp' ? 'jp' : 'kr',
     muted: typeof r.muted === 'boolean' ? r.muted : DEFAULT_SETTINGS.muted,
-    damageNumbers: typeof r.damageNumbers === 'boolean' ? r.damageNumbers : DEFAULT_SETTINGS.damageNumbers,
+    damageNumbers: damageNumberMode(r) !== 'none',
+    damageNumberMode: DAMAGE_NUMBER_MODES.includes(r.damageNumberMode) || typeof r.damageNumbers === 'boolean' ? damageNumberMode(r) : DEFAULT_SETTINGS.damageNumberMode,
     quality: QUALITIES.includes(r.quality) ? r.quality : DEFAULT_SETTINGS.quality,
   };
 }

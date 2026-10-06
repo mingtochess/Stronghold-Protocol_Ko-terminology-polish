@@ -1423,3 +1423,33 @@ export function ringArc(frac) {
   if (k === 0 && f > 0) k = 1;
   return r.arcs[k];
 }
+
+// Official extracted cloud noise, shared by all stealth views. The texture is
+// sampled into an alpha cloud once, rather than drawing circular primitives.
+const STEALTH_MIST = new WeakMap();
+export function stealthMistTexture(assets) {
+  if (!assets || typeof assets.image !== 'function') return null;
+  let entry = STEALTH_MIST.get(assets);
+  if (entry) return entry.texture;
+  entry = { texture: null };
+  STEALTH_MIST.set(assets, entry);
+  const url = assets.localUrl?.('map/water', 'T_noise_clouds_01.png') || '/assets/local/map/water/T_noise_clouds_01.png';
+  assets.image(url).then(image => {
+    if (!image) return;
+    const canvas = makeCanvas(256, 256), c = canvas.getContext('2d');
+    c.filter = 'blur(3px)';
+    c.drawImage(image, 0, 0, 256, 256);
+    c.filter = 'none';
+    const pixels = c.getImageData(0, 0, 256, 256);
+    for (let y = 0; y < 256; y++) for (let x = 0; x < 256; x++) {
+      const i = (y * 256 + x) * 4;
+      const density = Math.max(0, Math.min(1, (pixels.data[i] / 255 - .27) * 3));
+      const edge = Math.sin(Math.PI * x / 255) ** 2 * Math.sin(Math.PI * y / 255) ** 2;
+      pixels.data[i] = 18; pixels.data[i + 1] = 25; pixels.data[i + 2] = 32;
+      pixels.data[i + 3] = Math.round(255 * density * edge);
+    }
+    c.putImageData(pixels, 0, 0);
+    entry.texture = PIXI().Texture.from(canvas);
+  }).catch(() => {});
+  return null;
+}

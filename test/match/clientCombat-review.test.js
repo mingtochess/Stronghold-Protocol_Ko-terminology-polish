@@ -462,8 +462,7 @@ test('CHAR_DAMAGE tickers: a client result names only its own unit types (board,
   const before = h.bc.length;
   h.drive(() => m.phase === PHASE.SETTLE);
   const t = h.bc.slice(before).filter((x) => x.t === 'm.ticker' && x.type === 'CHAR_DAMAGE');
-  assert.equal(t.length, 1, t.map((x) => x.text).join(' | '));
-  assert.ok(t[0].text.includes(DATA.tokens[wolf].name), t[0].text);
+  assert.equal(t.length, 0, 'absolute operator damage notices stay hidden');
   // the validator: foreign operators dropped, the own summon and the ownerless bond summon (炎佑) kept
   const spec = buildBattleSpec({ battleId: 'v6', fieldId: 'n:p', kind: 'normal', seed: 1, round: 3, timeLimit: 60,
     players: [{ playerId: 'p', units: [{ uid: 7, kind: 'chess', chessId: vigil, row: 10, col: 3, items: [] }], bonds: {} }],
@@ -477,12 +476,14 @@ test('CHAR_DAMAGE tickers: a client result names only its own unit types (board,
 });
 
 test('Egir continuation survives compacting/validation; carry changes affect the result digest',()=>{
- const state={processed:true,atkFlat:1500,blockCnt:2,revives:1,revived:false};
+ const state={processed:true,atkFinal:1500,blockCnt:2,revives:1,revived:false};
  const unit={uid:1,chessId:'chess_char_1_01_a',row:10,col:3};
  const spec=buildBattleSpec({fieldId:'n:p',kind:'normal',timeLimit:60,players:[{playerId:'p',units:[unit],bonds:{egirShip:{count:3,active:true,layers:0,tier:1}}}],spawns:[]});
  const raw={reason:'timeout',time:30,killed:0,total:0,errors:0,perPlayer:{p:perPlayer({total:0,unitsEnd:[{uid:1,defId:unit.chessId,hpPct:.7,sp:1,alive:true,egirDevour:state}]})}};
+ const legacy=structuredClone(raw);const old=legacy.perPlayer.p.unitsEnd[0].egirDevour;old.atkFlat=old.atkFinal;delete old.atkFinal;
+ assert.deepEqual(compactResult(legacy).perPlayer.p.unitsEnd[0].egirDevour,state,'old attack carry values normalize into the final additive format');
  const compact=compactResult(raw);assert.deepEqual(compact.perPlayer.p.unitsEnd[0].egirDevour,state);
  const checked=validateClientResult(spec,compact,{gd});assert.ok(checked.ok,checked.reason);assert.deepEqual(checked.result.perPlayer.p.unitsEnd[0].egirDevour,state);
- const hash=resultDigest(compact);compact.perPlayer.p.unitsEnd[0].egirDevour.atkFlat+=1;assert.notDeepEqual(resultDigest(compact),hash);
+ const hash=resultDigest(compact);compact.perPlayer.p.unitsEnd[0].egirDevour.atkFinal+=1;assert.notDeepEqual(resultDigest(compact),hash);
  compact.perPlayer.p.unitsEnd[0].egirDevour.revives=4;assert.equal(validateClientResult(spec,compact,{gd}).ok,false);
 });

@@ -1,3 +1,4 @@
+import { unlimitedSkillRange } from '../../../shared/skillRangeDisplay.js';
 // render/units.js — per-unit views for battle units and prep pieces (DESIGN §9).
 //
 // UnitView = shadow sprite (shadow layer) + body container (depth-sorted unit layer: elite aura, Spine actor or
@@ -67,9 +68,10 @@
 
 
 import { FORMS } from '../../../shared/animationForms.js';
+import { skillVisualTheme } from './skillVisualTheme.js';
 import { UF, ANIM } from '../../../shared/constants.js';
 import { SpineActor } from './spine.js';
-import { diamondTexture, shadowTexture, fxAtlas, tierChip, statusTexture, itemTexture, hudRings, ringArc, HUD_DISC, ELEMENT_RING } from './textures.js';
+import { diamondTexture, shadowTexture, fxAtlas, tierChip, statusTexture, itemTexture, hudRings, ringArc, HUD_DISC, ELEMENT_RING, stealthMistTexture } from './textures.js';
 import { COLORS, TIER_COLORS, ENEMY_FRAME, UNIT, PROJ, statusIconKey, statusIconSuppressed } from './style.js';
 import { drawCrate, rowDepthKey, ROW_KEY, deviceBoxOf, DEVICE_BOX } from './tiles.js';
 
@@ -106,7 +108,7 @@ export function representativeArtColor(image) {
     return (channel(chosen.r)<<16)|(channel(chosen.g)<<8)|channel(chosen.b);
   }catch{return null;}
 }
-function loadRangeArtColor(info,assets) {
+export function loadRangeArtColor(info,assets) {
   const id=info.charId;if(!id || ART_RANGE_COLORS.has(id)||RANGE_COLOR_LOADING.has(id))return;
   const url=assets?.picture?.(id);if(!url || !assets.image)return;
   RANGE_COLOR_LOADING.add(id);
@@ -115,12 +117,13 @@ function loadRangeArtColor(info,assets) {
 export function skillRangeStyle(info) {
   const id = String(info.charId || info.defId || info.spine || '').replace(/^skin_/, '');
   const match = Object.entries(RANGE_PALETTE).find(([name]) => new RegExp(`_${name}(?:_|$)`).test(id));
-  const color = match?.[1] ?? ART_RANGE_COLORS.get(info.charId) ?? 0xc7d4d9;
+  const theme=skillVisualTheme(info,match?.[1] ?? ART_RANGE_COLORS.get(info.charId) ?? 0xc7d4d9);
+  const color = theme.color;
   const lane = Math.max(0,Object.keys(RANGE_PALETTE).indexOf(match?.[0]));
   const channels=[color>>16&255,color>>8&255,color&255], hi=Math.max(...channels);
   const vivid=channels.map(c=>Math.round(Math.max(0,hi-(hi-c)*1.45)));
   const outlineColor=(vivid[0]<<16)|(vivid[1]<<8)|vivid[2];
-  return {color,outlineColor,inset:.055+(lane%4)*.065,fillAlpha:.17,glowAlpha:0,pulse:0,accent:null,source:'operator'};
+  return {color,outlineColor,inset:.055+(lane%4)*.065,fillAlpha:theme.fillAlpha,glowAlpha:0,pulse:0,accent:theme.accent,source:theme.source};
 }
 // Offset each clockwise union edge towards its interior. The stroke never
 // straddles the boundary; staggered inner lanes preserve overlapping colours.
@@ -347,6 +350,18 @@ export class UnitView {
     this.ctx = ctx;
     this.P = P;
     this.info = { ...info };
+    const record=ctx.lookupDef?.(info),selected=record?.skills?.find(s=>s.index===info.skillIndex)||record?.skill;
+    this.info.charId ||= record?.charId;
+    this.info.skillId ||= selected?.skillId;
+    this.info.skillName ||= selected?.name;
+    this.info.skillDescription ||= selected?.description || selected?.desc;
+    this.info.skillUnlimitedRange = unlimitedSkillRange(selected || {description:this.info.skillDescription,rangeGrid:info.skillZoneGrid});
+    if(info.side==='enemy') {
+      const icon=ctx.assets?.enemyIcon?.(info.defId);
+      if(icon&&ctx.assets.image)Promise.resolve(ctx.assets.image(icon)).then(image=>{
+        if(!this.destroyed)this.info.projectileColor=representativeArtColor(image)??0xc7d4d9;
+      }).catch(()=>{});
+    } else loadRangeArtColor(this.info,ctx.assets);
     this.id = info.id;
     this.uid = info.uid ?? null;
     this.prep = !!opts.prep;
@@ -363,7 +378,7 @@ export class UnitView {
     this.tier = clamp(Number(info.tier) || 1, 1, 6);
     this.x = Number(info.x) || 0; this.y = Number(info.y) || 0; this.z = 0;
     this.zTarget = null;          // battle: standing height the feet ease towards (tile top under the unit)
-    this.flying = info.motion === 'FLY';
+    this.flying = !!info.flying || info.motion === 'FLY';
     this.hover = 0;               // flying: body height above the ground under it
     this.dir = this.isEnemy ? null : unitDir(info);
     // whether the direction is known (UnitInfo / piece `dir`), not just the legacy ±1: battle and scouting views show
@@ -428,6 +443,7 @@ export class UnitView {
     this.root.addChild(this.body);
     // Ice/refraction must cover the body: drawing behind the opaque Spine erases most of the effect.
     this.root.addChild(this.stateFx);
+    this.stealthMist = null;
     this.fallback = new P.Sprite(P.Texture.EMPTY);
     this.fallback.anchor.set(0.5, 1);
     this.body.addChild(this.fallback);
@@ -574,7 +590,7 @@ export class UnitView {
         const at = Math.min(d, this.dieT * (this.ctx.animRate?.() || 1));
         if (at > 0) this.actor.update(at);
       } else {
-        if (this.flags & UF.SKILL) this.actor.setSkill(true);
+        if (this.flags & UF.SKILL) this.actor.setSkill(true,{instant:this.info.skillDuration===0 && !this.info.skillNextAttack});
         this.actor.setBase(this._baseFromAnim());
         const deployElapsed=deployed ?? this.pendingDeployElapsed;
         if (deployElapsed != null && deployElapsed < this.actor.dur(this.actor.roles.deploy)) {
@@ -626,11 +642,11 @@ export class UnitView {
 
   _buildHud() {
     const P = this.P, h = this.hud;
-    this.hpBg = bar(P, h, COLORS.hpBack, 0.85);
+    this.hpBg = bar(P, h, COLORS.hpBack, 1);
     this.hpGhost = bar(P, h, COLORS.hpGhost, 0.9);
     this.hpFill = bar(P, h, this.isEnemy ? (this.isBoss ? COLORS.hpBoss : COLORS.hpEnemy) : COLORS.hpAlly);
     this.shieldBar = bar(P, h, COLORS.shield, 0.95);
-    this.spBg = bar(P, h, COLORS.hpBack, 0.85);
+    this.spBg = bar(P, h, COLORS.hpBack, 1);
     this.spFill = bar(P, h, COLORS.sp);
     this.ammoDividers = new P.Graphics(); h.addChild(this.ammoDividers);
     this.spGlow = new P.Sprite(fxAtlas().tex.glow);
@@ -706,9 +722,11 @@ export class UnitView {
     if (Number.isFinite(t)) this.gameT = t;
     // the element gauge shown (b.snap `elem`): element, fill 0..1, cooldown end (game s) and length
     this.el = typeof s.el === 'string' ? s.el : null;
+    this.elValue=Number.isFinite(s.elValue)?s.elValue:null;
     this.elFill = this.el ? s.elFill || 0 : 0; this.elUntil = this.el ? s.elUntil || 0 : 0; this.elDur = this.el ? s.elDur || 0 : 0;
     this.x = s.x; this.y = s.y;
-    this.flying = !!(s.flags & UF.FLYING) || this.info.motion === 'FLY';
+    // Snapshots carry the current airborne state, including temporary flight and landing.
+    this.flying = !!(s.flags & UF.FLYING);
     // ground enemies only ever walk low tiles (a rounding step onto a block edge must not pop them up)
     const gz = this.isEnemy && !this.flying ? 0 : groundZ(this.ctx, s.x, s.y);
     if (this.zTarget == null) this.z = gz;
@@ -992,28 +1010,23 @@ export class UnitView {
     if (this.statuses.has('ab:mirrorCrack2')) visualStates.push('mirrorCrack2');
     else if (this.statuses.has('ab:mirrorCrack1')) visualStates.push('mirrorCrack1');
     if (this.statuses.has('ab:rage') || this.statuses.has('ab:lowhp')) visualStates.push('rage');
-    const authoredStates = [...(this.form ? [this.form] : []), ...visualStates, ...[...this.statuses].map(k => k.split(':').at(-1))];
+    const authoredStates = [...(this.form ? [this.form] : []), ...visualStates.filter(k => k !== 'stealth'), ...[...this.statuses].map(k => k.split(':').at(-1)).filter(k => !/stealth|invisible/i.test(k))];
     if (this.statuses.has('skill')) authoredStates.push(`skill${(this.info.skillIndex ?? 0)+1}`);
     const authoredState = this.actor?.setVisualStates(authoredStates);
     this.stateFx.clear();
     if (this.alive && !this.down && visualStates.length) {
       const colors = {stun:0xf1ce76,sleep:0xbab7e8,invuln:0xf7dfab,freeze:0x74cfff,cold:0xcfe6ff,burn:0xff8e51,poison:0xb899d7,shield:0x80d9c4,refraction:0x7820cc,stealth:0xaaaaaa,rage:0xff5941,bind:0xccaa72,slow:0x709bd1,silence:0xd7bf90,fear:0x925ca8,fragile:0xe9bd83,weaken:0xb39baa,healFree:0xd57777,neural:0xdcba55,necrosis:0x9562bd,mirrorCrack1:0xb9d8eb,mirrorCrack2:0xe1eefa};
       for (const state of visualStates) {
-        if (this.actor?.authoredVisualStates?.has(state) || (authoredState && !this.actor?.authoredVisualStates)) continue;
-        this.stateFx.lineStyle(Math.max(1.2,s*.018),colors[state],.88);
+        if (state !== 'stealth' && (this.actor?.authoredVisualStates?.has(state) || (authoredState && !this.actor?.authoredVisualStates))) continue;
+        this.stateFx.lineStyle(Math.max(1.2,s*.018),colors[state],.64);
         if (state === 'freeze') {
-          this.stateFx.beginFill(0x9fdcff,.43);
+          this.stateFx.beginFill(0x9fdcff,.29);
           this.stateFx.drawPolygon([-s*.4,0,-s*.44,-s*.55,-s*.24,-s*.98,s*.12,-s*1.02,s*.42,-s*.55,s*.4,0]);
           this.stateFx.endFill();
           this.stateFx.moveTo(-s*.24,-s*.98).lineTo(0,-s*.35).lineTo(s*.4,0);
           this.stateFx.moveTo(s*.12,-s*1.02).lineTo(0,-s*.35).lineTo(-s*.4,0);
-        } else if (state === 'stealth' && this.info.side === 'ally') {
-          this.stateFx.lineStyle(0);
-          for (let i=0;i<5;i++) {
-            this.stateFx.beginFill(0xc4cdca,.12);
-            this.stateFx.drawEllipse(Math.sin(t*.7+i*2)*s*.2,-s*(.12+i*.1),s*(.24+i*.02),s*.1);
-            this.stateFx.endFill();
-          }
+        } else if (state === 'stealth') {
+          // The textured mist is animated separately; no circular geometry.
         } else if (state === 'shield') {
           this.stateFx.beginFill(0x80d9c4,.14);
           this.stateFx.drawEllipse(0,-s*.42,s*.4,s*.52);
@@ -1021,8 +1034,8 @@ export class UnitView {
         }
         else if (state === 'refraction') {
           // Original Refraction is a purple hexagonal membrane, not a blue shield.
-          this.stateFx.lineStyle(Math.max(1.8,s*.024),0x7820cc,.8+.1*Math.sin(t*4));
-          this.stateFx.beginFill(0x471080,.30);
+          this.stateFx.lineStyle(Math.max(1.8,s*.024),0x7820cc,.58+.08*Math.sin(t*4));
+          this.stateFx.beginFill(0x471080,.18);
           this.stateFx.drawPolygon([0,-s*.96,s*.39,-s*.72,s*.39,-s*.19,0,s*.06,-s*.39,-s*.19,-s*.39,-s*.72]);
           this.stateFx.endFill();
           for (let i=0;i<3;i++) {
@@ -1080,9 +1093,24 @@ export class UnitView {
       if (this.dying < tail) alpha *= Math.max(0, this.dying / tail);
       if (this.dying <= 0) { this.dying = 0; this.remove = true; alpha = 0; }
     }
-    if ((this.flags & UF.STEALTH) && this.info.side !== 'ally') alpha *= 0.45;
     if (this.dimmed) alpha *= 0.35;
     this.alpha = alpha;
+
+    const mistOn = this.alive && !this.down && !!(this.flags & UF.STEALTH);
+    const mistTexture = mistOn ? stealthMistTexture(this.ctx.assets) : null;
+    if (mistTexture && !this.stealthMist) {
+      this.stealthMist = Array.from({length:3}, () => {
+        const sp = new this.P.Sprite(mistTexture);sp.anchor.set(.5);this.root.addChild(sp);return sp;
+      });
+    }
+    if (this.stealthMist) this.stealthMist.forEach((sp,i) => {
+      sp.visible = mistOn;
+      if (!mistOn) return;
+      sp.position.set(Math.sin(t*.55+i*2.1)*s*.18, -s*(.23+i*.22)+Math.sin(t*.4+i)*s*.035);
+      sp.width=s*(1.12+i*.1);sp.height=s*(.66+i*.07);
+      sp.rotation=Math.sin(t*.16+i)*.16;
+      sp.alpha=.34+.07*Math.sin(t*.65+i);
+    });
 
     // body placement
     const lungeK = 0;
@@ -1092,9 +1120,9 @@ export class UnitView {
     if (lungeK) { const q = cam.project(this.x + lx, this.y + ly, this.z + this.hover + this.lift, LG_P); bx = q.x; by = q.y; }
     this.root.position.set(bx, by);
     this.root.alpha = alpha;
-    this.root.zIndex = unitDepthKey(cam, this.x, this.y, this.lift) + (this.flying ? 100000 : 0);
+    this.root.zIndex = unitDepthKey(cam, this.x, this.y, this.lift, this.flying);
     // off-screen: nothing to animate or draw (bounds / hit-testing still follow `screen`)
-    if (this._cull(bx, by, s, (this.flags & UF.FROZEN) ? 0 : dt)) return;
+    if (this._cull(bx, by, s, (this.alive && (this.flags & UF.FROZEN)) ? 0 : dt)) return;
     const flipTarget = this.info.fixedFacing ? 1 : this.isEnemy ? (ENEMY_MODEL_FACES_LEFT ? -this.visFacing : this.visFacing) : this.visFacing;
     if(this.flipValue == null)this.flipValue=flipTarget;
     this.flipValue += Math.sign(flipTarget-this.flipValue)*Math.min(Math.abs(flipTarget-this.flipValue),dt*2/.1);
@@ -1120,7 +1148,7 @@ export class UnitView {
       }
     }
     if(this.skillZone){
-      const g=this.skillZone;g.clear();g.visible=this.alive&&!this.down&&(this.statuses.has('skill')||!!this.skillTiles?.length);
+      const g=this.skillZone;g.clear();g.visible=this.alive&&!this.down&&!this.info.skillUnlimitedRange&&(this.statuses.has('skill')||!!this.skillTiles?.length);
       for(const extra of this.skillZoneExtra.values()){extra.clear();extra.visible=false;}
       if(g.visible){
         placeOnGround(this.ctx,g,this.ctx.layers.groundFx,this.y,0);
@@ -1153,8 +1181,25 @@ export class UnitView {
               tileGraphics.moveTo(a.x,a.y);tileGraphics.lineTo(b.x,b.y);
             }
           }
+          // A dark under-stroke follows the same dashes, leaving gaps and fill
+          // intact while keeping pale outlines readable against bright terrain.
+          const dashes = (boundary.get(`${r},${c}`) || []).flatMap(edge=>skillRangeDashes(edge,true));
+          tileGraphics.lineStyle(edgeWidth + 3,0x080b10,.28*alpha);
+          for(const [x0,y0,x1,y1] of dashes){
+            const a=cam.project(tileX+x0,tileY+y0,z+.02),b=cam.project(tileX+x1,tileY+y1,z+.02);
+            tileGraphics.moveTo(a.x,a.y+1);tileGraphics.lineTo(b.x,b.y+1);
+          }
+          // Two soft under-strokes create a restrained glow around each dash.
+          // Keep the core crisp and preserve gaps instead of lighting the whole tile.
+          for (const [extraWidth, glowAlpha] of [[12,.14],[6,.28],[2,.4]]) {
+            tileGraphics.lineStyle(edgeWidth + extraWidth,style.outlineColor,glowAlpha*alpha);
+            for(const [x0,y0,x1,y1] of dashes){
+              const a=cam.project(tileX+x0,tileY+y0,z+.02),b=cam.project(tileX+x1,tileY+y1,z+.02);
+              tileGraphics.moveTo(a.x,a.y);tileGraphics.lineTo(b.x,b.y);
+            }
+          }
           tileGraphics.lineStyle(edgeWidth,style.outlineColor,.92*alpha);
-          for(const [x0,y0,x1,y1] of (boundary.get(`${r},${c}`) || []).flatMap(edge=>skillRangeDashes(edge,true))){
+          for(const [x0,y0,x1,y1] of dashes){
             const a=cam.project(tileX+x0,tileY+y0,z+.02),b=cam.project(tileX+x1,tileY+y1,z+.02);
             tileGraphics.moveTo(a.x,a.y);tileGraphics.lineTo(b.x,b.y);
           }
@@ -1177,12 +1222,13 @@ export class UnitView {
       const flashK = this.flash > 0 ? this.flash : 0;
       let tint = this.baseTint;
       if (this.down) tint = DOWN_LOOK.tint;
-      else if (this.flags & UF.FROZEN) tint = 0x9fd4ff;
+      else if (this.alive && (this.flags & UF.FROZEN)) tint = 0x9fd4ff;
       else if (this.flags & UF.COLD) tint = 0xcfe6ff;
+      if (this.flags & UF.STEALTH) tint = mixTint(tint,0x55636e,.27);
       if (flashK > 0) tint = mixTint(tint, 0xff8a80, flashK * 0.8);
       let animDt = dt * (this.ctx.animRate?.() || 1);
       if (this._offDt > 0) { animDt += Math.min(0.5, this._offDt); this._offDt = 0; }
-      if (this.flags & UF.FROZEN) animDt = 0;
+      if (this.alive && (this.flags & UF.FROZEN)) animDt = 0;
       let interval = this.ctx.impostorInterval ? this.ctx.impostorInterval() : 0;
       // Preview skeletons retain their full attachments and native frame cadence.
       // Shared atlas masking can erase neighbouring clipped skeletons in a crowded pen.
@@ -1197,7 +1243,7 @@ export class UnitView {
         this.actor.setClipping(clip);
         if (clip && this.ctx.impostors) interval = Math.max(1, interval);
       }
-      if (preview) interval = 0;
+      if (preview || this.prep) interval = 0;
       if (interval > 0 && this.ctx.renderer) {
         this._updateImpostor(sc, flip, tint, animDt, interval);
       } else {
@@ -1294,7 +1340,7 @@ export class UnitView {
     const damaged = this.hp < this.maxHp - 0.5;
     const showHp = showBars && (!this.isEnemy || damaged || this.isBoss);
     const bw = clamp(s * (this.isBoss ? UNIT.bossBarWidth : UNIT.barWidth), 24, this.isBoss ? 260 : 96);
-    const bh = clamp(s * (this.isBoss ? 0.12 : 0.075), 3, this.isBoss ? 12 : 7);
+    const bh = clamp(s * (this.isBoss ? 0.09 : 0.065), 3, this.isBoss ? 9 : 6);
     // a knocked-down operator's HUD is its redeploy ring alone, drawn at full strength over the greyed model
     this.hud.alpha = this.down ? this.fadeIn : this.dying > 0 ? 0 : alpha;
     let sx = this.shake > 0 ? Math.sin(t * 90) * this.shake * 10 : 0;
@@ -1311,7 +1357,7 @@ export class UnitView {
       this.hpBg.position.set(x0 - 1, cy); this.hpBg.width = bw + 2; this.hpBg.height = bh + 2;
       this.hpGhost.position.set(x0, cy); this.hpGhost.width = bw * g; this.hpGhost.height = bh;
       this.hpFill.position.set(x0, cy); this.hpFill.width = bw * k; this.hpFill.height = bh;
-      if (!this.isEnemy) this.hpFill.tint = k < 0.3 ? COLORS.hpAllyLow : COLORS.hpAlly;
+      if (!this.isEnemy) this.hpFill.tint = COLORS.hpAlly;
     }
     const shielded = showHp && (this.flags & UF.SHIELD);
     this.shieldBar.visible = !!shielded;
@@ -1320,7 +1366,7 @@ export class UnitView {
     const showSp = showBars && !this.isEnemy && this.spMax > 0;
     this.spBg.visible = this.spFill.visible = showSp;
     this.ammoDividers.clear(); this.ammoDividers.visible = showSp && this.ammoMax > 0;
-    const spH = Math.max(2, bh * 0.6);
+    const spH = Math.max(2, bh * 0.55);
     let ready = false;
     if (showSp) {
       const active = !!(this.flags & UF.SKILL);
@@ -1341,9 +1387,9 @@ export class UnitView {
     }
     this.spGlow.visible = ready;
     if (ready) {
-      const pulse = 0.55 + 0.35 * Math.sin(t * 6);
+      const pulse = 0.18 + 0.08 * Math.sin(t * 6);
       this.spGlow.position.set(x0 + bw, this._spY);
-      this.spGlow.scale.set((spH * 5) / 128);
+      this.spGlow.scale.set((spH * 3) / 128);
       this.spGlow.alpha = pulse;
     }
     // tier chip (left of the bars in battle; above the head in prep)
@@ -1423,7 +1469,7 @@ export class UnitView {
     if (!r) {
       const P = this.P;
       const root = new P.Container();
-      const bg = bar(P, root, COLORS.hpBack, 0.85);
+      const bg = bar(P, root, COLORS.hpBack, 1);
       const fill = bar(P, root, 0xffffff);
       const disc = new P.Sprite(tex.disc.burn);
       disc.anchor.set(0.5);
@@ -1447,6 +1493,11 @@ export class UnitView {
     } else {
       r.fill.tint = 0xffffff;
       r.disc.alpha = 1;
+    }
+    if(this.isBoss){
+      if(!r.value){r.value=new this.P.Text('',{fontFamily:'Bender, sans-serif',fontSize:13,fill:0xffffff,stroke:0x10151b,strokeThickness:3});r.value.anchor.set(.5);r.root.addChild(r.value);}
+      r.value.text=this.elementCooling() ? `${Math.ceil(Math.max(0,this.elUntil-this.gameT))}s` : `${Math.round(this.elValue ?? ((1-k)*(this.info.gaugeMax || 2000)))} / ${this.info.gaugeMax || 2000}`;
+      r.value.position.set(bx+w/2,cy+12);
     }
     r.root.visible = true;
   }
@@ -1535,7 +1586,10 @@ export class UnitView {
       this.actor.update(imp.acc);
       imp.acc = 0;
       imp.dirty = false;
-      this._renderImpostor(sc, atlas);
+      // Stencil clipping changes the framebuffer mask. Isolate clipped skeletons
+      // in a cleared target so they cannot leave pixels in a neighbouring atlas slot.
+      if (this.actor.clipped && this.actor.clipOn && imp.slot && atlas) { atlas.free(imp.slot); imp.slot=null; }
+      this._renderImpostor(sc, this.actor.clipped && this.actor.clipOn ? null : atlas);
     }
     const k = imp.sc > 0 ? sc / imp.sc : 1;
     imp.sprite.scale.set(k * flip, k);
@@ -1654,6 +1708,7 @@ export class UnitView {
     if (this.facingArrow) this.facingArrow.destroy();
     this.hud.destroy({ children: true });
     this.root.destroy({ children: true });
+    this.stealthMist = null;
   }
 }
 
@@ -1667,10 +1722,10 @@ const ICON_TMP = [];
  * Unit-layer zIndex of a unit / piece whose feet are at (x, y): farther rows first (so raised block rows, keyed by
  * tiles.rowDepthKey, hide units behind them); lifted (dragged) pieces on top; ties broken by column.
  */
-export function unitDepthKey(cam, x, y, lift = 0) {
+export function unitDepthKey(cam, x, y, lift = 0, airborne = false) {
   // +40 (< one row of depth at the official 30° pitch, 100·sin 30° = 50): a lifted piece never ties with the unit one
   // row in front of it (a tie flickers with the column tie-break)
-  return -cam.depthOf(x, y, 0) * 100 + (lift > 0 ? 40 : 0) + x * 0.001;
+  return (airborne ? 100000 : 0) - cam.depthOf(x, y, 0) * 100 + (lift > 0 ? 40 : 0) + x * 0.001;
 }
 
 function mixTint(a, b, k) {
@@ -1726,6 +1781,9 @@ export class ItemView {
     if (a?.image) a.image(url).then((img) => { if (!this.destroyed && img && this.info.icon === url) this.plate.texture = itemTexture(String(this.info.defId), img, this.info.color || 0x9aa5a0); }, () => {});
   }
   setWorld(x, y, z = 0) { this.x = x; this.y = y; this.z = z; }
+  /** A battle snapshot sample (syncBattle syncs every unit of the field): a hand item on a scouted prep board rides
+   *  the units as kind 'item' (Match.prepFieldMeta) — follow its position, there is nothing else to animate. */
+  sync(s) { this.x = s.x; this.y = s.y; }
   update(dt, cam, t) {
     const lifted = this.lift > 0;
     const p = cam.project(this.x, this.y, lifted ? this.z : this.z + this.lift + 0.12 + Math.sin(t * 2 + this.bob) * 0.03, this.screen);
@@ -1780,7 +1838,7 @@ export class DeviceView {
     ctx.layers.units.addChild(this.gfx);
     this.hud = new P.Container();
     ctx.layers.bars.addChild(this.hud);
-    this.hpBg = bar(P, this.hud, COLORS.hpBack, 0.85);
+    this.hpBg = bar(P, this.hud, COLORS.hpBack, 1);
     this.hpFill = bar(P, this.hud, this.turret ? COLORS.hpAlly : 0xe0b877);
     this.camVersion = -1;
   }

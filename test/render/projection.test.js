@@ -254,9 +254,9 @@ describe('HUD clearance of the prep views (user playtest #5 item 9)', () => {
     const rem = Math.max(40, Math.min(w / 19.2, h / 10.8, 240));
     return { top: 2.16 * rem, bottom: 2.64 * rem + 3 };
   };
-  const band = (cam, kind) => {
+  const band = (cam, kind, heads = true) => {
     const k = CAMERA_PRESETS[kind].keep;
-    return { near: cam.project(cam.tx, k.near, k.zNear).y, far: cam.project(cam.tx, k.far, k.zFar).y };
+    return { near: cam.project(cam.tx, k.near, k.zNear).y, far: Math.min(cam.project(cam.tx, k.far, k.zFar).y,heads && k.headFar != null ? cam.project(cam.tx,k.headFar,k.zHeadFar).y : Infinity) };
   };
   // phones in landscape (CSS px): iPhone 12–15 (19.5:9), iPhone Pro Max, Galaxy S20+ / 2400×1080 (20:9), 800×360,
   // Xperia 21:9, 924×424, 740×360, and the user's Android: its screenshot is 2772×1272 px with the page drawn right of
@@ -290,7 +290,7 @@ describe('HUD clearance of the prep views (user playtest #5 item 9)', () => {
           // the official perspective (a 2D pan / zoom of the image): same pinhole, pitch and target
           for (const k of ['tx', 'ty', 'tz', 'tilt', 'dist']) assert.equal(cam[k], off[k], `${tag}: ${k}`);
           const f = cam.scale / off.scale;
-          assert.ok(f <= 1 + 1e-12 && f > 0.8, `${tag}: zoom ${f}`);
+          assert.ok(f <= 1 + 1e-12 && f > 0.5, `${tag}: zoom ${f}`);
           // zoomed out only as far as needed: the band then fills the space between the HUD bands less 1 px each end
           if (f < 1 - 1e-9) assert.ok(near(b.near - b.far, bottom - top - 2, 1e-6), `${tag}: fills the free space`);
           else assert.ok(near(b.near - b.far, b0.near - b0.far, 1e-6), `${tag}: pan only`);
@@ -299,15 +299,14 @@ describe('HUD clearance of the prep views (user playtest #5 item 9)', () => {
     }
   });
 
-  test('desktop viewports keep the official prep camera (16:9 is flush: bench on the shop bar, back row under the strip)', () => {
+  test('desktop prep cameras clear the back-row operator heads and the bench without changing perspective', () => {
     for (const [w, h] of DESKTOPS) {
       const hud = hudAt(w, h);
-      assert.deepEqual(presetCamera('prep', { width: w, height: h }, { hud }).params(), presetCamera('prep', { width: w, height: h }).params(), `prep ${w}×${h}`);
-      // the Final Assault bench sits up to 1.2 px lower (under the bar's top edge at 16:9): nudged up < 3 px, no zoom
-      for (const [side, cam] of cams('bossPrep', w, h, hud)) {
-        const off = presetCamera('bossPrep', { width: w, height: h }, { side });
-        assert.equal(cam.scale, off.scale, `bossPrep/${side} ${w}×${h}: no zoom`);
-        assert.ok(cam.cy <= off.cy && off.cy - cam.cy < 3, `bossPrep/${side} ${w}×${h}: nudge ${off.cy - cam.cy}`);
+      for (const kind of ['prep','bossPrep']) for (const [side, cam] of cams(kind,w,h,hud)) {
+        const off=presetCamera(kind,{width:w,height:h},{side}),b=band(cam,kind);
+        assert.ok(b.far>=hud.top-.5,`${kind}/${side} ${w}×${h}: heads clear bonds`);
+        assert.ok(b.near<=h-hud.bottom+.5,`${kind}/${side} ${w}×${h}: bench clears shop`);
+        for(const key of ['tx','ty','tz','tilt','dist'])assert.equal(cam[key],off[key]);
       }
     }
     // other camera kinds ignore the HUD bands; the fitted (portrait) prep camera too
@@ -321,7 +320,7 @@ describe('HUD clearance of the prep views (user playtest #5 item 9)', () => {
     const vp = { width: 1000, height: 500 };
     const keep = { near: 6.5, zNear: 0.16, far: 12.5, zFar: 0.42 };
     const cam = presetCamera('prep', vp);
-    const b0 = band(cam, 'prep');
+    const b0 = band(cam, 'prep',false);
     const bandH = b0.near - b0.far;
     assert.equal(clearHud(cam, { top: b0.far - 10, bottom: vp.height - b0.near - 10 }, keep, vp), cam, 'clear → same object');
     assert.equal(clearHud(cam, { top: b0.far + 0.4, bottom: vp.height - b0.near + 0.4 }, keep, vp), cam, '≤ 0.5 px overlap is clear');
@@ -342,7 +341,7 @@ describe('HUD clearance of the prep views (user playtest #5 item 9)', () => {
     const z = clearHud(cam, hud, keep, vp);
     const f = (bandH - 42) / bandH;
     assert.ok(near(z.scale / cam.scale, f, 1e-9), `zoom ${z.scale / cam.scale}`);
-    const bz = band(z, 'prep');
+    const bz = band(z, 'prep',false);
     assert.ok(near(bz.far, hud.top + 1, 1e-6) && near(bz.near, vp.height - hud.bottom - 1, 1e-6));
     const c0 = cam.project(0, 9, 0), c1 = z.project(0, 9, 0);
     assert.ok(near(c1.x - vp.width / 2, f * (c0.x - vp.width / 2), 1e-6), 'x shrinks towards the centre');

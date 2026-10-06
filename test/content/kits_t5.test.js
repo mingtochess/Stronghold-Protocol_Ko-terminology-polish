@@ -1192,6 +1192,11 @@ test('引星棘刺 S2: with no enemy in range the unit is thrown at the farthest
   assert.ok(z, 'a unit was thrown');
   assert.deepEqual([z.y, z.x], [10, 5]);
   assert.ok(z.vx > 0 && z.vy === 0, 'drifting away from her');
+  h.run(2.2);
+  const circles=h.eventsOf('fx').filter(e=>e[1]==='zone'&&e[4]?.id===u.id);
+  assert.ok(circles.length>=3);
+  assert.ok(circles.every(e=>e[4].zoneKey===z.key),'refreshes the same alchemy unit');
+  assert.ok(circles.at(-1)[4].r>circles[0][4].r,'radius grows instead of adding independent rings');
   clean(h);
 });
 
@@ -1498,4 +1503,15 @@ test('soak: random tier-5 lineups (normal + elite) on real stages/waves — norm
     casts += ops.reduce((s, u) => s + u.skill.activations, 0);
   }
   assert.ok(casts >= N, `skills were cast (${casts})`);
+});
+
+test('Titi S3 normal/elite: sleep persists for its full configured duration, including talent damage and resistance',()=>{
+ for(const id of ['chess_char_5_02_a','chess_char_5_02_b'])for(const resistance of [0,.5]){
+  const h=makeBattle({defs:{enemies:{enemy_dummy:dummy()}},units:[{chessId:id,row:10,col:4,skillIndex:2}],enemies:[{key:'enemy_dummy',pos:[10,7]}],autoFinish:false,hooks:['damaged','statusApplied'],captureNoisy:true});h.step();const u=h.unit(id),e=h.enemy('enemy_dummy');
+  if(resistance)h.b.applyStatus(e,'resist',{value:resistance});u.skill.gainSp(1000);
+  assert.ok(h.runUntil(()=>e.s.flags.sleep,10));const start=h.b.time,expected=u.skill.bb['attack@sleep']*(1-resistance);
+  while(h.b.time-start<expected-.1){h.step();assert.ok(e.s.flags.sleep,`${id} sleep must survive attacks and talent ticks`);}
+  assert.ok(h.runUntil(()=>tagged(h,'titiWake',e).length,1));const wake=tagged(h,'titiWake',e)[0];
+  approx(wake.t-start,expected,.02,'actual sleep window');clean(h);
+ }
 });

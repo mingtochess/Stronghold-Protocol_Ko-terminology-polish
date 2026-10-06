@@ -31,6 +31,7 @@
 // The stats block (chessStatsBlock), the 特性 text (traitText) and the talent list (chessTalents) are exported: the 干员调配
 // screen's 局内数值 section draws the same ones for the chosen skill / module, without a live entry (GitHub issue #64).
 
+import { UF } from '../../../shared/constants.js';
 import { useEffect } from '../../vendor/hooks.module.js';
 import { html, Icon, TierChip, MicroLabel, Button, confirmDialog, useTicker } from './components.js';
 import { Img, RichText, UnitThumb, BondGlyph, GIcon } from './gameComponents.js';
@@ -359,6 +360,9 @@ export function chessStatsBlock({ rec, chess, live = null }) {
 export function ChessDetail({ chess, piece, unit, snapHp, editable, onSell, bonds, offBonds = null, loadout, onBond, live = null, hint = null, unitItems = null }) {
   const m = data.get('assets');
   const hp = hpOf(live, snapHp);
+  const sp = live?.src === 'battle' && Number.isFinite(live.spMax) ? live : snapHp;
+  const spActive = !!(sp?.flags & UF.SKILL);
+  const spRatio = sp?.spMax > 0 ? Math.max(0, Math.min(1, sp.sp / sp.spMax)) : 0;
   const lo = chessLoadout(chess, loadout, (id) => data.lookup('chess', id));
   const c = chess;
   // stats / talents the unit fights with: the chosen module's (or none — statsBase) for an elite (DESIGN §16)
@@ -402,6 +406,7 @@ export function ChessDetail({ chess, piece, unit, snapHp, editable, onSell, bond
           <span class="dhead__pos">${c.position === 'MELEE' ? '近战位' : '远程位'}</span>
         </div>
         ${hp ? html`<div class="dhp"><i style=${`width:${Math.max(0, Math.min(100, (hp.hp / Math.max(1, hp.max)) * 100))}%`}></i><span class="num">${fmtNum(hp.hp)} / ${fmtNum(hp.max)}</span></div>` : null}
+        ${sp?.spMax > 0 ? html`<div class=${cx('dhp', 'dhp--sp', spActive && 'is-active', !spActive && spRatio >= .999 && 'is-ready')} role="progressbar" aria-label=${spActive ? '스킬 잔여량' : 'SP'} aria-valuenow=${sp.sp} aria-valuemax=${sp.spMax} aria-valuemin="0"><i style=${`width:${spRatio * 100}%`}></i><span class="num">${spActive ? '스킬' : 'SP'} ${fmtNum(sp.sp)} / ${fmtNum(sp.spMax)}</span></div>` : null}
         <${BondChips} bondIds=${bondIds} bonds=${bonds} off=${offBonds} onBond=${onBond} granted=${grantedIds} />
       </div>
     </div>`;
@@ -656,6 +661,8 @@ export function resolveDetail(target, pieces) {
     const u = target.unit || {};
     const own = Number.isInteger(u.uid) ? pieces?.get(u.uid) : null;
     if (u.side === 'enemy') { const en = data.lookup('enemies', u.defId); return en ? { type: 'enemy', enemy: en, unitId: u.id } : null; }
+    // a hand item on a scouted prep board (m.field units, kind 'item'): the item's own card
+    if (u.kind === 'item') { const it = data.lookup('items', u.defId); return it ? { type: 'item', item: it } : null; }
     const c = data.lookup('chess', u.defId);
     if (c) return { type: 'chess', chess: c, piece: own?.piece || null, unitId: u.id, unitItems: Array.isArray(u.items) ? u.items : null };
     const t = data.lookup('tokens', u.defId);
@@ -676,8 +683,10 @@ export function resolveDetail(target, pieces) {
  *   = the defaults
  *   live: the unit's live stats (unitStatsEntry + src 'battle' | 'prep') — an object, or a getter the panel re-reads 4×
  *   a second (the battle's own sim, battle/runner.js unitStats); null ⇒ the record's numbers
+ *   voice: whether the panel may speak — 选中干员 (audio.voice 'select') plays only while a battle runs (user request:
+ *   整备期不播干员语音), so the game screen passes its combat flag
  */
-export function DetailPanel({ detail, editable, snapHp, onClose, onSell, onDestroy, bonds = [], offBonds = null, loadout = null, onBond = null, side = 'left', shopOpen = false, live = null }) {
+export function DetailPanel({ detail, editable, snapHp, onClose, onSell, onDestroy, bonds = [], offBonds = null, loadout = null, onBond = null, side = 'left', shopOpen = false, live = null, voice = false }) {
   const getter = typeof live === 'function' ? live : null;
   useTicker(detail && getter ? 250 : 0);
   // Selection voices belong to direct click handlers, never panel refreshes.

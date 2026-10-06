@@ -1,7 +1,7 @@
 import {PROJ} from './style.js';
 // Visual-only weapon families: never change server projectile speed or damage timing.
 const BOW_USERS=new Set(['char_197_poca','char_126_shotst','char_332_archet','char_430_fartth','char_124_kroos','char_1021_kroos2','char_133_mm','char_158_milu','char_219_meteo','char_340_shwaz','char_118_yuki','char_145_prove','char_261_sddrag','char_366_acdrop','char_211_adnach','char_193_frostl']);
-export function projectileStyle(kind,info={},isEnemy=false){
+function weaponStyle(kind,info={},isEnemy=false){
  const base=PROJ[kind];if(!base)return base;
  if(!['arrow','enemy','bolt'].includes(kind))return base;
  const name=String(info.name||''),id=info.charId||info.spine||'';
@@ -14,6 +14,13 @@ export function projectileStyle(kind,info={},isEnemy=false){
  const electric=isEnemy&&/电|磁/.test(name),fire=isEnemy&&/火|炎|燃/.test(name);
  const color=electric?0x77bfea:fire?0xe79b60:0xab83d1;
  return {...base,look:'orb',tint:color,glow:color,trail:color,len:.22,width:.1,head:.22,muzzle:color,hit:'arts'};
+}
+
+// Set from the enemy's actual icon palette; visual metadata never affects attack timing.
+export function projectileStyle(kind,info={},isEnemy=false){
+ const style=weaponStyle(kind,info,isEnemy);if(!style||!isEnemy)return style;
+ const color=Number.isInteger(info.projectileColor)?info.projectileColor:null;
+ return color===null?style:{...style,tint:color,glow:color,trail:style.trail===null?null:color,muzzle:style.muzzle===null?null:color};
 }
 
 export function meleeStyle(info={},damageType='phys') {

@@ -1030,9 +1030,10 @@ test(`${nm('enemy_1072_dlancer')}: accelerates while walking; the first hit afte
   h.run(3);
   assert.ok(e.s.moveSpeed > E.enemy_1072_dlancer.stats.moveSpeed * 2);
   h.runUntil(() => e.stats.attacks >= 2, 120);
-  const hits = h.hooksOf('damaged').filter((c) => c.source === e && c.dmg.isAttack).map((c) => c.amount);
-  assert.ok(hits[0] > hits[1] * 1.5, `${hits[0]} vs ${hits[1]}`);
-  approx(hits[1], e.s.atk);
+  const hits = h.hooksOf('damaged').filter((c) => c.source === e && c.dmg.isAttack);
+  const bonus=hits.find(c=>c.dmg.tags.includes('lancerRush'));
+  assert.ok(bonus.amount > e.s.atk*.5);
+  for(const hit of hits.filter(c=>!c.dmg.tags.includes('lancerRush')))approx(hit.amount,e.s.atk);
 });
 
 test(`${nm('enemy_1320_wdrrl_2')}: only blockers with block ≥3; first attack splashes ATK×${tb('enemy_1320_wdrrl_2', 'AOEAttack.atk_scale')} around the target`, () => {
@@ -1260,6 +1261,7 @@ test(`${nm('enemy_10001_trslim')}: below half HP it runs (move ×${1 + skb('enem
   const v = e.s.moveSpeed;
   h.b.dealDamage(null, e, { amount: e.s.maxHp * 0.6, type: 'true' });
   h.step();
+  assert.ok(e.s.flags.noMove);assert.equal(e.form,'run');const before=[e.x,e.y];h.run(.7);assert.deepEqual([e.x,e.y],before);h.run(.4);
   assert.ok(e.s.flags.unblockable);
   approx(e.s.moveSpeed, v * (1 + skb('enemy_10001_trslim', 'StartRun').bb.move_speed));
 });
@@ -2988,4 +2990,42 @@ test('catapult follow-up stones use the data hit interval, and already launched 
  h.run(.2);approx(u.stats.taken,atk);
  h.run(.15);approx(u.stats.taken,2*atk);
  h.run(.3);approx(u.stats.taken,3*atk);
+});
+
+test('Sarkaz lancer additional damage uses effective movement speed, including Sluggish',()=>{
+ const sample=(slow)=>{
+  const h=arena({units:[{chessId:'t_wall',row:9,col:3}],captureNoisy:true,hooks:['damaged']});h.step();
+  const e=put(h,'enemy_1072_dlancer',[9,10],{move:true});h.run(3);
+  if(slow)h.b.applyStatus(e,'sluggish',{duration:100});
+  let speed;h.b.on('blocked',c=>{if(c.enemy===e || c.unit===e)speed=e.s.moveSpeed});
+  h.runUntil(()=>e.stats.attacks>=1,120);
+  const hits=h.hooksOf('damaged').filter(c=>c.source===e&&c.dmg.isAttack);
+  return {damage:hits.reduce((sum,c)=>sum+c.amount,0),atk:e.s.atk,speed};
+ };
+ const normal=sample(false),slow=sample(true);assert.ok(slow.damage<normal.damage,`${slow.damage} < ${normal.damage}`);
+});
+
+test('Sarkaz lancer basic and rush damage each apply DEF once, and charge does not recur on the second attack',()=>{
+ const results=[];
+ for(const def of [0,500,1000]){
+  const h=arena({units:[{chessId:'t_wall',row:9,col:3}],chess:{t_wall:WALL('t_wall',{stats:{def}})},captureNoisy:true,hooks:['damaged']});h.step();
+  const e=put(h,'enemy_1072_dlancer',[9,10],{move:true});
+  let speed;h.b.on('hit',c=>{if(c.source===e&&c.dmg.rushExtra>0)speed=e.s.moveSpeed;});
+  h.runUntil(()=>e.stats.attacks>=1,120);
+  const hits=h.hooksOf('damaged').filter(c=>c.source===e&&c.dmg.isAttack);
+  assert.equal(hits.length,2);const basic=hits.find(c=>!c.dmg.tags.includes('lancerRush')),rush=hits.find(c=>c.dmg.tags.includes('lancerRush'));
+  const raw=speed*tb(e.defId,'firstattack.atk_scale');
+  approx(basic.amount,Math.max(e.s.atk-def,e.s.atk*.05));approx(rush.amount,Math.max(raw-def,raw*.05));
+  results.push({def,atk:e.s.atk,raw,total:basic.amount+rush.amount,old:Math.max(e.s.atk+raw-def,(e.s.atk+raw)*.05)});
+  h.runUntil(()=>e.stats.attacks>=2,20);assert.equal(h.hooksOf('damaged').filter(c=>c.source===e&&c.dmg.tags.includes('lancerRush')).length,1);
+  assert.deepEqual(h.b.errors,[]);
+ }
+ console.log('Sarkaz lancer DEF comparison:',JSON.stringify(results));
+});
+
+test('Sarkaz lancer stun/bind cancels charge within 0.1 seconds instead of waiting for the next speed stack',()=>{
+ for(const status of ['stun','bind']){
+  const h=arena();h.step();const e=put(h,'enemy_1072_dlancer',[9,10],{move:true});h.run(2);assert.ok(e.findBuff('ab:rush'));
+  h.b.applyStatus(e,status,{duration:2});h.run(.14);assert.ok(!e.findBuff('ab:rush'),status);h.b.removeStatus(e,status);approx(e.s.moveSpeed,e.base.moveSpeed);
+ }
 });

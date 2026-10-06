@@ -1,3 +1,4 @@
+import {IMPACT_CAST_SKILLS} from '../../shared/attackTiming.js';
 // server/sim/snapshot.js — compact serialization for clients (DESIGN §8.2).
 //
 // b.snap  = { fieldId, t, units: [[id, x, y, hp, maxHp, sp, spMax, flags, anim]], dp, killed, total }
@@ -38,7 +39,10 @@ export function unitInfo(u) {
     facing: u.facing ?? 1,
     dir: u.dir ?? 'RIGHT',
     maxHp: Math.max(1, Math.round(u.s.maxHp)),
+    gaugeMax:u.gaugeMax,
+    skillName:d.skill?.name,
     motion: u.motion === 'FLY' ? 'FLY' : undefined,
+    flying: visuallyAirborne(u) || undefined,
     ...(u.profile?.visibleRangeRadius > 0 ? { rangeRadius: u.profile.visibleRangeRadius } : {}),
     boss: u.isBoss ? true : undefined,
     // the unit's current model form (an enemy's content/enemies.js setForm, a 傀儡师's 替身 — render/units.js FORMS): a
@@ -46,8 +50,8 @@ export function unitInfo(u) {
     form: typeof u.form === 'string' ? u.form : undefined,
     uid: u.uid ?? undefined,
     // DESIGN §16: the equipped skill's index (the renderer / audio pick that skill's Spine clip and sound)
-    skillDuration: u.skill && ['instant','charges'].includes(u.skill.kind) ? 0 : undefined,
-    skillNextAttack: !!(u.skill && !u.skill.isTimed && u.skill.spec.attack),
+    skillDuration: u.skill && ['instant','charges','passive'].includes(u.skill.kind) ? 0 : undefined,
+    skillNextAttack: !!(u.skill && !u.skill.isTimed && u.skill.spec.attack && !IMPACT_CAST_SKILLS.has(u.skill.id)),
     skillZoneGrid: showsSkillArea(u) ? (d.skill.rangeGrid?.length ? d.skill.rangeGrid : d.rangeGrid) : undefined,
     omnidirectional: !!u.profile?.allInRange, fixedFacing:!!u.profile?.fixedFacing,
     skinId: d.loadout?.skinId, charId: d.raw?.charId,
@@ -64,6 +68,11 @@ export function unitInfo(u) {
 }
 
 /** Status flag bitmask. */
+export function visuallyAirborne(u) {
+  const f=u.s.flags;
+  return !!(u.isFlying || f.levitate || f.float || f.liftoff);
+}
+
 export function flagsOf(u) {
   const f = u.s.flags;
   let bits = 0;
@@ -80,7 +89,7 @@ export function flagsOf(u) {
   if (f.invulnerable) bits |= UF.INVULN;
   if (f.cold) bits |= UF.COLD;
   if (f.sleep) bits |= UF.SLEEP;
-  if (u.motion === 'FLY') bits |= UF.FLYING;
+  if (visuallyAirborne(u)) bits |= UF.FLYING;
   return bits;
 }
 

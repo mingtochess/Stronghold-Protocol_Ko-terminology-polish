@@ -23,18 +23,20 @@ const maxRow = (areas) => Math.max(...areas.map((a) => a.r1));
 const hit = (a, b) => a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
 
 describe('6: the enemy pen only with the pen camera', () => {
-  test('prep / battle / 联防 cameras draw no pen rows and build no pen area; the pen camera does', () => {
-    for (const k of ['prep', 'normal', 'unite']) {
-      assert.ok(bandFor(k)[1] <= 13, `${k}: 2D rows ${bandFor(k)}`);
+  test('prep, battle and pen keep the same tile geometry; only pen figures follow camera visibility', () => {
+    for (const k of ['prep', 'normal']) {
+      assert.equal(bandFor(k)[1],18, `${k}: 2D rows ${bandFor(k)}`);
       // the field and its separator rows (row 13 carries devices blowing into the field, user playtest #5 item 6)
-      assert.ok(maxRow(boardArea(k)) <= 13, `${k}: 3D area rows ≤ 13 (no pen rows 14–18)`);
+      assert.equal(maxRow(boardArea(k)),18, `${k}: 3D area rows ≤ 13 (no pen rows 14–18)`);
       assert.equal(penShown(k), false, `${k}: pen figures hidden`);
     }
-    for (const k of ['boss', 'hidden', 'bossPrep']) {
+    for (const k of ['boss', 'hidden']) {
       assert.deepEqual(bandFor(k), [0, 13], k);
       assert.ok(maxRow(boardArea(viewKind(k))) <= 6, `${k}: boss field only`);
       assert.equal(penShown(viewKind(k)), false);
     }
+    assert.deepEqual(bandFor('bossPrep'),[0,18]);
+    assert.equal(maxRow(boardArea('bossPrep')),18);
     assert.deepEqual(bandFor('pen'), [6, 18]);
     assert.equal(maxRow(boardArea('pen')), 18);
     assert.equal(boardArea('pen'), AREAS.normal, 'the pen view keeps the field + pen block');
@@ -44,8 +46,8 @@ describe('6: the enemy pen only with the pen camera', () => {
     assert.equal(penShown('pen', 'prep'), true);
   });
 
-  test('the field areas are the official ones minus the pen block', () => {
-    assert.deepEqual(boardArea('normal'), AREAS.normal.filter((a) => a.r1 <= 13));
+  test('normal and pen share geometry; cooperative camera keeps its separate full field', () => {
+    assert.equal(boardArea('normal'),AREAS.normal);assert.equal(boardArea('prep'),boardArea('pen'));
     assert.deepEqual(boardArea('unite'), AREAS.unite.filter((a) => a.r1 <= 13));
     assert.ok(boardArea('normal').some((a) => a.r0 <= 6 && a.r1 >= 12 && a.c0 === 0 && a.c1 >= 10), 'own field + bench');
   });
@@ -115,6 +117,19 @@ describe('8: the detail card never covers the selected unit\'s underframe', () =
     assert.doesNotMatch(css, /\.gm__bonds > \* \{ pointer-events: auto; \}/);
     const dev = readFileSync(new URL('../../public/css/devices.css', import.meta.url), 'utf8');
     assert.match(dev, /\.gm__hud > \.uframe \{ margin-left: calc\(-1 \* var\(--sa-l\)\); margin-top: calc\(-1 \* var\(--sa-t\)\); \}/);
+    const panels = readFileSync(new URL('../../public/css/screens/game-panels.css', import.meta.url), 'utf8');
+    assert.match(panels, /\.uframe__label\s*\{[^}]*white-space:\s*nowrap\s*;/, 'shortcut labels stay on one line');
+  });
+
+  // a finger's tap near a disc: the browser's touch adjustment moved it onto the nearest element that responds to clicks
+  // (the canvas's pointer listeners do not count), so with PR #149's 收起 toggle pushing the discs over the back row a tap
+  // on the row-12 unit at 844×390 opened the bond popup (test/render/models.browser.test.js #4.1 touch)
+  test('the field canvas is a click target of its own, so a tap on the board stays on the tile under the finger', async () => {
+    const { readFileSync } = await import('node:fs');
+    const app = readFileSync(new URL('../../public/js/render/app.js', import.meta.url), 'utf8');
+    assert.match(app, /\n {2}canvas\.addEventListener\('click', onTapTarget\);\n/, 'registered with the other canvas listeners');
+    assert.match(app, /\n {6}canvas\.removeEventListener\('click', onTapTarget\);\n/, 'dropped on destroy');
+    assert.match(app, /const onTapTarget = \(\) => \{\};/, 'a no-op: the press itself stays with the pointer events');
   });
 
   test('underframeRect covers the diamond and its buttons', () => {

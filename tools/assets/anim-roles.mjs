@@ -223,8 +223,8 @@ function resolveMove(names, find, form) {
   return any ? clip(null, any, null) : null;
 }
 
-function resolveStun(find) {
-  const stun = find('Stun') ?? find('Stun_Loop') ?? find('Stun_Idle') ?? find('Stunned') ?? find('Dizzy');
+function resolveStun(find, form) {
+  const stun = find('Stun') ?? form('Stun') ?? find('Stun_Loop') ?? form('Stun_Loop') ?? find('Stun_Idle') ?? form('Stun_Idle') ?? find('Stunned') ?? find('Dizzy');
   const begin = find('Stun_Begin') ?? find('Stun_Start');
   if (stun) return clip(begin, stun, find('Stun_End'));
   if (begin) return clip(null, begin, null);
@@ -272,7 +272,7 @@ export function resolveRoles(animationNames, opts = {}) {
     skill: skills[String(indices[0])] ?? null,
     die: resolveDie(names, find, form),
     move: resolveMove(names, find, form),
-    stun: resolveStun(find),
+    stun: resolveStun(find, form),
   };
   if (indices.length > 1) roles.skills = skills;
   return roles;

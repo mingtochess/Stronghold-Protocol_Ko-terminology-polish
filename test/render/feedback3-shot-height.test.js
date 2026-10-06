@@ -8,6 +8,7 @@ import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { installFakePixi, fakeViewCtx } from './fakepixi.js';
 import { presetCamera } from '../../public/js/render/projection.js';
+import {UF} from '../../shared/constants.js';
 
 let fake, FX, UnitView;
 before(async () => {
@@ -18,6 +19,18 @@ before(async () => {
 after(() => fake.restore());
 
 const cam = presetCamera('normal', { width: 1600, height: 900 });
+test('temporary airborne snapshots put an actual UnitView above ground units and restore depth after landing',()=>{
+ const ctx=fakeViewCtx(fake.P,{cam});
+ const air=new UnitView(ctx,{id:91,kind:'enemy',side:'enemy',x:5,y:12,maxHp:1000,flying:true});
+ const ground=new UnitView(ctx,{id:92,kind:'op',side:'ally',x:5,y:9,maxHp:1000});
+ assert.equal(air.flying,true,'spawn/reconnect preserves temporary flight before its first snapshot');
+ const sample=flags=>({x:5,y:12,hp:1000,maxHp:1000,sp:0,spMax:0,flags,anim:0,vx:0});
+ air.sync(sample(UF.FLYING),0);air.update(.05,cam,0);ground.update(.05,cam,0);
+ assert.ok(air.root.zIndex>ground.root.zIndex);
+ air.sync(sample(0),.1);air.update(.05,cam,.1);
+ assert.equal(air.flying,false);assert.ok(air.root.zIndex<ground.root.zIndex);
+ air.destroy();ground.destroy();
+});
 const close = (a, b, eps, msg) => assert.ok(Math.abs(a - b) <= eps, `${msg}: ${a} vs ${b}`);
 
 test('Camera.liftFor: the world height that draws `px` above a point — exact on every preset camera', () => {

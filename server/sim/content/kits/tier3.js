@@ -838,7 +838,7 @@ const KITS = {
           const grid = copyGrid(s.rangeGrid);
           return {
             kind: 'duration',
-            trigger: { rule: 'DEFAULT' },
+            trigger: { rule: 'SEARCH' },
             attack: { atkScale: num(s.bb['attack@atk_scale'], num(s.bb.atk_scale, 1)) },
             ...(grid ? { targeting: { rangeGrid: grid } } : {}),
             onStart: guardOn,
@@ -942,14 +942,16 @@ const KITS = {
         },
         onEnd({ battle, unit }) { battle.removeBuff(unit, 'skill:pinecn_atk'); },
       },
-      // S1 RMA长钉 (charges): "立即以165%的攻击力进行一次攻击，无视敌人180的防御力" — an extra shot fired at once (all
+      // S1 RMA长钉 (charges): "立即以165%的攻击力进行一次攻击，无视敌人180的防御力" — an independent shot at the authored cast hit (all
       // enemies in range, front-row × of the trait), on top of the normal attack it was cast before
       skills: altSkills(chess, d, bb, {
         skchr_pinecn_1: (s) => ({
           kind: instantKindOf(s),
           // (the DEF ignore rides on the shots' tag: they land after the instant skill has ended)
           attack: { atkScale: num(s.bb.atk_scale, 1), tags: ['skill', 'pinecnSpike'] },
-          onStart({ battle, unit }) { battle.forceAttack(unit); },
+          onStart({ battle, unit }) {
+            if(!battle.forceAttack(unit, null, {castImpact:true}))unit.skill.end('instant');
+          },
         }),
       }),
       talents: [{ install(battle, unit) {
@@ -1101,7 +1103,9 @@ const KITS = {
               const dur = skill.timeLeft > 0 ? skill.timeLeft : Math.max(0.1, num(s.duration, 10));
               let n = 0;
               // PRTS 备注: "技能生效对象实际为“自身这格内的所有地面敌人及自身阻挡的敌人”，即使阻挡的是飞行敌人" — a blocked
-              // enemy stands at the block radius, outside her tile (Battle._checkBlock)
+              // enemy stands at the block radius, outside her tile (Battle._checkBlock). Asleep they are no longer blocked
+              // (沉睡 = 不可阻挡, DESIGN §24.9; GitHub #140): her slots free for the next enemies, and a sleeper that wakes
+              // is held again only while she has room
               for (const e of battle.enemies) {
                 if (!e.alive || e.hidden) continue;
                 if (e.blockedBy !== unit && (e.isFlying || !bodyOnTile(e, unit.tileR, unit.tileC))) continue;
@@ -1358,9 +1362,11 @@ const KITS = {
           const n = Math.max(1, Math.floor(num(s.bb.max_target, 6)));
           return {
             kind: instantKindOf(s),
-            onStart({ battle, unit }) {
+            onCastStart({ battle, unit }) {
               const dp = num(s.bb.cost, 0);
               if (dp > 0) { battle.addDp(unit.ownerId, dp); fx(battle, 'dp', unit, { n: dp }); }
+            },
+            onStart({ battle, unit }) {
               const list = enemiesOn(battle, unit, gridKeys(grid ?? unit.rangeGrid, unit), n);
               for (const e of list) {
                 const was = !!e.findBuff('sluggish'); // "若敌人已经处于停顿状态" (before this cast)
@@ -1419,7 +1425,8 @@ const KITS = {
   // ---- 3_19 伺夜 · 战术家 — the tactical reinforcement is the wolf pack (狼群领袖: 2 wolves, +1 every 25 s up to 3, each
   //      wolf = +1 block and one more bite, a wolf is lost instead of the pack dying); 狼群天性: DEF ignore vs pack-blocked
   //      enemies; S3 领袖的尊严: DP over time, 三连击, bonus arts vs pack-blocked enemies; 精锐 module: pack takes less
-  //      damage from the enemies it blocks (token module talent). A 狼群 piece placed in the prep phase is the pack.
+  //      damage from the enemies it blocks (token module talent). A 狼群 piece placed in the prep phase is the pack;
+  //      without it no pack comes at all (GitHub #202: the pack deploys only through the player's deployment).
   //      S1 领袖的呼唤 (ALWAYS): +cost DP and one more “狼影” (≤ the talent's maximum); S2 领袖的馈赠: +cost DP, the pack
   //      recovers hp_ratio of its max HP and its next attack hits ×atk_scale — a kill by that attack gives +cost DP.
   //      精锐 module TAC-Y: trait ×165 % (profession layer) and "援军阻挡的敌人更容易受到我方的攻击": the pack's token module
@@ -1548,6 +1555,10 @@ const KITS = {
         // The pack is the tactician's 援军. The match also hands the player the 狼群 token to place in the prep phase
         // (= choosing the tactical point): that board piece (tokens.js kit, owner-coupled effects left to this kit) is
         // the pack when present — deployed early on its own tile if 伺夜 deploys first — never a second pack.
+        // GitHub #202: with no placed piece no pack comes at all — the pack deploys only through the player's
+        // deployment (nothing auto-deploys at the battle start, so a 联防 phase sees no pack re-deploy at a fresh,
+        // possibly different tactical point either). The tactical point below only brings the pack back when it left
+        // for good (its tactician was knocked out): it prefers the placed piece's tile, so the position stays.
         const spawn = () => {
           if (!alive(unit) || wolfOf(unit)) return;
           const pieces = tokensOf(battle, unit, wolfId);
@@ -1560,7 +1571,8 @@ const KITS = {
             return;
           }
           const board = pieces.find((t) => t.uid != null);
-          const tile = tacticalPoint(battle, unit, board ? [board.homeR, board.homeC] : null);
+          if (!board) return;
+          const tile = tacticalPoint(battle, unit, [board.homeR, board.homeC]);
           if (!tile) return;
           const w = battle.spawnToken(unit, wolfId, tile[0], tile[1], { kit: wolfKit(unit) });
           unit.trait.reinforcement = w;

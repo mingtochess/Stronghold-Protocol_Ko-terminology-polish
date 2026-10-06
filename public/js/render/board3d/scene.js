@@ -22,7 +22,7 @@
 import { buildBoard, objToBoard, boxProjectUV, ROWS, COLS, DEVICE_H, AREAS } from './layout.js';
 import { surfaceUV } from './atlas.js';
 import {
-  focusUniforms, makeTexture, boardMaterial, glassMaterial, decalMaterial, pipeMaterial, unlitMaterial, gateMaterial, glowMaterial,
+  focusUniforms, addFocus, makeTexture, boardMaterial, glassMaterial, decalMaterial, pipeMaterial, unlitMaterial, gateMaterial, glowMaterial,
   waterMaterial, mireMaterial, infectionMaterial, smogMaterial, dashTexture, environmentMap,
 } from './materials.js';
 import { syncThreeCamera } from '../projection.js';
@@ -54,6 +54,55 @@ export function gatePulse(t, phase = 0) {
 }
 
 const areaKey = (list) => (list || []).map((a) => `${a.r0},${a.r1},${a.c0},${a.c1}`).sort().join(';');
+
+/** Exclude inactive field platforms and props from both the visible pass and shadow pass.
+ * Terrain beyond the board envelope remains as the original scenic background.
+ * Sub-floor triangles inside an inactive field are still platform geometry: depth alone must not preserve them. */
+export function geometryForArea(src, areas) {
+  const p = src.position, index = [];
+  for (let i = 0; i < src.index.length; i += 3) {
+    const ids = src.index.slice(i, i + 3);
+    const x = ids.reduce((v, k) => v + p[k * 3], 0) / 3;
+    const y = ids.reduce((v, k) => v + p[k * 3 + 1], 0) / 3;
+    const background = x < -0.5 || x > 20.5 || y < -0.5 || y > 18.5;
+    if (background || areas.some(a => x >= a.c0 - 0.5 && x <= a.c1 + 0.5 && y >= a.r0 - 0.5 && y <= a.r1 + 0.5)) index.push(...ids);
+  }
+  return { ...src, index };
+}
+
+/** Keep decorative mesh components whole. Only hide components wholly inside an
+ * inactive board region; landscape and components crossing its boundary stay intact. */
+export function sceneryForArea(src, areas) {
+  const count = src.position.length / 3;
+  const parent = Int32Array.from({length:count}, (_, i) => i);
+  const find = i => { while (parent[i] !== i) { parent[i] = parent[parent[i]]; i = parent[i]; } return i; };
+  // UV/material seams duplicate vertices at identical positions. Join those
+  // copies so separate faces of one decorative object cannot be clipped apart.
+  const welded = new Map();
+  for (const id of src.index) {
+    const key = `${src.position[id*3]},${src.position[id*3+1]},${src.position[id*3+2]}`;
+    const previous = welded.get(key);
+    if (previous == null) welded.set(key,id); else parent[find(id)]=find(previous);
+  }
+  for (let i=0;i<src.index.length;i+=3) {
+    const root=find(src.index[i]);
+    parent[find(src.index[i+1])]=root; parent[find(src.index[i+2])]=root;
+  }
+  const bounds = new Map();
+  for (const id of src.index) {
+    const root=find(id), x=src.position[id*3], y=src.position[id*3+1];
+    const b=bounds.get(root) || {x0:Infinity,x1:-Infinity,y0:Infinity,y1:-Infinity};
+    b.x0=Math.min(b.x0,x);b.x1=Math.max(b.x1,x);b.y0=Math.min(b.y0,y);b.y1=Math.max(b.y1,y);bounds.set(root,b);
+  }
+  const keep = new Set();
+  for (const [root,b] of bounds) {
+    const landscape = b.x0 < -.5 || b.x1 > 20.5 || b.y0 < -.5 || b.y1 > 18.5;
+    if (landscape || areas.some(a=>b.x1>=a.c0-.5 && b.x0<=a.c1+.5 && b.y1>=a.r0-.5 && b.y0<=a.r1+.5)) keep.add(root);
+  }
+  const index=[];
+  for(let i=0;i<src.index.length;i+=3) if(keep.has(find(src.index[i]))) index.push(src.index[i],src.index[i+1],src.index[i+2]);
+  return {...src,index};
+}
 
 const mergeInto = (list) => {
   // concatenate { position, normal, uv, color?, index } records
@@ -174,6 +223,52 @@ export class BoardScene {
       shadowCatcher: new T.ShadowMaterial({ opacity: 0.32, color: 0x000000 }),
     };
     this.mat.crateFade = null;
+    this.originalTextures = {};
+    this.originalMaterials = {};
+    this.lightmapMaterials = [];
+    this.lightmapTextures = {};
+    for (const [name, rec] of Object.entries(pack?.original?.materials || {})) {
+      const texture = (slot) => {
+        const ref = rec.textures?.[slot];
+        if (!ref) return null;
+        // Materials can share an image while using different atlas transforms.
+        const key = JSON.stringify([ref.name, slot, !!rec.gammaLighting, ref.scale || [1, 1], ref.offset || [0, 0]]);
+        if (!(key in this.originalTextures)) {
+          const t = makeTexture(T, pack.original.images[ref.name], { aniso, srgb: !rec.gammaLighting && !['_BumpMap', '_MetallicGlossMap'].includes(slot), repeat: true });
+          if (t) { t.repeat.set(...(ref.scale || [1, 1])); t.offset.set(...(ref.offset || [0, 0])); }
+          this.originalTextures[key] = t;
+        }
+        return this.originalTextures[key];
+      };
+      const color = rec.colors?._Color || [1, 1, 1, 1];
+      const emission = rec.colors?._EmissionColor || [0, 0, 0, 1];
+      const material = new T.MeshStandardMaterial({
+        map: texture('_MainTex'), color: new T.Color(...color.slice(0, 3)),
+        emissiveMap: texture('_EmissionMap'), emissive: new T.Color(...emission.slice(0, 3)),
+        // These stage shaders use vertex colours as terrain blend masks, not albedo/AO.
+        // Multiplying the diffuse by them would turn grass black and byte colours glaring white.
+        emissiveIntensity: LIGHTING.emissive, vertexColors: false,
+        normalMap: texture('_BumpMap'),
+        normalScale: new T.Vector2(rec.floats?._BumpScale ?? 1, rec.floats?._BumpScale ?? 1),
+        roughnessMap: texture('_MetallicGlossMap'), roughness: 0.9, metalness: 0,
+        alphaTest: rec.floats?._Mode === 1 || /grass|common|_UI$/i.test(name) ? (rec.floats?._Cutoff || 0.4) : 0,
+        side: /grass|common/i.test(name) ? T.DoubleSide : T.FrontSide,
+      });
+      if (rec.gammaLighting) {
+        material.userData.nativeGamma = true;
+        material.onBeforeCompile = shader => {
+          // The shipped GLES shader uses gamma F0=.220916 and RGBM alpha*5,
+          // rather than a linear PBR BRDF. Keep those colour values through
+          // lighting and do not encode them into sRGB a second time.
+          shader.fragmentShader = shader.fragmentShader
+            .replace('#include <common>', '#define BRDF_Lambert spLinearLambert\n#include <common>\n#undef BRDF_Lambert\nvec3 BRDF_Lambert(const in vec3 diffuseColor) { return diffuseColor; }')
+            .replace('#include <lights_physical_fragment>', T.ShaderChunk.lights_physical_fragment.replace('vec3( 0.04 )', 'vec3( 0.220916301 )'))
+            .replace('#include <colorspace_fragment>', '');
+        };
+      }
+      this.originalMaterials[name] = addFocus(material, this.focus);
+      if (rec.gammaLighting) material.customProgramCacheKey = () => 'sp-focus-native-gamma';
+    }
     // lights
     const hemi = new T.HemisphereLight(LIGHTING.hemi.sky, LIGHTING.hemi.ground, LIGHTING.hemi.intensity);
     hemi.position.set(0, 0, 1);
@@ -213,11 +308,14 @@ export class BoardScene {
   _geometry(data) {
     const T = this.THREE;
     const g = new T.BufferGeometry();
-    g.setAttribute('position', new T.BufferAttribute(data.position, 3));
-    if (data.normal) g.setAttribute('normal', new T.BufferAttribute(data.normal, 3));
-    if (data.uv) g.setAttribute('uv', new T.BufferAttribute(data.uv, 2));
-    if (data.color) g.setAttribute('color', new T.BufferAttribute(data.color, 3));
-    g.setIndex(new T.BufferAttribute(data.index, 1));
+    const floats = (a) => ArrayBuffer.isView(a) ? a : new Float32Array(a);
+    g.setAttribute('position', new T.BufferAttribute(floats(data.position), 3));
+    if (data.normal) g.setAttribute('normal', new T.BufferAttribute(floats(data.normal), 3));
+    if (data.uv) g.setAttribute('uv', new T.BufferAttribute(floats(data.uv), 2));
+    if (data.uv1?.length) g.setAttribute('uv1', new T.BufferAttribute(floats(data.uv1), 2));
+    if (data.color) g.setAttribute('color', new T.BufferAttribute(floats(data.color), 3));
+    const indices = ArrayBuffer.isView(data.index) ? data.index : (data.position.length / 3 > 65535 ? new Uint32Array(data.index) : new Uint16Array(data.index));
+    g.setIndex(new T.BufferAttribute(indices, 1));
     if (!data.normal) g.computeVertexNormals();
     g.computeBoundingSphere();
     return g;
@@ -233,6 +331,10 @@ export class BoardScene {
   }
 
   _clear() {
+    for (const m of this.lightmapMaterials) m.dispose();
+    this.lightmapMaterials = [];
+    for (const t of Object.values(this.lightmapTextures)) t.dispose();
+    this.lightmapTextures = {};
     for (const ch of [...this.root.children]) {
       this.root.remove(ch);
       ch.traverse?.((o) => { if (o.geometry) o.geometry.dispose(); });
@@ -243,6 +345,7 @@ export class BoardScene {
   /** The crate mesh in board space (s_common_box_01 when loaded, else a unit chamfer-free box), UVs on D. */
   crateGeometry() {
     if (this._crateGeom) return this._crateGeom;
+    if (this.pack?.original?.crate && this.originalMaterials.MT_trap_1105_accrate) return this._crateGeom = this.pack.original.crate;
     const uv = this.pack?.uv || {};
     const obj = this.pack?.meshes?.crate;
     let base;
@@ -273,16 +376,63 @@ export class BoardScene {
     this.stage = stage || null;
     this._clear();
     if (!stage) return;
+    if (this.pack?.original?.loadStage && !this.pack.original.scenes[stage.id]) {
+      this.pack.original.loadStage(stage.id).then((scene) => {
+        if (scene && !this.destroyed && this.stage?.id === stage.id) {
+          this.stageKey = null;
+          this.setStage(this.stage);
+        }
+      });
+    }
     const board = buildBoard(stage, { uv: this.pack?.uv || null, area: this.area });
     this.board = board;
     const M = this.meshes = {};
-    M.board = this._mesh(board.buckets.board, this.mat.board);
-    M.glass = this._mesh(board.buckets.glass, this.mat.glass);
-    M.decal = this._mesh(board.buckets.decal, this.mat.decal, { cast: false });
-    M.pipe = this._mesh(board.buckets.pipe, this.mat.pipe);
+    const candidate = this.pack?.original?.scenes?.[stage.id];
+    // Missing/invalid material metadata must retain the working reconstructed board.
+    const original = candidate && Object.entries(candidate.buckets).every(([k,g]) => this.originalMaterials[g.material || k]) ? candidate : null;
+    this.originalStage = original?.stageId || null;
+    this.key.intensity = original?.lighting?.intensity ?? LIGHTING.key.intensity;
+    if (original?.lighting?.color) this.key.color.setRGB(...original.lighting.color);
+    else this.key.color.setHex(LIGHTING.key.color);
+    if (original) {
+      for (const [material, geometry] of Object.entries(original.buckets)) {
+        // Serialized Waterplane nodes carry a green runtime placeholder material.
+        // Preserve their original geometry and provide the animated web water shader.
+        const sourceName = geometry.material || material;
+        let runtimeMaterial = sourceName === 'MT_Dosshore_UI' ? this.mat.water : this.originalMaterials[sourceName];
+        if (sourceName !== 'MT_Dosshore_UI' && geometry.lightMap && geometry.uv1?.length && this.pack.original.images[geometry.lightMap]) {
+          const name = geometry.lightMap;
+          const tex = this.lightmapTextures[name] ||= makeTexture(this.THREE, this.pack.original.images[name], { srgb: !runtimeMaterial.userData.nativeGamma });
+          tex.channel = 1;
+          runtimeMaterial = runtimeMaterial.clone();
+          runtimeMaterial.lightMap = tex;
+          // Unity mobile RGBM (range 5): alpha*5 in native gamma lighting,
+          // and the linear decode plus PI only for linear fallback materials.
+          const nativeGamma = runtimeMaterial.userData.nativeGamma;
+          runtimeMaterial.lightMapIntensity = nativeGamma ? 1 : Math.PI;
+          const T = this.THREE;
+          const sourceCompile = this.originalMaterials[sourceName].onBeforeCompile;
+          runtimeMaterial.onBeforeCompile = shader => {
+            sourceCompile(shader);
+            shader.fragmentShader = shader.fragmentShader.replace('#include <lights_fragment_maps>', T.ShaderChunk.lights_fragment_maps.replace(
+              'lightMapTexel.rgb * lightMapIntensity',
+              nativeGamma ? 'lightMapTexel.rgb * (5.0 * lightMapTexel.a) * lightMapIntensity' : 'lightMapTexel.rgb * (pow(5.0, 2.2) * pow(lightMapTexel.a, 2.2)) * lightMapIntensity'
+            ));
+          };
+          runtimeMaterial.customProgramCacheKey = () => nativeGamma ? 'sp-focus-native-gamma-rgbm5' : 'sp-focus-unity-rgbm5';
+          this.lightmapMaterials.push(runtimeMaterial);
+        }
+        M[`original:${material}`] = this._mesh(geometry.platform ? geometryForArea(geometry, this.area) : sceneryForArea(geometry, this.area), runtimeMaterial, { cast: sourceName !== 'MT_Dosshore_UI' });
+      }
+    } else {
+      M.board = this._mesh(board.buckets.board, this.mat.board);
+      M.glass = this._mesh(board.buckets.glass, this.mat.glass);
+      M.decal = this._mesh(board.buckets.decal, this.mat.decal, { cast: false });
+      M.pipe = this._mesh(board.buckets.pipe, this.mat.pipe);
+    }
     this._buildDevices(board);
     this._buildGates(board);
-    this._buildEdges(board);
+    if (!original) this._buildEdges(board);
     this._buildTerrain(board);
     this._buildBackground(board);
     this._fitShadow(board);
@@ -310,7 +460,7 @@ export class BoardScene {
     const R = this.battleRect;
     const inside = (d) => !!R && d.r >= R.r0 && d.r <= R.r1 && d.c >= R.c0 && d.c <= R.c1;
     const list = (this.staticCrates || []).filter((d) => !inside(d)).map((d) => placeMesh(this.crateGeometry(), { x: d.c, y: d.r, z: d.z0 }));
-    if (list.length) this.meshes.crates = this._mesh(mergeInto(list), this.mat.board);
+    if (list.length) this.meshes.crates = this._mesh(mergeInto(list), this.originalMaterials.MT_trap_1105_accrate || this.mat.board);
     this.renderer.shadowMap.needsUpdate = true;
   }
 
@@ -454,11 +604,12 @@ export class BoardScene {
     const T = this.THREE;
     const self = this;
     const geom = this._geometry({ ...this.crateGeometry(), color: null });
-    const mat = this.mat.board.clone();
+    const sourceMaterial = this.originalMaterials.MT_trap_1105_accrate || this.mat.board;
+    const mat = sourceMaterial.clone();
     mat.transparent = true;
     mat.vertexColors = false;
     // keep the focus falloff on the clone
-    mat.onBeforeCompile = this.mat.board.onBeforeCompile;
+    mat.onBeforeCompile = sourceMaterial.onBeforeCompile;
     const mesh = new T.Mesh(geom, mat);
     mesh.castShadow = true; mesh.receiveShadow = true;
     this.dynamic.add(mesh);
@@ -558,7 +709,7 @@ export class BoardScene {
 
   stats() {
     const info = this.renderer.info;
-    return { calls: info?.render?.calls ?? 0, triangles: info?.render?.triangles ?? 0, textures: info?.memory?.textures ?? 0, geometries: info?.memory?.geometries ?? 0, frames: this.frames, cpuMs: Math.round(this.lastMs * 100) / 100, lost: this.lost };
+    return { calls: info?.render?.calls ?? 0, triangles: info?.render?.triangles ?? 0, textures: info?.memory?.textures ?? 0, geometries: info?.memory?.geometries ?? 0, frames: this.frames, cpuMs: Math.round(this.lastMs * 100) / 100, lost: this.lost, originalStage: this.originalStage || null };
   }
 
   destroy() {
@@ -569,6 +720,8 @@ export class BoardScene {
     this.mat.edge?.map?.dispose?.(); // canvas dash texture (not in this.tex)
     for (const m of Object.values(this.mat)) m?.dispose?.();
     for (const t of Object.values(this.tex)) t?.dispose?.();
+    for (const m of Object.values(this.originalMaterials)) m?.dispose?.();
+    for (const t of Object.values(this.originalTextures)) t?.dispose?.();
     this.envMap?.dispose?.();
     this.canvas.removeEventListener?.('webglcontextlost', this._onLost);
     try { this.renderer.dispose(); } catch { /* ignore */ }

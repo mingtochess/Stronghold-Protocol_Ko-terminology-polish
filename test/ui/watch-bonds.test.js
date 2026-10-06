@@ -315,18 +315,17 @@ describe('§20.15 the strip and the popup say whose bonds they show', () => {
     assert.equal(root.props['data-owner'], '阿米娅');
     assert.equal(root.props['aria-label'], '阿米娅 的盟约');
     const tag = [...walk(other)].find((v) => hasClass(v, 'bstrip__owner'));
-    assert.ok(tag, 'the owner tag');
-    assert.match(textOf(tag), /阿米娅/);
+    assert.equal(tag, undefined, 'watch label is shown below the battlefield, not in the bond strip');
     assert.deepEqual([...walk(other)].filter((v) => hasClass(v, 'bslot')).map((v) => v.props['data-bond']).sort(), [...ids].sort(), 'one slot per bond (data-bond)');
     const mine = BondStrip({ bonds: list, owner: null, onOpen() {} });
     const r2 = [...walk(mine)].find((v) => hasClass(v, 'bstrip'));
     assert.ok(!hasClass(r2, 'is-other') && r2.props['data-owner'] == null);
     assert.ok(![...walk(mine)].some((v) => hasClass(v, 'bstrip__owner')));
   });
-  test('a teammate without bonds: "name 尚未激活盟约" with the tag', () => {
+  test('a teammate without bonds: "name 尚未激活盟约" without a duplicate watch tag', () => {
     const v = BondStrip({ bonds: [], owner: 'AI·煌', onOpen() {} });
     assert.match(textOf(v), /AI·煌 尚未激活盟约/);
-    assert.ok([...walk(v)].some((x) => hasClass(x, 'bstrip__owner')));
+    assert.ok(![...walk(v)].some((x) => hasClass(x, 'bstrip__owner')));
     assert.match(textOf(BondStrip({ bonds: [], onOpen() {} })), /部署干员以激活盟约/);
   });
   test('the popup of a teammate\'s bond: "👁 name 的盟约", their count / layers, members from their board', () => {
@@ -416,7 +415,7 @@ describe('§20.15 the popup of a card\'s bond chip: the UNIT owner\'s bond (a sh
     assert.equal(popupView({ open: { id: 'yanShip' }, pub, priv: PRIV, myId: ME }).ownerId, ME, 'no owner: yours');
     const capped = popupView({ open: { id: 'sargonShip', ownerId: 'p2' }, pub, priv: PRIV, myId: ME, field: b1, live: { p2: { sargonShip: 5000 } } });
     assert.equal(capped.entry.layers, BOND_LAYER_CAP, 'never above the 999 cap');
-    assert.equal(popupView({ open: { id: 'sargonShip', ownerId: 'p2' }, pub, priv: PRIV, myId: ME, field: null }).priv, null, 'no field on screen: no members');
+    assert.deepEqual(popupView({ open: { id: 'sargonShip', ownerId: 'p2' }, pub, priv: PRIV, myId: ME, field: null }).priv, {selectedRecruits:[]}, 'selection remains known without a field');
   });
   test('the reported case end to end: on 全景 the strip is yours, the partner\'s unit chip opens the PARTNER\'s popup — and back', () => {
     const layers = cameraLayers(b1, pub, ME);

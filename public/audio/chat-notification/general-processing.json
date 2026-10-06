@@ -1,0 +1,57 @@
+{
+  "author": "Kenney",
+  "license": "CC0-1.0",
+  "sourcePage": "https://kenney.nl/assets/interface-sounds",
+  "files": [
+    {
+      "id": "notification-glass",
+      "label": "일반 — 맑은 유리음",
+      "file": "glass_001.wav",
+      "sourceUrl": "https://raw.githubusercontent.com/Calinou/kenney-interface-sounds/4596a49eaf5a533948d49a47467f606bcdea70ff/addons/kenney_interface_sounds/glass_001.wav",
+      "sha256": "39182b395a30b34e18cbcf842922552b23da5b010a52b7777557e02a405f083e",
+      "path": "/audio/chat-notification/notification-glass.mp3",
+      "durationSeconds": 0.291701,
+      "loudnessLUFS": -21.45,
+      "truePeakDBTP": -2.91,
+      "gainDB": -1.48
+    },
+    {
+      "id": "notification-pluck",
+      "label": "일반 — 짧은 현 소리",
+      "file": "pluck_001.wav",
+      "sourceUrl": "https://raw.githubusercontent.com/Calinou/kenney-interface-sounds/4596a49eaf5a533948d49a47467f606bcdea70ff/addons/kenney_interface_sounds/pluck_001.wav",
+      "sha256": "7d676b0b09b56f7e5964ad274feb7e7307a4e552bed8cd98e1e3cecfb9c10c36",
+      "path": "/audio/chat-notification/notification-pluck.mp3",
+      "durationSeconds": 0.111746,
+      "loudnessLUFS": -27.15,
+      "truePeakDBTP": -2.99,
+      "gainDB": -5.32
+    },
+    {
+      "id": "notification-confirmation",
+      "label": "일반 — 확인음",
+      "file": "confirmation_001.wav",
+      "sourceUrl": "https://raw.githubusercontent.com/Calinou/kenney-interface-sounds/4596a49eaf5a533948d49a47467f606bcdea70ff/addons/kenney_interface_sounds/confirmation_001.wav",
+      "sha256": "f9d0ef5a5c740c2ac250ac3876db9e4340669044a5bf78ae09192918db3e2ebc",
+      "path": "/audio/chat-notification/notification-confirmation.mp3",
+      "durationSeconds": 0.294603,
+      "loudnessLUFS": -18.81,
+      "truePeakDBTP": -4.36,
+      "gainDB": -2.99
+    },
+    {
+      "id": "notification-bong",
+      "label": "일반 — 낮은 종소리",
+      "file": "bong_001.wav",
+      "sourceUrl": "https://raw.githubusercontent.com/Calinou/kenney-interface-sounds/4596a49eaf5a533948d49a47467f606bcdea70ff/addons/kenney_interface_sounds/bong_001.wav",
+      "sha256": "f5d5f83b13edc5321352c2ba57972d1400151e3f27f1c18fcda07d261358511a",
+      "path": "/audio/chat-notification/notification-bong.mp3",
+      "durationSeconds": 0.132063,
+      "loudnessLUFS": -24.75,
+      "truePeakDBTP": -2.94,
+      "gainDB": -1.61
+    }
+  ],
+  "targetLUFS": -18.4,
+  "measurement": "1 second silence padding for sub-400ms cues; peak headroom takes precedence"
+}

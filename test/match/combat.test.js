@@ -33,6 +33,7 @@ test('COMBAT: one battle per alive player with the board as input; watchers get 
   assert.equal(seeds.size, 3, 'every field has its own seed');
   const field = h.lastTo('p_0', 'm.field');
   assert.equal(field.fieldId, 'n:p_0');
+  assert.deepEqual(field.players,['p_0'],'remote camera has public field membership');
   const pub = m.publicView();
   assert.equal(pub.players.find((p) => p.playerId === 'p_0').status, 'combat');
   assert.equal(pub.players.find((p) => p.playerId === 'p_0').fieldId, 'n:p_0');
@@ -193,6 +194,7 @@ test('联防: an operator knocked out at the end of the helper\'s own combat is 
   h.drive(() => m.phase === PHASE.UNITE);
   assert.deepEqual(m.unitePlan.helpers.map((p) => p.playerId), ['p_1']);
   const u = FakeBattle.instances.find((b) => b.kind === 'unite');
+  assert.deepEqual(u.opts.rect, GEO.NORMAL_RECT, 'one helper cannot raid into the unused half');
   const units = u.opts.players[0].units;
   // PRTS 卫戍协议/帮助: deployed, then "上一阶段为退场状态的干员强制退场" — the sim puts it down on its tile with its redeploy
   // timer (user playtest #5 item 2: it used to be left out and vanished); its summons are fielded as the board has them

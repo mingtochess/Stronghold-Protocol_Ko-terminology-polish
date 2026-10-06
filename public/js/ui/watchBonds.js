@@ -252,5 +252,5 @@ export function popupView({ open, pub, priv = null, myId, field = null, units = 
   const ownerId = typeof open.ownerId === 'string' && open.ownerId ? open.ownerId : myId;
   const self = ownerId === myId;
   const entry = playerBonds({ pub, priv, myId, ownerId, live }).find((b) => isObj(b) && b.bondId === open.id) || null;
-  return { bondId: open.id, ownerId, self, name: self ? null : nameOf(pub, ownerId), entry, priv: self ? priv : ownerBoard(field, ownerId, units) };
+  return { bondId: open.id, ownerId, self, name: self ? null : nameOf(pub, ownerId), entry, priv: self ? priv : { ...(ownerBoard(field, ownerId, units) || {}), selectedRecruits: playersOf(pub).find(p => p.playerId === ownerId)?.selectedRecruits || [] } };
 }

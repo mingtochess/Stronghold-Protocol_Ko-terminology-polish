@@ -28,13 +28,6 @@ import { matchData as data } from '../data.js';
 
 const cx = (...p) => p.flat().filter(Boolean).join(' ');
 
-/** The "👁 name" tag of a teammate's strip (DESIGN §20.15). */
-function OwnerTag({ owner }) {
-  return html`<span class="bstrip__owner" title=${`正在查看 ${owner} 的盟约`} data-owner=${owner}>
-    <${GIcon} name="eye" class="bstrip__eye" /><${MicroLabel}>${owner}</${MicroLabel}>
-  </span>`;
-}
-
 /**
  * @param {{ bonds: any[], layersDisabled?: boolean, onOpen:(bondId:string)=>void, openId?: string|null, max?: number,
  *   owner?: string|null }} props — owner: the watched teammate's name (null = your own bonds)
@@ -43,13 +36,12 @@ export function BondStrip({ bonds, layersDisabled = false, onOpen, openId = null
   const sorted = sortBonds(bonds, (id) => data.lookup('bonds', id));
   if (!sorted.length) {
     return html`<div class=${cx('bstrip', 'bstrip--empty', owner && 'is-other')} data-owner=${owner || null}>
-      ${owner ? html`<${OwnerTag} owner=${owner} />` : html`<${MicroLabel}>BONDS</${MicroLabel}>`}<span>${owner ? `${owner} 尚未激活盟约` : '部署干员以激活盟约'}</span></div>`;
+      <${MicroLabel}>BONDS</${MicroLabel}><span>${owner ? `${owner} 尚未激活盟约` : '部署干员以激活盟约'}</span></div>`;
   }
   const m = data.get('assets');
   const shown = sorted.slice(0, max);
   const strip = html`<div class=${cx('bstrip', layersDisabled && 'is-frozen', owner && 'is-other')} role="list"
       aria-label=${owner ? `${owner} 的盟约` : '我的盟约'} data-owner=${owner || null}>
-    ${owner ? html`<${OwnerTag} owner=${owner} />` : null}
     ${shown.map((b) => {
       const rec = data.lookup('bonds', b.bondId);
       const th = Array.isArray(b.thresholds) && b.thresholds.length ? b.thresholds : rec?.thresholds || [];

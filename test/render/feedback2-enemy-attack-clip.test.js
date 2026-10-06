@@ -126,6 +126,13 @@ test('instant skill keeps its full cast animation after the same-frame skill-off
  assert.equal(a.current,'Skill');a.update(1.9);assert.equal(a.current,'Skill');
  a.update(.2);assert.equal(a.current,'Idle');assert.ok(a.spine.state.tracks[0].mixDuration>0);
 });
+test('Blemishine S3 uses Skill_3 for attacks, without a 1.2-second activation lock',()=>{
+ const entry=assets.chars.char_423_blemsh.spine.front,a=new SpineActor(dataOf(entry),entry);
+ a.setSkillIndex(2);a.setSkill(true,{instant:false});
+ assert.equal(a.mode,'base');assert.equal(a.current,'Idle');
+ assert.equal(a.beginAttack(1.2,.567),true);
+ assert.equal(a.current,'Skill_3');assert.equal(a.mode,'attack');
+});
 test('operator recovery uses the authored speed and rests only when the real interval exceeds clip duration',()=>{
  const a=actor(JSHOOT,true);a.continuousAttacks=true;a.setBase('idle');
  a.beginAttack(2.7,.533);run(a,.533);a.attack(2.7);

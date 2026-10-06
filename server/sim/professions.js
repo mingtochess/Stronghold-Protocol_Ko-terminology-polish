@@ -52,8 +52,8 @@ export const PROFESSION_DEFAULTS = Object.freeze({
 // install helpers (per-unit hooks). All use engine helpers only; tunables come from unit.profile.
 
 /**
- * 武者 / 收割者 self-heal ("每次攻击到敌人回复自身50生命"; 收割者 adds "最大生效数等于阻挡数"). Normal attacks arrive as one
- * 'attack' event whose `targets` are every enemy hit.
+ * 武者 / 收割者 self-heal ("每次攻击到敌人回复自身50生命"; 收割者 adds "最大生效数等于阻挡数").
+ * Count successful output-damage instances, including separate hits in a multi-hit attack; misses never heal.
  *
  * The official trait is a buff ON the operator that fires on ON_OUTPUT_DAMAGE — buff_template_data `etlchi_trait`,
  * `excu2_trait`, `utage_trait`, `helage_trait`, `zuole_trait` all react to any damage the unit outputs, and 隐德来希's
@@ -62,23 +62,16 @@ export const PROFESSION_DEFAULTS = Object.freeze({
  * sickle's AOEDamage nodes are attackType NORMAL and PRTS 备注 says "伤害来源始终视为隐德来希". Every such hit arrives as
  * one 'damaged' event per enemy, so the reaper cap ("最大生效数") is applied per instant here: the official `[heal_fake]`
  * window is 0.05 s and its stack count is the block number (`SetStackCountViaBlockNum`). [ASSUMED] the sim uses the same
- * `battle.time` as its window, so simultaneous hits (both 血镰, an AoE) share the block-count cap; a normal attack has its
- * own event and its own cap, as before.
+ * `battle.time` as its window, so simultaneous hits (both 血镰, an AoE, or a normal attack) share the block-count cap.
  */
 const installSelfHealOnHit = (capByBlock) => (battle, unit) => {
   const heal = (n) => { if (n > 0 && unit.alive) battle.heal(unit, unit, (unit.profile.selfHeal ?? 50) * n, { self: true }); };
-  battle.on('attack', (ctx) => {
-    if (ctx.attacker !== unit || !unit.alive) return;
-    let n = ctx.targets.length;
-    if (capByBlock) n = Math.min(n, Math.max(1, unit.s.blockCnt));
-    heal(n);
-  }, { owner: unit, priority: -10 });
   battle.on('damaged', (c) => {
     if (c.source !== unit || !unit.alive || !c.target || c.target.side !== 'enemy') return;
     const dmg = c.dmg;
-    if (!dmg || dmg.isAttack || isHpLoss(dmg)) return; // normal attacks: the 'attack' hook; a 流失 is not damage dealt
+    if (!dmg || isHpLoss(dmg)) return; // each direct damage instance, including multi-hit attacks
     const tags = dmg.tags || [];
-    if (tags.includes('talent') || tags.includes('dot') || tags.includes('periodic')) return; // attackType BUFF
+    if (!dmg.isAttack && (tags.includes('talent') || tags.includes('dot') || tags.includes('periodic'))) return; // attackType BUFF
     const mem = unit.mem;
     if (mem.selfHealAt !== battle.time) { mem.selfHealAt = battle.time; mem.selfHealN = 0; }
     if (capByBlock && mem.selfHealN >= Math.max(1, unit.s.blockCnt)) return;

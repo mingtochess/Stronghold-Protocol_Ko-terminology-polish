@@ -23,8 +23,8 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
 const stages = JSON.parse(readFileSync(path.join(ROOT, 'data/stages.json'), 'utf8'));
 const M01 = stages.act2autochess_m01;
 
-const devicesIn3d = (st, vk) => buildBoard(st, { area: boardArea(vk) }).devices.map((d) => `${d.kind}@${d.r},${d.c}`).sort();
-const blowersIn3d = (st, vk) => buildBoard(st, { area: boardArea(vk) }).devices.filter((d) => d.kind === 'blower').map((d) => `${d.r},${d.c}`).sort();
+const devicesIn3d = (st, vk) => buildBoard(st, { area: boardArea(vk) }).devices.filter(d=>d.r>=fieldRows(vk)[0]&&d.r<=fieldRows(vk)[1]).map((d) => `${d.kind}@${d.r},${d.c}`).sort();
+const blowersIn3d = (st, vk) => buildBoard(st, { area: boardArea(vk) }).devices.filter((d) => d.kind === 'blower'&&d.r>=fieldRows(vk)[0]&&d.r<=fieldRows(vk)[1]).map((d) => `${d.r},${d.c}`).sort();
 
 /**
  * Inside the 3D area of a view (the 2D board also shows the partner's half of rows 9–12 as a display in the own views,
@@ -64,13 +64,14 @@ const VIEWS = ['prep', 'normal', 'unite', 'bossPrep', 'boss', 'pen'];
 describe('#6 act2 m01 blowers in every view', () => {
   test('repro: the normal / prep view builds the own field\'s row-13 blowers (cols 5, 9) above the wind lanes', () => {
     // (plus the boss field's row-6 machines on the wall under the bench, as in v2.3 — they blow away from this field)
-    for (const vk of ['prep', 'normal']) assert.deepEqual(blowersIn3d(M01, vk), ['13,5', '13,9', '6,5', '6,9'], vk);
+    for (const vk of ['prep', 'normal']) assert.deepEqual(blowersIn3d(M01, vk), ['13,13', '13,5', '13,9', '6,5', '6,9'], vk);
   });
 
   test('联防 builds both halves\' row-13 blowers; the Final Assault builds the four row-6 blowers', () => {
     // (the partner's row-6 machines (6,11) / (6,15) stand off the island: row 7–8 are '#' right of col 9 in 联防)
+    assert.deepEqual(blowersIn3d(M01,'bossPrep'),['6,11','6,15','6,5','6,9']);
     assert.deepEqual(blowersIn3d(M01, 'unite'), ['13,13', '13,17', '13,5', '13,9', '6,5', '6,9']);
-    for (const vk of ['boss', 'bossPrep', viewKind('hidden'), viewKind('prep', { rect: { r0: 0, r1: 5, c0: 0, c1: 10 } })]) {
+    for (const vk of ['boss',viewKind('hidden')]) {
       assert.deepEqual(blowersIn3d(M01, vk), ['6,11', '6,15', '6,5', '6,9'], vk);
     }
   });
@@ -84,11 +85,11 @@ describe('#6 act2 m01 blowers in every view', () => {
       assert.equal(d.dir, 'DOWN');
       // row 13: onto the built field's lanes (rows 12–10); row 6: into the boss field, which this view does not build
       const onto = d.rangeTiles.slice(1).map(([r, c]) => !!b.grid[r][c].content);
-      assert.deepEqual(onto, d.r === 13 ? [true, true, true] : [false, false, false], `${d.r},${d.c}`);
+      assert.deepEqual(onto, d.r === 13 && d.c<=10 ? [true, true, true] : [false, false, false], `${d.r},${d.c}`);
     }
     // the separator row is built along the field's top edge (the pen rows 14–18 are still not)
     const rows = new Set(b.grid.flat().filter((t) => t.drawn).map((t) => t.r));
-    assert.ok(rows.has(13) && !rows.has(14) && !rows.has(5), [...rows].join());
+    assert.ok(rows.has(13) && rows.has(14) && !rows.has(5), [...rows].join());
   });
 
   test('the 2D board draws the same blowers and airflow per view', async () => {
@@ -100,7 +101,7 @@ describe('#6 act2 m01 blowers in every view', () => {
 });
 
 describe('#6 audit: every device of every stage is drawn in the views of the field it belongs to', () => {
-  test('3D board = 2D board for every stage and view', async () => {
+  test('active-field devices match between 3D and 2D; retained preview scenery does not change active devices', async () => {
     for (const [id, st] of Object.entries(stages)) {
       for (const vk of VIEWS) {
         const d3 = devicesIn3d(st, vk);

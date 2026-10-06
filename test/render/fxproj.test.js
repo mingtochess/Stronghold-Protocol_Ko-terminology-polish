@@ -52,6 +52,39 @@ const run = (fx, seconds, dt = DT) => { for (let t = 0; t < seconds - 1e-9; t +=
 const texName = (fx, tex) => Object.keys(fx.tex).find((k) => fx.tex[k] === tex);
 const liveTex = (fx, name) => fx.parts.filter((p) => p.sp.texture === fx.tex[name]);
 
+test('a growing alchemy field updates one circle per cast and keeps operator-themed fill',async()=>{
+ const {skillRangeStyle}=await import('../../public/js/render/units.js');
+ const v=unit(903,3,10,{info:{charId:'char_4011_lessng'}}),{fx}=makeFx({views:[v],ts:1});
+ const extra={id:v.id,zoneKey:1,r:1,grow:.1,vx:.05,vy:0,duration:12};
+ fx.simFx('zone',5,10,extra);assert.equal(fx.zones.length,1);const z=fx.zones[0],disc=z.disc;
+ assert.equal(z.tint,skillRangeStyle(v.info).color);
+ let fill;z.edge.beginFill=(color,alpha)=>{fill={color,alpha};return z.edge};
+ run(fx,1);assert.ok(z.r>1.09);assert.ok(z.x>5.04);assert.deepEqual(fill,{color:z.tint,alpha:skillRangeStyle(v.info).fillAlpha});
+ fx.simFx('zone',5.05,10,{...extra,r:1.1,duration:11});assert.equal(fx.zones.length,1);assert.equal(fx.zones[0].disc,disc);
+ fx.simFx('zone',6,10,{...extra,zoneKey:2});assert.equal(fx.zones.length,2,'separate casts remain distinct');
+ run(fx,13);assert.equal(fx.zones.length,0);fx.clear();
+});
+test('ongoing skill hexagons keep the default gold and rotate in world space',()=>{
+ const v=unit(904,5,10,{info:{charId:'char_4064_mlynar'}}),{fx}=makeFx({views:[v]});
+ fx.skill(v,true);const a=fx.auras.get(v.id);let color,first,second;
+ a.sp.lineStyle=(width,tint)=>{color=tint;return a.sp};a.sp.moveTo=(x,y)=>{first={x,y};return a.sp};
+ fx._updateAuras(.1);assert.equal(color,0xffd45a);const before={...first};
+ a.sp.moveTo=(x,y)=>{second={x,y};return a.sp};fx._updateAuras(.5);assert.notDeepEqual(second,before);
+ fx.clear();
+});
+
+test('damage display modes aggregate only sum and preserve every hit in all',()=>{
+ for(const [mode,count] of [['sum',1],['all',3],['basic',3],['none',0]]){
+  const v=unit(901,5,10),{fx}=makeFx({views:[v]});fx.ctx.settings.damageNumberMode=mode;
+  for(let i=0;i<3;i++)fx.damage(v,100,'phys',null,{critical:true,value:100,expected:50});
+  assert.equal(fx.nums.length,count,mode);if(mode==='sum')assert.equal(fx.nums[0].value,300);
+  fx.clear();
+ }
+ const v=unit(902,5,10),{fx}=makeFx({views:[v]});fx.ctx.settings.damageNumberMode='basic';
+ fx.damage(v,100,'phys',null,{critical:false,expected:100});assert.equal(fx.nums.length,0);
+ fx.clear();
+});
+
 describe('projectile speeds follow the sim', () => {
   test('style.js PROJ mirrors PROJECTILE_SPEEDS for every sim kind (and the boomerang return speed)', () => {
     for (const [kind, v] of Object.entries(SIM.PROJECTILE_SPEEDS)) {
@@ -474,7 +507,7 @@ test('Explosion particles keep their world position and scale when the camera ch
  fx.snowfall(0xffffff);const snow=fx.parts.at(-1);assert.equal(snow.world,null);
 });
 
-test('ranged projectile heads and widths are 80 percent larger without changing flight time',()=>{
+test('ordinary projectile heads and widths return to the previous size without changing flight time',()=>{
  const a=unit(90,4,10),b=unit(91,8,10,{isEnemy:true}),{fx}=makeFx({views:[a,b]});
  fx.attack(a,b,'orb');const pr=fx.projs[0];
  assert.ok(Math.abs(pr.spec.head-PROJ.orb.head*1.8)<1e-9);
@@ -487,6 +520,15 @@ test('interleaved melee attacks retain their individual flat contact effects',()
  fx.damage(target,100,'phys',a);fx.damage(target,100,'phys',b);
  assert.equal(fx.contacts.length,2);
  assert.equal(liveTex(fx,'spark').length,0);assert.equal(liveTex(fx,'glow').length,0);
+});
+
+test('arcing shells remain enlarged while ordinary shots use the restored size',()=>{
+ const a=unit(90,4,10),b=unit(91,8,10,{isEnemy:true}),{fx}=makeFx({views:[a,b]});
+ fx.attack(a,b,'lob');
+ assert.ok(Math.abs(fx.projs[0].spec.head-PROJ.lob.head*2.4)<1e-9);
+ fx.clear();
+ fx.attack(a,b,'orb');
+ assert.ok(Math.abs(fx.projs[0].spec.head-PROJ.orb.head*1.8)<1e-9);
 });
 
 test('wide active attacks sweep once per volley and release their graphics',()=>{
@@ -527,4 +569,22 @@ test('weapon tail follows mesh deformation and clears when the attack stops',()=
  assert.notEqual(fx.weaponTrails.get(a).samples[0].x,fx.weaponTrails.get(a).samples[1].x);
  a.actor.mode='stun';fx.weaponTrail(a,.016,cam);assert.equal(fx.weaponTrails.get(a).samples.length,0);
  fx.clear();assert.equal(fx.weaponTrails.size,0);
+});
+
+
+test('authored enemy ability FX resolves the live unit and plays its exact clip',()=>{
+ let args=null;const v=unit(91,5,10,{actor:{has:clip=>clip==='Skill_Begin',setForm:(...a)=>args=a},_formSpec:()=>({roles:{idle:'Idle_B'}})});
+ const {fx}=makeFx({views:[v]});fx._simFx('enemySkill',5,10,{id:91,clip:'Skill_Begin',dur:1});
+ assert.deepEqual(args,[{idle:'Idle_B'},'Skill_Begin']);
+});
+
+test('dedicated textures follow the selected skill and keep original boomerang textures at weapon scale', async()=>{
+ const {dedicatedProjectile}=await import('../../public/js/render/dedicatedEffects.js');
+ assert.equal(dedicatedProjectile({charId:'char_4056_titi',skillIndex:2},true),'titiDream');
+ assert.equal(dedicatedProjectile({charId:'char_4056_titi',skillIndex:0},true),null);
+ assert.equal(dedicatedProjectile({charId:'char_4138_narant',skillIndex:2},false),null);
+ const src=unit(1,4,10,{info:{charId:'char_4138_narant',skillIndex:2},statuses:new Set(['skill'])}),tgt=unit(2,9,10,{isEnemy:true});
+ const {fx}=makeFx({views:[src,tgt]});const tex=new fake.P.Texture();tex.width=1024;fx.weaponTextures.narantBlade=tex;
+ fx.attack(src,tgt,'boomerang');fx.update(DT);assert.equal(fx.projs[0].core.texture,tex);
+ assert.ok(fx.projs[0].core.scale.x<.2,'large original textures do not become giant quads');fx.clear();
 });

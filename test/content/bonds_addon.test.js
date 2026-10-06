@@ -876,3 +876,10 @@ test('调和 (match side): +1 to core bonds that already have a real member', ()
   assert.equal(ps.bonds.yanShip.active, true, '1 调和 + 2 炎 activates 炎');
   m.dispose();
 });
+
+test('raid landing keeps a ready timed skill and casts after deployment completes',()=>{
+ const id='test_raid_skill',sk={spCost:30,initSp:30,trigger:{rule:'DEFAULT'}};
+ const h=makeBattle({defs:{chess:{[id]:op(id,['raidShip'],{skill:sk})},enemies:DUMMY},kits:{[id]:()=>({skill:{kind:'duration',duration:5,targeting:{rangeGrid:[[0,0],[0,1],[1,0],[-1,0]]}}})},bonds:{raidShip:bond(1,0)},units:[{chessId:id,row:12,col:3}],enemies:[{key:'enemy_addon_dummy',pos:[9,8]}],autoFinish:false});
+ const u=h.unit(id);assert.ok(h.runUntil(()=>u.tileC!==3,2),'ready skill triggers relocation');
+ assert.ok(h.runUntil(()=>u.skill.active,5),'skill is usable after landing, SP was retained');
+});

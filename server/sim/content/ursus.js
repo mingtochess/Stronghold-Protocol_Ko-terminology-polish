@@ -89,8 +89,21 @@ export function install(battle){
   const active=()=>S.bondActive(battle,pid,'ursusShip');
   const six=()=>active()&&(S.bondState(battle,pid,'ursusShip').count>=6||S.bondTier(battle,pid,'ursusShip')>=2);
   const refresh=()=>{
-   if(drone){const layers=S.bondLayers(battle,pid,'ursusShip');S.passiveBuff(battle,drone,'bond:ursus:drone',S.directMods({atk:.5+.025*layers,hp:.5+.025*layers},{aspd:six()?50:0}));}
-   for(const u of battle.allyUnits)if(u.ownerId===pid&&u.kind==='op'&&S.unitBonds(u).includes('ursusShip'))S.passiveBuff(battle,u,'bond:ursus:speed',{aspd:six()?50:0});
+   const layers=S.bondLayers(battle,pid,'ursusShip'),bonus=active() ? .2+.01*layers : 0;
+   const members=battle.allyUnits.filter(u=>u.ownerId===pid&&u.kind==='op'&&S.unitBonds(u).includes('ursusShip'));
+   // Apply the faction bonus first; donations use current total ATK of live, deployed operators only.
+   // The drone is not an operator and cannot recursively contribute its own donation.
+   for(const u of members){
+    const old=u.findBuff('bond:ursus:stats');
+    if(!bonus){if(old)battle.removeBuff(u,'bond:ursus:stats');continue;}
+    if(old?.mods?.atkPct!==bonus)S.passiveBuff(battle,u,'bond:ursus:stats',S.directMods({atk:bonus,hp:bonus}));
+   }
+   if(drone){
+    const atkFlat=six()?members.filter(u=>u.alive&&u.deployed&&!u.hidden).reduce((sum,u)=>sum+u.s.atk,0)*(.05+.00025*layers):0;
+    const aspd=six()?50:0,old=drone.findBuff('bond:ursus:drone');
+    if(old?.mods?.atkPct!==bonus||old?.mods?.atkFlat!==atkFlat||old?.mods?.aspd!==aspd)
+     S.passiveBuff(battle,drone,'bond:ursus:drone',S.directMods({atk:bonus,hp:bonus},{atkFlat,aspd}));
+   }
   };
   battle.on('battleStart',()=>{
    if(active()){
@@ -101,6 +114,7 @@ export function install(battle){
   },{once:true});
   battle.on('deploy',refresh);
   battle.on('tick',()=>{
+   refresh();
    if(!six()||!drone?.alive||!drone.deployed)return;
    for(const e of battle.enemies)if(e.alive&&e.deployed&&!e.hidden&&bodyDist(e,drone.x,drone.y)<=DRONE_RANGE+1e-9)
     battle.addBuff(e,{key:`ursus:reveal:${drone.id}`,duration:.12,flags:{reveal:true},source:drone});

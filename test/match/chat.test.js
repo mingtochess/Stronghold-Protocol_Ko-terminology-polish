@@ -55,7 +55,7 @@ test('outsiders, bots and departed players cannot send; other matches have separ
 test('factions are validated, announced with authoritative identity and retained on reconnect', () => {
   const h = makeMatch({ humans: 2 }).start();
   try {
-    for (const faction of ['unknown', 'constructor', null, 7]) {
+    for (const faction of ['unknown', 'constructor', undefined, 7]) {
       assert.ok(validateC2S({t:'g.chatFaction', faction}));
       assert.equal(h.m.handle('p_0', {t:'g.chatFaction', faction}).error, 'BAD_MSG');
     }
@@ -66,6 +66,7 @@ test('factions are validated, announced with authoritative identity and retained
       const last=h.m.chatHistory.at(-1);
       assert.equal(last.name, 'P0'); assert.equal(last.faction, name);
       assert.equal(last.text, `진영 선택: ${name}`);
+      assert.equal(last.kind, 'faction');
       const count=h.m.chatHistory.length;
       assert.deepEqual(h.m.handle('p_0', {t:'g.chatFaction', faction:name}), {ok:true});
       assert.equal(h.m.chatHistory.length, count);
@@ -77,5 +78,20 @@ test('factions are validated, announced with authoritative identity and retained
     assert.equal(h.m.chatHistory[0].faction, '염국');
     h.m.onReconnect('p_0');
     assert.equal(h.lastTo('p_0','m.chatHistory').faction, CHAT_FACTIONS.at(-1).name);
+    assert.equal(validateC2S({t:'g.chatFaction',faction:null}), null);
+    assert.equal(h.m.handle('p_0',{t:'g.chatFaction',faction:null}).error, 'RATE');
+    h.sched.t += CHAT_COOLDOWN_MS;
+    assert.deepEqual(h.m.handle('p_0',{t:'g.chatFaction',faction:null}), {ok:true});
+    assert.equal(h.m.chatHistory.at(-1).text, '진영 선택 취소');
+    assert.equal(h.m.chatHistory.at(-1).faction, null);
+    assert.equal(h.m.chatHistory.at(-1).kind, 'faction');
+    const afterClear = h.m.chatHistory.length;
+    assert.deepEqual(h.m.handle('p_0',{t:'g.chatFaction',faction:null}), {ok:true});
+    assert.equal(h.m.chatHistory.length, afterClear);
+    h.m.onReconnect('p_0');
+    assert.equal(h.lastTo('p_0','m.chatHistory').faction, null);
+    h.sched.t += CHAT_COOLDOWN_MS;
+    assert.deepEqual(h.m.handle('p_0',{t:'g.chat',text:'진영 선택 취소',kind:'faction'}),{ok:true});
+    assert.equal(h.m.chatHistory.at(-1).kind,'text','client cannot forge a faction event with text or kind');
   } finally { h.m.dispose(); }
 });

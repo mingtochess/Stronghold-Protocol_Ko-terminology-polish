@@ -37,3 +37,21 @@ for (const kind of ['normal','unite','boss','hidden']) test(`${kind}: explicit p
  assert.deepEqual(deployed.map(e=>e.unit.uid),[11,22,33]);
  assert.ok(deployed[1].unit.deployedAt>=.2-1e-6);assert.ok(deployed[2].unit.deployedAt>=.4-1e-6);
 });
+
+test('all selected deployment-window skills reactivate on a raid-style free redeployment after their Start clip', async()=>{
+ const {getDefaultSource}=await import('../../server/sim/simdata.js');
+ const ds=getDefaultSource();let checked=0;
+ for(const raw of Object.values(ds.raw?.chess || {})) {
+  if(!raw.visible)continue;
+  for(const s of raw.skills || []){
+   const h=makeBattle({autoFinish:false,units:[{chessId:raw.chessId,row:10,col:4,skillIndex:s.index}]});
+   h.b.start();const u=h.unit(raw.chessId);
+   if(!u?.skill.spec.activateOnDeploy)continue;
+   h.run(Math.max(.1,u.deployRemaining+.1));const first=u.skill.activations;
+   assert.equal(first,1,`${raw.name} S${s.index+1} initial deployment`);
+   h.b.retreat(u,{reason:'raid'});assert.ok(h.b.redeploy(u,{free:true,tile:[10,6],keepSp:true}));
+   h.run(Math.max(.1,u.deployRemaining+.1));assert.equal(u.skill.activations,first+1,`${raw.name} S${s.index+1} raid deployment`);checked++;
+  }
+ }
+ assert.ok(checked>0,'real deployment skills were checked');
+});

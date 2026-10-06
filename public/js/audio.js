@@ -1,14 +1,16 @@
-// Audio manager (Web Audio): BGM per phase, UI SFX, per-unit battle SFX. Never throws.
+// Audio manager (Web Audio): BGM per phase, UI SFX, per-unit battle SFX, operator battle voice. Never throws.
 //
 // Sources: data/assets.json → audio (docs/ASSETS.md):
-//   bgm { lobby, prep, combat, boss: { intro?, loop } }, bossBgm { [bossId]: { intro?, loop } },
+//   bgm { lobby, prep, combat, combatAlts?: [ {intro?, loop}, … ], boss: { intro?, loop } },
+//   bossBgm { [bossId]: { intro?, loop } },
+//   voice { [charId]: { start, faceEnemy, select, place, skill1…skill4, squad, squadFirst, result*, gacha } },
 //   sfx.ui { click, buy, sell, refresh, freeze, levelup, merge, equip, ready, timer, yourTurn, … },
 //   sfx.battle { deploy, tokenDeploy, charDie, tokenDie?, enemyDie, enemyHit, heal, killCoin, … },
 //   sfx.units { [charId|tokenId|enemyId]: { attack?, hit?, skill?, die?, born?, mix?: { [role]: { p?, vol? } } } }.
 //
 // - The AudioContext is created on the first user gesture (pointerdown/keydown/touchend), so browsers
 //   never block or warn; everything requested before that is remembered (BGM) or dropped (SFX).
-// - Channels: master → { bgm, sfx } gains; volumes from settings (0..1) + mute. Tab hidden ⇒ suspend.
+// - Channels: master → { bgm, sfx, voice } gains; volumes from settings (0..1) + mute. Tab hidden ⇒ suspend.
 // - BGM: `intro` then `loop` (1 s crossfade); switching tracks fades out/in (0.8 s). The same loop URL
 //   keeps playing through repeated updates; rest selects its own track.
 // - Battle SFX from `b.ev` tuples (`handleBattleEvents`): at most MAX_VOICES concurrent unit sounds, at most
@@ -36,6 +38,7 @@
 
 import { PHASE } from '../../shared/constants.js';
 import { mediaUrl } from './media.js';
+import { chatNotificationSound, defaultChatCooldown } from './chatNotificationSounds.js';
 
 const MAX_VOICES = 8;
 const UNIT_COOLDOWN_MS = 160;
@@ -118,9 +121,24 @@ export function resolveBgm(manifest, key) {
   return { intro: typeof t.intro === 'string' ? t.intro : null, loop: t.loop };
 }
 
+/**
+ * The last round that plays 无畏者 (1–7); from the next round on it is 骑士之日 (8–13) — the official schedule
+ * (docs/ASSETS.md "BGM"; the two tracks are the 塞壬唱片 act13side battle themes).
+ */
 export const COMBAT_TRACK_SWITCH_ROUND = 7;
+
+/**
+ * The round's own 开战 track index into `bgm.combatAlts` (plan.mjs order: 0 = `m_bat_kazimierz2_1` 骑士之日,
+ * 1 = `m_bat_kazimierz2_2` 无畏者). The mode does not draw these: the official schedule plays one per round, 无畏者
+ * through the early rounds (1–7) and 骑士之日 from round 8 to the last normal round (8–13). Everything after that is
+ * the boss rounds (最终攻势 / 隐秘核心), which have their own tracks and never ask for `combat:<i>`.
+ * @param {number|null|undefined} round m.public.round
+ * @returns {0|1|null} null when the round is unknown ⇒ the manifest's plain `combat` track
+ */
 export function combatTrackFor(round) {
- const r=Number(round);return Number.isFinite(r)&&r>=1?(r<=COMBAT_TRACK_SWITCH_ROUND?1:0):null;
+  const r = Number(round);
+  if (!Number.isFinite(r) || r < 1) return null;
+  return r <= COMBAT_TRACK_SWITCH_ROUND ? 1 : 0;
 }
 
 /**
@@ -252,6 +270,35 @@ export function unitGain(base, mix) {
 export function unitSoundPlays(mix, roll) {
   const p = mix && Number(mix.p);
   return !(Number.isFinite(p) && p >= 0 && p < 1) || roll < p;
+}
+
+/**
+ * Who says a battle's **result** line (结算): an operator of THAT battle's own field. Never the field the player happens
+ * to be looking at (review on #73): reading the tracked units of the field on screen made a teammate's operator say the
+ * viewer's 作战结束 line while the viewer was watching them.
+ * `pp` is that battle's own `perPlayer` entry (BattleResult, sim/Battle.js): `unitsEnd` lists what stood on its field
+ * when the battle ended. Its `defId` names the CHESS (`chess_char_*`) or a summon piece (`token_*`, which does not talk);
+ * the voice bank belongs to the operator (`char_*`), so `charOf` maps a chess id to its charId (the chess record's
+ * `charId`). Without it only ids that already are a charId count — a real result then has no speaker, which is how the
+ * line stayed silent in every battle until 0.1.4's fix.
+ * Survivors speak first — the line reports how the battle went, and a wiped-out squad is the only case where a fallen
+ * operator ends up saying it. Ties are drawn like every other unit sound.
+ * @param {{ unitsEnd?: Array<{ defId?: string|null, alive?: boolean }> } | null | undefined} pp that battle's perPlayer
+ * @param {() => number} [random]
+ * @param {((defId: string) => string|null|undefined) | null} [charOf] chess id → charId
+ * @returns {string|null} charId, or null when that battle fielded no operator at all
+ */
+export function resultSpeaker(pp, random = Math.random, charOf = null) {
+  const ops = [];
+  for (const u of Array.isArray(pp?.unitsEnd) ? pp.unitsEnd : []) {
+    if (!u || typeof u.defId !== 'string') continue;
+    const id = u.defId.startsWith('char_') ? u.defId : charOf ? charOf(u.defId) : null;
+    if (typeof id === 'string' && id.startsWith('char_')) ops.push({ id, alive: !!u.alive });
+  }
+  const standing = ops.filter((o) => o.alive);
+  const pool = standing.length ? standing : ops;   // only a wiped-out squad is spoken for by a fallen operator
+  if (!pool.length) return null;
+  return pool[Math.min(pool.length - 1, Math.floor(random() * pool.length))].id;
 }
 
 /** Concurrency + cooldown gate for battle SFX. Pure (time is passed in). */
@@ -395,7 +442,15 @@ export class AudioManager {
     this.bgmGain = null;
     this.sfxGain = null;
     this.voiceGain = null;
-    this.volumes = { bgm: 0.6, sfx: 0.8, voice: 0.6, voiceLanguage:'kr', muted: false };
+    this.chatGain = null;
+    this.chatNode = null;
+    this.chatPending = false;
+    this.chatGeneration = 0;
+    this.chatNextAt = 0;
+    this.chatLastStartedAt = null;
+    this.chatLastDurationMs = 0;
+    this.chatCooldown = defaultChatCooldown('notification-glass');
+    this.volumes = { bgm: 0.6, sfx: 0.8, voice: 0.6, voiceLanguage:'kr', chatVolume: 0.5, muted: false };
     this.buffers = new Map(); // url → Promise<AudioBuffer|null> (insertion order = LRU)
     this.bufBytes = new Map(); // url → decoded PCM bytes (the byte budget of the LRU, see _buffer)
     this.warned = new Set();
@@ -458,9 +513,11 @@ export class AudioManager {
       this.bgmGain = this.ctx.createGain();
       this.sfxGain = this.ctx.createGain();
       this.voiceGain = this.ctx.createGain();
+      this.chatGain = this.ctx.createGain();
       this.bgmGain.connect(this.master);
       this.sfxGain.connect(this.master);
       this.voiceGain.connect(this.master);
+      this.chatGain.connect(this.master);
       this.master.connect(this.ctx.destination);
       // iOS / iPadOS: a call, Siri or another app's audio moves a running context to 'interrupted' (or 'suspended');
       // a resume without a gesture may then be refused — listen for the next gesture again (dropped once it runs)
@@ -478,6 +535,7 @@ export class AudioManager {
         if (p && typeof p.then === 'function') p.then(() => { if (this.ctx?.state === 'running') this._dropUnlock(); }, () => {});
       }
       this.warmVoices([]);
+      this.warmChatNotification();
       if (this.wantBgm) { const k = this.wantBgm; this.wantBgm = null; this.playBgm(k); }
     } catch (err) {
       this._warn('ctx', err);
@@ -535,14 +593,22 @@ export class AudioManager {
    */
   setVolumes(v) {
     const n = (x, d) => (Number.isFinite(x) ? Math.max(0, Math.min(1, x)) : d);
+    if (Number.isFinite(v?.chatCooldown)) {
+      this.chatCooldown = Math.max(1, Math.min(5, Math.round(v.chatCooldown)));
+      if (this.chatLastStartedAt !== null) this.chatNextAt = this.chatLastStartedAt + Math.max(this.chatCooldown * 1000, this.chatLastDurationMs + 500);
+    }
     this.volumes = {
       bgm: n(v?.bgm, this.volumes.bgm),
       sfx: n(v?.sfx, this.volumes.sfx),
       voice: n(v?.voice, this.volumes.voice),
+      chatVolume: n(v?.chatVolume, this.volumes.chatVolume),
       voiceLanguage: v?.voiceLanguage === 'jp' ? 'jp' : 'kr',
       muted: typeof v?.muted === 'boolean' ? v.muted : this.volumes.muted,
     };
     if (v?.muted || v?.voice === 0) this._stopVoice();
+    if (v?.muted || v?.chatVolume === 0 || v?.chatSound === 'off') this.stopChatNotification();
+    this.chatSound = v?.chatSound ?? this.chatSound ?? 'notification-glass';
+    this.warmChatNotification();
     this._applyVolumes();
     this.warmVoices([...this.units.values()].filter(u=>u.kind==='op').map(u=>u.def));
   }
@@ -557,6 +623,7 @@ export class AudioManager {
       this.sfxGain.gain.setTargetAtTime(this.volumes.sfx ** 2 * 0.9, t, 0.03);
       // no 0.9: a voice line is already mastered as loud as the rest of the official mix (settings 干员语音 tunes it)
       this.voiceGain.gain.setTargetAtTime(this.volumes.voice ** 2, t, 0.03);
+      this.chatGain.gain.setTargetAtTime(this.volumes.chatVolume ** 2, t, 0.03);
     } catch { /* ignore */ }
   }
 
@@ -573,8 +640,8 @@ export class AudioManager {
       try {
         // Extension-less URL first so download managers leave the BGM alone; a host without /media/ still works.
         const media = mediaUrl(url);
-        const voiceFile = /\/voice\//.test(url);
-        const cache = voiceFile && globalThis.caches ? await globalThis.caches.open('stronghold-operator-voices-v1').catch(()=>null) : null;
+        const voiceFile = /\/voice\//.test(url),chatFile=url.startsWith('/audio/chat-notification/');
+        const cache = (voiceFile||chatFile) && globalThis.caches ? await globalThis.caches.open(chatFile?'stronghold-chat-notifications-v1':'stronghold-operator-voices-v1').catch(()=>null) : null;
         let res = await cache?.match(url) || await fetch(media);
         if (media !== url && !isAudioResponse(res)) {
           // Drop the unusable response (404, or a 200 that is really index.html) before trying the original URL.
@@ -751,6 +818,51 @@ export class AudioManager {
     } catch { /* ignore */ }
   }
 
+  warmChatNotification() {
+    if(this.ctx && chatNotificationSound(this.chatSound)) this._buffer(`/audio/chat-notification/${this.chatSound}.mp3`);
+  }
+
+  stopChatNotification() {
+    this.chatGeneration++;
+    this.chatPending = false;
+    if (this.chatNode) { try { this.chatNode.stop(); } catch { /* already stopped */ } }
+    this.chatNode = null;
+  }
+
+  /** Independent chat channel. Suppressed messages are dropped, never queued. */
+  async chatNotification(id, { preview = false } = {}) {
+    const sound = chatNotificationSound(id);
+    const now = () => typeof performance !== 'undefined' ? performance.now() : Date.now();
+    if (!sound || !this.ctx || this.ctx.state !== 'running' || this.win?.document?.hidden ||
+        this.volumes.muted || this.volumes.chatVolume <= 0) return false;
+    if (preview) this.stopChatNotification();
+    else if (this.chatPending || this.chatNode || now() < this.chatNextAt) return false;
+    const generation = this.chatGeneration;
+    this.chatPending = true;
+    const requestedAt = now();
+    try {
+      const buffer = await this._buffer(`/audio/chat-notification/${sound.id}.mp3`);
+      if (generation !== this.chatGeneration || !buffer || now() - requestedAt > 2000 ||
+          this.ctx.state !== 'running' || this.win?.document?.hidden || this.volumes.muted || this.volumes.chatVolume <= 0) return false;
+      const source = this.ctx.createBufferSource();
+      source.buffer = buffer;
+      source.connect(this.chatGain);
+      this.chatNode = source;
+      source.onended = () => {
+        if (this.chatNode === source) this.chatNode = null;
+        try { source.disconnect(); } catch { /* ignore */ }
+      };
+      source.start();
+      if (!preview) {
+        this.chatLastStartedAt = now();
+        this.chatLastDurationMs = buffer.duration * 1000;
+        this.chatNextAt = this.chatLastStartedAt + Math.max(this.chatCooldown * 1000, this.chatLastDurationMs + 500);
+      }
+      return true;
+    } catch (error) { this._warn(`chat:${id}`, error); return false; }
+    finally { if (generation === this.chatGeneration) this.chatPending = false; }
+  }
+
   // ---- SFX ------------------------------------------------------------------------------------------------
 
   _play(url, { volume = 1, rate = 1, limited = false, unitKey = null, maxDuration = null } = {}) {
@@ -898,15 +1010,17 @@ export class AudioManager {
         const end = () => {
           if (done) return;
           done = true;
-          if (this.voiceNode === node) this.voiceNode = null;
-          if (token === this.voiceToken) this.voiceGate.release();
+          if (token === this.voiceToken) {
+            if (this.voiceNode === node) this.voiceNode = null;
+            this.voiceGate.release();
+          }
           try { gain.disconnect(); } catch { /* ignore */ }
         };
         src.onended = end;
         setTimeout(end, (buf.duration + 0.3) * 1000); // safety if onended never fires
         src.start();
         this.voiceNode = node;
-      } catch (err) { this._warn('voice-play', err); this.voiceGate.release(); }
+      } catch (err) { this._warn('voice-play', err); if (token === this.voiceToken) this.voiceGate.release(); }
     }, () => {if(token === this.voiceToken)this.voiceGate.release();});
   }
 
@@ -938,6 +1052,7 @@ export class AudioManager {
     this.startVoiceDone = false;
     try { this.voiceGate.reset(); this._stopVoice(); } catch { /* ignore */ }
     for (const u of Array.isArray(units) ? units : []) this._track(u);
+    if (this.ctx) for (const u of this.units.values()) { const url=deploySfxUrl(this.getManifest(),u); if(url)this._buffer(url).catch(()=>{}); }
     this.startVoicePool = [...this.units.values()].filter(u => u.side !== 'enemy' && unitSoundClass(u) === 'char').map(u => u.def);
     this.warmVoices([...this.units.values()].filter(u=>u.kind==='op').map(u=>u.def));
   }
@@ -989,7 +1104,8 @@ export class AudioManager {
             this.unit(u.def, 'skill', e[1], u.skillIndex ?? undefined);
             // 作战中N: the equipped skill's own slot (0-based; 作战中4 is the fallback of a 4th slot)
             if (unitSoundClass(u) === 'char') {
-              const bank=this.getManifest()?.audio?.voice?.[this.volumes.voiceLanguage]?.[u.def];
+              const banks=this.getManifest()?.audio?.voice;
+              const bank=(banks?.[this.volumes.voiceLanguage] || banks)?.[u.def];
               const slots=['skill1','skill2','skill3','skill4'].filter(k=>bank?.[k]?.length);
               const n=Number(slots[Math.floor(Math.random()*slots.length)]?.slice(-1)) || 1;
               const condition=this.getManifest()?.audio?.voiceConditions?.[u.def]?.[u.skillIndex];
@@ -1042,7 +1158,7 @@ export class AudioManager {
           const own = url === m?.audio?.sfx?.units?.[u.def]?.born;
           const mix = own ? m.audio.sfx.units[u.def].mix?.born : null;
           if (!unitSoundPlays(mix, this.random())) continue;
-          this._playUnitUrl(url, own ? `${e[1]}:born` : 'deploy', own ? unitGain(0.8, mix) : 0.5);
+          this._playUnitUrl(url, `${e[1]}:born`, own ? unitGain(0.8, mix) : 0.75);
         } else if (kind === 'fx') {
           // a summon used up by its own effect (香槟炸弹 exploding: `consumed`): its impact sound now, no death sound
           const ex = e[4];

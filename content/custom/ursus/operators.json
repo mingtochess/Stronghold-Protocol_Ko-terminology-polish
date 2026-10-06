@@ -27,11 +27,11 @@
     "key": "headb2",
     "charId": "char_1051_headb2",
     "name": "지마 더 레이징 타이드",
-    "tier": 6,
+    "tier": 5,
     "bonds": [
       "ursusShip"
     ],
-    "skillIndex": 1,
+    "skillIndex": 2,
     "trait": "ursusStart"
   },
   {
@@ -50,7 +50,7 @@
     "key": "poca",
     "charId": "char_197_poca",
     "name": "로사",
-    "tier": 5,
+    "tier": 6,
     "bonds": [
       "ursusShip",
       "preciShip"

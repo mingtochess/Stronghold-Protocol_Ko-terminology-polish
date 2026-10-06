@@ -308,7 +308,7 @@ test('Final Assault: leaks and leader LP effects from b.progress drain the team 
 
 test('Final Assault: the authority leaves → its partner\'s replica takes over; nobody left → the server paces the field (credits only new damage)', () => {
   const h = makeMatch({ mode: 'coop', difficulty: 'FUNNY', humans: 2, seed: 9110, fake: true, clientCombat: true, instant: false,
-    script: (b) => (b.kind === 'boss' ? { bossDps: 2000 } : { duration: 2 }) }).start();
+    script: (b) => (b.kind === 'boss' ? { bossDps: 10000 } : { duration: 2 }) }).start();
   const m = h.m;
   h.autoHumans();
   h.drive(() => m.phase === PHASE.FINAL_ASSAULT);

@@ -1,3 +1,4 @@
+import { damageNumberMode, showDamageNumber, roundedDamageNumber } from '../../../shared/damageDisplay.js';
 // DOM fallback for the Pixi field view (DESIGN §9 API). Used when public/js/render/app.js is missing or
 // fails to initialise, so the match stays playable: a flat tile board + 整备区, pieces as avatars with
 // tier chips, pointer drag & drop (same events as the render engine), and a simple battle view (units as
@@ -438,11 +439,14 @@ export function createFallbackView(host, opts = {}) {
         if (e[0] === 'spawn' && e[1] && e[1].id != null) {
           st.units.set(e[1].id, e[1]);
           if (!st.snapUnits.has(e[1].id)) st.snapUnits.set(e[1].id, [e[1].id, e[1].x, e[1].y, e[1].maxHp, e[1].maxHp, 0, 0, 0, 6]);
-        } else if ((e[0] === 'dmg' || e[0] === 'heal') && st.settings.damageNumbers && st.floats.length < 60) {
-          const amount = Math.round(Number(e[2]) || 0);
-          if (amount <= 0) continue;
-          const type = e[0] === 'heal' ? 'heal' : (e[3] === 'arts' ? 'arts' : e[3] === 'true' ? 'true' : 'phys');
-          st.floats.push({ key: `${now}:${Math.random()}`, id: e[1], text: e[0] === 'heal' ? `+${amount}` : String(amount), type, at: now });
+        } else if ((e[0] === 'dmg' || e[0] === 'heal') && showDamageNumber(st.settings,e[4],e[0]==='heal')) {
+          const amount = damageNumberMode(st.settings)==='basic' ? roundedDamageNumber(e[4]?.value ?? (Number(e[2]) || 0)) : Math.round(Number(e[2]) || 0);
+          const basic=damageNumberMode(st.settings)==='basic',blocked=basic&&e[4]?.blocked;
+          if (amount <= 0 && !(basic && e[4]?.critical)) continue;
+          const type = e[0] === 'heal' ? 'heal' : blocked==='barrier' ? 'barrier' : blocked==='shield' ? 'block' : basic ? 'critical' : (e[3] === 'arts' ? 'arts' : e[3] === 'true' ? 'true' : 'phys');
+          const merge=damageNumberMode(st.settings)==='sum' && st.floats.findLast(f=>f.id===e[1]&&f.type===type&&now-f.at<300);
+          if(merge){merge.amount+=amount;merge.text=(type==='heal'?'+':'')+merge.amount;merge.at=now;continue;}
+          st.floats.push({ amount, key: `${now}:${Math.random()}`, id: e[1], text: blocked==='shield' ? 'BLOCK' : e[0] === 'heal' ? `+${amount}` : String(amount), type, at: now });
         }
       }
       schedule();

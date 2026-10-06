@@ -324,7 +324,7 @@ describe('user playtest #3 items 1 and 7 (mock match, headless Chrome)', { skip 
   /** The model is under the pointer: its feet DRAG_HOLD_TILES (0.45) below it, the pointer inside its drawn body. */
   const assertHeld = (g, ptr, label) => {
     assert.ok(g.lift > 0, `${label}: lifted`);
-    assert.ok(Math.abs(g.x - ptr.x) < 1.5 && Math.abs(g.y - ptr.y - 0.45 * g.s) < 1.5, `${label}: feet 0.45 tile below the pointer (feet ${g.x.toFixed(1)},${g.y.toFixed(1)}, pointer ${ptr.x.toFixed(1)},${ptr.y.toFixed(1)}, s ${g.s.toFixed(1)})`);
+    assert.ok(Math.abs(g.x - ptr.x) < 1.5 && Math.abs(g.y - ptr.y - 0.04 * g.s) < 1.5, `${label}: feet 0.04 tile below the pointer (feet ${g.x.toFixed(1)},${g.y.toFixed(1)}, pointer ${ptr.x.toFixed(1)},${ptr.y.toFixed(1)}, s ${g.s.toFixed(1)})`);
     if (g.model) {
       const m = g.model, k = (ptr.y - m.y0) / (m.y1 - m.y0);
       assert.ok(ptr.x > m.x0 && ptr.x < m.x1 && k > 0.2 && k < 0.8, `${label}: the pointer on the drawn model (${JSON.stringify(m)}, k ${k.toFixed(2)})`);

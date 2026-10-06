@@ -17,6 +17,7 @@
 .game-chat__panel { width: 360px; max-width: calc(100vw - var(--chat-corner-inset) - var(--chat-corner-inset)); margin-bottom: 8px; background: rgba(9, 16, 13, .96); border: 1px solid #416353; border-radius: 8px; box-shadow: 0 4px 20px #0008; overflow: hidden; }
 .game-chat__panel header { display: flex; align-items: center; justify-content: space-between; padding: 7px 10px; border-bottom: 1px solid #263c31; }
 .game-chat__panel header .game-chat__close { border: 0; background: transparent; font-size: 20px; padding: 0 5px; }
+.game-chat__panel header .game-chat__settings { margin-left: 6px; padding: 2px 6px; font-size: 18px; line-height: 1.2; background: transparent; border-color: transparent; }
 .game-chat__faction-toggle { margin-left: auto; margin-right: 8px; }
 .game-chat__factions { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; padding: 8px; border-bottom: 1px solid #263c31; }
 .game-chat__factions button { padding: 4px 5px; font-size: 12px; border-radius: 15px; color: var(--faction-color); border-color: var(--faction-color); background: #111b16; white-space: nowrap; }

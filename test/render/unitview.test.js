@@ -334,12 +334,14 @@ test('instant skill footprint can outlive skill-on event without outliving its s
 });
 
 
-test('concealed allies stay fully opaque and have fog; refraction draws only while active', async () => {
+test('concealed allies keep opaque bodies and textured mist; refraction draws only while active', async () => {
  const {UF}=await import('../../shared/constants.js');
  const v=view({side:'ally'}); v.fadeIn=1; v.flags=UF.STEALTH;
  let clouds=0; v.stateFx.drawEllipse=()=>{clouds++;return v.stateFx;};
  v.update(1/60,cam(),0);
- assert.equal(v.root.alpha,1); assert.ok(clouds>=5);
+ await tick();v.update(1/60,cam(),.2);
+ assert.equal(v.root.alpha,1);assert.equal(clouds,0,'no ellipse-based fog');assert.equal(v.stealthMist.length,3);assert.ok(v.stealthMist.every(sp=>sp.visible));
+ v.flags=0;v.update(1/60,cam(),.3);assert.ok(v.stealthMist.every(sp=>!sp.visible),'mist clears when stealth ends');
  const e=view({side:'enemy'}); e.statuses.add('ab:refraction');
  let arcs=0; e.stateFx.drawPolygon=()=>{arcs++;return e.stateFx;};
  e.update(1/60,cam(),0); assert.equal(arcs,4);
@@ -411,7 +413,7 @@ test('all skills use the same operator palette with a more saturated boundary an
  for(const charId of ['char_358_lisa','char_388_mint','char_4064_mlynar','char_469_indigo']){
   const a=skillRangeStyle({charId,skillIndex:0});
   for(const skillIndex of [1,2])assert.deepEqual(a,skillRangeStyle({charId,skillIndex}));
-  assert.equal(a.source,'operator');assert.equal(a.fillAlpha,.17);
+  assert.equal(a.source,'operator-concept');assert.equal(a.fillAlpha,.17);
   const rgb=c=>[c>>16&255,c>>8&255,c&255],spread=c=>Math.max(...rgb(c))-Math.min(...rgb(c));
   assert.ok(spread(a.outlineColor)>=spread(a.color));assert.equal(a.pattern,undefined);
  }
@@ -434,4 +436,51 @@ test('freeze covers the full body and pauses Spine instead of changing its playb
  const polys=[];v.stateFx.drawPolygon=p=>{polys.push(p);return v.stateFx;};
  v.flags=UF.FROZEN;v.update(1/60,cam(),0);assert.ok(polys[0].some((v,i)=>i%2===1&&v<0));assert.ok(updates.every(dt=>dt===0));
  v.flags=0;v.update(1/60,cam(),1);assert.ok(updates.at(-1)>0);
+});
+
+test('stealth darkens the equipped Spine tint without fading the body and restores it on exit',async()=>{
+ const {UF}=await import('../../shared/constants.js');
+ const v=view({side:'ally'}, {},store({spine:true}));await tick();await tick();
+ for(let i=0;i<30;i++)v.update(1/60,cam(),i/60);
+ v.flags=UF.STEALTH;v.update(1/60,cam(),1);
+ assert.equal(v.root.alpha,1);assert.equal(v.actor.spine.alpha,1);assert.notEqual(v.actor.spine.tint,0xffffff);
+ v.flags=0;v.update(1/60,cam(),1.1);assert.equal(v.actor.spine.tint,0xffffff);
+});
+
+test('preparation skeletons never enter the shared impostor atlas even under high load', async () => {
+ let allocated=0;
+ const ctx=fakeViewCtx(fake.P,{assets:store({spine:true}),cam,renderer:{resolution:1,render(){}},impostorInterval:()=>3,loadLevel:()=>2,impostors:{alloc(){allocated++;return null},park(){},unpark(){}}});
+ const v=new UnitView(ctx,{id:91,side:'ally',kind:'op',defId:'char_x',x:5,y:12,maxHp:1000},{prep:true});
+ await tick();await tick();for(let i=0;i<30;i++)v.update(1/60,cam(),i/60);
+ assert.ok(v.spineReady);assert.ok(!v.imp);assert.equal(allocated,0);v.destroy();
+});
+
+test('clipped combat skeletons use an isolated target cleared on every refresh', async()=>{
+ let allocated=0;const renders=[];
+ const ctx=fakeViewCtx(fake.P,{assets:store({spine:true}),cam,renderer:{resolution:1,render(obj,opts){renders.push(opts)}},impostorInterval:()=>1,impostors:{alloc(){allocated++;return null},park(o){o.visible=false},unpark(o){o.visible=true}}});
+ const v=new UnitView(ctx,{id:92,side:'ally',kind:'op',defId:'char_x',x:5,y:12,maxHp:1000});await tick();await tick();
+ v.actor.clipped=true;v.actor.clipOn=true;
+ for(let i=0;i<5;i++)v.update(1/60,cam(),i/60);
+ assert.equal(allocated,0);assert.equal(renders.length,5);assert.ok(renders.every(o=>o.clear===true));assert.ok(v.imp.rt);v.destroy();
+});
+
+test('ally HP bars retain their normal color below 30 percent and after healing',()=>{
+ const v=view({kind:'op'});
+ v.hp=1000;v._updateHud(1/60,40,100,100,1,0);const normal=v.hpFill.tint,width=v.hpFill.width;
+ for(const hp of [299,100,1,700]){v.hp=hp;v._updateHud(1/60,40,100,100,1,0);assert.equal(v.hpFill.tint,normal);assert.ok(Math.abs(v.hpFill.width-width*hp/1000)<1e-8);}
+ v.destroy();
+});
+
+test('frozen allies and enemies still play their death clip while the last snapshot retains FROZEN',async()=>{
+ const {UF}=await import('../../shared/constants.js');
+ for(const side of ['ally','enemy']){
+  const assets=store({spine:true});const entry={skel:'/s/death.skel',atlas:'/s/death.atlas',textures:[],animations:{Idle:1,Die:.8},anims:{idle:'Idle',die:'Die'}};
+  assets.spineEntry=()=>entry;assets.spine.acquire=async()=>({animations:[{name:'Idle'},{name:'Die'}]});
+  const v=view({side,kind:side==='enemy'?'enemy':'op'},{},assets);await tick();await tick();
+  v.flags=UF.FROZEN;v.update(1/60,cam(),0);v.die();await tick();await tick();
+  v.update(.2,cam(),.2);
+  assert.equal(v.flags&UF.FROZEN,UF.FROZEN,'the stale snapshot remains frozen');
+  assert.equal(v.actor.current,'Die');assert.ok(v.actor.spine.state.tracks[0].trackTime>0,'death animation advances');
+  assert.equal(v.actor.frozen,false);v.destroy();
+ }
 });

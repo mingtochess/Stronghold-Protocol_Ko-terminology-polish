@@ -41,6 +41,19 @@ export function attachAttackTimings({ chess, enemies, tokens }, assets) {
       const key = rec.assets?.spine || rec.spine || rec.charId || id;
       const sp = assets?.[kind]?.[key]?.spine || assets?.[kind]?.[id]?.spine;
       if (!sp) continue;
+      if(kind==='enemies'){
+        const model=sp.front || sp;
+        rec.animationDurations={...model.animations};
+        rec.abilityAnimations={};
+        const names=Object.keys(model.animations || {});
+        for(const skill of rec.skills || []){
+          const key=skill.prefabKey;
+          // One authored ability and one plain Skill clip is unambiguous. Multi-ability models retain explicit mappings.
+          const single = rec.skills.length === 1 ? names.find(n=>/^Skill$/i.test(n)) : null;
+          const clip=names.find(n=>n.toLowerCase()===String(key).toLowerCase()) || names.find(n=>n.toLowerCase()===`${key}_begin`.toLowerCase()) || single;
+          if(clip && model.animations[clip]>0)rec.abilityAnimations[key]={clip,duration:model.animations[clip]};
+        }
+      }
       const front = spineAttackTiming(sp.front || sp), back = sp.back ? spineAttackTiming(sp.back) : null;
       if (front?.deploy > 0 || front?.attack || Object.keys(front?.skills || {}).length) {
         const forms = {};
@@ -53,7 +66,7 @@ export function attachAttackTimings({ chess, enemies, tokens }, assets) {
 export function attackClipTiming(unit) {
   const all = unit.def?.attackTiming;
   const timing = (unit.form && all?.forms?.[unit.form]) || (unit.dir === 'UP' && all?.back) || all?.front;
-  const clip = (unit.skill?.active && timing?.skills?.[unit.skill.index]) || timing?.attack;
+  const clip = (unit.skill?.active && timing?.skills?.[unit.def?.skill?.index]) || timing?.attack;
   return clip || null;
 }
 export function attackWindup(unit) {
@@ -61,4 +74,22 @@ export function attackWindup(unit) {
   if (!clip || !(clip.dur > 0)) return 0;
   const speed = Math.max(1, Math.min(4, clip.dur / Math.max(.08, unit.s.interval)));
   return clip.hit / speed;
+}
+
+// Independent one-shot casts whose kit used to resolve its impact inside onStart.
+// Do not include next-attack enhancements, immediate stat buffs or explicitly timed Sword Rain.
+export const IMPACT_CAST_SKILLS = new Set([
+ 'skchr_pinecn_1','skchr_podego_2','skchr_tinman_1','skchr_tinman_2',
+ 'skchr_shotst_2','skchr_gnosis_2','skchr_lionhd_2','skchr_blaze2_1',
+ 'skchr_sbell2_1','skchr_snhunt_2','skchr_blkkgt_2',
+ 'skchr_forcer_2','skchr_archet_2',
+ 'skchr_thorn2_1','skchr_thorn2_2','skchr_thorn2_3','skchr_pasngr_3',
+ 'skchr_lumen_2','skchr_agoat2_2','skchr_vulpis_2','skchr_flamtl_2',
+]);
+export function skillImpactTiming(unit) {
+ if(!IMPACT_CAST_SKILLS.has(unit.skill?.id))return null;
+ const all=unit.def?.attackTiming;
+ const timing=(unit.dir==='UP'&&all?.back)||all?.front;
+ const clip=timing?.skills?.[unit.def?.skill?.index] || (unit.skill.id==='skchr_shotst_2' ? timing?.attack : null);
+ return clip?.hit>0&&clip.dur>=clip.hit ? clip : null;
 }

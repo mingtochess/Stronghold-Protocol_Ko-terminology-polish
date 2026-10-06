@@ -54,15 +54,15 @@ export const COLORS = Object.freeze({
   illegal: 0xff4040,
   range: 0xff9c33,
   rangeStand: 0x4ed8af,
-  hpAlly: 0x5fe07a,
+  hpAlly: 0x7cdb42,
   hpAllyLow: 0xe8c547,
-  hpEnemy: 0xff4b3e,
-  hpBoss: 0xff2d55,
+  hpEnemy: 0xe84b3c,
+  hpBoss: 0xe84b3c,
   hpGhost: 0xfff0c8,
-  hpBack: 0x0c0f0e,
-  sp: 0x6fd3ff,
-  spReady: 0xffe066,
-  spActive: 0xffb347,
+  hpBack: 0x101010,
+  sp: 0xafd52e,
+  spReady: 0xffdf31,
+  spActive: 0xf39b26,
   shield: 0xdfe8ff,
 });
 
@@ -102,6 +102,8 @@ export function linearToHex(rgb) {
 }
 
 export const DMG_STYLE = Object.freeze({
+  critical: { font: 'sp-dmg-critical', fill: ['#ff7464', '#ff3029'], stroke: '#3b0908' },
+  barrier: { font: 'sp-dmg-barrier', fill: ['#e5f3ff', '#62bbff'], stroke: '#082d50' },
   phys: { font: 'sp-dmg-phys', fill: ['#fffbe8', '#ffb35c'], stroke: '#3b1400' },
   arts: { font: 'sp-dmg-arts', fill: ['#fbe8ff', '#c77dff'], stroke: '#2a0b45' },
   true: { font: 'sp-dmg-true', fill: ['#ffffff', '#e8e8e8'], stroke: '#2a2a2a' },

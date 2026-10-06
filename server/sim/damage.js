@@ -1,3 +1,4 @@
+import { criticalDamage, roundedDamageNumber } from '../../shared/damageDisplay.js';
 // server/sim/damage.js — damage & heal pipeline, shields, dodge, element gauges (DESIGN §5.5).
 //
 // dealDamage order: (element → gauge path) | invulnerable? / 对地规避 (a ground enemy's damage to an airborne 起飞 ally —
@@ -69,6 +70,9 @@ export function makeDamageInfo(d = {}) {
   return {
     _norm: true,
     amount: Number.isFinite(+d.amount) ? +d.amount : 0,
+    expectedAmount: Number.isFinite(d.expectedAmount) ? d.expectedAmount : Number.isFinite(+d.amount) ? +d.amount : 0,
+    cachedAttack: Number.isFinite(d.cachedAttack) ? d.cachedAttack : null,
+    forceCritical: !!d.forceCritical,
     type,
     element: d.element ?? null,
     atkScale: d.atkScale ?? 1,
@@ -231,13 +235,15 @@ export function dealDamage(battle, source, target, dmgIn) {
   // gets the stats and the kill (PRTS 伤害分类 无来源 ③)
   const hs = dmg.sourceless ? null : source;
   let ts = target.s;
-  if (ts.flags.invulnerable || sleepBlocks(target, hs, dmg) || liftoffEvades(target, hs, dmg)) return 0;
+  if (ts.flags.invulnerable) { battle._ev(['dmg',target.id,0,dmg.type,{critical:true,expected:0,value:0}]); return 0; }
+  if (sleepBlocks(target, hs, dmg) || liftoffEvades(target, hs, dmg)) return 0;
   if (battle._hooks.hit) {
     battle.emit('hit', { source: hs, target, dmg, credit: source });
     if (dmg.cancel || !target.alive || !target.deployed) return 0;
     if (dmg.type === 'element') return applyElement(battle, source, target, dmg);
     ts = target.s; // handlers may have changed the target's buffs (fragile, invulnerable, dodge…): never use stale stats
-    if (ts.flags.invulnerable || sleepBlocks(target, hs, dmg)) return 0;
+    if (ts.flags.invulnerable) { battle._ev(['dmg',target.id,0,dmg.type,{critical:true,expected:0,value:0}]); return 0; }
+    if (sleepBlocks(target, hs, dmg)) return 0;
   }
   const type = dmg.type;
   // dodge
@@ -258,6 +264,8 @@ export function dealDamage(battle, source, target, dmgIn) {
   }
   // 无来源 damage (element bursts) takes nothing from its source's stats; the source still gets the credit below
   const ss = source && source.s && !dmg.sourceless ? source.s : null;
+  dmg.expectedDamage = dmg.cachedAttack ?? mitigate(dmg.expectedAmount, type, ts,
+    {elementalRes: type === 'elemental' ? (target.def?.epDamageResistance ?? 0) : 0});
   let final = mitigate(dmg.amount, type, ts, {
     defIgnorePct: dmg.defIgnorePct + (ss ? ss.defIgnorePct : 0),
     defIgnoreFlat: dmg.defIgnoreFlat + (ss ? ss.defIgnoreFlat : 0),
@@ -274,7 +282,14 @@ export function dealDamage(battle, source, target, dmgIn) {
   // 限伤: a leader's hit of ≥ BOSS_HIT_LIMIT in a boss / hidden battle is cancelled before it reaches shields / HP — what
   // ran before it (the attack, its SP, `hit` hook effects, separate element 损伤) stays; nothing after it happens
   if (final > 0 && leaderHitCancelled(battle, target, final)) return 0;
+  const beforeShield = final;
   final = absorbShields(battle, target, final);
+  dmg.displayCritical = criticalDamage(beforeShield, dmg.expectedDamage, dmg.forceCritical);
+  if (beforeShield > 0 && final === 0 && dmg.displayCritical) {
+    const barrier = ts.shield > 0;
+    battle._ev(['dmg', target.id, roundedDamageNumber(beforeShield), type,
+      {critical: true, expected: dmg.expectedDamage, blocked: barrier ? 'barrier' : 'shield'}]);
+  }
   return applyHpLoss(battle, source, target, final, dmg);
 }
 
@@ -319,7 +334,11 @@ export function applyHpLoss(battle, source, target, amount, dmg) {
   target.lastHitAt = battle.time;
   if (dmg && !dmg.silent && amount >= 0.5) {
     const shown = dmg.type === 'element' ? dmg.element : dmg.type === 'elemental' ? (dmg.element || 'true') : dmg.type;
-    battle._ev(['dmg', target.id, Math.round(amount), shown]);
+    battle._ev(['dmg', target.id, Math.round(amount), shown, {
+      critical: !!dmg.displayCritical || criticalDamage(amount, dmg.expectedDamage, dmg.forceCritical),
+      expected: Number.isFinite(dmg.expectedDamage) ? dmg.expectedDamage : undefined,
+      value: roundedDamageNumber(amount),
+    }]);
   }
   if (battle._hooks.damaged) battle.emit('damaged', { source: hs, target, amount, type: dmg ? dmg.type : 'true', dmg, credit: source });
   if (target.side === 'ally' && target.skill && dmg && !dmg.noSp && dmg.type !== 'element') battle._skills.onDamaged(target);

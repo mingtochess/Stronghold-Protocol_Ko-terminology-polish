@@ -1,3 +1,4 @@
+import { FORMS } from '../../../shared/animationForms.js';
 // server/sim/content/enemies.js — enemy special types (特训敌人) and individual enemy abilities (DESIGN §7).
 //
 // Battle side: install(battle) registers ONE set of global dispatch hooks per battle (ensureInstalled — idempotent,
@@ -282,7 +283,7 @@ export function abOf(b, e) {
   const sk = {};
   for (const s of (ov && Array.isArray(ov.skills) ? ov.skills : (e.def && e.def.skills) || [])) {
     if (!s || s.prefabKey == null) continue;
-    sk[s.prefabKey] = { cd: num(s.cooldown, 0), icd: num(s.initCooldown, 0), sp: num(s.spCost, 0), bb: s.bb || {}, bs: s.bbStr || {} };
+    sk[s.prefabKey] = { prefabKey:s.prefabKey, animation:e.def.raw?.abilityAnimations?.[s.prefabKey], cd: num(s.cooldown, 0), icd: num(s.initCooldown, 0), sp: num(s.spCost, 0), bb: s.bb || {}, bs: s.bbStr || {} };
   }
   e.mem.ab = { key, t, tS, sk, list: [], times: null, hitShield: 0, atkType: null, immune: null, origMaxHp: e.base.maxHp };
   return e.mem.ab;
@@ -422,6 +423,11 @@ function onTick(b, dt) {
           a.left = Math.max(TICK, a.cd);
           a.casts = (a.casts ?? 0) + 1;
           e.skillAnimUntil = b.time + 0.5;
+          if(a.animation){
+            e.mem.abilityAnimUntil=Math.max(e.mem.abilityAnimUntil || 0,b.time+a.animation.duration);
+            e.skillAnimUntil=e.mem.abilityAnimUntil;
+            b.fx('enemySkill',{id:e.id,x:e.x,y:e.y,clip:a.animation.clip,dur:a.animation.duration});
+          }
           safe(b, e, () => a.fire(b, e, a));
         }
       }
@@ -628,6 +634,8 @@ export const isHitCount = (e) => !!e.findBuff(HIT_COUNT_KEY);
  */
 export function setForm(b, e, form, fxKind = 'phase', params = null) {
   e.form = form;
+  const spec=FORMS[e.def.spine || e.defId]?.[form], duration=e.def.raw?.animationDurations?.[spec?.change];
+  if(duration>0 && e.alive)e.mem.abilityAnimUntil=Math.max(e.mem.abilityAnimUntil || 0,b.time+duration);
   b.fx(fxKind, fxKind === 'phase' ? { ...params, x: e.x, y: e.y, id: e.id, kind: form, form } : { ...params, x: e.x, y: e.y, id: e.id, form });
 }
 
@@ -1224,7 +1232,7 @@ function dmgZone(b, src, x, y, r, life, iv, amount, type = 'arts', kind = 'zone'
 
 /** A cooldown skill ability (`id` labels it for tests / other abilities). */
 const skill = (s, fire, { cond = null, sil = false, cd = null, icd = null, id = null } = {}) => (s || cd != null) && fire ? ({
-  id: id ?? null, sil, cd: cd ?? s.cd, icd: icd ?? s.icd, cond, fire,
+  id: id ?? null, animation:s?.prefabKey==='StartRun'?null:s?.animation, sil, cd: cd ?? s.cd, icd: icd ?? s.icd, cond, fire,
 }) : null;
 
 /** Blink past the blocker along the path (弑君者 / 卢西恩). Returns the start position. */
@@ -1667,19 +1675,31 @@ function kitRush(ab) {
   const ms = T(ab, 'rush.dlancer_t[trigger].move_speed') ?? 0, iv = T(ab, 'rush.dlancer_t[trigger].interval') ?? 0.5;
   const max = T(ab, 'rush.dlancer_t[trigger].trig_cnt') ?? 0, first = T(ab, 'firstattack.atk_scale') ?? 0;
   return [{
-    iv,
-    spawn(b, e, a) { a.n = 0; },
-    tick(b, e, a) {
-      if (!e.moving || e.blockedBy || a.n >= max) return;
-      a.n++;
+    // Control detection is every 0.1 s; speed stacks have their own 0.5 s cadence (PRTS).
+    iv: .1,
+    spawn(b, e, a) { a.n = 0; a.elapsed=0; },
+    tick(b, e, a, dt) {
+      if(e.s.flags.stun || e.s.flags.noMove){a.n=0;a.charge=0;a.elapsed=0;b.removeBuff(e,'ab:rush');return;}
+      if (e.blockedBy || a.n >= max) return;
+      a.elapsed+=dt;
+      if(a.elapsed+1e-9<iv)return;
+      a.elapsed-=iv;a.n++;
       b.addBuff(e, { key: 'ab:rush', mods: { moveMul: 1 + ms * a.n }, persist: true });
     },
     blocked(c, b, e, a) { a.charge = a.n; },
     hitOut(c, b, e, a) {
-      if (!c.dmg.isAttack || !(a.charge > 0) || !(max > 0)) return;
-      c.dmg.amount *= 1 + (first / 100) * (a.charge / max); // 被阻挡后的首次攻击: extra damage from the built-up speed
+      if (!c.dmg.isAttack || !(a.charge > 0)) return;
+      // PRTS: an additional precomputed physical hit, not extra ATK folded into the basic hit.
+      // Cache speed before ending acceleration; each hit must receive DEF/shield/dodge handling separately.
+      c.dmg.rushExtra = Math.max(0,e.s.moveSpeed) * first;
     },
-    attack(c, b, e, a) { if (a.charge > 0) { a.charge = 0; a.n = 0; b.removeBuff(e, 'ab:rush'); } },
+    dealt(c, b, e, a) {
+      const amount=c.dmg.rushExtra;
+      if(!(amount>0) || c.dmg.tags?.includes('lancerRush'))return;
+      a.charge=0;a.n=0;a.elapsed=0;b.removeBuff(e,'ab:rush');
+      if(c.target.alive)b.dealDamage(e,c.target,{amount,type:'phys',isAttack:true,tags:['lancerRush']});
+    },
+    attack(c, b, e, a) { if (a.charge > 0) { a.charge = 0; a.n = 0; a.elapsed=0; b.removeBuff(e, 'ab:rush'); } },
   }];
 }
 
@@ -2972,10 +2992,18 @@ export const KITS = Object.freeze({
       for (const o of b.aliveEnemies()) b.addBuff(o, { key: 'ab:songOfWar', duration: T(ab, 'AttackSpeedUp.duration') ?? 0, refresh: 'extend', mods: { aspd: T(ab, 'AttackSpeedUp.attack_speed') ?? 0 }, visible: true });
     },
   }],
-  enemy_10001_trslim: (ab) => [skill(ab.sk.StartRun, (b, e) => {    // 简饲源石虫 · below half: runs (faster, unblockable 3 s)
+  enemy_10001_trslim: (ab) => [skill(ab.sk.StartRun, (b, e) => {
     const s = ab.sk.StartRun.bb;
-    b.addBuff(e, { key: 'ab:run', duration: s.block_free_time ?? 0, mods: { moveMul: 1 + (s.move_speed ?? 0) }, flags: { unblockable: true }, visible: true });
-  }, { sil: true, cond: (b, e) => e.hpRatio < 0.5 })],
+    e.mem.trslimRunUsed = true;
+    const wind = 1; // Original model Skill_Begin is 1 second.
+    b.addBuff(e,{key:'ab:runWindup',duration:wind,flags:{noMove:true,noAttack:true}});
+    setForm(b,e,'run', 'phase',{dur:wind});
+    b.after(wind,()=>{
+      if(!e.alive)return;
+      b.addBuff(e,{key:'ab:run',duration:s.block_free_time ?? 0,mods:{moveMul:1+(s.move_speed ?? 0)},flags:{unblockable:true},visible:true});
+      b.after(s.block_free_time ?? 0,()=>{if(e.alive)setForm(b,e,null)});
+    });
+  }, {sil:true,cond:(b,e)=>e.hpRatio<.5 && !e.mem.trslimRunUsed})],
   enemy_10027_vtsk: (ab) => {                                        // “帝国的甲胄” · entrance barrage on the highest-HP unit; ranged ×0.8; 3-hit charge attack
     const ap = ab.sk.Appear, mc = ab.sk.MultiCombat;
     return [{

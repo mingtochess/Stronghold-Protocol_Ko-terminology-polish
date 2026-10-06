@@ -396,6 +396,7 @@ export function normalizeRoute(r) {
 
 function normCpType(t) {
   const s = String(t ?? 'MOVE').toUpperCase();
+  if (s.includes('PATROL')) return 'PATROL';
   if (s.includes('DISAPPEAR')) return 'DISAPPEAR';
   if (s.includes('APPEAR')) return 'APPEAR';
   if (s.includes('WAIT')) return 'WAIT';

@@ -1,3 +1,4 @@
+import { DAMAGE_NUMBER_MODES } from '../../../shared/damageDisplay.js';
 import {resolveLoadout} from '../../../shared/protocol.js';
 import {loadoutRecord,resolveRecordLoadout} from '../../../shared/loadoutRecord.js';
 // render/app.js — battlefield view (DESIGN §9). PixiJS 7 (global PIXI) + pixi-spine (PIXI.spine), loaded on demand
@@ -151,10 +152,10 @@ export const LEADER_HIT_STYLE = Object.freeze({ group: 'leaderHit', color: 0xff3
 const CHAIN_KINDS = new Set(['chain', 'chainHeal']);
 const DROP_PENDING_MS = 1300;
 /**
- * A dragged unit is held with its drawn feet this many tiles below the pointer — the pointer on its body, the model
- * under the finger / mouse (user playtest #4 item 1: as in v2.1; mouse and touch alike). An item plate is centred on it.
+ * A dragged unit is held with its drawn feet almost on the pointer; its model remains above the cursor,
+ * for mouse and touch alike. An item plate is centred on the pointer.
  */
-export const DRAG_HOLD_TILES = 0.45;
+export const DRAG_HOLD_TILES = 0.04;
 
 /**
  * A view as a render/pick.js unit, or null when it cannot be picked (gone, faded out, dead): standing on the display
@@ -218,31 +219,34 @@ export function viewKind(kind, opts) {
 }
 
 /** 3D areas without the enemy preview pen block (the own field / both normal halves); see `boardArea`. */
+const BOSS_PREP_AREA = Object.freeze(unionAreas(AREAS.boss, AREAS.normal));
 const AREA_NO_PEN = Object.freeze({
   normal: Object.freeze(AREAS.normal.filter((a) => a.r1 <= 13)),
   unite: Object.freeze(AREAS.unite.filter((a) => a.r1 <= 13)),
 });
 
 /**
- * 3D area built for a view kind (viewKind): the enemy preview pen (rows 14–18) only for the 'pen' camera — the prep,
- * battle and 联防 cameras show the field alone (user playtest #2 item 6) with its separator rows 6 and 13 (the row-13
+ * 3D area built for a view kind (viewKind): prep / normal / pen retain the same field + preview geometry.
+ * Cooperative views retain their field area with separator rows 6 and 13 (the row-13
  * devices blow into the field: act2 m01's blowers, user playtest #5 item 6; the boss field's row-6 devices are drawn
  * with the boss field only — board3d/layout.js stageDevices); the boss kinds build the boss field.
  */
 export function boardArea(vk) {
+  if (vk === 'bossPrep') return BOSS_PREP_AREA;
   if (vk === 'pen') return AREAS.normal;
-  if (vk === 'prep' || vk === 'normal') return AREA_NO_PEN.normal.length ? AREA_NO_PEN.normal : AREAS.normal;
+  if (vk === 'prep' || vk === 'normal') return AREAS.normal;
   if (vk === 'unite') return AREA_NO_PEN.unite.length ? AREA_NO_PEN.unite : AREAS.unite;
   return areaFor(vk);
 }
 
 /**
- * 2D rows drawn for a view kind: the pen rows (14–18) only for the 'pen' camera; the boss field with the separator
+ * 2D rows drawn for a view kind: prep / normal / pen retain rows 6–18; the boss field with the separator
  * and the normal rows behind it as scenery.
  */
 export function bandFor(kind) {
-  if (kind === 'boss' || kind === 'hidden' || kind === 'bossPrep') return [0, 13];
-  return kind === 'pen' ? [6, 18] : [6, 13];
+  if (kind === 'bossPrep') return [0,18];
+  if (kind === 'boss' || kind === 'hidden') return [0, 13];
+  return ['pen','prep','normal'].includes(kind) ? [6, 18] : [6, 13];
 }
 
 /**
@@ -298,10 +302,14 @@ export function renderInfo(u) {
     // DESIGN §16 loadout of an ally (UnitInfo.skillIndex / moduleId): the Spine actor plays that skill's clip, and a
     // tap hands them to the detail card (a teammate's unit shows its owner's skill / module)
     skillIndex: Number.isInteger(u.skillIndex) ? u.skillIndex : undefined,
-    skillDuration:u.skillDuration,skillNextAttack:!!u.skillNextAttack,skillZoneGrid:u.skillZoneGrid,omnidirectional:!!u.omnidirectional,fixedFacing:!!u.fixedFacing,
+    skillId:u.skillId,skillName:u.skillName,skillDescription:u.skillDescription,skillDuration:u.skillDuration,skillNextAttack:!!u.skillNextAttack,skillZoneGrid:u.skillZoneGrid,omnidirectional:!!u.omnidirectional,fixedFacing:!!u.fixedFacing,
     skinId: u.skinId, charId: u.charId,
     profession:u.profession,subProf:u.subProf,attackType:u.attackType,
     moduleId: typeof u.moduleId === 'string' ? u.moduleId : undefined,
+    // the ally's equipped item ids (UnitInfo.items, DESIGN §16 / §21.11): the detail card needs them for a teammate's
+    // unit (resolveDetail `unitItems` → the read-only 装备 section and the 变形同构体 pairing chips); the owner's own
+    // unit takes its items from the piece instead, so only other players' boards ever read this field
+    items: Array.isArray(u.items) ? u.items.filter((x) => typeof x === 'string') : undefined,
   };
 }
 
@@ -572,7 +580,7 @@ export async function createFieldView(host, options = {}) {
   ctx.fx = fx;
   // battle devices (crates / turrets as sim units): the official crate mesh in the 3D scene, else a Pixi box
   ctx.createBox = () => switchableBox({ board: () => board3d, pixi: () => tiles.createBox() });
-  const impostors = new ImpostorAtlas(app.renderer);
+  const impostors = new ImpostorAtlas(app.renderer, { isolated: !!P.utils?.isMobile?.any });
   ctx.impostors = impostors;
   tiles.setView(bandFor('prep'), camRect(), fieldRows('prep'));
   // the real board art of the local client (optional): wait briefly so the first frame already uses it; a late
@@ -607,7 +615,7 @@ export async function createFieldView(host, options = {}) {
       board3d = b;
       tiles.setExternal(true);
       backdrop.visible = false;
-      b.setArea(boardArea(viewKind(camKind, camOpts)));
+      b.setArea(viewBoardArea(viewKind(camKind, camOpts)));
       if (stageRec) b.setStage(stageRec);
       b.setFocus(camRect());
       b.setBattleRect(mode === 'battle' && battleMeta ? battleMeta.rect : null);
@@ -659,8 +667,12 @@ export async function createFieldView(host, options = {}) {
     }, delay);
   }
   if (want3d) {
-    const ready = Promise.all([threePromise, packPromise]).then(([THREE, pack]) => (THREE && pack ? enable3d(THREE, pack) : false), () => false);
-    await withTimeout(ready, 6000);
+    const ready = Promise.all([threePromise, packPromise]).then(async ([THREE, pack]) => {
+      if (!THREE || !pack) return false;
+      return enable3d(THREE, pack);
+    }, () => false);
+    // The atlas board is usable now; original maps load without delaying the view.
+    void ready.catch(() => false);
   }
   // the official soft shadow sprite replaces the procedural one once loaded (may already be cached; asked again when the
   // manifest arrives late)
@@ -724,10 +736,18 @@ export async function createFieldView(host, options = {}) {
     // — `shop: false` (the folded shop, public issue #5) = the official shop-collapsed camera, clear of the folded
     // shop's HUD band (re-evaluated on resize: camOpts keep the flag)
     const vk = viewKind(kind, o); // (a 'prep' camera on the boss rows = the Final Assault prep)
-    return presetCamera(k, { width: sz.width, height: sz.height, padding: o.padding || defaultPadding(k, sz) }, {
+    const camera = presetCamera(k, { width: sz.width, height: sz.height, padding: o.padding || defaultPadding(k, sz) }, {
       rect, side: o.side, half: !!o.half, shop: o.shop, fit: !!o.fit, observedBench: !!o.observedBench, config: stageRec?.config || null,
       hud: hudBands(vk, sz, { shop: o.shop !== false }),
     });
+    // HUD clearance includes the back row's operator heads; do not pan upward after fitting it.
+    return camera;
+  }
+
+  function viewBoardArea(vk) {
+    // A boss preparation detour retains its boss field and the preview, just as normal prep does.
+    return vk === 'pen' && camBeforePen && viewKind(camBeforePen.kind,camBeforePen.opts) === 'bossPrep'
+      ? boardArea('bossPrep') : boardArea(vk);
   }
 
   // rows drawn per camera kind: module `bandFor`; the active field rows: module `fieldRows`
@@ -759,7 +779,7 @@ export async function createFieldView(host, options = {}) {
     board3d?.setFocus(focus);
     camMs = Number.isFinite(o.ms) && o.ms >= 0 ? o.ms : (vk === 'pen' || prevView === 'pen' ? PEN_CAMERA_MS : CAMERA_MS);
     if (o.instant || camMs === 0 || mode === 'idle' && !camTo) {
-      board3d?.setArea(boardArea(vk));
+      board3d?.setArea(viewBoardArea(vk));
       cam = target; camFrom = camTo = null;
       tiles.setView(band, focus, field);
       setPenHidden(!penShown(vk));
@@ -771,10 +791,10 @@ export async function createFieldView(host, options = {}) {
       camT0 = performance.now();
       // keep both fields drawn (and lit) while the camera flies between them
       tiles.setView([Math.min(prevBand[0], band[0]), Math.max(prevBand[1], band[1])], focus, [Math.min(prevField[0], field[0]), Math.max(prevField[1], field[1])]);
-      board3d?.setArea(unionAreas(boardArea(prevView), boardArea(vk)));
+      board3d?.setArea(unionAreas(viewBoardArea(prevView), viewBoardArea(vk)));
       setPenHidden(!penShown(vk, prevView));
       setLeaderHidden(!leaderShown(vk, prevView));
-      pendingView = { band, focus, field, area: boardArea(vk), pen: penShown(vk), leader: leaderShown(vk) };
+      pendingView = { band, focus, field, area: viewBoardArea(vk), pen: penShown(vk), leader: leaderShown(vk) };
     }
     return true;
   }
@@ -1246,7 +1266,7 @@ export async function createFieldView(host, options = {}) {
   /**
    * Draw a BOARD-space highlight group: range previews never light the bench / temp pads (rows 7–8: no battle
    * happens there), the prep field transform maps the tiles onto the boss field in the Final Assault prep, and the 2D
-   * board stripes range previews under the units (the 3D board gets them from the direction wheel's layer).
+   * board stripes range previews under the units (the 3D board uses the existing direction-wheel layer).
    */
   function drawHighlight(list, style, group) {
     const key = hlKey(style, group);
@@ -1432,6 +1452,12 @@ export async function createFieldView(host, options = {}) {
   // selects it and its underframe opens over the tile (clamped under the top bar on a phone), and the click pressed
   // 撤退 / 出售 (user playtest #4 item 1 on a phone). Cancelling touchend drops them.
   const onTouchEnd = (e) => { if (e.cancelable) e.preventDefault(); };
+  // The canvas is a click target too (a no-op listener). The browser's touch adjustment moves a tap onto a nearby
+  // element that responds to clicks (click / mousedown listeners, buttons, links; pointer listeners do not count) when the
+  // finger's contact area reaches one, so a tap on the back row right under the bond strip's discs (row 12 at 844×390 once
+  // the 收起 toggle of PR #149 moved the discs one button to the right) opened the bond popup instead of selecting the
+  // unit. As a click target that holds the finger's point the canvas wins: a tap on the board stays on the tile under it.
+  const onTapTarget = () => {};
   canvas.addEventListener('pointerdown', onPointerDown);
   canvas.addEventListener('pointermove', onPointerMove);
   canvas.addEventListener('pointerup', onPointerUp);
@@ -1439,6 +1465,7 @@ export async function createFieldView(host, options = {}) {
   canvas.addEventListener('pointerleave', onPointerLeave);
   canvas.addEventListener('contextmenu', onContext);
   canvas.addEventListener('touchend', onTouchEnd, { passive: false });
+  canvas.addEventListener('click', onTapTarget);
 
   // ---- battle ---------------------------------------------------------------------------------------------
 
@@ -1496,12 +1523,29 @@ export async function createFieldView(host, options = {}) {
     return info;
   }
 
+  // a hand item on a scouted prep board (UnitInfo kind 'item'): the plate's icon and colour resolve client-side,
+  // exactly like the own prep bench (pieceInfo)
+  function scoutItemInfo(info) {
+    const rec = data.item(info.defId);
+    const tier = rec?.tier || info.tier || 1;
+    return { ...info,
+      icon: assets.itemIcon ? assets.itemIcon(rec ? { trapId: rec.trapId, iconId: rec.iconId } : info.defId) : null,
+      color: (info.golden || rec?.isGolden) ? 0xffc600 : TIER_COLORS[tier] || TIER_COLORS[1] };
+  }
+
   function battleView(id) {
     let v = views.get(id);
     if (v) return v;
     const info = infos.get(id);
     if (!info || gone.has(id)) return null;
-    v = info.kind === 'device' ? new DeviceView(ctx, info) : new UnitView(ctx, info, { prep: !!battleMeta?.prep && info.side === 'ally' });
+    v = info.kind === 'device' ? new DeviceView(ctx, info)
+      : info.kind === 'item' ? new ItemView(ctx, scoutItemInfo(info))
+      : new UnitView(ctx, info, { prep: !!battleMeta?.prep && info.side === 'ally' });
+    // a teammate's operator shows its equipped items like the own prep bench does (item pips; user playtest #2:
+    // at the unit, not only in the detail card) — prep surfaces only, the battle HUD stays as it is
+    if (v.setItems && battleMeta?.prep && Array.isArray(info.items) && info.items.length) {
+      v.setItems(info.items.map((it) => { const r = data.item(it); return assets.itemIcon ? assets.itemIcon(r ? { trapId: r.trapId, iconId: r.iconId } : it) : null; }));
+    }
     v.setWorld(info.x, info.y, 0);
     v._seen = false;
     v._born = performance.now();
@@ -1606,7 +1650,7 @@ export async function createFieldView(host, options = {}) {
         const m = meleePending.get(v.id);
         let src = null;
         if (m && now - m.t < 0.35) { src = m.src; meleePending.delete(v.id); fx._slashAt = src.id; }
-        fx.damage(v, amt, e[3], src);
+        fx.damage(v, amt, e[3], src, e[4]);
         break;
       }
       case 'heal': { const v = views.get(e[1]); if (v) fx.heal(v, Number(e[2]) || 0); break; }
@@ -2006,6 +2050,7 @@ export async function createFieldView(host, options = {}) {
       if (!s || typeof s !== 'object') return;
       const q = settings.quality;
       if (typeof s.damageNumbers === 'boolean') settings.damageNumbers = s.damageNumbers;
+      if (DAMAGE_NUMBER_MODES.includes(s.damageNumberMode)) settings.damageNumberMode = s.damageNumberMode;
       if (s.quality === 'high' || s.quality === 'medium' || s.quality === 'low') settings.quality = s.quality;
       if (q !== settings.quality) { board3d?.setQuality?.(settings.quality); resize(); }
     },
@@ -2033,6 +2078,7 @@ export async function createFieldView(host, options = {}) {
       canvas.removeEventListener('pointerleave', onPointerLeave);
       canvas.removeEventListener('contextmenu', onContext);
       canvas.removeEventListener('touchend', onTouchEnd);
+      canvas.removeEventListener('click', onTapTarget);
       app.ticker.remove(frame);
       app.ticker.remove(preRender);
       app.ticker.remove(postRender);

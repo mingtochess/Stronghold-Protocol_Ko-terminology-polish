@@ -88,6 +88,7 @@ export function normalizeSnapshot(snap) {
       if (!Array.isArray(e) || !ELEMENT_KEYS.has(e[1])) continue;
       const tu = units.get(e[0]);
       if (tu && tu.length === 9) tu.push(e[1], clamp(finite(e[2]), 0, 1), finite(e[3]), Math.max(0, finite(e[4])));
+      if(tu && Number.isFinite(e[5]))tu[19]=e[5];
     }
   }
   if (Array.isArray(snap.ammo)) for (const e of snap.ammo) {
@@ -347,7 +348,7 @@ export class SnapshotBuffer {
       else if (!(o.hp > 0)) o.hp = 0;
       o.flags = a[7];
       o.anim = a[8];
-      if (a.length > 9) { o.el = a[9] ?? null; o.elFill = a[10] || 0; o.elUntil = a[11] || 0; o.elDur = a[12] || 0; } else if (o.el !== null) { o.el = null; o.elFill = 0; o.elUntil = 0; o.elDur = 0; }
+      if (a.length > 9) { o.elValue=Number.isFinite(a[19])?a[19]:null; o.el = a[9] ?? null; o.elFill = a[10] || 0; o.elUntil = a[11] || 0; o.elDur = a[12] || 0; } else if (o.el !== null) { o.elValue=null; o.el = null; o.elFill = 0; o.elUntil = 0; o.elDur = 0; }
       o.seen = stamp;
     }
     for (const id of out.keys()) if (!A.units.has(id)) out.delete(id);

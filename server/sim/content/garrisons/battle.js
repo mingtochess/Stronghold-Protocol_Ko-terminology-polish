@@ -14,7 +14,9 @@
 //                       'freeze', × prob) · act2autochess_gar_event_onstart (every deploy) ·
 //                       act2autochess_gar_event_allyenemy_sleepstun_inrange (an enemy or operator in range ENTERS
 //                       sleep / stun). "进入…时": re-applying a running status (a refresh) is not a new entry
-//                       (engine statusApplied ctx.entered). Targets: bond_by_id / bond_self (own active bonds) / bond_actived_maxstack;
+//                       (engine statusApplied ctx.entered) — except a pulse that re-applies its own short status as a
+//                       fresh one (applyStatus `reenter`: 缇缇 S2's sleep ward, DESIGN §24.8).
+//                       Targets: bond_by_id / bond_self (own active bonds) / bond_actived_maxstack;
 //                       amounts: by_count / by_charcount_samerow / by_charlevel; conditions character_same_row /
 //                       character_same_col (≥ check_count incl. self). Gains go through support.gainLayers with
 //                       reason 'garrison', source = the trait's owner, cap = max_add_count_per_battle per (instance, bond);
@@ -182,12 +184,12 @@ function conditionMet(battle, it) {
 }
 
 /** Fire a layer-gain garrison instance. Returns the layers added. */
-export function fireGain(battle, it) {
+export function fireGain(battle, it, override = null) {
   if (!conditionMet(battle, it)) return 0;
-  const bonds = targetBonds(battle, it);
+  const bonds = override?.bonds || targetBonds(battle, it);
   if (!bonds.length) return 0;
   const totalCap = it.bbStr.bond_type === 'bond_actived_maxstack' && Number.isFinite(it.cap);
-  const n = Math.min(amountOf(battle, it), totalCap ? Math.max(0, it.cap - (it.used ?? 0)) : Infinity);
+  const n = Math.min(override?.n ?? amountOf(battle, it), totalCap ? Math.max(0, it.cap - (it.used ?? 0)) : Infinity);
   const added = S.gainLayers(battle, {
     playerId: it.unit.ownerId, bonds, n, requireActive: true, source: it.unit, reason: 'garrison', cap: it.cap, capKey: it.capKey,
   });
@@ -236,15 +238,20 @@ const INSTALLERS = {
       // AK's 停顿 (정지) is distinct from stun/freeze and ordinary movement reductions.
       if(target?.side!=='enemy'||reason!=='killed'||!target.findBuff('sluggish'))return;
       for(const it of list){
-        if(!S.onField(it.unit)||!S.inRange(it.unit,target)||(it.cnt||0)>=S.num(it.bb.max_trigger_count,7))continue;
-        if(fireGain(battle,it)>0)it.cnt=(it.cnt||0)+1;
+        if(!S.onField(it.unit)||!S.inRange(it.unit,target)||(it.cnt||0)>=S.num(it.bb.max_trigger_count,10))continue;
+        const active=targetBonds(battle,it);
+        let added=0;
+        for(const bond of active)added+=fireGain(battle,it,{bonds:[bond],n:bond==='visiShip'?S.num(it.bb.visi_add_count,1):amountOf(battle,it)});
+        if(added>0)it.cnt=(it.cnt||0)+1;
       }
     });
   },
   custom_ursus_ally_skill(battle,list){
     battle.on('skillStart',({unit})=>{
       if(!S.isOp(unit)||!S.onField(unit)||!S.unitBonds(unit).includes('ursusShip'))return;
-      for(const it of list)if(S.onField(it.unit)&&it.unit.ownerId===unit.ownerId)fireGain(battle,it);
+      for(const it of list)if(S.onField(it.unit)&&it.unit.ownerId===unit.ownerId&&(it.cnt||0)<S.num(it.bb.max_trigger_count,7)){
+        if(fireGain(battle,it)>0)it.cnt=(it.cnt||0)+1;
+      }
     });
   },
   act1autochess_gar_event_useskill(battle, list) {

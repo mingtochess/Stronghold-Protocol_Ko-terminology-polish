@@ -1028,6 +1028,23 @@ test('引星棘刺 S1 度算浪波: an alchemy unit on the lowest-HP ally: DEF +
   }
 });
 
+test('引星棘刺 S1 度算浪波 (AUTO): fires as soon as its SP is full, no enemy needed (GitHub #124)', () => {
+  for (const id of pair('15')) {
+    const h = run({
+      defs: { chess: { t_low: ally('t_low') } },
+      units: [entry(id, 'skchr_thorn2_1', { row: 10, col: 3 }), { chessId: 't_low', row: 10, col: 5 }],
+      enemies: [],
+    });
+    const u = sel(h, id, 'skchr_thorn2_1');
+    h.step();
+    assert.equal(h.b.enemies.length, 0, 'no enemy on the field');
+    const need = u.skill.spCost - u.skill.sp;
+    h.run(need + 0.5);
+    assert.ok((u.mem.zones || []).some((z) => z.type === 'guard'), `cast within ${need.toFixed(1)} s of SP filling, no enemy around`);
+    done(h);
+  }
+});
+
 test('引星棘刺 S3 “我的海疆”: passive skill range; alchemy units on the 3 lowest-block ops debuff (不叠加) and burn enemies around them, ramping to the max after 15 s', () => {
   for (const id of pair('15')) {
     const h = run({
@@ -1442,4 +1459,24 @@ test('圣约送葬人 module REA-Y: the reaper heal stays the base 50 per enemy 
     approx(heals(h, u, (c) => c.target === u)[0].amount, want, `${moduleId}: one enemy hit`);
     done(h);
   }
+});
+
+test('Titi S2: resisted sleep has no gaps; cleansing the ally nap does not remove the sleep aura', () => {
+ const id='chess_char_5_02_a';
+ const h=run({defs:{enemies:{enemy_dummy:dummy('enemy_dummy')},chess:{t_hurt:ally('t_hurt')}},units:[entry(id,'skchr_titi_2',{row:10,col:4}),{chessId:'t_hurt',row:10,col:6}],enemies:[{key:'enemy_dummy',pos:[10,7]}]});
+ const u=sel(h,id,'skchr_titi_2'),e=h.enemy('enemy_dummy'),a=h.unit('t_hurt');a.hp*=.3;
+ h.b.applyStatus(e,'resist',{value:.5});cast(h,u);
+ assert.ok(h.runUntil(()=>e.s.flags.sleep,1));
+ h.b.removeBuff(a,'titi:ward');
+ for(let i=0;i<90;i++){h.step();assert.ok(e.s.flags.sleep,'aura refresh remains continuous with 50% resistance');}
+ done(h);
+});
+
+test('Titi S1 can refresh an already sleeping enemy', () => {
+ const id='chess_char_5_02_a';const h=run({defs:{enemies:{enemy_dummy:dummy('enemy_dummy')}},units:[entry(id,'skchr_titi_1',{row:10,col:4})],enemies:[{key:'enemy_dummy',pos:[10,7]}]});
+ const u=sel(h,id,'skchr_titi_1'),e=h.enemy('enemy_dummy');cast(h,u);
+ h.b.applyStatus(e,'sleep',{duration:.1,source:u});
+ const original=h.b.rng.chance;h.b.rng.chance=()=>true;
+ u.skill.spec.attack.onHit({battle:h.b,unit:u,target:e});h.b.rng.chance=original;
+ approx(e.findBuff('sleep').timeLeft,u.skill.bb['attack@sleep']);done(h);
 });

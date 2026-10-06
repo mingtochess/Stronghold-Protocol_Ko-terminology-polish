@@ -17,7 +17,12 @@ import {skillIsContinuous,selectedSkillClip} from '../../../shared/attackTiming.
 //   setSkill(on)                          skill begin, then — when the skill has an idle clip of its own (skill.idle,
 //                                         not its loop) — that idle between attacks, its loop (the skill's attack clip)
 //                                         only on attacks (community report #23: 折桠's S2 jump attack looped with no
-//                                         enemy engaged); a skill without one keeps its loop as the stance; end on stop
+//                                         enemy engaged); end on stop. A skill clip with NEITHER a Begin nor an own Idle
+//                                         (德克萨斯 剑雨 and the other 58 instant skills: anims.skill {begin:null,
+//                                         loop:'Skill', end:null}) plays that clip once for its own length: an instant
+//                                         skill's flag is off again within the same 0.5 s window (sim skills.js), so
+//                                         without this the actor fell through to its idle and played no skill clip at
+//                                         all (player report).
 //   deploy()                              'Start' once, then base
 //   die()                                 die clip once (callers fade out afterwards); a skeleton without one holds its
 //                                         idle clip's first frame (GitHub issue #25: the attack loop went on)
@@ -36,6 +41,9 @@ const clampN = (v, lo, hi) => (v < lo ? lo : v > hi ? hi : v);
 
 /** Longest wind-up compression (× the rhythm speed) when the look-ahead is shorter than the natural wind-up. */
 export const MAX_WIND_SPEEDUP = 2.5;
+
+/** Floor for the one-shot window of a skill clip with no Begin / own Idle (a very short clip still gets frames). */
+const SKILL_CLIP_MIN = 0.2;
 
 /**
  * Attack clip timing (pure). `loopDur` / `hit` are clip seconds (strike frame at `hit`), `interval` and `lead` game
@@ -84,9 +92,10 @@ export class SpineActor {
     this.names = new Set((spineData.animations || []).map((a) => a.name));
     // Older manifests missed Stun_Loop / Stun_Idle aliases. Resolve from the
     // actual equipped model, including skins and enemy models.
-    if (!this.roles.stun) {
+    if (!this.has(this.roles.stun?.loop)) {
       const find = (...names) => [...this.names].find(n => names.some(x => n.toLowerCase() === x.toLowerCase()));
-      const loop = find('Stun', 'Stun_Loop', 'Stun_Idle', 'Stunned', 'Dizzy');
+      const idle=String(this.roles.idle || '');
+      const loop = find(idle.replace(/idle/i,'Stun'),idle.replace(/idle/i,'Stun_Loop'),'Stun', 'Stun_Loop', 'Stun_Idle', 'Stunned', 'Dizzy');
       if (loop) this.roles = {...this.roles, stun:{begin:find('Stun_Begin','Stun_Start'),loop,end:find('Stun_End')}};
     }
     /**
@@ -108,6 +117,8 @@ export class SpineActor {
     this.endAt = 0;               // landing in endRoles (the next form's) when given
     this.endRoles = null;
     this.skillOn = false;
+    this.skillClipOnce = false;    // skillBegin: the skill's own clip plays once (a clip with no Begin / own Idle)
+    this.skillEndPending = false;  // … and the skill turned off inside it: play its End clip / base when it ends
     this.attackUntil = 0;
     this.clock = 0;
     this.current = '';
@@ -317,7 +328,7 @@ export class SpineActor {
   /** Explicit sim wind-up: retain the entire clip before its OnAttack frame. */
   beginAttack(interval, lead) {
     if (this._continuousSkillLoop()) return false;
-    if (this.dead || this.mode === 'stun' || this.mode === 'die' || this.mode === 'change' || this.mode === 'skillCast' || this.mode === 'skillBegin') return false;
+    if (this.dead || this.mode === 'stun' || this.mode === 'die' || this.mode === 'change' || this.mode === 'skillCast' || (this.mode === 'skillBegin' && this.skillBeginBlocking !== false)) return false;
     const clip = this._attackClip(); if (!clip) return false;
     const dur = this.dur(clip.loop), hit = this._hitTime(clip.loop, dur);
     this.interval = clampN(interval, .08, 8);
@@ -341,7 +352,7 @@ export class SpineActor {
    */
   attack(interval, once = false) {
     if (this._continuousSkillLoop()) return;
-    if (this.dead || this.mode === 'stun' || this.mode === 'die' || this.mode === 'change' || this.mode === 'skillCast' || this.mode === 'skillBegin') return;   // a form change plays out
+    if (this.dead || this.mode === 'stun' || this.mode === 'die' || this.mode === 'change' || this.mode === 'skillCast' || (this.mode === 'skillBegin' && this.skillBeginBlocking !== false)) return;   // a form change plays out
     if (!once) this.interval = clampN(Number.isFinite(interval) && interval > 0 ? interval : this.interval, 0.08, 8);
     const clip = this._attackClip();
     if (!clip) return;
@@ -366,7 +377,12 @@ export class SpineActor {
       this._play(clip.loop, !single, { timeScale: ts, start: hit, mix: 0.06 });
     } else if (single) {
       const e = this.spine.state.tracks[0];
-      if (e) e.timeScale = ts;
+      if (e) {
+        e.timeScale = ts;
+        // Snapshot/event timing may reach the hit before the displayed track does.
+        // Finish the actual remaining frames, rather than assuming trackTime === hit.
+        this.attackUntil = this.clock + Math.max(0, loopDur - e.trackTime) / ts;
+      }
     } else {
       const e = this.spine.state.tracks[0];
       if (e) {
@@ -434,7 +450,7 @@ export class SpineActor {
       this.pendingSkillEnd = true;
       return;
     }
-    if (on && instant && sk && !sk.via && this.has(sk.loop)) {
+    if (on && instant && sk && (!sk.via || sk.via==='attack') && this.has(sk.loop)) {
       this.mode='skillCast';
       this._play(sk.begin || sk.loop,false,{mix:.12});
       if(sk.begin)this._queue(sk.loop,false);
@@ -442,15 +458,36 @@ export class SpineActor {
       return;
     }
     if (on && sk) {
+      this.skillEndPending = false;
+      this.skillClipOnce = false;
       if (this.has(sk.begin)) {
         this.mode = 'skillBegin';
+        this.skillBeginBlocking = instant;
         this._play(sk.begin, false, { mix: 0.08 });
         this.skillBeginUntil = this.clock + this.dur(sk.begin);
         // then the skill's own idle until an attack plays its loop (community report #23); without one, the loop
         const next = this._skillIdle() || (this.has(sk.loop) ? sk.loop : null);
         if (next) this._queue(next, true);
+      } else if (!this.has(sk.idle) && this.has(sk.loop) && sk.via !== 'attack' && sk.loop !== this.roles.attack?.loop && !this.entry.hits?.[sk.loop]?.length && !this._skillIsBuffOnly()) {
+        // No Begin and no own Idle: the skill's clip IS its animation (德克萨斯 剑雨 — anims.skill {begin:null,
+        // loop:'Skill', end:null}, the 2.17 s clip; 58 instant skills in all). Play it once for its own length. An
+        // instant skill turns the flag off inside the same tick (sim skills.js fires 'skill' 1 and 0 together and only
+        // holds the anim code SKILL for 0.5 s), so this window is what keeps it on screen: the actor used to fall
+        // through to the base clip and show no skill animation at all (player report).
+        this.mode = 'skillBegin';
+        this.skillBeginBlocking = true;
+        this.skillClipOnce = true;
+        this._play(sk.loop, false, { mix: 0.08 });
+        this.skillBeginUntil = this.clock + Math.max(SKILL_CLIP_MIN, this.dur(sk.loop));
       } else if (this.mode === 'base') this._play(this._baseName(), true);
     } else if (!on && sk) {
+      // an instant skill switches off while its own one-shot clip runs: let the clip finish — the state machine plays
+      // its End clip (or the base) when the window ends — instead of cutting it with End / base right now
+      if (this.skillClipOnce && this.clock < this.skillBeginUntil) {
+        this.skillEndPending = true;
+        return;
+      }
+      this.skillClipOnce = false;
       if (this.has(sk.end)) {
         this.mode = 'skillEnd';
         this._play(sk.end, false, { mix: 0.08 });
@@ -527,6 +564,9 @@ export class SpineActor {
       const e = this.spine.state.tracks[0];
       if (e && this.mode === 'attack') e.timeScale = this.windTs;
     }
+    if (!this.frozen) {
+      try { this.spine.update(dt); } catch { /* a broken skeleton must not stop the frame */ }
+    }
     switch (this.mode) {
       case 'attack':
         if (this.clock > this.attackUntil) {
@@ -545,7 +585,24 @@ export class SpineActor {
         }
         break;
       case 'skillBegin':
-        if (this.clock >= this.skillBeginUntil) { this.mode = 'base'; if (!this.has(this.roles.skill?.loop)) this._play(this._baseName(), true); }
+        if (this.clock >= this.skillBeginUntil) {
+          const sk = this.roles.skill;
+          const once = this.skillClipOnce;
+          const pending = this.skillEndPending;
+          this.skillClipOnce = false;
+          this.skillEndPending = false;
+          this.mode = 'base';
+          if (pending && this.has(sk?.end)) {
+            // the skill switched off inside its own clip: its End clip closes it now
+            this.mode = 'skillEnd';
+            this._play(sk.end, false, { mix: 0.08 });
+            this.skillEndUntil = this.clock + this.dur(sk.end);
+          } else if (once || pending || !this.has(sk?.loop)) {
+            // the one-shot clip is over (or the skill has no loop clip at all): rest. A Begin clip with a queued next
+            // clip (the loop, or the skill's own idle) needs no play here — it is already on the track
+            this._play(this._baseName(), true);
+          }
+        }
         break;
       case 'skillCast':
         if(this.clock >= this.skillCastUntil){this.mode='base';this._play(this._baseName(),true,{mix:.18});}
@@ -563,9 +620,6 @@ export class SpineActor {
         }
         break;
       default: break;
-    }
-    if (!this.frozen) {
-      try { this.spine.update(dt); } catch { /* a broken skeleton must not stop the frame */ }
     }
   }
 

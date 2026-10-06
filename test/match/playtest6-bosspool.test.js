@@ -28,7 +28,7 @@ function realFinalAssault({ bossId, seed, clientCombat = true }) {
   m.bossId = bossId;
   // the autoplay lineups cannot clear a full 绝境 pool: 5 % of it (the tuning knob GameData.bossHpMul) — the pool's
   // arithmetic, not its size, stalled the fight
-  m.gd.bossHpMul = () => 0.05;
+  m.gd.bossHpMul = () => 0.025; // two participants: same small arithmetic-regression fixture after ×2 HP
   h.autoHumans();
   m.start();
   let last = '';

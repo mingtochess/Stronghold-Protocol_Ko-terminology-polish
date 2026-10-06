@@ -10,6 +10,7 @@
 import { html, Icon, Tabs, MicroLabel } from './components.js';
 import { Img, UnitThumb, BondGlyph, BandIcon, RichText, GIcon } from './gameComponents.js';
 import { groupEnemies, factionTypes, briefingBondTip } from './gameLogic.js';
+import { useEffect, useRef } from '../../vendor/hooks.module.js';
 import { matchInfoModel } from './matchInfo.js';
 import { factionIconUrl } from './assetUrls.js';
 import { matchData as data } from '../data.js';
@@ -59,21 +60,26 @@ function EnemiesTab({ pub, priv, onEnemy }) {
   </div>`;
 }
 
-function InfoTab({ pub, priv, onChess }) {
-  const { bonds, banned, perBond, stateOf } = matchInfoModel(pub, {
+function InfoTab({ pub, priv, onChess, bandId = null, bandOwner = null }) {
+  const { bonds, banned, bannedGroups, perBond, stateOf } = matchInfoModel(pub, {
     bonds: data.list('bonds'), chess: (id) => data.lookup('chess', id), mode: data.get('config')?.modes?.[pub?.modeId],
   });
   const disabled = new Set(bonds.filter((b) => stateOf(b.bondId)).map((b) => b.bondId));
-  const band = priv?.bandId ? data.lookup('bands', priv.bandId) : null;
+  // Show only the strategy belonging to the board currently being viewed.
+  const current = bandOwner
+    ? { id: bandId, label: `${bandOwner} · 관전 대상의 전략` }
+    : { id: priv?.bandId, label: '나의 전략' };
+  const strategies = current.id
+    ? [{ ...current, band: data.lookup('bands', current.id) }].filter(s => s.band) : [];
   const stage = pub?.stageId ? data.lookup('stages', pub.stageId) : null;
   const withBans = bonds.filter((b) => disabled.has(b.bondId) || (perBond.get(b.bondId) || 0) > 0)
     .sort((a, b) => (disabled.has(b.bondId) - disabled.has(a.bondId)) || ((perBond.get(b.bondId) || 0) - (perBond.get(a.bondId) || 0)));
   return html`<div class="edrawer__body">
-    ${band ? html`<div class="iband">
+    ${strategies.map(({band, label}) => html`<div class="iband">
       <${BandIcon} bandId=${band.bandId} size="md" />
-      <div><${MicroLabel} tone="mint">STRATEGY // 我的策略</${MicroLabel}><b>${band.name} <small class="t-lo">${band.effectName}</small></b>
+      <div><${MicroLabel} tone="mint">STRATEGY // ${label}</${MicroLabel}><b>${band.name} <small class="t-lo">${band.effectName}</small></b>
         <${RichText} text=${band.descRaw || band.desc} class="iband__desc" /></div>
-    </div>` : null}
+    </div>`)}
     ${stage ? html`<p class="istage"><${Icon} name="rook" />战场：<b>${stage.name || stage.id}</b></p>` : null}
     <h4 class="ihead">本局禁用干员情况 <small class="num">${banned.length}</small></h4>
     <div class="ibonds">
@@ -82,20 +88,35 @@ function InfoTab({ pub, priv, onChess }) {
         ${perBond.get(b.bondId) ? html`<span class="ibond__ban num" title="该盟约中被禁用的干员数"><${Icon} name="user" />${perBond.get(b.bondId)}</span>` : null}
       </span>`) : html`<span class="t-dim">本局没有禁用盟约</span>`}
     </div>
-    ${banned.length ? html`<div class="ibanned">${banned.map((id) => html`<button key=${id} type="button" class="ibanned__one" onClick=${() => onChess(id)}>
-      <${UnitThumb} kind="chess" id=${id} size="sm" dim=${true} /></button>`)}</div>` : null}
+    ${bannedGroups.map(g => html`<section class="brief-banned__group" key=${g.bondId}><h4><${BondGlyph} bondId=${g.bondId} /><span>${g.name}</span></h4><div class="ibanned">${g.ids.map(id => html`<button key=${id} type="button" class="ibanned__one" onClick=${() => onChess(id)}><${UnitThumb} kind="chess" id=${id} size="sm" dim=${false} /></button>`)}</div></section>`)}
   </div>`;
 }
 
 /**
- * @param {{ tab:'enemies'|'info', onTab:(t:string)=>void, pub:any, priv:any, onClose:Function, onEnemy:(key:string, count:number)=>void, onChess:(id:string)=>void }} props
+ * @param {{ tab:'enemies'|'info', onTab:(t:string)=>void, pub:any, priv:any, onClose:Function, onEnemy:(key:string, count:number)=>void, onChess:(id:string)=>void,
+ *   bandId?: string|null, bandOwner?: string|null }} props
+ *   bandId / bandOwner: while scouting a teammate's prep board, the watched player's 策略 (m.public players[].bandId)
+ *   replaces one's own strategy while viewing another player's board.
  */
-export function EnemyDrawer({ tab, onTab, pub, priv, onClose, onEnemy, onChess }) {
-  return html`<div class="edrawer brackets" role="dialog" aria-label=${tab === 'info' ? '本局信息' : '敌方情报'}>
+export function EnemyDrawer({ tab, onTab, pub, priv, onClose, onEnemy, onChess, bandId = null, bandOwner = null }) {
+  const ref = useRef(null);
+  useEffect(() => {
+    const dismiss = e => {
+      if (ref.current?.contains(e.target) || e.target?.closest?.('.gtop, .dpanel, .bpop')) return;
+      onClose();
+    };
+    document.addEventListener('pointerdown', dismiss, true);
+    document.addEventListener('focusin', dismiss, true);
+    return () => {
+      document.removeEventListener('pointerdown', dismiss, true);
+      document.removeEventListener('focusin', dismiss, true);
+    };
+  }, [onClose]);
+  return html`<div ref=${ref} class="edrawer brackets" role="dialog" aria-label=${tab === 'info' ? '本局信息' : '敌方情报'}>
     <div class="edrawer__top">
       <${Tabs} size="sm" value=${tab} onChange=${onTab} items=${[{ id: 'info', label: '本局信息' }, { id: 'enemies', label: '敌方情报' }]} />
       <button type="button" class="edrawer__close tapx" aria-label="关闭" onClick=${onClose}><${Icon} name="close" /></button>
     </div>
-    ${tab === 'info' ? html`<${InfoTab} pub=${pub} priv=${priv} onChess=${onChess} />` : html`<${EnemiesTab} pub=${pub} priv=${priv} onEnemy=${onEnemy} />`}
+    ${tab === 'info' ? html`<${InfoTab} pub=${pub} priv=${priv} onChess=${onChess} bandId=${bandId} bandOwner=${bandOwner} />` : html`<${EnemiesTab} pub=${pub} priv=${priv} onEnemy=${onEnemy} />`}
   </div>`;
 }

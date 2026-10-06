@@ -14,7 +14,7 @@ import { parseObj, mapMesh } from '../../public/js/render/board3d/obj.js';
 import {
   buildBoard, classifyStage, heightOf, AREAS, areaFor, unionAreas, objToBoard, boxProjectUV, tube, Geom, uvAt, ROWS, COLS,
 } from '../../public/js/render/board3d/layout.js';
-import { BoardScene, gatePulse, DIR_TURNS, boxData, LIGHTING } from '../../public/js/render/board3d/scene.js';
+import { BoardScene, gatePulse, DIR_TURNS, boxData, LIGHTING, geometryForArea, sceneryForArea } from '../../public/js/render/board3d/scene.js';
 import { loadBoardPack, resetBoardPack, PACK_IMAGES } from '../../public/js/render/board3d/load.js';
 import { parseStage } from '../../public/js/render/tiles.js';
 import { TILE_H } from '../../public/js/render/style.js';
@@ -309,6 +309,9 @@ describe('asset pack loader (fake store)', () => {
     for (const [slot, [g, n]] of Object.entries(PACK_IMAGES)) (manifest.groups[g] ||= {})[n] = { path: `/assets/local/${g}/${n}.png` };
     manifest.groups['mesh/s_common_box_01'] = { pCube2: { path: '/assets/local/mesh/s_common_box_01/pCube2.obj' } };
     manifest.groups['map/fx'] = { ...manifest.groups['map/fx'], Start_up: { path: '/assets/local/map/fx/Start_up.obj' }, prefab: { path: '/assets/local/map/fx/prefab.json' } };
+    manifest.groups['map/original'] = Object.fromEntries(['one','two','three'].map(id => [id,{path:`/assets/local/map/original/${id}.json`,kind:'original-unity-scene'}]));
+    const warmed = [], decoded = [];
+    let releaseWarm; const warmGate = new Promise(resolve => {releaseWarm=resolve;});
     const requested = [];
     const store = {
       local: async () => manifest,
@@ -316,8 +319,13 @@ describe('asset pack loader (fake store)', () => {
       image: async (u) => { requested.push(u); return { width: 8, height: 8 }; },
     };
     const realFetch = globalThis.fetch;
-    globalThis.fetch = async (u) => {
+    globalThis.fetch = async (u, options) => {
       const s = String(u);
+      if(s.includes('/map/original/')) {
+        const id = s.split('/').pop().replace('.json','');
+        assert.equal(options.cache,'force-cache');
+        return {ok:true,arrayBuffer:async()=>{await warmGate;warmed.push(id);return new ArrayBuffer(0);},json:async()=>{decoded.push(id);return {stageId:id,buckets:{}};}};
+      }
       if (s.endsWith('.obj')) return { ok: true, text: async () => 'v 0 0 0\nv 1 0 0\nv 0 1 0\nf 1 2 3' };
       if (s.endsWith('prefab.json')) return { ok: true, json: async () => [{ name: 'Start_up', parent: 'Start', mesh: 'Start_up', materials: ['[opt]start_end_add'] }] };
       return { ok: false, json: async () => null, text: async () => '' };
@@ -329,6 +337,13 @@ describe('asset pack loader (fake store)', () => {
       assert.ok(pack.meshes.crate && pack.meshes.gate.startUp, 'meshes');
       assert.equal(pack.meshes.gate.startUp.material, '[opt]start_end_add');
       assert.ok(pack.uv.concrete);
+      assert.deepEqual(warmed,[],'slow optional maps do not block the fallback board pack');
+      releaseWarm();await pack.original.warm;
+      assert.deepEqual(warmed.sort(),['one','three','two'],'scene files finish warming in the background');
+      assert.deepEqual(decoded,[],'preloading does not decode all maps into mobile RAM');
+      await pack.original.loadStage('one');await pack.original.loadStage('two');await pack.original.loadStage('one');await pack.original.loadStage('three');
+      assert.deepEqual(decoded,['one','two','three'],'cached scene reuse does not fetch/decode again');
+      assert.deepEqual(Object.keys(pack.original.scenes).sort(),['one','three'],'two-scene LRU retains recently used map');
       resetBoardPack();
       delete manifest.groups['map/autochess'].TX_autochessi_D;
       assert.equal(await loadBoardPack(store), null, 'no diffuse atlas → no 3D board');
@@ -339,4 +354,143 @@ describe('asset pack loader (fake store)', () => {
       resetBoardPack();
     }
   });
+});
+
+// Original scenes must replace, rather than sit on top of, the reconstructed board.
+test('original stage geometry is used with its UVs and disposed with the scene', () => {
+  const pack = fakePack();
+  const mesh = { position: [0, 0, 0, 1, 0, 0, 0, 1, 0], normal: [0, 0, 1, 0, 0, 1, 0, 0, 1], uv: [0.13, 0.22, 0.61, 0.22, 0.13, 0.87], index: [0, 1, 2] };
+  pack.original = { scenes: { act1autochess_m01: { stageId: 'act1autochess_m01', buckets: { original: mesh } } }, images: { atlas: { width: 4, height: 4 } }, materials: { original: { textures: { _MainTex: { name: 'atlas' } } } } };
+  const scene = new BoardScene(THREE, pack, { renderer: stubRenderer() });
+  scene.setArea(AREAS.all);scene.setStage(stages.act1autochess_m01);
+  assert.equal(scene.stats().originalStage, 'act1autochess_m01');
+  assert.ok(scene.meshes['original:original']);
+  assert.equal(scene.meshes.board, undefined, 'no procedural board underneath original meshes');
+  assert.deepEqual([...scene.meshes['original:original'].geometry.attributes.uv.array].map(x => +x.toFixed(2)), mesh.uv);
+  let disposed = false; scene.originalMaterials.original.addEventListener('dispose', () => { disposed = true; });
+  scene.destroy(); assert.equal(disposed, true);
+});
+
+test('an asynchronously loaded original scene replaces only the current stage', async () => {
+  const pack = fakePack(); let done;
+  const id = 'act1autochess_m01';
+  pack.original = { scenes: {}, images: {}, materials: {}, loadStage: () => new Promise(resolve => { done = resolve; }) };
+  const scene = new BoardScene(THREE, pack, { renderer: stubRenderer() });
+  scene.setStage(stages[id]);
+  pack.original.scenes[id] = { stageId: id, buckets: {} };
+  done(pack.original.scenes[id]); await Promise.resolve();
+  assert.equal(scene.stats().originalStage, id);
+  scene.destroy();
+});
+
+test('unavailable original materials retain the working grid board', () => {
+  const pack = fakePack();
+  pack.original = { scenes: { act1autochess_m01: { stageId: 'act1autochess_m01', buckets: { absent: { index: [0, 1, 2] } } } }, materials: {}, images: {} };
+  const scene = new BoardScene(THREE, pack, { renderer: stubRenderer() });
+  scene.setArea(AREAS.all);scene.setStage(stages.act1autochess_m01);
+  assert.equal(scene.stats().originalStage, null);
+  assert.ok(scene.meshes.board, 'keep visible tiles when material metadata is missing');
+  scene.destroy();
+});
+
+test('original water planes use the water effect instead of the stored green texture', () => {
+  const pack = fakePack();
+  pack.original = { images: {}, materials: { MT_Dosshore_UI: {} }, scenes: { act1autochess_m05: { stageId: 'act1autochess_m05', buckets: { MT_Dosshore_UI: { position: [0,0,0, 1,0,0, 0,1,0], index: [0,1,2] } } } } };
+  const scene = new BoardScene(THREE, pack, { renderer: stubRenderer() });
+  scene.setArea(AREAS.all);
+  scene.setStage(stages.act1autochess_m05);
+  assert.equal(scene.meshes['original:MT_Dosshore_UI'].material, scene.mat.water);
+  assert.equal(scene.meshes['original:MT_Dosshore_UI'].castShadow, false);
+  scene.destroy();
+});
+
+test('original data textures stay linear and native device UVs are used in prep and battle', () => {
+  const pack = fakePack();
+  const image = { width: 4, height: 4 };
+  const crate = { position: [-0.5,0,0, 0.5,0,0, 0,0,0.7], normal: [0,-1,0, 0,-1,0, 0,-1,0], uv: [0.1,0.2, 0.8,0.2, 0.4,0.9], index: [0,1,2], bounds: {x0:-0.5,x1:0.5,z0:0,z1:0.7} };
+  pack.original = { crate, scenes: {}, images: { diffuse:image, normal:image, gloss:image }, materials: {
+    MT_trap_1105_accrate: { textures: { _MainTex:{name:'diffuse'} } },
+    floor: { textures: { _MainTex:{name:'diffuse',scale:[2,3],offset:[0.1,0.2]}, _BumpMap:{name:'normal'}, _MetallicGlossMap:{name:'gloss'} }, floats:{_BumpScale:0.6} },
+  } };
+  const scene = new BoardScene(THREE, pack, { renderer:stubRenderer() });
+  const floor = scene.originalMaterials.floor;
+  assert.equal(floor.map.colorSpace, THREE.SRGBColorSpace);
+  assert.equal(floor.normalMap.colorSpace, THREE.NoColorSpace);
+  assert.equal(floor.roughnessMap.colorSpace, THREE.NoColorSpace);
+  assert.deepEqual(floor.map.repeat.toArray(), [2,3]);
+  assert.deepEqual(floor.map.offset.toArray(), [0.1,0.2]);
+  assert.deepEqual(floor.normalScale.toArray(), [0.6,0.6]);
+  assert.equal(scene.crateGeometry(), crate, 'do not reproject native UVs onto the wooden tile');
+  scene.setArea(AREAS.all);scene.setStage(stages.act1autochess_m01);
+  assert.equal(scene.meshes.crates.material, scene.originalMaterials.MT_trap_1105_accrate);
+  const device = scene.createDevice();
+  const dynamicMesh = scene.dynamic.children.at(-1);
+  assert.equal(dynamicMesh.material.map, scene.originalMaterials.MT_trap_1105_accrate.map);
+  assert.deepEqual([...dynamicMesh.geometry.attributes.uv.array].map(x=>+x.toFixed(2)), crate.uv);
+  device.destroy(); scene.destroy();
+});
+
+test('original RGBM lightmaps use separate baked UVs and release stage textures/materials', () => {
+  const pack = fakePack();
+  const geometry = { material:'floor', lightMap:'baked', position:[0,0,0, 1,0,0, 0,1,0], normal:[0,0,1, 0,0,1, 0,0,1], uv:[0,0, 1,0, 0,1], uv1:[0.2,0.3, 0.4,0.3, 0.2,0.5], index:[0,1,2] };
+  pack.original = { images:{baked:{width:4,height:4}}, materials:{floor:{}}, scenes:{act1autochess_m01:{stageId:'act1autochess_m01',buckets:{'floor@lightmap0':geometry}}} };
+  const scene = new BoardScene(THREE,pack,{renderer:stubRenderer()});scene.setArea(AREAS.all);scene.setStage(stages.act1autochess_m01);
+  const mesh = scene.meshes['original:floor@lightmap0'];
+  assert.equal(scene.originalStage,'act1autochess_m01');
+  assert.equal(mesh.material.lightMap.channel,1);
+  assert.equal(mesh.castShadow,true,'native scenery retains realtime shadows');
+  assert.equal(mesh.receiveShadow,true,'native tiles receive realtime shadows');
+  assert.deepEqual([...mesh.geometry.attributes.uv1.array].map(x=>+x.toFixed(2)),geometry.uv1);
+  assert.equal(mesh.material.lightMapIntensity,Math.PI);
+  const shader={uniforms:{},vertexShader:THREE.ShaderLib.standard.vertexShader,fragmentShader:THREE.ShaderLib.standard.fragmentShader};
+  mesh.material.onBeforeCompile(shader);
+  assert.ok(shader.fragmentShader.includes('pow(lightMapTexel.a, 2.2)'), 'decode RGBM alpha instead of treating encoded RGB as ordinary illumination');
+  let md=false,td=false;mesh.material.addEventListener('dispose',()=>md=true);mesh.material.lightMap.addEventListener('dispose',()=>td=true);
+  scene.setStage(stages.act1autochess_m02);
+  assert.ok(md&&td,'old map lighting releases GPU resources');scene.destroy();
+});
+
+test('native gamma stages avoid a second sRGB transform and decode RGBM in their own colour space', () => {
+  const pack = fakePack();
+  pack.original = { images:{albedo:{width:4,height:4},baked:{width:4,height:4}}, materials:{floor:{gammaLighting:true,textures:{_MainTex:{name:'albedo'}}}}, scenes:{act1autochess_m01:{stageId:'act1autochess_m01',lighting:{intensity:1.1,color:[1,0.93,0.87]},buckets:{floor:{material:'floor',lightMap:'baked',position:[0,0,0,1,0,0,0,1,0],uv:[0,0,1,0,0,1],uv1:[0,0,1,0,0,1],index:[0,1,2]}}}} };
+  const scene = new BoardScene(THREE,pack,{renderer:stubRenderer()});scene.setArea(AREAS.all);scene.setStage(stages.act1autochess_m01);
+  const m=scene.meshes['original:floor'].material;
+  assert.equal(scene.key.intensity,1.1);
+  assert.deepEqual(scene.key.color.toArray(),[1,0.93,0.87]);
+  assert.equal(m.map.colorSpace,THREE.NoColorSpace);
+  assert.equal(m.lightMap.colorSpace,THREE.NoColorSpace);
+  assert.equal(m.lightMapIntensity,1);
+  const shader={uniforms:{},vertexShader:THREE.ShaderLib.standard.vertexShader,fragmentShader:THREE.ShaderLib.standard.fragmentShader};m.onBeforeCompile(shader);
+  assert.ok(shader.fragmentShader.includes('5.0 * lightMapTexel.a'));
+  assert.ok(shader.fragmentShader.includes('0.220916301'));
+  assert.ok(shader.fragmentShader.includes('uniform vec4 uFocus;'),'focus declarations survive the colour-space adaptation');
+  assert.ok(!shader.fragmentShader.includes('#include <colorspace_fragment>'),'the native gamma result is not encoded a second time');
+  scene.setStage(stages.act1autochess_m02);assert.equal(scene.key.intensity,LIGHTING.key.intensity,'fallback boards retain their linear rig');scene.destroy();
+});
+
+ test('native platforms follow phase areas while preserving scenery and source UVs', () => {
+  const src = {position:[2,9,0, 3,9,0, 2,10,0, 14,9,0, 15,9,0, 14,10,0, -2,9,0, -1,9,0, -2,10,0], index:[0,1,2,3,4,5,6,7,8], uv:[0,0]};
+  assert.deepEqual(geometryForArea(src, AREAS.normal).index, [0,1,2,6,7,8]);
+  assert.deepEqual(geometryForArea(src, AREAS.unite).index, src.index);
+  assert.equal(geometryForArea(src, AREAS.normal).uv, src.uv);
+  assert.equal(src.index.length, 9);
+ });
+
+
+test('inactive field sub-floor geometry is excluded regardless of its depth, preserving the right scenic surroundings',()=>{
+ const src={position:[12,10,-1,13,10,-1,12,11,-1, 24,10,-1,25,10,-1,24,11,-1],index:[0,1,2,3,4,5]};
+ assert.deepEqual(geometryForArea(src,AREAS.normal).index,[3,4,5]);
+ assert.deepEqual(geometryForArea(src,AREAS.unite).index,src.index);
+});
+
+test('native scenery props inside an inactive cooperative half follow the same area rule as platforms',()=>{
+ const src={platform:false,position:[12,10,.3,13,10,.3,12,11,.3, 2,10,.3,3,10,.3,2,11,.3],index:[0,1,2,3,4,5]};
+ assert.deepEqual(geometryForArea(src,AREAS.normal).index,[3,4,5]);
+ assert.deepEqual(geometryForArea(src,AREAS.unite).index,src.index);
+});
+
+test('decorative components crossing a field edge stay whole while inactive isolated props are hidden',()=>{
+ const src={position:[10,9,0,12,9,0,10,11,0,12,11,0,14,9,0,15,9,0,14,10,0],index:[0,1,2,1,3,2,4,5,6]};
+ assert.deepEqual(sceneryForArea(src,AREAS.normal).index,[0,1,2,1,3,2]);
+ assert.deepEqual(sceneryForArea(src,AREAS.unite).index,src.index);
 });

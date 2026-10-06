@@ -198,3 +198,14 @@ test('prep scouting resolves the watched player skin and notices a skin change',
  assert.equal(u.spine,skin.assets.spine);assert.equal(u.avatar,skin.assets.avatar);assert.equal(u.skinId,skin.id);
  assert.notEqual(h.m._prepScoutSig(ps),before);
 });
+
+
+test('right boss prep scouting mirrors placement direction exactly as combat does', t => {
+ const h=makeMatch({humans:2,fake:true});t.after(()=>h.m.dispose());
+ const ps=h.ps('p_1');ps.board.clear();const piece=ps.newPiece('chess','chess_char_1_01_a');piece.dir='RIGHT';ps.board.set('9,3',piece);
+ h.m.bossGroupOf=()=>({side:'R'});
+ let u=h.m.prepFieldMeta(ps).units.find(x=>x.uid===piece.uid);
+ assert.equal(u.dir,'LEFT');assert.equal(u.facing,-1);
+ piece.dir='LEFT';u=h.m.prepFieldMeta(ps).units.find(x=>x.uid===piece.uid);
+ assert.equal(u.dir,'RIGHT');assert.equal(u.facing,1);
+});

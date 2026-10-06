@@ -1,6 +1,10 @@
+import { damageNumberMode, showDamageNumber, roundedDamageNumber } from '../../../shared/damageDisplay.js';
+import { skillRangeStyle, loadRangeArtColor } from './units.js';
+import {DEDICATED_TEXTURES,dedicatedProjectile} from './dedicatedEffects.js';
 import {assets} from '../assets.js';
 import {projectileStyle,meleeStyle} from './projectileStyle.js';
 export function wideAttackEffect(info, active) {
+  if ((['spreadshooter','reaperrange'].includes(info?.subProf) || info?.charId === 'char_279_excu' || (info?.omnidirectional && info?.attackType !== 'heal'))) return true;
   if (!active) return false;
   return (info?.skillIndex === 2 && ['char_172_svrash','char_213_mostma','char_4064_mlynar','char_426_billro','char_4080_lin'].includes(info.charId)) || info?.subProf === 'phalanx';
 }
@@ -163,7 +167,7 @@ export function ensureDamageFonts() {
         fontFamily: ['Bender', 'Oxanium', 'Rajdhani', 'Arial Black', 'sans-serif'], fontSize: 44, fontWeight: '700',
         fill: st.fill, fillGradientStops: [0.25, 1], stroke: st.stroke, strokeThickness: 7,
         dropShadow: true, dropShadowColor: '#000000', dropShadowAlpha: 0.45, dropShadowDistance: 2, dropShadowBlur: 2,
-      }, { chars: [['0', '9'], '+-×!'], resolution: 2, padding: 6 });
+      }, { chars: [['0', '9'], '+-×!BLOCK'], resolution: 2, padding: 6 });
     } catch (err) { console.warn('[fx] bitmap font', st.font, err?.message || err); }
   }
   fontsReady = true;
@@ -177,6 +181,8 @@ const num = (v, d) => { const n = typeof v === 'number' ? v : typeof v === 'stri
  * kinds fall back to a keyword guess, then to a generic sparkle (fxSpec).
  */
 export const FX_KINDS = Object.freeze({
+  chenDragonWave: { a: 'none' }, // original chenlong mesh/UV sprite, handled by _simFx
+  enemySkill: { a: 'none' }, // authored animation, handled by _simFx before procedural effects
   // blasts
   aoe: { a: 'blast', c: 0xffb35c }, explode: { a: 'blast', c: 0xff7a33 }, explosion: { a: 'blast', c: 0xff7a33 },
   // `pt`: always at the event's (x, y) (its `id` is the shooter); `heavy`: debris + scorch
@@ -328,6 +334,13 @@ export class FxSystem {
     this.atlas = fxAtlas();
     this.tex = this.atlas.tex;
     this.weaponTextures = {};
+    this.dedicatedBursts = [];
+    this.dedicatedReady = Promise.all(Object.entries(DEDICATED_TEXTURES).map(async ([key,[group,name]]) => {
+      if (!ctx.assets?.image) return;
+      try { const image=await ctx.assets.image(`/assets/local/battle/dedicated/${group}/${name}.png`);
+        if(image)this.weaponTextures[key]=P.Texture.from(image);
+      } catch { /* retain the existing projectile while an optional resource downloads */ }
+    }));
     ensureDamageFonts();
     const props = { vertices: true, position: true, rotation: true, uvs: true, tint: true };
     this.addPc = new P.ParticleContainer(MAX_PARTICLES.high, props, 512, true);
@@ -532,22 +545,34 @@ export class FxSystem {
 
   /** b.ev 'atk' visual. src/tgt are views (tgt may be null). */
   _wideSweep(src) {
-    const g=new this.P.Graphics(); this.ctx.layers.groundFx.addChild(g);
-    const grid=src.info.skillZoneGrid || [], radius=Math.min(4.5,Math.max(2.4,...grid.map(([r,c])=>Math.hypot(r,c))));
-    const angle={RIGHT:0,DOWN:Math.PI/2,LEFT:Math.PI,UP:-Math.PI/2}[src.dir] ?? (src.facing<0?Math.PI:0);
-    this.sweeps.push({g,x:src.x,y:src.y,angle,radius,t:0,dur:.3,color:src.info.attackType==='arts'?0xa7c6f4:0xdfead9});
+    const g=new this.P.Graphics(); this.ctx.layers.fxNormal.addChild(g);
+    const shotgun=['spreadshooter','reaperrange'].includes(src.info.subProf) || src.info.charId==='char_279_excu';
+    const circular=['stalker','phalanx'].includes(src.info.subProf);
+    const grid=src.info.skillZoneGrid || src.info.rangeGrid || [], radius=Math.min(4.5,Math.max(shotgun?2:2.4,...grid.map(([r,c])=>Math.hypot(r,c))));
+    // World rows increase upwards. Facing is the stored deployment direction,
+    // independent of transient horizontal target flips.
+    const angle={RIGHT:0,UP:Math.PI/2,LEFT:Math.PI,DOWN:-Math.PI/2}[src.dir] ?? 0;
+    const color=src.statuses?.has('skill')?skillRangeStyle(src.info).color:shotgun?0xf2c580:({'char_4064_mlynar':0xffd65c,'char_172_svrash':0xb6e4f4,'char_213_mostma':0x738bfa}[src.info.charId] || (src.info.attackType==='arts'?0xa7c6f4:0xdfead9));
+    this.sweeps.push({g,x:src.x,y:src.y,angle,radius,t:0,dur:shotgun?.25:.38,color,spread:shotgun?Math.PI*.6:circular?Math.PI*2:Math.PI});
   }
 
   _updateSweeps(dt) {
     this.sweeps=this.sweeps.filter(a=>{
       a.t+=dt;if(a.t>=a.dur){a.g.destroy();return false;}
-      const cam=this.ctx.cam(),r=a.radius*(.75+.25*a.t/a.dur),points=[];
-      for(const [radius,reverse] of [[r,false],[r-.16,true]])for(let i=0;i<=32;i++){
-        const angle=a.angle-Math.PI/2+(reverse?32-i:i)/32*Math.PI;
-        const x=a.x+Math.cos(angle)*radius,y=a.y+Math.sin(angle)*radius,p=cam.project(x,y,this._groundZ(x,y)+.025);
-        points.push(p.x,p.y);
+      const k=a.t/a.dur,cam=this.ctx.cam(),r=a.radius*(.12+.88*k);
+      a.g.clear();
+      for(const [width,opacity,lag] of [[.30,.38,0],[.065,.94,0],[.12,.16,.18]]){
+        const outer=Math.max(.04,r-lag),inner=Math.max(.02,outer-width),points=[];
+        for(const [edge,reverse] of [[outer,false],[inner,true]])for(let i=0;i<=48;i++){
+          const f=(reverse?48-i:i)/48,angle=a.angle-a.spread/2+f*a.spread;
+          const taper=a.spread>=Math.PI*1.99?1:Math.pow(Math.sin(Math.PI*f),.45);
+          const radius=reverse?outer-(outer-inner)*taper:edge;
+          const x=a.x+Math.cos(angle)*radius,y=a.y+Math.sin(angle)*radius,p=cam.project(x,y,this._groundZ(x,y)+.10);
+          points.push(p.x,p.y);
+        }
+        a.g.lineStyle(0);a.g.beginFill(a.color,opacity);a.g.drawPolygon(points);a.g.endFill();
       }
-      a.g.clear();a.g.lineStyle(1.8,a.color,.65);a.g.beginFill(a.color,.15);a.g.drawPolygon(points);a.g.endFill();a.g.alpha=1-a.t/a.dur;
+      a.g.alpha=Math.pow(1-k,.45);
       return true;
     });
   }
@@ -561,10 +586,13 @@ export class FxSystem {
     if (!this.attackKinds) this.attackKinds = new Map();
     this.attackKinds.set(src.id, kind || 'none');
     // chain: the source is the previous target of the bounce (sim ai.js), so the arc hops unit to unit
-    if (kind === 'chain' || kind === 'chainHeal') { if (tgt && tgt !== src) this._beam(src, tgt, kind === 'chainHeal' ? 0x7dffa8 : 0xc9a2ff, 0.22, 1, true); return; }
-    if (kind === 'beam') { if (tgt && tgt !== src) this._beam(src, tgt, src.isEnemy ? 0xff7a5a : 0xffe6a8, 0.18, 0.15); return; }
-    const original = projectileStyle(kind,src.info,src.isEnemy);
-    const spec = original && {...original, width: original.width * 1.8, head: original.head * 1.8};
+    if (kind === 'chain' || kind === 'chainHeal') { if (tgt && tgt !== src) this._beam(src, tgt, kind === 'chainHeal' ? 0x7dffa8 : src.isEnemy ? src.info.projectileColor ?? 0xc9a2ff : 0xc9a2ff, 0.22, 1, true); return; }
+    if (kind === 'beam') { if (tgt && tgt !== src) this._beam(src, tgt, src.isEnemy ? src.info.projectileColor ?? 0xff7a5a : 0xffe6a8, 0.18, 0.15); return; }
+    const base = projectileStyle(kind,src.info,src.isEnemy);
+    const weaponSprite=dedicatedProjectile(src.info,src.statuses?.has('skill'));
+    const original=base && weaponSprite ? {...base,tint:0xffffff,trail:weaponSprite==='titiDream'?0xdbb161:weaponSprite==='narantBlade'?0xb5539f:0xd16a56,glow:0xdbb161,weaponSprite,weaponSize:weaponSprite==='narantBlade'?.7:.6} : base;
+    const size = Number(this.ctx.projectileScale) || (original?.arc ? 2.4 : 1.8);
+    const spec = original && {...original, width: original.width * size, head: original.head * size};
     if (!spec || !tgt) {
       if (kind === 'none' || !kind) this._slashAt = src.id;
       return;
@@ -689,7 +717,7 @@ export class FxSystem {
       const start=Math.max(0,k-.085/Math.max(.01,pr.dur));
       for(let i=0;i<8;i++){
         const a=this._shotPoint(pr,start+(k-start)*i/8,cam,{}),b=this._shotPoint(pr,start+(k-start)*(i+1)/8,cam,{});
-        path.lineStyle(Math.max(1.4,b.s*spec.width*.6*(i+1)/8),pr.trailTint || spec.tint,(.18+.55*(i+1)/8)*(1-fk));
+        path.lineStyle(Math.max(2,b.s*spec.width*.8*(i+1)/8),pr.trailTint || spec.tint,(.18+.55*(i+1)/8)*(1-fk));
         path.moveTo(a.x,a.y);path.lineTo(b.x,b.y);
       }
     }
@@ -716,7 +744,7 @@ export class FxSystem {
     core.position.set(px, py);
     if (pr.weaponTexture) {
       core.rotation=pr.ang;
-      const tex=pr.weaponTexture;core.scale.set(s*.32/Math.max(1,tex.width));
+      const tex=pr.weaponTexture;core.scale.set(s*(spec.weaponSize || .32)/Math.max(1,tex.width));
     } else if (thin) core.scale.set((hs * 0.5) / 32);
     else if (look === 'shell') { core.rotation = pr.ang; core.scale.set((hs * 0.85) / 64, (hs * 0.55) / 64); }   // a shell along its flight
     else core.scale.set((hs * 0.62) / 64);
@@ -791,7 +819,7 @@ export class FxSystem {
     const core = pr.core;
     core.position.set(px, py);
     core.rotation = pr.spin;
-    core.scale.set(hs / 64);
+    core.scale.set(pr.weaponTexture ? p.s*(spec.weaponSize || .7)/Math.max(1,pr.weaponTexture.width) : hs / 64);
     core.alpha = 1;
     const halo = pr.halo;
     halo.position.set(px, py);
@@ -1275,7 +1303,7 @@ export class FxSystem {
   // ---- hits / numbers -----------------------------------------------------------------------------------------
 
   /** b.ev 'dmg' visual: glow + sparks in the hit colour; a melee blow (atk 'none' just before) adds its slash. */
-  _damage(view, amount, type, srcView) {
+  _damage(view, amount, type, srcView, meta) {
     if (!view) return;
     const style = dmgStyleKey(type);
     const p = this._chest(view);
@@ -1292,7 +1320,10 @@ export class FxSystem {
       }
     }
     view.onHit?.();
-    if (this.ctx.settings?.damageNumbers !== false) this.number(view, amount, style, big);
+    if (showDamageNumber(this.ctx.settings,meta)) {
+      if (damageNumberMode(this.ctx.settings)==='basic' && meta?.blocked==='shield') this.numberAt(p.x,p.y,'BLOCK',0xffd65a);
+      else this.number(view, meta?.value ?? amount, damageNumberMode(this.ctx.settings)==='basic' ? meta?.blocked ? 'barrier' : 'critical' : style, big, damageNumberMode(this.ctx.settings)==='basic');
+    }
   }
 
   /**
@@ -1328,7 +1359,7 @@ export class FxSystem {
         tint: 0x7dffa8, vy: -s * 0.9, life: 0.7, s0: s / 64 * 0.32, s1: s / 64 * 0.2, a0: 0.95, a1: 0, fadeIn: 0.08,
       });
     }
-    if (this.ctx.settings?.damageNumbers !== false) this.number(view, amount, 'heal', false);
+    if (showDamageNumber(this.ctx.settings,null,true)) this.number(view, amount, 'heal', false);
   }
 
   /**
@@ -1345,9 +1376,11 @@ export class FxSystem {
    *   * crowded (> NUM_CROWD numbers near it): it lives shorter; a pair that still ends up overlapping (units walking
    *     into each other) resolves by fading the older one quickly (_updateNums).
    */
-  number(view, amount, style, big) {
-    const n = Math.round(amount);
-    if (!(n > 0) || !view) return;
+  number(view, amount, style, big, allowZero = false) {
+    const mode = damageNumberMode(this.ctx.settings), aggregate = mode === 'sum';
+    if (mode === 'none') return;
+    const n = mode === 'basic' ? roundedDamageNumber(amount) : Math.round(amount);
+    if (!(n > 0 || (allowZero && n === 0)) || !view) return;
     const now = this.time;
     const cam = this.ctx.cam();
     const base = (view.z || 0) + (view.hover || 0) + (view._headTiles || 1.2) * 0.8;
@@ -1366,7 +1399,7 @@ export class FxSystem {
       if (!oldest || t.born < oldest.born) oldest = t;
       if (t.style === style && (!youngest || t.born > youngest.born)) youngest = t;
     }
-    const merge = youngest && now - youngest.lastHit < NUM_MERGE_GAP && youngest.life < NUM_RISE_T * 0.55 ? youngest
+    const merge = !aggregate ? null : youngest && now - youngest.lastHit < NUM_MERGE_GAP && youngest.life < NUM_RISE_T * 0.55 ? youngest
       : (mine >= NUM_PER_TARGET && youngest ? youngest : null);
     if (merge && this._growFits(merge, n, big)) {
       merge.value += n;
@@ -1378,7 +1411,7 @@ export class FxSystem {
       this._sizeNum(merge);
       return;
     }
-    if (mine >= NUM_PER_TARGET && oldest) this._fadeNum(oldest, 0.1);
+    if (aggregate && mine >= NUM_PER_TARGET && oldest) this._fadeNum(oldest, 0.1);
     // 2. a free slot among the unit's lanes
     const sc = numScale(s, big, style);
     const w = numChars(n, style) * NUM_DIGIT_EM * 24 * sc * NUM_POP + NUM_GAP_PX;
@@ -1394,7 +1427,7 @@ export class FxSystem {
     }
     const cap = h * NUM_MAX_LINES;
     let { cx, cy } = best;
-    if (ay - cy > cap) {
+    if (aggregate && ay - cy > cap) {
       // over capacity (a knot of units under fire): join this unit's latest same-style total when it fits, else take
       // the capped spot and drop whatever is there (crowded numbers give way at once)
       let same = null;
@@ -1421,9 +1454,9 @@ export class FxSystem {
     // 3. crowding: numbers around this spot → a shorter life for everyone new here
     let near = 0;
     for (const t of this.nums) if (!t.fading && Math.abs(t._x - cx) < 150 && Math.abs(t._y - cy) < 110) near++;
-    const life = near >= NUM_CROWD ? NUM_LIFE * 0.62 : NUM_LIFE;
+    const life = aggregate && near >= NUM_CROWD ? NUM_LIFE * 0.62 : NUM_LIFE;
     const maxNums = this.load >= 2 ? MAX_NUMBERS >> 1 : MAX_NUMBERS;
-    while (this.nums.length >= maxNums) this._releaseNum(this.nums.shift());
+    while (aggregate && this.nums.length >= maxNums) this._releaseNum(this.nums.shift());
     const t = this._takeNum(style);
     t.text.visible = true;
     t.text.alpha = 1;
@@ -1554,7 +1587,7 @@ export class FxSystem {
       for (let j = i + 1; j < L.length; j++) {
         const b = L[j];
         if (b.fading) continue;
-        if (Math.abs(a._x - b._x) < (a._w + b._w) / 2 - NUM_GAP_PX * 0.5 && Math.abs((a._y - a._h / 2) - (b._y - b._h / 2)) < (a._h + b._h) / 2 * 0.9) {
+        if (damageNumberMode(this.ctx.settings)==='sum' && Math.abs(a._x - b._x) < (a._w + b._w) / 2 - NUM_GAP_PX * 0.5 && Math.abs((a._y - a._h / 2) - (b._y - b._h / 2)) < (a._h + b._h) / 2 * 0.9) {
           this._fadeNum(a.born <= b.born ? a : b, 0.06);
           if (a.fading) break;
         }
@@ -1630,10 +1663,10 @@ export class FxSystem {
     if (!on) { this._aura(view, false); return; }
     if(view.info?.skillDuration===0 && view.info.skillZoneGrid?.length){
       const tiles=view.info.skillZoneGrid.map(([dr,dc])=>{const [r,c]=view.dir==='UP'?[dc,-dr]:view.dir==='LEFT'?[-dr,-dc]:view.dir==='DOWN'?[-dc,dr]:[dr,dc];return [Math.round(view.y+r),Math.round(view.x+c)];});
-      this.tileFlash(tiles,0x90dfc8,.45);
+      this.tileFlash(tiles,skillRangeStyle(view.info).color,.45);
     }
     const c = this._chest(view, this._q);
-    this.particle('flare', c.x, c.y, {tint:0xffcc83,life:.12,s0:c.s/128*.35,s1:c.s/128*.15,a0:.48,a1:0});
+    this.particle('flare', c.x, c.y, {tint:skillRangeStyle(view.info).color,life:.12,s0:c.s/128*.35,s1:c.s/128*.15,a0:.48,a1:0});
     this._aura(view, true);
   }
 
@@ -1655,12 +1688,25 @@ export class FxSystem {
       a.sp.alpha=ending?a.sp.alpha-dt*3:Math.min(.85,a.sp.alpha+dt*3);
       if(a.sp.alpha<=0&&ending){a.sp.destroy();this.auras.delete(id);continue;}
       if(!v||v.destroyed)continue;
+      const theme=skillRangeStyle(v.info);
+      if(!ending&&theme.accent){
+        a.cloudEmit=(a.cloudEmit||0)+dt*({poison:9,fire:8,ice:5,water:5,wind:6,time:4,shadow:6,light:4}[theme.accent]||3);
+        while(a.cloudEmit>=1){
+          a.cloudEmit--;const angle=Math.random()*Math.PI*2,r=Math.sqrt(Math.random())*1.1;
+          const q=cam.project(v.x+Math.cos(angle)*r,v.y+Math.sin(angle)*r,this._groundZ(v.x,v.y)+.10);
+          const cloudy=['poison','shadow','wind'].includes(theme.accent),fire=theme.accent==='fire';
+          this.particle(cloudy?'smoke':fire?'soft':theme.accent==='ice'?'shard':'dot',q.x,q.y,{
+            tint:theme.color,life:cloudy?1.1:.65,s0:q.s/(cloudy||fire?128:32)*(cloudy?.58:fire?.23:.055),
+            s1:q.s/(cloudy||fire?128:32)*(cloudy?.85:fire?.09:.025),a0:cloudy?.18:.32,a1:0,
+            vx:theme.accent==='wind'?Math.cos(angle)*18:(Math.random()-.5)*6,vy:cloudy?-5:fire?-20:-9});
+        }
+      }
       const p=cam.project(v.x,v.y,(v.z||0)+(v.hover||0)+(v.lift||0),this._p);
       this._onGround(a.sp,v.y,v.z||0);a.sp.position.set(p.x,p.y);
       a.sp.clear();
-      a.sp.lineStyle(Math.max(1.5,p.s*.024),0xffc37a,.85);
+      a.sp.lineStyle(Math.max(1.5,p.s*.024),SKILL_GOLD,.85);
       for(let i=0;i<=6;i++){
-        const angle=i*Math.PI/3,q=cam.project(v.x+Math.cos(angle)*.43,v.y+Math.sin(angle)*.43,this._groundZ(v.x,v.y)+.018);
+        const angle=i*Math.PI/3+a.t*.55,q=cam.project(v.x+Math.cos(angle)*.43,v.y+Math.sin(angle)*.43,this._groundZ(v.x,v.y)+.018);
         if(!i)a.sp.moveTo(q.x-p.x,q.y-p.y);else a.sp.lineTo(q.x-p.x,q.y-p.y);
       }
     }
@@ -1764,6 +1810,17 @@ export class FxSystem {
    * element, n, scale, kind, tiles.
    */
   _simFx(kind, x, y, extra) {
+    if(kind==='chenDragonWave'){
+      const src=this.ctx.view?.(extra?.id);
+      const texture=this.weaponTextures.chenDragon;
+      if(src && texture){const sprite=new this.P.Sprite(texture);sprite.anchor.set(.5);this.ctx.layers.fxNormal.addChild(sprite);this.dedicatedBursts.push({sprite,x:src.x,y:src.y,dir:src.dir,t:0,dur:.65});}
+      return;
+    }
+    if(kind==='enemySkill'){
+      const view=this.ctx.view?.(extra?.id);
+      if(view?.actor && typeof extra.clip==='string' && view.actor.has(extra.clip))view.actor.setForm(view._formSpec?.()?.roles || null,extra.clip);
+      return;
+    }
     const ex = extra && typeof extra === 'object' ? extra : {};
     if(kind==='bombardAim'){
       const pr=this.projs.find(p=>p.vertical&&p.src?.id===ex.id&&p.shot===ex.shot);
@@ -1801,7 +1858,15 @@ export class FxSystem {
         pr.aimTarget=ex.target??null;pr.shot=ex.shot??null;pr.fallTime=num(ex.fall,.22*ts)/ts;
         break;
       }
-      case 'zone': this.zone(at.x, at.y, at.z, r, col, Math.max(0.6, dur || 1.5), spec.tex); break;
+      case 'zone': {
+        const source=this._viewOf(ex.id ?? ex.src);
+        if(source && !source.isEnemy)loadRangeArtColor(source.info,this.ctx.assets);
+        const theme=source && !source.isEnemy ? skillRangeStyle(source.info) : null;
+        this.zone(at.x,at.y,this._groundZ(at.x,at.y),r,theme?.color ?? col,Math.max(.1,dur || 1.5),spec.tex,false,{
+          key:ex.zoneKey!=null?`${ex.id ?? ex.src}:${ex.zoneKey}`:null,
+          theme,themeInfo:theme ? source.info : null,grow:num(ex.grow)*ts,vx:num(ex.vx)*ts,vy:num(ex.vy)*ts,bounds:ex.bounds,
+        });break;
+      }
       case 'wall': {
         // a line of burning tiles through the anchor tile along `axis` ('col' | 'row', from the sim event)
         const rect = this.ctx.fieldRect ? this.ctx.fieldRect() : null;
@@ -2101,15 +2166,22 @@ export class FxSystem {
   }
 
   /** Persistent ground area: soft disc + pulsing edge ring for `dur` real seconds (telegraphs pulse faster). */
-  zone(x, y, z, r, tint, dur, tex = 'soft', warn = false) {
+  zone(x, y, z, r, tint, dur, tex = 'soft', warn = false, options = {}) {
+    const existing=options.key!=null && this.zones.find(zn=>zn.key===options.key);
+    if(existing){
+      Object.assign(existing,{x,y,z,r,dur:existing.t+dur,grow:options.grow||0,vx:options.vx||0,vy:options.vy||0,bounds:options.bounds});
+      if(options.theme){existing.tint=tint;existing.disc.tint=tint;existing.theme=options.theme;existing.themeInfo=options.themeInfo;}
+      return existing;
+    }
     const P = this.P;
     const disc = new P.Sprite(this.tex[tex === 'ring' ? 'soft' : tex] || this.tex.soft);
     disc.anchor.set(0.5); disc.blendMode = P.BLEND_MODES.ADD; disc.tint = tint;
-    const edge = new P.Sprite(this.tex.ring);
-    edge.anchor.set(0.5); edge.blendMode = P.BLEND_MODES.ADD; edge.tint = tint;
+    const edge = new P.Graphics();
+    edge.blendMode = P.BLEND_MODES.NORMAL;
     this._onGround(disc, y, z); this._onGround(edge, y, z);
-    this.zones.push({ disc, edge, x, y, z, r, t: 0, dur, warn });
+    const zn={disc,edge,x,y,z,r,tint,t:0,dur,warn,...options};this.zones.push(zn);
     if (this.zones.length > 24) this._freeZone(this.zones.shift());
+    return zn;
   }
 
   _freeZone(zn) { zn.disc.destroy(); zn.edge.destroy(); }
@@ -2121,16 +2193,30 @@ export class FxSystem {
     for (const zn of this.zones) {
       zn.t += dt;
       if (zn.t >= zn.dur) { this._freeZone(zn); continue; }
+      zn.r+=Math.max(0,zn.grow||0)*dt;zn.x+=(zn.vx||0)*dt;zn.y+=(zn.vy||0)*dt;
+      if(zn.bounds){zn.x=clamp(zn.x,zn.bounds.c0,zn.bounds.c1);zn.y=clamp(zn.y,zn.bounds.r0,zn.bounds.r1);}
+      zn.z=this._groundZ(zn.x,zn.y);
+      this._onGround(zn.disc,zn.y,zn.z);this._onGround(zn.edge,zn.y,zn.z);
+      if(zn.themeInfo){zn.theme=skillRangeStyle(zn.themeInfo);zn.tint=zn.theme.color;zn.disc.tint=zn.tint;}
       const k = zn.t / zn.dur;
       const grow = Math.min(1, zn.t / 0.25);
-      const rad = zn.r * (0.35 + 0.65 * easeOut(grow));
+      const rad = zn.key!=null ? zn.r : zn.r * (0.35 + 0.65 * easeOut(grow));
       cam.project(zn.x, zn.y, zn.z + 0.02, p);
       cam.project(zn.x, zn.y + rad, zn.z + 0.02, q);
       const rx = p.s * rad, ry = Math.max(1, p.y - q.y);
       const fade = k > 0.8 ? (1 - k) / 0.2 : 1;
       const pulse = zn.warn ? 0.55 + 0.45 * Math.abs(Math.sin(zn.t * 7)) : 0.8 + 0.2 * Math.sin(zn.t * 3);
       zn.disc.position.set(p.x, p.y); zn.disc.scale.set((rx * 2) / 128, (ry * 2) / 128); zn.disc.alpha = (zn.warn ? 0.35 : 0.28) * fade * pulse;
-      zn.edge.position.set(p.x, p.y); zn.edge.scale.set((rx * 2.1) / 128, (ry * 2.1) / 128); zn.edge.alpha = 0.75 * fade * pulse;
+      zn.edge.clear();zn.edge.position.set(0,0);zn.edge.alpha=fade;
+      const points=[];
+      const segments=Math.min(256,Math.max(64,Math.ceil(2*Math.PI*rx/5)));
+      for(let i=0;i<=segments;i++){
+        const angle=i/segments*Math.PI*2,pt=cam.project(zn.x+Math.cos(angle)*rad,zn.y+Math.sin(angle)*rad,zn.z+.024);
+        points.push(pt.x,pt.y);
+      }
+      zn.edge.beginFill(zn.tint,zn.theme?.fillAlpha ?? .17);zn.edge.drawPolygon(points);zn.edge.endFill();
+      zn.edge.lineStyle(Math.max(2,p.s*.03),zn.theme?.outlineColor ?? zn.tint,.8*pulse);
+      for(let i=0;i<points.length;i+=2){if(!i)zn.edge.moveTo(points[i],points[i+1]);else zn.edge.lineTo(points[i],points[i+1]);}
       this.zones[w++] = zn;
     }
     this.zones.length = w;
@@ -2290,7 +2376,7 @@ export class FxSystem {
     for(let i=1;i<rec.samples.length;i++){
       const a=rec.samples[i-1],b=rec.samples[i],pa=cam.project(a.x,a.y,a.z),pb=cam.project(b.x,b.y,b.z);
       // No idle shimmer; only moving weapon tips leave a short, tapering tail.
-      rec.g.lineStyle(Math.max(1.2,pb.s*.027*i/rec.samples.length),color,.48*i/rec.samples.length);
+      rec.g.lineStyle(Math.max(2,pb.s*.045*i/rec.samples.length),color,.48*i/rec.samples.length);
       rec.g.moveTo(pa.x,pa.y);rec.g.lineTo(pb.x,pb.y);
     }
   }
@@ -2321,6 +2407,7 @@ export class FxSystem {
     this.rings.length = 0;
     for (const a of this.auras.values()) a.sp.destroy({ children: true });
     this.auras.clear();
+    for(const burst of this.dedicatedBursts)burst.sprite.destroy();this.dedicatedBursts.length=0;
     for(const sweep of this.sweeps)sweep.g.destroy();this.sweeps.length=0;
     for (const p of this.pops) p.c.destroy({ children: true });
     this.pops.length = 0;
@@ -2342,6 +2429,14 @@ export class FxSystem {
   update(dt) {
     this._updateWeaponTrails();
     this._updateSweeps(dt);
+    this.dedicatedBursts=this.dedicatedBursts.filter(b=>{
+      b.t+=dt;if(b.t>=b.dur){b.sprite.destroy();return false;}
+      const k=b.t/b.dur,angle={RIGHT:0,LEFT:Math.PI,UP:-Math.PI/2,DOWN:Math.PI/2}[b.dir] || 0;
+      const cam=this.ctx.cam(),x=b.x+Math.cos(angle)*k*4,y=b.y+Math.sin(angle)*k*4;
+      const q=cam.project(x,y,this._groundZ(x,y)+.75),a=cam.project(x+Math.cos(angle),y+Math.sin(angle),this._groundZ(x,y)+.75);
+      b.sprite.position.set(q.x,q.y);b.sprite.rotation=Math.atan2(a.y-q.y,a.x-q.x);
+      b.sprite.scale.set(q.s*1.6/Math.max(1,b.sprite.texture.width));b.sprite.alpha=Math.min(1,k*8)*(1-k*.8);return true;
+    });
     this.contacts=this.contacts.filter(c=>{c.t+=dt;if(c.t>=c.dur){c.g.destroy();return false;}const p=this.ctx.cam().project(c.x,c.y,c.z);c.g.position.set(p.x,p.y);c.g.scale.set(p.s/Math.max(1,c.s));c.g.alpha=1-c.t/c.dur;return true;});
     this.time += dt;
     this._updateParticles(dt);

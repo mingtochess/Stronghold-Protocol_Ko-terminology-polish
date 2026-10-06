@@ -119,7 +119,7 @@ describe('hudBands: the folded shop\'s band', () => {
       for (const k of ['prep', 'bossPrep']) {
         const open = hudBands(k, { width: 844, height: 390 });
         assert.deepEqual(hudBands(k, { width: 844, height: 390 }, { shop: true }), open);
-        assert.ok(Math.abs(open.bottom - 108.6) < 1e-9, 'the bar: 2.64rem + 3 px');
+        assert.ok(Math.abs(open.bottom - 99) < 1e-9, 'the bar: 2.40rem + 3 px');
         const f = hudBands(k, { width: 844, height: 390 }, { shop: false });
         assert.equal(f.top, open.top, 'the top band does not change');
         assert.ok(Math.abs(f.bottom - 35) < 1e-9, `no corner on the page: the tab .8rem + 3 px (${f.bottom})`);
@@ -185,16 +185,14 @@ describe('the folded board grows and every bench / temp tile stays clear of the 
     }
   });
 
-  test('1920×1080: the official shop-collapsed camera at its own scale, panned up just enough to clear the folded tab', () => {
+  test('1920×1080: folded framing preserves perspective while clearing back-row heads and the bench', () => {
     const off = presetCamera('prep', { width: 1920, height: 1080 }, { rect: { ...GEO.NORMAL_RECT }, side: 'L', shop: false });
     const fit = presetCamera('prep', { width: 1920, height: 1080 }, { rect: { ...GEO.NORMAL_RECT }, side: 'L', shop: false, hud: { top: 216, bottom: 83 } });
     const shop = presetCamera('prep', { width: 1920, height: 1080 }, { rect: { ...GEO.NORMAL_RECT }, side: 'L', hud: { top: 216, bottom: 267 } });
-    const { cy: cyFit, ...restFit } = fit.params();
-    const { cy: cyOff, ...restOff } = off.params();
-    assert.deepEqual(restFit, restOff, 'same optics and scale (a 2D pan of the image)');
-    assert.ok(cyFit < cyOff && cyOff - cyFit < 60, `panned up ${cyOff - cyFit} px`);
-    assert.ok(Math.abs(tileAt(fit, 10) - 130.7) < 0.2, `≈ 131 px per tile at row 10 (${tileAt(fit, 10)})`);
-    assert.ok(Math.abs(tileAt(shop, 10) - 109.8) < 0.2, `the shop camera: ≈ 110 px (${tileAt(shop, 10)})`);
+    for(const key of ['tx','ty','tz','tilt','dist'])assert.equal(fit.params()[key],off.params()[key],key);
+    assert.ok(fit.project(fit.tx,12,2.2).y >= 216);
+    assert.ok(extents(fit,{bench:7,temp:8,back:12}).benchBottom <= 997);
+    assert.ok(tileAt(fit,10)>tileAt(shop,10)*1.15,'folding grows tiles while keeping heads clear');
   });
 });
 

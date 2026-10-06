@@ -33,10 +33,10 @@ test('Botani acquisition adds six / twelve Ursus/Swift layers even while inactiv
  assert.ok(!pieceBonds(gd,{id:base,items:[{id:'chess_item_custom_ursus_a'}]}).includes('ursusShip'));
  for(const suffix of ['a','b'])assert.ok(pieceBonds(gd,{id:base,items:[{id:`chess_item_custom_ursus_${suffix}`},{id:'chess_item_6_09_e_a'}]}).includes('ursusShip'));
 });
-test('Hellagur garrison scales both ATK and HP by each complete three active Ursus layers',{skip:!ready},()=>{
+test('Hellagur garrison adds attack speed by each complete three active Ursus layers',{skip:!ready},()=>{
  setGameData(data);try{for(const elite of [false,true]){
   const run=layers=>combat('helage',0,elite,{bonds:{ursusShip:{count:3,active:true,tier:1,layers}}}).unit(id('helage',elite));
-  const a=run(0),b=run(8),ratio=1+2*(elite?.04:.02);assert.ok(Math.abs(b.s.atk/a.s.atk-ratio)<1e-6);assert.ok(Math.abs(b.s.maxHp/a.s.maxHp-ratio)<1e-6);
+  const a=run(0),b=run(8);assert.equal(b.s.aspd-a.s.aspd,2*(elite?4:2));assert.ok(Math.abs(b.s.atk/a.s.atk-1.28/1.2)<1e-6);assert.ok(Math.abs(b.s.maxHp/a.s.maxHp-1.28/1.2)<1e-6);
  }}finally{setGameData(null)}
 });
 test('Rosa locks heavy targets for six one-second pulses and prevents ordinary attacks',{skip:!ready},()=>{
@@ -80,13 +80,13 @@ test('Absinthe S2 refuses targets above half HP; Botani S1 adds both extra arts 
  const hb=combat('botany',0),bot=hb.unit(id('botany')),target=hb.enemy();bot.skill.gainSp(1000);bot.skill.activate();hb.run(3);assert.ok(target.elem.erosion>0);assert.ok(hb.hooksOf('hit').some(c=>c.source===bot&&c.dmg.tags?.includes('botany-extra')));assert.equal(hb.b.errorCount,0);
  }finally{setGameData(null)}
 });
-test('Zima preparation start and end each grant eight / sixteen layers when active',{skip:!ready},()=>{
+test('Zima preparation start and end each grant six / twelve layers when active',{skip:!ready},()=>{
  for(const elite of [false,true]){const h=makeMatch({data,customFactions:true,mode:'solo',fake:true}).start();h.toPrep(1);const ps=h.ps('p_0');ps.board.clear();ps.hand.fill(null);ps.temp.fill(null);ps.layers={};ps.bandId=null;
-  const p=ps.acquireChess(id('headb2',elite),{source:'test'});ps.board.set('10,3',p);ps.hand.fill(null);ps.bondCountBonus.ursusShip=3;ps.recompute();h.m.dispatch(ps,'onRoundStart',{round:h.m.round});assert.equal(ps.layers.ursusShip,elite?16:8);
-  h.m.dispatch(ps,'onPrepEnd',{round:h.m.round});assert.equal(ps.layers.ursusShip,elite?32:16);
-  assert.equal(h.m.dispatcher.triggerGarrisons(ps,p,'SERVER_PREP_FIN'),1,'prep-end trait can be triggered by other operators');assert.equal(ps.layers.ursusShip,elite?48:24);
-  ps.bondCountBonus.ursusShip=0;ps.recompute();h.m.dispatch(ps,'onPrepEnd',{});assert.equal(ps.layers.ursusShip,elite?48:24,'inactive bond gains nothing');
-  ps.bondCountBonus.ursusShip=3;ps.board.clear();ps.hand[0]=p;ps.recompute();h.m.dispatch(ps,'onRoundStart',{});h.m.dispatch(ps,'onPrepEnd',{});assert.equal(ps.layers.ursusShip,elite?48:24,'bench trait does not run');h.m.dispose();
+  const p=ps.acquireChess(id('headb2',elite),{source:'test'});ps.board.set('10,3',p);ps.hand.fill(null);ps.bondCountBonus.ursusShip=3;ps.recompute();h.m.dispatch(ps,'onRoundStart',{round:h.m.round});assert.equal(ps.layers.ursusShip,elite?12:6);
+  h.m.dispatch(ps,'onPrepEnd',{round:h.m.round});assert.equal(ps.layers.ursusShip,elite?24:12);
+  assert.equal(h.m.dispatcher.triggerGarrisons(ps,p,'SERVER_PREP_FIN'),1,'prep-end trait can be triggered by other operators');assert.equal(ps.layers.ursusShip,elite?36:18);
+  ps.bondCountBonus.ursusShip=0;ps.recompute();h.m.dispatch(ps,'onPrepEnd',{});assert.equal(ps.layers.ursusShip,elite?36:18,'inactive bond gains nothing');
+  ps.bondCountBonus.ursusShip=3;ps.board.clear();ps.hand[0]=p;ps.recompute();h.m.dispatch(ps,'onRoundStart',{});h.m.dispatch(ps,'onPrepEnd',{});assert.equal(ps.layers.ursusShip,elite?36:18,'bench trait does not run');h.m.dispose();
  }
 });
 test('Ursus Cutlass applies normal / elite ATK and max-HP buffs through the real equipment runtime',{skip:!ready},()=>{
@@ -99,7 +99,7 @@ test('Ursus drone approaches and attacks stationary ground and flying targets wi
  setGameData(data);try{for(const motion of ['WALK','FLY']){
  const raw={...data,enemies:{...data.enemies,drone_target:enemyRec({key:'drone_target',hp:1e7,atk:0,speed:0,motion})}};
  const h=makeBattle({data:raw,autoFinish:false,captureNoisy:true,units:[{chessId:id('turdus'),row:10,col:3}],bonds:{ursusShip:{count:3,active:true,tier:1,layers:20}},enemies:[{key:'drone_target',time:0,route:{motion,start:[10,6],end:[9,2],checkpoints:[]}}]});
- h.run(18);const drone=h.b.allyUnits.find(u=>u.defId==='token_custom_ursus_drone'),enemy=h.enemy();assert.ok(drone);assert.ok(drone.stats.attacks>=2);assert.ok(enemy.hp<enemy.s.maxHp);assert.ok(h.hooksOf('hit').some(c=>c.credit===drone&&c.target===enemy));assert.equal(drone.s.atk,2000);assert.equal(drone.s.maxHp,26000);assert.equal(h.b.errorCount,0);checkInvariants(h.b);
+ h.run(18);const drone=h.b.allyUnits.find(u=>u.defId==='token_custom_ursus_drone'),enemy=h.enemy();assert.ok(drone);assert.ok(drone.stats.attacks>=2);assert.ok(enemy.hp<enemy.s.maxHp);assert.ok(h.hooksOf('hit').some(c=>c.credit===drone&&c.target===enemy));assert.equal(drone.s.atk,1400);assert.equal(drone.s.maxHp,18200);assert.equal(h.b.errorCount,0);checkInvariants(h.b);
  }}finally{setGameData(null)}
 });
 test('Airborne Ursus drone pursues distant enemies, stops in range, and resumes pursuit after target loss',{skip:!ready},()=>{
@@ -132,7 +132,7 @@ test('Leto: own Ursus skill activations grant 2/4 layers per activation, capped 
  setGameData(data);try{for(const elite of [false,true]){
  const h=combat('leto',0,elite,{flags:{layerGainsEnabled:true},bonds:{ursusShip:{count:3,active:true,tier:1,layers:0}},enemies:[],units:[{chessId:id('leto',elite),row:10,col:3},{chessId:id('glassb'),row:11,col:3},{chessId:plain,row:12,col:3}]});
  const own=h.unit(id('glassb')),other=h.unit(plain);h.b.emit('skillStart',{unit:other});assert.equal(h.b.getPlayer('p1').bonds.ursusShip.layers,0);
- for(let i=0;i<20;i++)h.b.emit('skillStart',{unit:own});assert.equal(h.b.getPlayer('p1').bonds.ursusShip.layers,elite?40:20);assert.equal(h.b.errorCount,0);
+ for(let i=0;i<20;i++)h.b.emit('skillStart',{unit:own});assert.equal(h.b.getPlayer('p1').bonds.ursusShip.layers,elite?42:21);assert.equal(h.b.errorCount,0);
  }}finally{setGameData(null)}
 });
 test('Drone spawns one tile right of map centre; shells wait three seconds, hit a fixed 1.2-radius area, and survive shooter death',{skip:!ready},()=>{
@@ -173,29 +173,29 @@ test('Ukusik preparation grants +4 / +8 to each active bond',{skip:!ready},()=>{
  }
 });
 
-for(const elite of [false,true])test(`Istina ${elite?'elite':'normal'}: only sluggish deaths inside range grant +2 / +4 to active bonds, at most seven triggers`,{skip:!ready},(t)=>{
+for(const elite of [false,true])test(`Istina ${elite?'elite':'normal'}: only sluggish deaths inside range grant +2 / +4 to active bonds, at most ten triggers`,{skip:!ready},(t)=>{
  setGameData(data);t.after(()=>setGameData(null));
  const state=()=>({count:3,active:true,tier:1,layers:0});
  const h=combat('glassb',0,elite,{flags:{layerGainsEnabled:true},bonds:{ursusShip:state(),visiShip:state()},enemies:[]});const u=h.unit(id('glassb',elite));
  const layers=()=>['ursusShip','visiShip'].map(k=>h.b.getPlayer('p1').bonds[k].layers);
  const death=(status,pos=[10,4],killer=null)=>{const e=h.spawn('dummy',{pos,route:{motion:'WALK',start:pos,end:[10,2],checkpoints:[]}});if(status)h.b.applyStatus(e,status,{duration:5,source:u,value:.5});h.b.kill(e,killer);};
- assert.match(data.garrisons[u.def.raw.garrisonIds[0]].desc,new RegExp(`정지.*\\[우르수스\\]/\\[예견\\].*\\+${elite?4:2}.*전투당 최대 7회 발동`));
+ assert.match(data.garrisons[u.def.raw.garrisonIds[0]].desc,new RegExp(`정지.*\\[우르수스\\]/\\[예견\\].*\\+${elite?4:2}.*전투당 최대 10회 발동`));
  death('slow');death('stun');death('freeze');death(null);death('sluggish',[12,9]);assert.deepEqual(layers(),[0,0]);
- death('sluggish');assert.deepEqual(layers(),elite?[4,4]:[2,2],'another source or no credited killer still qualifies');
- for(let i=0;i<9;i++)death('sluggish');assert.deepEqual(layers(),elite?[28,28]:[14,14],'one death is one trigger even when both bonds gain');
+ death('sluggish');assert.deepEqual(layers(),elite?[4,2]:[2,1],'another source or no credited killer still qualifies');
+ for(let i=0;i<13;i++)death('sluggish');assert.deepEqual(layers(),elite?[40,20]:[20,10],'one death is one trigger even when both bonds gain');
 });
 
-test('Istina never grants inactive bonds and shares one seven-trigger budget across later activation',{skip:!ready},(t)=>{
+test('Istina never grants inactive bonds and shares one ten-trigger budget across later activation',{skip:!ready},(t)=>{
  setGameData(data);t.after(()=>setGameData(null));
  const h=combat('glassb',0,false,{flags:{layerGainsEnabled:true},bonds:{ursusShip:{count:3,active:true,tier:1,layers:0},visiShip:{count:0,active:false,tier:0,layers:0}},enemies:[]});const u=h.unit(id('glassb'));
  const death=()=>{const e=h.spawn('dummy',{pos:[10,4],route:{motion:'WALK',start:[10,4],end:[10,2],checkpoints:[]}});h.b.applyStatus(e,'sluggish',{duration:5,source:u});h.b.kill(e);};
  for(let i=0;i<4;i++)death();const bonds=h.b.getPlayer('p1').bonds;assert.equal(bonds.ursusShip.layers,8);assert.equal(bonds.visiShip.layers,0);
- Object.assign(bonds.visiShip,{count:3,active:true,tier:1});for(let i=0;i<5;i++)death();assert.equal(bonds.ursusShip.layers,14);assert.equal(bonds.visiShip.layers,6);
+ Object.assign(bonds.visiShip,{count:3,active:true,tier:1});for(let i=0;i<9;i++)death();assert.equal(bonds.ursusShip.layers,20);assert.equal(bonds.visiShip.layers,6);
 });
 
 test('Ursus default skills match the requested roster for normal and elite records',{skip:!ready},async()=>{
  const {resolveRecordLoadout}=await import('../../shared/loadoutRecord.js');
- const expected={absin:0,turdus:0,botany:0,glassb:1,leto:1,poca:1,helage:1,headb2:1};
+ const expected={absin:0,turdus:0,botany:0,glassb:1,leto:1,poca:1,helage:1,headb2:2};
  for(const [key,index]of Object.entries(expected))for(const elite of [false,true]){
   const rec=data.chess[id(key,elite)];assert.equal(rec.skill.index,index,rec.name);
   assert.equal(resolveRecordLoadout(rec).skillIndex,index,rec.name);

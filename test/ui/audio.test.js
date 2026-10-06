@@ -6,9 +6,10 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { combatTrackFor, bgmKeyFor, resolveBgm, SfxLimiter, AudioManager, VoiceGate, normalAttackSfx } from '../../public/js/audio.js';
+import { audio, installAudio, resultVoiceSlot, resultSpeaker, VOICE_PRIORITY, VOICE_COOLDOWN_MS, combatTrackFor, bgmKeyFor, resolveBgm, SfxLimiter, AudioManager, VoiceGate, normalAttackSfx } from '../../public/js/audio.js';
 import { mediaUrl } from '../../public/js/media.js';
 import { PHASE } from '../../shared/constants.js';
+import { makeBattle, chessRec } from '../helpers/battleHarness.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const manifest = JSON.parse(readFileSync(path.join(ROOT, 'data', 'assets.json'), 'utf8'));
@@ -34,7 +35,7 @@ describe('bgm selection', () => {
     assert.equal(bgmKeyFor('game', { phase: PHASE.UNITE }), 'unite');
     assert.equal(bgmKeyFor('game', { phase: PHASE.FINAL_ASSAULT, bossId: 'boss_4' }), 'boss:boss_4');
     assert.equal(bgmKeyFor('game', { phase: PHASE.FINAL_ASSAULT }), 'boss');
-    assert.equal(bgmKeyFor('game', { phase: PHASE.HIDDEN_CORE, bossId: 'boss_1', hiddenBossId: 'boss_9' }), 'boss:boss_9');
+    assert.equal(bgmKeyFor('game', { phase: PHASE.HIDDEN_CORE, bossId: 'boss_1', hiddenBossId: 'boss_9' }, 1), 'boss:boss_9');
     assert.equal(bgmKeyFor('game', { phase: PHASE.RESULT }), 'lobby');
     assert.equal(bgmKeyFor('weird', null), null);
   });
@@ -54,6 +55,15 @@ describe('bgm selection', () => {
     const b4 = resolveBgm(manifest, 'boss:boss_4');
     assert.equal(b4.loop, manifest.audio.bossBgm.boss_4.loop);
     assert.equal(resolveBgm(manifest, 'boss:nope').loop, manifest.audio.bgm.boss.loop);
+    // 开战 BGM: combat:<i> → bgm.combatAlts[i], and back to the default combat track when the index (or the whole
+    // array, e.g. an older manifest) is missing
+    const alts = manifest.audio.bgm.combatAlts;
+    assert.ok(Array.isArray(alts) && alts.length >= 2, 'manifest carries the mode’s own battle tracks');
+    assert.equal(resolveBgm(manifest, 'combat:0').loop, alts[0].loop);
+    assert.equal(resolveBgm(manifest, 'combat:1').loop, alts[1].loop);
+    assert.notEqual(alts[0].loop, manifest.audio.bgm.combat.loop, 'a real battle track, not the shop loop');
+    assert.equal(resolveBgm(manifest, 'combat:9').loop, manifest.audio.bgm.combat.loop);
+    assert.equal(resolveBgm({ audio: { bgm: { combat: { loop: '/shop.mp3' } } } }, 'combat:0').loop, '/shop.mp3');
     assert.equal(resolveBgm(manifest, 'prep').intro, manifest.audio.bgm.prep.intro ?? null);
     // 联防's own track (bgm.unite = corrosion, the official escaped levels' bgmEvent), and the fallback for an older
     // manifest that has no `unite` entry (the music must not go silent)
@@ -66,6 +76,49 @@ describe('bgm selection', () => {
     assert.equal(resolveBgm(null, 'lobby'), null);
     assert.equal(resolveBgm(manifest, null), null);
     assert.equal(resolveBgm(manifest, 'nope'), null);
+  });
+  test('installAudio: the round\'s own 开战 track, fixed per round and the same on every client', () => {
+    const calls = [];
+    const origPlay = audio.playBgm;
+    audio.playBgm = (k) => { calls.push(k); };
+    try {
+      const pub = (o) => ({ phase: PHASE.PREP, round: 1, stageId: 'st1', players: [{ playerId: 'p1' }], ...o });
+      const state = { route: 'game', match: { public: pub({}) } };
+      let fire = null;
+      /** One client: its own store subscription (the expected keys below are what its own round yields — the point of
+       * the test is that the track follows the round, never moves inside a battle and never differs between clients). */
+      const wire = () => installAudio({
+        getManifest: () => manifest, getState: () => state, selectRoute: (s) => s.route,
+        subscribe: (fn) => { fire = fn; return () => {}; },
+      });
+      wire();
+      assert.equal(calls.at(-1), 'prep', 'the prep keeps the shop track');
+      // round 1 ⇒ 无畏者 (combatAlts[1])
+      state.match.public = pub({ phase: PHASE.COMBAT });
+      fire(state, {}); assert.equal(calls.at(-1), 'combat:1');
+      // a re-render / teammate view inside the same battle never moves
+      fire(state, {}); assert.equal(calls.at(-1), 'combat:1');
+      // 联防 has its OWN track (#110, the official escaped levels' `bgmEvent = corrosion`) — it does not inherit the
+      // round's 开战 track
+      state.match.public = pub({ phase: PHASE.UNITE });
+      fire(state, {}); assert.equal(calls.at(-1), 'unite');
+      // …and back to the round's own track in the 作战
+      state.match.public = pub({ phase: PHASE.COMBAT });
+      fire(state, {}); assert.equal(calls.at(-1), 'combat:1', "back to the round's own track");
+      // a second client of the same room hears the same track (its own installAudio, same round)
+      calls.length = 0; wire();
+      assert.deepEqual(calls, ['combat:1'], 'every client of the match hears the same track');
+      // round 7 is the last on 无畏者, round 8 switches to 骑士之日 (combatAlts[0]) — whoever sits in seat 1
+      state.match.public = pub({ round: 7, phase: PHASE.COMBAT });
+      fire(state, {}); assert.equal(calls.at(-1), 'combat:1');
+      state.match.public = pub({ round: 8, phase: PHASE.COMBAT });
+      fire(state, {}); assert.equal(calls.at(-1), 'combat:0');
+      state.match.public = pub({ round: 8, phase: PHASE.COMBAT, players: [{ playerId: 'p2' }] });
+      fire(state, {}); assert.equal(calls.at(-1), 'combat:0', 'the track does not depend on the seats');
+      // the boss rounds keep their own tracks
+      state.match.public = pub({ phase: PHASE.FINAL_ASSAULT, bossId: 'boss_4' });
+      fire(state, {}); assert.equal(calls.at(-1), 'boss:boss_4');
+    } finally { audio.playBgm = origPlay; }
   });
 });
 
@@ -102,6 +155,209 @@ describe('SfxLimiter', () => {
   });
 });
 
+// ---- operator battle voice (manifest audio.voice; official priorities, audio_data.json battleVoice) ---------
+
+describe('operator battle voice', () => {
+  test('resultVoiceSlot: 完美作战 / 高难 / 漏怪 / 全灭', () => {
+    assert.equal(resultVoiceSlot({ perfect: true }), 'resultThree');
+    assert.equal(resultVoiceSlot({ perfect: true, hard: true }), 'resultFour', '绝境 / 终极 报 完成高难行动');
+    assert.equal(resultVoiceSlot({ perfect: false, leaked: 2, killed: 10, total: 12 }), 'resultTwo');
+    assert.equal(resultVoiceSlot({ perfect: false, leaked: 0, killed: 0, total: 12 }), 'resultLose');
+    assert.equal(resultVoiceSlot({ perfect: false, leaked: 0, killed: 5, total: 5 }), 'resultThree', 'no leak ⇒ the 完美 line');
+    assert.equal(resultVoiceSlot(), 'resultThree');
+  });
+
+  test('resultSpeaker: the operators of THAT battle (survivors first), never the field on screen', () => {
+    // `mine.unitsEnd` of the finished own battle: operators (char_*) and the board's summon pieces (token_*, no voice)
+    const mine = { unitsEnd: [
+      { defId: 'char_fallen', alive: false },
+      { defId: 'token_1001', alive: true },
+      { defId: 'char_a', alive: true },
+      { defId: 'char_b', alive: true },
+    ] };
+    assert.equal(resultSpeaker(mine, () => 0), 'char_a');
+    assert.equal(resultSpeaker(mine, () => 0.999), 'char_b', 'a drawn operator, still only the ones standing');
+    assert.equal(resultSpeaker(mine, () => 0.4), 'char_a');
+    const drawn = new Set([0, 0.2, 0.4, 0.6, 0.8, 1].map((r) => resultSpeaker(mine, () => r)));
+    assert.deepEqual([...drawn].sort(), ['char_a', 'char_b'], 'a fallen operator or a summon never speaks');
+    // the whole squad fell: only then does a fallen operator report the result
+    const wiped = { unitsEnd: [{ defId: 'char_fallen', alive: false }, { defId: 'char_also', alive: false }] };
+    assert.equal(resultSpeaker(wiped, () => 0), 'char_fallen');
+    assert.equal(resultSpeaker(wiped, () => 0.999), 'char_also');
+    // no operator on that field at all — summons only, an empty list, or a payload without `unitsEnd` (an older
+    // server): no line. There is deliberately NO fallback to the operators currently tracked for the field on screen —
+    // that fallback is what made a watched team-mate's operator say the viewer's line (review on #73).
+    assert.equal(resultSpeaker({ unitsEnd: [{ defId: 'token_1', alive: true }] }, () => 0), null);
+    assert.equal(resultSpeaker({ unitsEnd: [] }), null);
+    assert.equal(resultSpeaker({}), null);
+    assert.equal(resultSpeaker(null), null);
+    assert.equal(resultSpeaker(undefined), null);
+    assert.equal(resultSpeaker({ unitsEnd: [{ alive: true }] }, () => 0), null, 'a unit without a defId');
+    assert.equal(resultSpeaker({ unitsEnd: [{ defId: 'enemy_1007_slime', alive: true }] }, () => 0), null, 'an enemy');
+  });
+
+  test('resultSpeaker on a real battle result: unitsEnd names the chess, the chess record gives the speaking operator', () => {
+    // the sim reports each unit by its chess id (sim/Battle.js unitsEnd defId = the chess record's id), so the line needs
+    // the chess → charId step the game screen passes (data.lookup('chess', id).charId); without it no battle ever spoke
+    const chessTable = JSON.parse(readFileSync(path.join(ROOT, 'data', 'chess.json'), 'utf8'));
+    const id = 'chess_char_1_01_a';
+    assert.equal(chessTable[id]?.charId, 'char_498_inside');
+    const h = makeBattle({ defs: { chess: { [id]: chessRec({ id }) } }, units: [{ chessId: id, row: 10, col: 4 }], content: 'none' });
+    const mine = Object.values(h.runToEnd(30).perPlayer)[0];
+    assert.equal(mine.unitsEnd[0].defId, id, 'the result carries the chess id, not the charId');
+    assert.equal(resultSpeaker(mine, () => 0), null, 'no chess → charId step: silent (the 0.1.4 bug)');
+    assert.equal(resultSpeaker(mine, () => 0, (defId) => chessTable[defId]?.charId ?? null), 'char_498_inside');
+  });
+
+  test('VoiceGate: one line at a time, a global gap, per-unit cooldowns, higher priority takes over', () => {
+    assert.ok(VOICE_PRIORITY.start > VOICE_PRIORITY.skill1 && VOICE_PRIORITY.skill1 > VOICE_PRIORITY.place, 'the official order');
+    assert.ok(VOICE_PRIORITY.resultThree > VOICE_PRIORITY.skill1 && VOICE_PRIORITY.resultThree < VOICE_PRIORITY.faceEnemy);
+    assert.equal(VOICE_COOLDOWN_MS.passiveImp, 10000, 'official passive skill voice cooldown');
+    const g = new VoiceGate({ gapMs: 1000, preemptMargin: 1 });
+    assert.equal(g.request('start', 1, 0), 'play');
+    g.start('start', 1, 0);
+    assert.equal(g.request('skill1', 2, 500), 'drop', 'one voice at a time (a lower priority waits)');
+    assert.equal(g.request('start', 3, 500), 'drop', 'the same priority does not interrupt');
+    assert.equal(g.request('faceEnemy', 3, 500), 'drop', '90 < 100 + margin');
+    g.release();
+    assert.equal(g.request('place', 1, 900), 'drop', 'the global gap is not over');
+    assert.equal(g.request('place', 1, 1000), 'play');
+    g.release();
+    const g2 = new VoiceGate({ gapMs: 0, preemptMargin: 1 });
+    assert.equal(g2.request('passiveImp', 'u1', 0), 'play');
+    g2.start('passiveImp', 'u1', 0);
+    g2.release();
+    assert.equal(g2.request('passiveImp', 'u1', 5000), 'drop', 'the unit cooldown');
+    assert.equal(g2.request('passiveImp', 'u2', 5000), 'play', 'another unit is unaffected');
+    g2.release();
+    assert.equal(g2.request('passiveImp', 'u1', 10000), 'play', 'cooldown over');
+    g2.release();
+    g2.reset();
+    assert.equal(g2.request('passiveImp', 'u1', 10001), 'play', 'a new battle inherits no cooldown');
+  });
+
+  test('AudioManager.voice: manifest slots (a drawn array), the gate, and the battle events that drive them', async () => {
+    const fw = fakeWindow();
+    const origFetch = globalThis.fetch;
+    const urls = [];
+    globalThis.fetch = async (u) => { urls.push(u); return { ok: true, arrayBuffer: async () => new ArrayBuffer(8) }; };
+    try {
+      const vm = { audio: { sfx: { ui: {}, battle: {}, units: {} }, voice: {
+        char_a: { start: '/v/a_start.mp3', place: ['/v/a_p1.mp3', '/v/a_p2.mp3'], skill3: '/v/a_s3.mp3', faceEnemy: '/v/a_face.mp3' },
+        char_b: { place: '/v/b_p1.mp3', skill1: '/v/b_s1.mp3' },
+      } } };
+      const a = new AudioManager({ win: fw.win, getManifest: () => vm, random: () => 0 });
+      a.voiceGate = new VoiceGate({ gapMs: 0, preemptMargin: 1 });   // the gap itself is covered above
+      a.install();
+      assert.equal(a.voice('char_a', 'place'), false, 'locked: nothing is requested');
+      assert.equal(urls.length, 0);
+      fw.fire('pointerdown');
+      await new Promise((r) => setTimeout(r, 10));
+      assert.equal(a.voice('char_a', 'start', { unitKey: 1 }), true);
+      await new Promise((r) => setTimeout(r, 10));
+      assert.ok(asked(urls, '/v/a_start.mp3'));
+      assert.equal(a.voice('char_b', 'place', { unitKey: 2 }), false, '部署 cannot interrupt 行动出发');
+      assert.equal(a.voice('char_a', 'faceEnemy', { unitKey: 3 }), false, '接敌 cannot either');
+      a._stopVoice();
+      assert.equal(a.voice('char_a', 'place', { unitKey: 1 }), true, 'the channel is free again');
+      await new Promise((r) => setTimeout(r, 10));
+      assert.ok(asked(urls, '/v/a_p1.mp3') || asked(urls, '/v/a_p2.mp3'), 'a drawn 部署 line');
+      assert.equal(a.voice('char_a', 'nope', { unitKey: 1 }), false, 'unknown slot');
+      assert.equal(a.voice('char_zz', 'place', { unitKey: 1 }), false, 'unknown operator');
+      a._stopVoice(); a.voiceGate.reset();
+      // the battle events drive the lines: 行动出发 (the first deploy), 部署 (the rest), 行动开始, 作战中N
+      a.setFieldUnits([{ id: 11, side: 'ally', spine: 'char_a', kind: 'op', skillIndex: 2 }, { id: 12, side: 'ally', spine: 'char_b', kind: 'op' }]);
+      a.handleBattleEvents([['deploy', 11]]);
+      await new Promise((r) => setTimeout(r, 10));
+      assert.equal(a.voiceNode?.url, '/v/a_start.mp3', 'the first operator deployed says 行动出发');
+      a.handleBattleEvents([['deploy', 12]]);
+      await new Promise((r) => setTimeout(r, 10));
+      assert.equal(a.voiceNode?.url, '/v/a_start.mp3', 'a 部署 line never interrupts it (lower priority)');
+      a._stopVoice(); a.voiceGate.reset();
+      a.handleBattleEvents([['engage', 11], ['skill', 12, 1]]);
+      await new Promise((r) => setTimeout(r, 10));
+      assert.equal(a.voiceNode?.url, '/v/a_face.mp3', '首次接敌 ⇒ 行动开始 (a 作战中 line never interrupts it)');
+      a._stopVoice(); a.voiceGate.reset();
+      a.handleBattleEvents([['skill', 11, 1]]);
+      await new Promise((r) => setTimeout(r, 10));
+      assert.ok(['/v/a_s1.mp3', '/v/a_s2.mp3', '/v/a_s3.mp3', '/v/a_s4.mp3'].includes(a.voiceNode?.url), 'active skill draws a battle line from the operator bank');
+      a._stopVoice(); a.voiceGate.reset();
+      a.handleBattleEvents([['skill', 12, 1]]);
+      await new Promise((r) => setTimeout(r, 10));
+      assert.equal(a.voiceNode?.url, '/v/b_s1.mp3', 'a unit without skillIndex falls back to 作战中1');
+      a._stopVoice(); a.voiceGate.reset();
+      a.setFieldUnits([{ id: 21, side: 'ally', spine: 'char_a', kind: 'op' }]);
+      a.handleBattleEvents([['deploy', 21]]);
+      await new Promise((r) => setTimeout(r, 10));
+      assert.equal(a.voiceNode?.url, '/v/a_start.mp3', 'a new battle starts with 行动出发 again');
+    } finally {
+      globalThis.fetch = origFetch;
+    }
+  });
+
+  test('voice: a stale callback never frees the channel the newest line holds (review on #73)', async () => {
+    const fw = fakeWindow();
+    const origFetch = globalThis.fetch;
+    // holds named URLs open: the first request for one waits on the promise in `held`, later ones (the manager caches a
+    // decoded URL) do not. `fail` answers 404, i.e. `_buffer` resolves null.
+    const held = new Map();
+    const fail = new Set();
+    globalThis.fetch = async (u) => {
+      if (fail.has(u)) return { ok: false, status: 404 };
+      const h = held.get(u);
+      if (h) { held.delete(u); await h; }   // the manager caches per URL, so only the first call waits
+      return { ok: true, arrayBuffer: async () => new ArrayBuffer(8) };
+    };
+    const tick = () => new Promise((r) => setTimeout(r, 10));
+    try {
+      const vm = { audio: { sfx: { ui: {}, battle: {}, units: {} }, voice: {
+        char_a: { place: '/v/a_p1.mp3', start: '/v/a_start.mp3', faceEnemy: '/v/a_face.mp3', select: '/v/a_sel.mp3' },
+      } } };
+      const a = new AudioManager({ win: fw.win, getManifest: () => vm });
+      a.voiceGate = new VoiceGate({ gapMs: 0, preemptMargin: 1 });   // the gap itself is covered above
+      a.install();
+      fw.fire('pointerdown');
+      await tick();
+      // 部署 (20) starts with its LOAD HELD OPEN, so 行动出发 (100) takes the channel over while it is still loading
+      let openA;
+      held.set('/v/a_p1.mp3', new Promise((r) => { openA = r; }));
+      assert.equal(a.voice('char_a', 'place', { unitKey: 1 }), true);
+      assert.equal(a.voice('char_a', 'start', { unitKey: 2 }), true, 'a higher priority line takes the channel over');
+      await tick();
+      assert.equal(a.voiceNode?.url, '/v/a_start.mp3', 'the replacement is on air');
+      openA();                                     // the preempted line's load finally finishes
+      await tick();
+      assert.equal(a.voiceNode?.url, '/v/a_start.mp3', 'a stale callback never starts its own line');
+      assert.equal(a.voice('char_a', 'place', { unitKey: 3 }), false, 'and never freed the channel it lost');
+
+      // the safety timer / onended of a line that was STOPPED must not free the line that replaced it either
+      const ringing = a.voiceNode;                 // 行动出发 on air
+      a._stopVoice();                              // the stop path releases the gate itself and moves the token on
+      assert.equal(a.voice('char_a', 'place', { unitKey: 4 }), true, 'the channel is free again');
+      await tick();
+      const now = a.voiceNode;
+      assert.equal(now?.url, '/v/a_p1.mp3');
+      ringing.src.onended?.();                     // the stopped line's own end lands late (or its safety timer fires)
+      ringing.src.onended?.();                     // …and a second time, like timer + onended both firing
+      await tick();
+      assert.equal(a.voiceNode, now, 'the line on air is untouched');
+      assert.equal(a.voice('char_a', 'place', { unitKey: 5 }), false, 'and its channel is still held');
+
+      // a load that FAILS after the takeover (404 ⇒ null buffer): same rule
+      fail.add('/v/a_sel.mp3');
+      a._stopVoice();
+      assert.equal(a.voice('char_a', 'select', { unitKey: 6 }), true);
+      assert.equal(a.voice('char_a', 'place', { unitKey: 7 }), true, 'a higher priority line takes over while it loads');
+      await tick();
+      assert.equal(a.voiceNode?.url, '/v/a_p1.mp3');
+      await tick();
+      assert.equal(a.voice('char_a', 'place', { unitKey: 8 }), false, 'the failed load kept out of the newest line\'s way');
+    } finally {
+      globalThis.fetch = origFetch;
+    }
+  });
+});
+
 // ---- fake Web Audio -------------------------------------------------------------------------------------
 
 function fakeWindow() {
@@ -132,6 +388,50 @@ function fakeWindow() {
 }
 
 describe('AudioManager', () => {
+  test('chat has an independent volume, drops bursts, and obeys mute/hidden state', async () => {
+    const fw = fakeWindow();
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = async () => ({ok: true, arrayBuffer: async () => new ArrayBuffer(8)});
+    try {
+      const a = new AudioManager({win: fw.win, getManifest: () => null});
+      a.install(); fw.fire('pointerdown');
+      a.setVolumes({sfx: 0, voice: 0, chatVolume: .4});
+      assert.equal(a.chatGain.gain.value, .4 ** 2);
+      assert.equal(await a.chatNotification('melantha-etto'), true, 'SFX and battle voice mute do not mute chat');
+      const source = a.chatNode;
+      assert.equal(await a.chatNotification('ceobe-dadada'), false, 'active clip blocks another sound');
+      source.onended();
+      assert.equal(await a.chatNotification('ceobe-dadada'), false, 'cooldown applies across sound choices');
+      const nextAt = a.chatNextAt;
+      a.setVolumes({chatCooldown: 31});
+      assert.ok(Math.abs(a.chatNextAt - a.chatLastStartedAt - 5000)<1e-8, 'shared setting controls cooldown');
+      a.setVolumes({chatCooldown: 4});
+      assert.ok(Math.abs(a.chatNextAt - a.chatLastStartedAt - 4000)<1e-8, 'changing shared setting updates current cooldown');
+      assert.notEqual(a.chatNextAt, nextAt);
+      const beforePreview = a.chatNextAt;
+      assert.equal(await a.chatNotification('ceobe-dadada', {preview: true}), true);
+      assert.equal(a.chatNextAt, beforePreview, 'preview does not reset the notification cooldown');
+      a.setVolumes({chatVolume: 0});
+      assert.equal(a.chatNode, null);
+      assert.equal(await a.chatNotification('ceobe-dadada', {preview: true}), false);
+      a.setVolumes({chatVolume: 1, muted: true});
+      assert.equal(await a.chatNotification('ceobe-dadada', {preview: true}), false);
+      a.setVolumes({muted: false}); fw.win.document.hidden = true;
+      assert.equal(await a.chatNotification('ceobe-dadada', {preview: true}), false);
+    } finally { globalThis.fetch = originalFetch; }
+  });
+  test('turning chat off during a download cancels pending playback', async () => {
+    const fw = fakeWindow();
+    let resolveBuffer;
+    const a = new AudioManager({win: fw.win, getManifest: () => null});
+    a._buffer = () => new Promise(resolve => { resolveBuffer = resolve; });
+    a.install(); fw.fire('pointerdown');
+    const pending = a.chatNotification('kroos-kokodayo');
+    a.setVolumes({chatSound: 'off'});
+    resolveBuffer({duration: 2.9});
+    assert.equal(await pending, false);
+    assert.equal(a.chatNode, null);
+  });
   test('no AudioContext / no manifest: every call is a silent no-op', () => {
     const a = new AudioManager({ win: null, getManifest: () => null });
     a.install();
@@ -141,7 +441,7 @@ describe('AudioManager', () => {
     assert.equal(a.unit('char_x', 'attack', 1), false);
     a.handleBattleEvents([['atk', 1, 2, 'arrow'], 'junk', null]);
     a.setVolumes({ bgm: 5, sfx: -1, muted: true });
-    assert.deepEqual(a.volumes, { bgm: 1, sfx: 0, voice: 0.6, voiceLanguage:'kr', muted: true });
+    assert.deepEqual(a.volumes, { bgm: 1, sfx: 0, voice: 0.6, voiceLanguage:'kr', chatVolume: 0.5, muted: true });
     assert.equal(a.unlocked, false);
   });
   test('unlocks on the first gesture, then plays BGM and SFX from the manifest', async () => {

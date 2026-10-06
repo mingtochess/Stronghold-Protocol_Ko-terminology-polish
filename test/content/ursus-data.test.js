@@ -7,7 +7,7 @@ test('Local overlay: 8 new normal/elite operators, existing affiliations, valid 
  const data=loadData(dir.pathname),gd=new GameData(data),pool=new SharedPool(gd);setGameData(data);
  try{
   const newOps=Object.values(data.chess).filter(c=>c.chessId.startsWith('chess_custom_ursus_'));assert.equal(newOps.length,16);assert.equal(data.bonds.ursusShip.members.length,10);
-  for(const r of newOps){assert.ok(r.stats.maxHp>0);assert.equal(r.skill.index,/_(absin|turdus|botany)_[ab]$/.test(r.chessId)?0:1);assert.ok(data.garrisons[r.garrisonIds[0]]);assert.ok(pool.has(r.baseId));assert.equal(r.bonds[0],'ursusShip');}
+  for(const r of newOps){assert.ok(r.stats.maxHp>0);assert.equal(r.skill.index,/_(absin|turdus|botany)_[ab]$/.test(r.chessId)?0:/_headb2_[ab]$/.test(r.chessId)?2:1);assert.ok(data.garrisons[r.garrisonIds[0]]);assert.ok(pool.has(r.baseId));assert.equal(r.bonds[0],'ursusShip');}
   for(const r of Object.values(data.chess).filter(c=>['char_196_sunbr','char_4207_branch'].includes(c.charId)))assert.ok(r.bonds.includes('ursusShip'));
   for(const r of newOps){const combatData={...data,enemies:{...data.enemies,ursus_dummy:enemyRec({key:'ursus_dummy',hp:1e7,speed:0,atk:0})}};const h=makeBattle({data:combatData,enemies:[{key:'ursus_dummy',time:0,route:{motion:'WALK',start:[10,4],end:[10,2],checkpoints:[]}}],units:[{chessId:r.chessId,row:10,col:3}],bonds:{ursusShip:{active:false,count:1,tier:0,layers:0}},setup:b=>{b.allyUnits[0].skill.gainSp(100,'test')}});h.run(10);assert.equal(h.b.errorCount,0,r.name);checkInvariants(h.b);}
  }finally{setGameData(null)}
