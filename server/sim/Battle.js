@@ -275,6 +275,7 @@ export class Battle {
     const def = this.data.getChess(inp.chessId, { skillIndex: inp.skillIndex ?? null, moduleId: inp.moduleId ?? null, ...(inp.skinId ? {skinId: inp.skinId} : {}) });
     if (!def) { this.log(`unknown chess ${inp.chessId}`); return null; }
     const u = this._makeAlly(ps, def, 'op', r, c, { uid: inp.uid, dir });
+    u.placementOrder = Number.isFinite(inp.placementOrder) ? inp.placementOrder : null;
     u.items = [...(inp.items ?? [])];
     u.carry = inp.carryState ?? null;
     return u;
@@ -352,17 +353,12 @@ export class Battle {
     if (this.started) return;
     this.started = true;
     this._safe(() => this._spawnStageDevices(), 'stageDevices');
-    // PRTS 卫戍协议/帮助 §作战阶段: "按从上到下>从左到右的顺序部署。优先部署干员，随后为召唤物（如果有）", noted "自卫戍协议：
-    // 盟约 下半（2026/3/14）起，部署顺序由“从左到右>从下到上”更改为“从上到下>从左到右”" — a scanning order: down each column
-    // (top first), the columns from left to right; act 1's along each row, the rows from the bottom. It is the order PRTS
-    // gives the 阿戈尔 devour ("从最先部署（更靠左和靠上的）的【阿戈尔】干员开始", content/bonds/core.js egirOrder) and the one
-    // act-2 videos show. Per player the operators, left column first, top to bottom within a column (the mirrored right
-    // boss side from its own left, i.e. the highest field column — PRTS "部署顺序…左右镜像", research 01 §4.3), then the
-    // summon pieces in the same order. Until 0.1.3 the top row came first (row-major). [ASSUMED] On a shared field (联防,
-    // boss) the players' fields deploy at the same time (PRTS: one unit after another with a fixed delay, from the battle
-    // start), so the i-th operators of all players come in together (in `players` order), then the summons likewise
+    // Operators retain prep placement order across moves and swaps. Each player's
+    // i-th operator deploys together on shared fields; summons still follow operators.
+    // Legacy inputs without an order retain the position-based fallback.
     const seq0 = this._deploySeq;
     const lists = this.players.map((ps) => ps.units.filter((u) => u.kind === 'op' || u.kind === 'token').slice().sort((a, b) =>
+      (a.kind === 'op' && b.kind === 'op' && a.placementOrder != null && b.placementOrder != null ? a.placementOrder - b.placementOrder : 0) ||
       (ps.mirror ? b.homeC - a.homeC : a.homeC - b.homeC) || b.homeR - a.homeR || a.id - b.id));
     // a summon piece flagged `deferDeploy` by content (one its owner's loadout does not make — 赫默 on S1 with a drone
     // piece —, or a skill's summon when shared/constants.js SKILL_SUMMON_START_DEPLOY is off: content/tokens.js

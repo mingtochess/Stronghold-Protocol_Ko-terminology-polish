@@ -269,3 +269,18 @@ test('withdrawing a deployed summon into a full hand: HAND_FULL like any other c
   checkInvariants(m);
   m.dispose();
 });
+
+test('prep placement order survives moving, swapping and turning; withdrawing and re-placing goes last',()=>{
+ const {h,m,ps}=prepMatch();
+ const id=chessOfTier(1,MELEE).find(id=>m.pool.has(id));
+ const a=give(m,ps,id),b=give(m,ps,id);
+ const move=(p,row,col,dir='RIGHT')=>assert.deepEqual(ps.move(p.uid,{area:'board',row,col},dir),{ok:true});
+ move(a,9,4);move(b,9,3);assert.ok(a.placementOrder<b.placementOrder);
+ const first=a.placementOrder,last=b.placementOrder;
+ move(a,9,3);move(a,9,3,'LEFT');move(b,9,5);
+ assert.equal(a.placementOrder,first);assert.equal(b.placementOrder,last);
+ assert.deepEqual(ps.battleInput().units.map(u=>[u.uid,u.placementOrder]).sort((x,y)=>x[1]-y[1]),[[a.uid,first],[b.uid,last]]);
+ const slot=ps.hand.findIndex(p=>p==null);assert.deepEqual(ps.move(a.uid,{area:'hand',idx:slot}),{ok:true});
+ move(a,9,4);assert.ok(a.placementOrder>b.placementOrder);
+ h.m.dispose();
+});

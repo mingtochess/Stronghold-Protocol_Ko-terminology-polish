@@ -27,3 +27,13 @@ test('wave spawns wait for initial deployment while preserving their relative sp
  h.run(.3);assert.equal(h.enemies().length,2);
  assert.equal(h.hooksOf('battleStart').length,1);
 });
+
+for (const kind of ['normal','unite','boss','hidden']) test(`${kind}: explicit prep order survives shuffled tiles and boss mirroring`,()=>{
+ const op=chessRec({id:'ordered',skill:null});
+ const units=[{chessId:'ordered',row:9,col:8,placementOrder:1,uid:11},{chessId:'ordered',row:12,col:3,placementOrder:3,uid:33},{chessId:'ordered',row:10,col:4,placementOrder:2,uid:22}];
+ const h=makeBattle({kind,content:'generic',autoFinish:false,flags:{deploymentInterval:.2},defs:{chess:{ordered:op}},players:[{playerId:'p',side:'R',units}]});
+ h.b.start();h.run(.6);
+ const deployed=h.hooksOf('deploy').filter(e=>e.initial&&e.unit.kind==='op');
+ assert.deepEqual(deployed.map(e=>e.unit.uid),[11,22,33]);
+ assert.ok(deployed[1].unit.deployedAt>=.2-1e-6);assert.ok(deployed[2].unit.deployedAt>=.4-1e-6);
+});

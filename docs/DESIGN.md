@@ -2118,3 +2118,6 @@ The original boss rounds use 1×, as confirmed by the user's gameplay observatio
 ### Local continuation correction (2026-10-06)
 
 The local Egir normal→Unite continuation now carries the completed devour's ATK/block bonuses and shared/individual revive history through `unitsEnd.egirDevour`, result compaction, validation, and carryState. It does not run the same battle-start devour again. Earlier descriptions of Unite re-running devour above describe the previous behavior. HP/SP carry and disabling an active skill remain unchanged. This exception belongs to a round's continuation, not a new round.
+
+### 2026-10-06 prep placement order override
+Battle start deploys operators in their persistent prep placement order, not tile scan order. Moving or swapping deployed operators and changing facing preserve the order. Returning to the bench and placing again gets a new, later order. An automatic elite replacing a deployed copy inherits the replaced copy's order. Each player's sequence is retained on shared and mirrored boss fields; summon pieces still deploy after operators. This supersedes earlier position-based initial deployment descriptions; merge tile selection itself is unchanged.

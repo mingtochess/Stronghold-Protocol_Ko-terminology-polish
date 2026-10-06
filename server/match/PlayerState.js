@@ -128,6 +128,7 @@ export class PlayerState {
     this._tempDue = new Map();
     /** @type {Map<string, any>} 'r,c' → piece */
     this.board = new Map();
+    this._placementSeq = 0; // Persistent prep placement order, independent of tile positions.
     /** persistent bond layers */
     this.layers = {};
     /** computed bond states */
@@ -561,7 +562,7 @@ export class PlayerState {
       if (rc && rc.r === this.m.round) for (const [k, v] of Object.entries(rc.n)) this.bumpPieceRoundCount(elite, k, Math.max(0, v - this.pieceRoundCount(elite, k)));
     }
     const deployed = consumed.filter((l) => l.key && !this.board.has(l.key)).map((l) => ({ key: l.key, dir: pieceDir(l.piece) }));
-    const toTile = (t) => { elite.dir = parseDir(t.dir) || 'RIGHT'; this.board.set(t.key, elite); return 'board'; };
+    const toTile = (t) => { elite.placementOrder = consumed.find(l => l.key === t.key)?.piece.placementOrder ?? ++this._placementSeq; elite.dir = parseDir(t.dir) || 'RIGHT'; this.board.set(t.key, elite); return 'board'; };
     const tile = mergeTile(deployed, (r, c) => this._legal(elite, r, c));
     let where = tile ? toTile(tile) : this.stow(elite, { allowTemp: true });
     // hand and temp full and no deployed tile legal for it (a terrain change not re-checked yet): it stays on the first
@@ -1143,6 +1144,7 @@ export class PlayerState {
       }
     }
     piece.dir = dir;
+    piece.placementOrder = ++this._placementSeq;
     this.board.set(key, piece);
     this.grantTokensFor(piece);
     this.recompute();
@@ -1259,6 +1261,7 @@ export class PlayerState {
         if (!this._legal(occ, sr, sc)) return fail(ERR.BAD_TILE);
         // the bench card takes the withdrawn piece's tile with that tile's facing
         occ.dir = pieceDir(piece);
+        occ.placementOrder = ++this._placementSeq;
         this.board.set(loc.key, occ);
         this.hand[idx] = piece;
         this.removeTokensOf(piece.uid);
@@ -1566,7 +1569,7 @@ export class PlayerState {
     const units = [];
     for (const { r, c, piece } of boardOrder(this.board)) {
       if (piece.kind === 'chess') {
-        const u = { uid: piece.uid, kind: 'chess', chessId: piece.id, row: r, col: c, dir: pieceDir(piece), items: (piece.items || []).map((i) => i.id) };
+        const u = { uid: piece.uid, kind: 'chess', chessId: piece.id, placementOrder: piece.placementOrder, row: r, col: c, dir: pieceDir(piece), items: (piece.items || []).map((i) => i.id) };
         // DESIGN §16: the equipped skill / module (elite only) from the loadout (defaults when absent)
         const lo = this.loadoutFor(this.gd.chess(piece.id));
         u.skillIndex = lo.skillIndex;
