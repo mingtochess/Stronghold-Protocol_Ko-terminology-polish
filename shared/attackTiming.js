@@ -10,12 +10,28 @@ export function skillIsContinuous(sp, role) {
   const channels = {'char_388_mint':[1], 'char_291_aglina':[1], 'char_358_lisa':[2]};
   return skillIsStance(sp, role) || Object.entries(channels).some(([id, indices]) => key.includes(id) && indices.includes(role?.index) && role?.via !== 'attack' && !(role?.idle && role.idle !== role.loop));
 }
+// Explicit skill semantics; durations/names alone are not sufficient to classify a clip.
+export const NORMAL_ATTACK_BUFF_SKILLS = [
+ ['char_494_vendla',[0,1]], ['char_1020_reed2',[1]],
+ ['char_183_skgoat',[0]], ['char_381_bubble',[0]], ['char_150_snakek',[0]],
+ ['char_136_hsguma',[0,1]], ['char_128_plosis',[0]], ['char_213_mostma',[0]],
+ ['char_197_poca',[0,1]], ['char_1023_ghost2',[0]],
+];
+const ACTIVATION_GESTURE_SKILLS = [
+ ['char_494_vendla',[0,1]], ['char_1020_reed2',[1]], ['char_1023_ghost2',[0]],
+];
 export function selectedSkillClip(sp, index) {
   const role = sp?.anims?.skills?.[String(index)] || null;
-  // Vendela's short Skill clip is the activation gesture of her stat/counter buff.
-  // Her normal attacks retain Attack while S1/S2 runs.
-  if (/char_494_vendla/.test(sp?.skel || '') && role && [0,1].includes(index))
-    return {...sp.anims.attack, begin:null, end:null, index, via:'attack', activation:role.loop};
+  // These buffs retain ordinary attacks. Unnumbered Skill/Skill_Loop may
+  // belong to a different skill, so do not infer an attack replacement from it.
+  const ordinary = NORMAL_ATTACK_BUFF_SKILLS.find(([id, indices]) =>
+    (sp?.skel || '').includes(id) && indices.includes(index));
+  if (ordinary && role && sp?.anims?.attack) {
+    const activation = ACTIVATION_GESTURE_SKILLS.some(([id, indices]) =>
+      (sp.skel || '').includes(id) && indices.includes(index));
+    return {...sp.anims.attack, begin:null, end:null, index, via:'attack',
+      ...(activation && role.via !== 'attack' && role.loop !== sp.anims.attack.loop ? {activation:role.loop} : {})};
+  }
   // Utage's unnumbered Skill_Start/Loop/End is her sheathed S1, not S2.
   if (index === 1 && /char_337_utage/.test(sp?.skel || '') && role && skillIsStance(sp, role))
     return {...sp.anims.attack, begin:null, end:null, index, via:'attack'};

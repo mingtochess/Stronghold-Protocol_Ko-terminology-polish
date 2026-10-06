@@ -1,4 +1,5 @@
 import {test} from 'node:test';
+import {NORMAL_ATTACK_BUFF_SKILLS} from '../shared/attackTiming.js';
 import assert from 'node:assert/strict';
 import {existsSync,readFileSync} from 'node:fs';
 import {join} from 'node:path';
@@ -33,4 +34,17 @@ test('production Ursus balance matches the release and custom operator definitio
   assert.equal(rec.skill.index,op.skillIndex,op.name);
  }
  assert.match(JSON.stringify(garrisons),/공격 속도/);
+});
+
+test('production attack timings agree with ordinary-attack buff roles',()=>{
+ const chess=read('data/chess.json');
+ for(const c of Object.values(chess)){
+  const indices=NORMAL_ATTACK_BUFF_SKILLS.find(([id])=>c.charId===id)?.[1];
+  if(!indices)continue;
+  for(const face of ['front','back'])for(const index of indices){
+   const timing=c.attackTiming?.[face];if(!timing)continue;
+   assert.equal(timing.skills[index],undefined,`${c.chessId}/${face}/S${index+1}`);
+   assert.ok(timing.attack.hit>=0&&timing.attack.dur>0);
+  }
+ }
 });

@@ -1,8 +1,10 @@
 import {test,before,after} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
+import {NORMAL_ATTACK_BUFF_SKILLS,spineAttackTiming} from '../../shared/attackTiming.js';
 import {installFakePixi} from './fakepixi.js';
 const assets=JSON.parse(readFileSync(new URL('../../data/assets.json',import.meta.url)));
+const releaseAssets=JSON.parse(readFileSync(new URL('../../content/production/data/assets.json',import.meta.url)));
 let fake,SpineActor;
 before(async()=>{fake=installFakePixi();({SpineActor}=await import('../../public/js/render/spine.js'));});
 after(()=>fake.restore());
@@ -54,5 +56,28 @@ test('Vendela buffs use normal attacks and play the short gesture only on activa
   const e=a.spine.state.tracks[0];a.update(.567);a.attack(1.6);
   assert.equal(a.spine.state.tracks[0],e);a.update(.799);assert.equal(a.current,'Attack');
   a.update(.01);assert.equal(a.current,'Idle');
+ }
+});
+
+test('ordinary-attack buffs retain normal attack clips and timing for every equipped model',()=>{
+ let checked=0;
+ for(const [id,indices] of NORMAL_ATTACK_BUFF_SKILLS)for(const [assetId,value] of Object.entries(releaseAssets.chars))for(const [face,entry] of Object.entries(value.spine||{})){
+  if(!(entry?.skel||'').includes(id)||!entry.anims?.attack)continue;
+  for(const index of indices){
+   if(!entry.anims.skills?.[index])continue;
+   const a=actor(entry,index);
+   assert.equal(a._attackClip().loop,entry.anims.attack.loop,`${assetId}/${face}/S${index+1}`);
+   assert.equal(a._continuousSkillLoop(),false);
+   assert.equal(spineAttackTiming(entry).skills[index],undefined);
+   checked++;
+  }
+ }
+ assert.ok(checked>=24,`checked ${checked} model/skill combinations`);
+});
+test('true channel skills keep their separate authored loops',()=>{
+ for(const [id,index] of [['char_136_hsguma',2],['char_150_snakek',1],['char_381_bubble',1],['char_197_poca',2],['char_128_plosis',1],['char_183_skgoat',1]]){
+  const a=actor(releaseAssets.chars[id].spine.front,index);
+  assert.notEqual(a.roles.skill.loop,a.roles.attack.loop,id);
+  assert.equal(a.roles.skill.via,undefined,id);
  }
 });
