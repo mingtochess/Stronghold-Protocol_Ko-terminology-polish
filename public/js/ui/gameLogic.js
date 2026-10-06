@@ -22,6 +22,7 @@
 //   (research 09 §1.2); board drops of units go through the wheel before g.move {uid, to, dir} (ui/facing.js).
 
 import { GEO, PHASE, UF } from '../../../shared/constants.js';
+import { chatNotificationSound, defaultChatCooldown } from '../chatNotificationSounds.js';
 import { resolveLoadout, loadoutOptions, MODULE_NONE } from '../../../shared/protocol.js';
 import { resolveRecordLoadout, loadoutRecord, attackRangeGrid } from '../../../shared/loadoutRecord.js';
 import { meleeOnHighGround } from '../../../shared/highGround.js';
@@ -1718,7 +1719,7 @@ export function shortcutBlocked(act, { modal = false, drawer = false } = {}) {
 
 // ---- settings ------------------------------------------------------------------------------------------------------
 
-export const DEFAULT_SETTINGS = Object.freeze({ bgm: 0.6, sfx: 0.8, voice: 0.6, voiceLanguage: 'kr', muted: false, damageNumbers: true, quality: 'high' });
+export const DEFAULT_SETTINGS = Object.freeze({ bgm: 0.6, sfx: 0.8, voice: 0.6, voiceLanguage: 'kr', chatVolume: 0.5, chatSound: 'notification-glass', chatFactionNotifications: false, chatCooldown: defaultChatCooldown('notification-glass'), muted: false, damageNumbers: true, quality: 'high' });
 const QUALITIES = ['high', 'medium', 'low'];
 
 /**
@@ -1729,10 +1730,15 @@ const QUALITIES = ['high', 'medium', 'low'];
 export function sanitizeSettings(raw) {
   const r = isObj(raw) ? raw : {};
   const vol = (v, d) => (Number.isFinite(v) ? clamp(Math.round(v * 100) / 100, 0, 1) : d);
+  const chatSound = r.chatSound === 'off' || chatNotificationSound(r.chatSound) ? r.chatSound : DEFAULT_SETTINGS.chatSound;
   return {
     bgm: vol(r.bgm, DEFAULT_SETTINGS.bgm),
     sfx: vol(r.sfx, DEFAULT_SETTINGS.sfx),
     voice: vol(r.voice, DEFAULT_SETTINGS.voice),
+    chatVolume: vol(r.chatVolume, DEFAULT_SETTINGS.chatVolume),
+    chatSound,
+    chatFactionNotifications: typeof r.chatFactionNotifications === 'boolean' ? r.chatFactionNotifications : DEFAULT_SETTINGS.chatFactionNotifications,
+    chatCooldown: Number.isFinite(r.chatCooldown) ? clamp(Math.round(r.chatCooldown), 1, 5) : defaultChatCooldown(chatSound),
     voiceLanguage: r.voiceLanguage === 'jp' ? 'jp' : 'kr',
     muted: typeof r.muted === 'boolean' ? r.muted : DEFAULT_SETTINGS.muted,
     damageNumbers: typeof r.damageNumbers === 'boolean' ? r.damageNumbers : DEFAULT_SETTINGS.damageNumbers,

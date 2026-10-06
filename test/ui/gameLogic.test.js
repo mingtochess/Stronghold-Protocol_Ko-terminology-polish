@@ -518,9 +518,19 @@ describe('keyboard & settings', () => {
   test('sanitizeSettings', () => {
     assert.deepEqual(sanitizeSettings(null), { ...DEFAULT_SETTINGS });
     assert.deepEqual(sanitizeSettings({ bgm: 3, sfx: -1, muted: 'yes', damageNumbers: false, quality: 'ultra' }),
-      { bgm: 1, sfx: 0, voice: 0.6, voiceLanguage:'kr', muted: false, damageNumbers: false, quality: 'high' });
+      { ...DEFAULT_SETTINGS, bgm: 1, sfx: 0, muted: false, damageNumbers: false, quality: 'high' });
     assert.equal(sanitizeSettings({ bgm: 0.333 }).bgm, 0.33);
     assert.equal(sanitizeSettings({ quality: 'low' }).quality, 'low');
+    assert.equal(sanitizeSettings({chatVolume: 3}).chatVolume, 1);
+    assert.equal(sanitizeSettings({chatVolume: -1}).chatVolume, 0);
+    assert.equal(sanitizeSettings({chatSound: 'off'}).chatSound, 'off');
+    assert.equal(sanitizeSettings({chatSound: 'unknown'}).chatSound, DEFAULT_SETTINGS.chatSound);
+    assert.equal(sanitizeSettings({chatSound: 'melantha-etto'}).chatCooldown, 2);
+    assert.equal(sanitizeSettings({chatSound: 'melantha-etto', chatCooldown: 3.1}).chatCooldown, 3);
+    assert.equal(sanitizeSettings({chatCooldown: 0}).chatCooldown, 1);
+    assert.equal(sanitizeSettings({chatCooldown: 100}).chatCooldown, 5);
+    assert.equal(sanitizeSettings({chatFactionNotifications: true}).chatFactionNotifications, true);
+    assert.equal(sanitizeSettings({chatFactionNotifications: 'true'}).chatFactionNotifications, false);
   });
 });
 

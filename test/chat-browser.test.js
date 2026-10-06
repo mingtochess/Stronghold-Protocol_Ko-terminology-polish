@@ -12,7 +12,7 @@ test('two browsers chat over real game sockets: toggle, unread, safe text, Korea
   { skip: !existsSync(chrome), timeout: 60000 }, async () => {
     const fixtureDir = await mkdtemp(path.join(tmpdir(), 'stronghold-chat-'));
     const publicDir = fileURLToPath(new URL('../public/', import.meta.url));
-    for (const name of ['js', 'vendor', 'css', 'assets']) await symlink(path.join(publicDir, name), path.join(fixtureDir, name));
+    for (const name of ['js', 'vendor', 'css', 'assets', 'audio']) await symlink(path.join(publicDir, name), path.join(fixtureDir, name), process.platform === 'win32' ? 'junction' : 'dir');
     const server = await startServer({ port: 0, host: '127.0.0.1', quiet: true, publicDir: fixtureDir });
     const puppeteer = (await import('puppeteer-core')).default;
     let browser;
@@ -164,7 +164,13 @@ test('two browsers chat over real game sockets: toggle, unread, safe text, Korea
       await host.waitForFunction(()=>window.store.get().chatFaction==='염국', {polling:100});
       await host.waitForFunction(()=>document.querySelector('.game-chat__faction-toggle').textContent==='염국', {polling:100});
       await host.click('.game-chat__faction-toggle');
-      await host.screenshot({path:'/tmp/stronghold-chat-factions.png'});
+      await host.screenshot({path:path.join(tmpdir(), 'stronghold-chat-factions.png')});
+      await new Promise(resolve=>setTimeout(resolve,1100));
+      await host.click('.game-chat__faction-clear');
+      await host.waitForFunction(()=>window.store.get().chatFaction===null);
+      await host.waitForFunction(()=>document.querySelector('.game-chat__faction-toggle').textContent==='진영 선택');
+      await guest.waitForFunction(()=>window.store.get().chat.at(-1)?.text==='진영 선택 취소');
+      assert.equal(await guest.$('.game-chat__messages p:last-child .game-chat__faction'),null,'clear removes faction from subsequent messages');
       const room=server.lobby.rooms.get(code);
       room.match.finish({victory:true,reason:'victory'});
       await host.waitForFunction(()=>window.store.get().match.result, {polling:100});

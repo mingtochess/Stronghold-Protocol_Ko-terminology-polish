@@ -294,7 +294,7 @@ export const C2S = {
   'g.ready': { ready: isBool },
   'g.emote': { id: (v) => EMOTES.includes(v) },
   'g.chat': { text: (v) => !!normalizeChatText(v) },
-  'g.chatFaction': { faction: (v) => !!chatFaction(v) },
+  'g.chatFaction': { faction: (v) => v === null || !!chatFaction(v) },
   'g.watch': { fieldId: (v) => isStr(v, 32) },
   'g.autoplay': { on: isBool },
   // solo pause (official PauseUp / ResumeUp, DESIGN §14): freezes the running battle (field clock, deadlines, the

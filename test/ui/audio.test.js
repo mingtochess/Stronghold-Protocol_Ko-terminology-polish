@@ -132,6 +132,50 @@ function fakeWindow() {
 }
 
 describe('AudioManager', () => {
+  test('chat has an independent volume, drops bursts, and obeys mute/hidden state', async () => {
+    const fw = fakeWindow();
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = async () => ({ok: true, arrayBuffer: async () => new ArrayBuffer(8)});
+    try {
+      const a = new AudioManager({win: fw.win, getManifest: () => null});
+      a.install(); fw.fire('pointerdown');
+      a.setVolumes({sfx: 0, voice: 0, chatVolume: .4});
+      assert.equal(a.chatGain.gain.value, .4 ** 2);
+      assert.equal(await a.chatNotification('melantha-etto'), true, 'SFX and battle voice mute do not mute chat');
+      const source = a.chatNode;
+      assert.equal(await a.chatNotification('ceobe-dadada'), false, 'active clip blocks another sound');
+      source.onended();
+      assert.equal(await a.chatNotification('ceobe-dadada'), false, 'cooldown applies across sound choices');
+      const nextAt = a.chatNextAt;
+      a.setVolumes({chatCooldown: 31});
+      assert.equal(a.chatNextAt - a.chatLastStartedAt, 5000, 'shared setting controls cooldown');
+      a.setVolumes({chatCooldown: 4});
+      assert.equal(a.chatNextAt - a.chatLastStartedAt, 4000, 'changing shared setting updates current cooldown');
+      assert.notEqual(a.chatNextAt, nextAt);
+      const beforePreview = a.chatNextAt;
+      assert.equal(await a.chatNotification('ceobe-dadada', {preview: true}), true);
+      assert.equal(a.chatNextAt, beforePreview, 'preview does not reset the notification cooldown');
+      a.setVolumes({chatVolume: 0});
+      assert.equal(a.chatNode, null);
+      assert.equal(await a.chatNotification('ceobe-dadada', {preview: true}), false);
+      a.setVolumes({chatVolume: 1, muted: true});
+      assert.equal(await a.chatNotification('ceobe-dadada', {preview: true}), false);
+      a.setVolumes({muted: false}); fw.win.document.hidden = true;
+      assert.equal(await a.chatNotification('ceobe-dadada', {preview: true}), false);
+    } finally { globalThis.fetch = originalFetch; }
+  });
+  test('turning chat off during a download cancels pending playback', async () => {
+    const fw = fakeWindow();
+    let resolveBuffer;
+    const a = new AudioManager({win: fw.win, getManifest: () => null});
+    a._buffer = () => new Promise(resolve => { resolveBuffer = resolve; });
+    a.install(); fw.fire('pointerdown');
+    const pending = a.chatNotification('kroos-kokodayo');
+    a.setVolumes({chatSound: 'off'});
+    resolveBuffer({duration: 2.9});
+    assert.equal(await pending, false);
+    assert.equal(a.chatNode, null);
+  });
   test('no AudioContext / no manifest: every call is a silent no-op', () => {
     const a = new AudioManager({ win: null, getManifest: () => null });
     a.install();
@@ -141,7 +185,7 @@ describe('AudioManager', () => {
     assert.equal(a.unit('char_x', 'attack', 1), false);
     a.handleBattleEvents([['atk', 1, 2, 'arrow'], 'junk', null]);
     a.setVolumes({ bgm: 5, sfx: -1, muted: true });
-    assert.deepEqual(a.volumes, { bgm: 1, sfx: 0, voice: 0.6, voiceLanguage:'kr', muted: true });
+    assert.deepEqual(a.volumes, { bgm: 1, sfx: 0, voice: 0.6, voiceLanguage:'kr', chatVolume: 0.5, muted: true });
     assert.equal(a.unlocked, false);
   });
   test('unlocks on the first gesture, then plays BGM and SFX from the manifest', async () => {

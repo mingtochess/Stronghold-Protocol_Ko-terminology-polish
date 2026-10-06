@@ -36,6 +36,7 @@
 
 import { PHASE } from '../../shared/constants.js';
 import { mediaUrl } from './media.js';
+import { chatNotificationSound, defaultChatCooldown } from './chatNotificationSounds.js';
 
 const MAX_VOICES = 8;
 const UNIT_COOLDOWN_MS = 160;
@@ -395,7 +396,15 @@ export class AudioManager {
     this.bgmGain = null;
     this.sfxGain = null;
     this.voiceGain = null;
-    this.volumes = { bgm: 0.6, sfx: 0.8, voice: 0.6, voiceLanguage:'kr', muted: false };
+    this.chatGain = null;
+    this.chatNode = null;
+    this.chatPending = false;
+    this.chatGeneration = 0;
+    this.chatNextAt = 0;
+    this.chatLastStartedAt = null;
+    this.chatLastDurationMs = 0;
+    this.chatCooldown = defaultChatCooldown('notification-glass');
+    this.volumes = { bgm: 0.6, sfx: 0.8, voice: 0.6, voiceLanguage:'kr', chatVolume: 0.5, muted: false };
     this.buffers = new Map(); // url → Promise<AudioBuffer|null> (insertion order = LRU)
     this.bufBytes = new Map(); // url → decoded PCM bytes (the byte budget of the LRU, see _buffer)
     this.warned = new Set();
@@ -458,9 +467,11 @@ export class AudioManager {
       this.bgmGain = this.ctx.createGain();
       this.sfxGain = this.ctx.createGain();
       this.voiceGain = this.ctx.createGain();
+      this.chatGain = this.ctx.createGain();
       this.bgmGain.connect(this.master);
       this.sfxGain.connect(this.master);
       this.voiceGain.connect(this.master);
+      this.chatGain.connect(this.master);
       this.master.connect(this.ctx.destination);
       // iOS / iPadOS: a call, Siri or another app's audio moves a running context to 'interrupted' (or 'suspended');
       // a resume without a gesture may then be refused — listen for the next gesture again (dropped once it runs)
@@ -535,14 +546,20 @@ export class AudioManager {
    */
   setVolumes(v) {
     const n = (x, d) => (Number.isFinite(x) ? Math.max(0, Math.min(1, x)) : d);
+    if (Number.isFinite(v?.chatCooldown)) {
+      this.chatCooldown = Math.max(1, Math.min(5, Math.round(v.chatCooldown)));
+      if (this.chatLastStartedAt !== null) this.chatNextAt = this.chatLastStartedAt + Math.max(this.chatCooldown * 1000, this.chatLastDurationMs + 500);
+    }
     this.volumes = {
       bgm: n(v?.bgm, this.volumes.bgm),
       sfx: n(v?.sfx, this.volumes.sfx),
       voice: n(v?.voice, this.volumes.voice),
+      chatVolume: n(v?.chatVolume, this.volumes.chatVolume),
       voiceLanguage: v?.voiceLanguage === 'jp' ? 'jp' : 'kr',
       muted: typeof v?.muted === 'boolean' ? v.muted : this.volumes.muted,
     };
     if (v?.muted || v?.voice === 0) this._stopVoice();
+    if (v?.muted || v?.chatVolume === 0 || v?.chatSound === 'off') this.stopChatNotification();
     this._applyVolumes();
     this.warmVoices([...this.units.values()].filter(u=>u.kind==='op').map(u=>u.def));
   }
@@ -557,6 +574,7 @@ export class AudioManager {
       this.sfxGain.gain.setTargetAtTime(this.volumes.sfx ** 2 * 0.9, t, 0.03);
       // no 0.9: a voice line is already mastered as loud as the rest of the official mix (settings 干员语音 tunes it)
       this.voiceGain.gain.setTargetAtTime(this.volumes.voice ** 2, t, 0.03);
+      this.chatGain.gain.setTargetAtTime(this.volumes.chatVolume ** 2, t, 0.03);
     } catch { /* ignore */ }
   }
 
@@ -749,6 +767,47 @@ export class AudioManager {
       for (const n of cur.nodes) { try { n.src.stop(t + FADE_S + 0.05); } catch { /* ignore */ } }
       setTimeout(() => { try { cur.gain.disconnect(); } catch { /* ignore */ } }, (FADE_S + 0.3) * 1000);
     } catch { /* ignore */ }
+  }
+
+  stopChatNotification() {
+    this.chatGeneration++;
+    this.chatPending = false;
+    if (this.chatNode) { try { this.chatNode.stop(); } catch { /* already stopped */ } }
+    this.chatNode = null;
+  }
+
+  /** Independent chat channel. Suppressed messages are dropped, never queued. */
+  async chatNotification(id, { preview = false } = {}) {
+    const sound = chatNotificationSound(id);
+    const now = () => typeof performance !== 'undefined' ? performance.now() : Date.now();
+    if (!sound || !this.ctx || this.ctx.state !== 'running' || this.win?.document?.hidden ||
+        this.volumes.muted || this.volumes.chatVolume <= 0) return false;
+    if (preview) this.stopChatNotification();
+    else if (this.chatPending || this.chatNode || now() < this.chatNextAt) return false;
+    const generation = this.chatGeneration;
+    this.chatPending = true;
+    const requestedAt = now();
+    try {
+      const buffer = await this._buffer(`/audio/chat-notification/${sound.id}.mp3`);
+      if (generation !== this.chatGeneration || !buffer || now() - requestedAt > 2000 ||
+          this.ctx.state !== 'running' || this.win?.document?.hidden || this.volumes.muted || this.volumes.chatVolume <= 0) return false;
+      const source = this.ctx.createBufferSource();
+      source.buffer = buffer;
+      source.connect(this.chatGain);
+      this.chatNode = source;
+      source.onended = () => {
+        if (this.chatNode === source) this.chatNode = null;
+        try { source.disconnect(); } catch { /* ignore */ }
+      };
+      source.start();
+      if (!preview) {
+        this.chatLastStartedAt = now();
+        this.chatLastDurationMs = buffer.duration * 1000;
+        this.chatNextAt = this.chatLastStartedAt + Math.max(this.chatCooldown * 1000, this.chatLastDurationMs + 500);
+      }
+      return true;
+    } catch (error) { this._warn(`chat:${id}`, error); return false; }
+    finally { if (generation === this.chatGeneration) this.chatPending = false; }
   }
 
   // ---- SFX ------------------------------------------------------------------------------------------------

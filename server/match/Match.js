@@ -1119,18 +1119,18 @@ export class Match {
   }
 
   selectChatFaction(ps, faction) {
-    if (!chatFaction(faction)) return fail(ERR.BAD_MSG, 'unknown chat faction');
+    if (faction !== null && !chatFaction(faction)) return fail(ERR.BAD_MSG, 'unknown chat faction');
     if (ps.chatFaction === faction) return OK;
     const now = this.sched.now();
     if (now - ps.lastChatFactionAt < CHAT_COOLDOWN_MS) return fail(ERR.RATE);
     ps.lastChatFactionAt = now;
     ps.chatFaction = faction;
-    this.publishChat(ps, `진영 선택: ${faction}`);
+    this.publishChat(ps, faction === null ? '진영 선택 취소' : `진영 선택: ${faction}`, 'faction');
     return OK;
   }
 
-  publishChat(ps, text) {
-    const message = { id: ++this.chatSequence, playerId: ps.playerId, name: ps.name, faction: ps.chatFaction, text, at: this.sched.now() };
+  publishChat(ps, text, kind = 'text') {
+    const message = { id: ++this.chatSequence, playerId: ps.playerId, name: ps.name, faction: ps.chatFaction, text, kind, at: this.sched.now() };
     this.chatHistory.push(message);
     if (this.chatHistory.length > CHAT_HISTORY_LIMIT) this.chatHistory.shift();
     this.broadcast({ t: 'm.chat', ...message });

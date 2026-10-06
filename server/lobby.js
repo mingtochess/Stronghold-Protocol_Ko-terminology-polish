@@ -837,7 +837,7 @@ export class Lobby {
     if (!seat || seat.isBot || seat.left) return fail(ERR.NOT_IN_ROOM);
     const selecting = msg.t === 'g.chatFaction';
     if (selecting && msg.faction === '우르수스' && !room.customFactions) return fail(ERR.BAD_MSG);
-    const text = selecting ? (chatFaction(msg.faction) ? `진영 선택: ${msg.faction}` : '') : normalizeChatText(msg.text);
+    const text = selecting ? (msg.faction === null ? '진영 선택 취소' : chatFaction(msg.faction) ? `진영 선택: ${msg.faction}` : '') : normalizeChatText(msg.text);
     if (!text) return fail(ERR.BAD_MSG);
     const member = room.chatMembers.get(session.playerId) || {faction:null,lastChatAt:-Infinity,lastFactionAt:-Infinity};
     if (selecting && member.faction === msg.faction) return OK;
@@ -847,7 +847,7 @@ export class Lobby {
     member[key] = now;
     if (selecting) member.faction = msg.faction;
     room.chatMembers.set(session.playerId, member);
-    const message = {id:++room.chatSequence,playerId:session.playerId,name:seat.name,spectator:!!spectator,faction:member.faction,text,at:now};
+    const message = {id:++room.chatSequence,playerId:session.playerId,name:seat.name,spectator:!!spectator,faction:member.faction,text,kind:selecting?'faction':'text',at:now};
     room.chatHistory.push(message);
     if (room.chatHistory.length > CHAT_HISTORY_LIMIT) room.chatHistory.shift();
     this.broadcastRoom(room, {t:'m.chat',...message});
