@@ -344,14 +344,22 @@ export function PauseButton({ paused, busy = false, onToggle }) {
  *   live: the own battle's pending LP loss (liveLp): the tower shows lp − pending in red with a −N tick, 联防中 during 联防;
  *     `left` (a leaker in 联防): its enemies still standing — the capsule's ×N tag
  */
+export function currentPlayerLp(pub, priv, playerId) {
+  if (priv?.playerId === playerId && Number.isFinite(priv.lp)) return priv.lp;
+  const p = pub?.players?.find(p => p.playerId === playerId);
+  return Number.isFinite(p?.lp) ? p.lp : null;
+}
+
 export function TopBar({ pub, priv, conn, hud, total, drawer, onExit, onDrawer, onReady, readyBusy, readyCount, playerCount, pen = false, penAvail = false, onPen = () => {},
   config = null, frozenAt = null, pause = null, live = null, spectator = false,
-  spectators = null, myId = null, isHost = false, onRemoveSpectator = null }) {
+  spectators = null, myId = null, isHost = false, onRemoveSpectator = null, watchedPlayerId = null, liveTeamLp = null }) {
   const phase = pub?.phase;
   const boss = isBossPhase(phase);
-  const lp = boss && Number.isFinite(pub?.teamLp) ? pub.teamLp : Number.isFinite(priv?.lp) ? priv.lp : null;
+  const playerId = spectator ? watchedPlayerId : myId;
+  const lp = boss && Number.isFinite(liveTeamLp ?? pub?.teamLp) ? (liveTeamLp ?? pub.teamLp) : currentPlayerLp(pub, priv, playerId);
+  const watched = spectator ? pub?.players?.find(p => p.playerId === playerId) : null;
   // normal rounds: the leaks of the own battle so far (boss rounds: the team LP above already moves live)
-  const pending = !boss && Number.isFinite(lp) && live && live.pending > 0 ? Math.min(lp, live.pending) : 0;
+  const pending = !boss && Number.isFinite(lp) ? Math.min(lp, Math.max(0, Number(spectator ? watched?.pendingLp : live?.pending) || 0)) : 0;
   const hidden = phase === PHASE.HIDDEN_CORE || (Number.isFinite(pub?.lastRound) && pub.round > pub.lastRound);
   const roundText = hidden ? '??' : pub?.round > 0 ? String(pub.round) : '--';
   // a spectator seat (no m.private, community report #26) never readies

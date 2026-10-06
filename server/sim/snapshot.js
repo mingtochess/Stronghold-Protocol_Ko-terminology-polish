@@ -51,6 +51,7 @@ export function unitInfo(u) {
     skillZoneGrid: showsSkillArea(u) ? (d.skill.rangeGrid?.length ? d.skill.rangeGrid : d.rangeGrid) : undefined,
     omnidirectional: !!u.profile?.allInRange, fixedFacing:!!u.profile?.fixedFacing,
     skinId: d.loadout?.skinId, charId: d.raw?.charId,
+    skillId: u.side === 'ally' ? d.skill?.skillId : undefined,
     skillIndex: u.side === 'ally' && Number.isInteger(d.skill?.index) ? d.skill.index : undefined,
     // DESIGN §16: an elite ally's equipped module (uniEquipId | 'none'; display only — a teammate's unit in a shared
     // field shows its owner's module in the detail card)

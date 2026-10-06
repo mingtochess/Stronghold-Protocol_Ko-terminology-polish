@@ -320,7 +320,7 @@ export class SkillRuntime {
       // DEFAULT (and unknown rules) for units that cannot attack right now: check the initial range every tick;
       // content trigger ranges are checked every tick for everyone (nothing may be in the unit's own range)
       const prof = u.profile;
-      if (prof && (prof.noAttack || (prof.noAttackUnlessSkill && !this.active))) {
+      if (prof && (prof.noAttack || (prof.noAttackUnlessSkill && !this.active) || (this.isTimed && (this.spec.triggerProfile || this.spec.targeting?.canHitFly)))) {
         if (this._defaultCondition()) this.activate('DEFAULT');
       } else if (this.triggerRanges.length && !this.healSkill && this._extraTriggerSatisfied()) this.activate('DEFAULT');
     }
@@ -391,7 +391,9 @@ export class SkillRuntime {
     const keys = u.baseRangeKeys || u.rangeKeys;
     if (keys) {
       if (this.healSkill) return b.injuredAlliesInKeys(keys, u).length > 0;
-      if (b.enemiesInKeys(keys, u, u.profile).length > 0) return true;
+      const air = this.spec.targeting?.canHitFly;
+      const profile = { ...u.profile, ...(air == null ? {} : { canHitFly: air, ...(air ? {groundOnly:false} : {}) }), ...this.spec.triggerProfile };
+      if (b.enemiesInKeys(keys, u, profile).length > 0) return true;
     }
     // the enemies a unit blocks are always its targets (Battle.blockedTargets), in range or not — PRTS 卫戍协议/帮助
     // "敌人被近战干员自身阻挡" satisfies the target condition of the basic strategy (a ranged blocker too: user playtest #6)
@@ -443,9 +445,10 @@ export class SkillRuntime {
       this.ammoMax = this.ammoLeft;
       this._applyMods();
     } else {
-      // instant / charges
+      // A one-shot effect explicitly marked `noAttack` is not a pending next attack. It must end after onStart;
+      // otherwise noAttack prevents updateAlly from ever reaching the attack that would clear `pending`.
       this.active = true;
-      this.pending = !!this.spec.attack;
+      this.pending = !!this.spec.attack && !this.spec.attack.noAttack;
       // (a targeting-only instant skill must still switch to its skill range for the pending attack)
       if (this.spec.mods || this.spec.flags || this.spec.targeting) this._applyMods();
     }

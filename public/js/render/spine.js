@@ -1,4 +1,4 @@
-import {skillIsStance,selectedSkillClip} from '../../../shared/attackTiming.js';
+import {skillIsContinuous,selectedSkillClip} from '../../../shared/attackTiming.js';
 // render/spine.js — Spine battle chibi wrapper + animation state machine (research 07 §5.4–5.5, ASSETS.md Roles).
 //
 // SpineActor owns one PIXI.spine.Spine built from cached skeleton data (assets.spine LRU; the instance never
@@ -82,6 +82,13 @@ export class SpineActor {
     this.spine = new P.spine.Spine(spineData);
     this.spine.autoUpdate = false;
     this.names = new Set((spineData.animations || []).map((a) => a.name));
+    // Older manifests missed Stun_Loop / Stun_Idle aliases. Resolve from the
+    // actual equipped model, including skins and enemy models.
+    if (!this.roles.stun) {
+      const find = (...names) => [...this.names].find(n => names.some(x => n.toLowerCase() === x.toLowerCase()));
+      const loop = find('Stun', 'Stun_Loop', 'Stun_Idle', 'Stunned', 'Dizzy');
+      if (loop) this.roles = {...this.roles, stun:{begin:find('Stun_Begin','Stun_Start'),loop,end:find('Stun_End')}};
+    }
     /**
      * Clipping attachments render as stencil masks (≈1.5 ms of GPU each per frame on tiled GPUs): such skeletons
      * are drawn through the impostor atlas while clipping is on. Masks are
@@ -212,7 +219,7 @@ export class SpineActor {
   _idleName() {
     const sk = this.roles.skill;
     if (this.skillOn && sk && this.has(sk.idle)) return sk.idle;
-    if (this.skillOn && sk && skillIsStance(this.entry,sk) && this.has(sk.loop)) return sk.loop;
+    if (this.skillOn && sk && skillIsContinuous(this.entry,sk) && this.has(sk.loop)) return sk.loop;
     return this.has(this.roles.idle) ? this.roles.idle : (this.has('Idle') ? 'Idle' : [...this.names][0]);
   }
 
@@ -260,7 +267,9 @@ export class SpineActor {
   _enterStun() {
     if (this.mode === 'stun') return;
     this.mode = 'stun';
-    const s = this.roles.stun;
+    const suffix=String(this.roles.idle || '').match(/_(\d+)$/)?.[1];
+    const fallback=[...this.names].find(n=>suffix && n.toLowerCase()===`stun_${suffix}`) || [...this.names].find(n=>/^stun(?:_loop|_idle|_\d+)?$/i.test(n));
+    const s = this.roles.stun || (fallback ? {loop:fallback} : null);
     if (s && this.has(s.loop)) {
       if (this.has(s.begin)) { this._play(s.begin, false); this._queue(s.loop, true); }
       else this._play(s.loop, true);
@@ -383,14 +392,14 @@ export class SpineActor {
   // only an idle-typed skill loop is treated as buff-only.
   _skillIsBuffOnly() {
     const sk = this.roles.skill;
-    return !!sk && (sk.loop === this.roles.idle || skillIsStance(this.entry,sk));
+    return !!sk && (sk.loop === this.roles.idle || skillIsContinuous(this.entry,sk));
   }
 
-  // A hit-less Skill_Loop is a continuous channel/stance (e.g. Indigo and
-  // Ptilopsis S2), rather than a separate clip to restart on every attack/heal.
+  // Continuous channels (including Mint S2 with OnAttack markers) must not
+  // restart their authored pose on every simulation attack/heal.
   _continuousSkillLoop() {
     const sk = this.roles.skill;
-    return this.skillOn && sk && sk.loop !== this.roles.idle && this.has(sk.loop) && skillIsStance(this.entry, sk);
+    return this.skillOn && sk && sk.loop !== this.roles.idle && this.has(sk.loop) && skillIsContinuous(this.entry, sk);
   }
 
   /**

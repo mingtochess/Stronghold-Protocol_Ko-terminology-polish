@@ -9,6 +9,8 @@ export async function buildSkillSounds(root,dir){
  const chess=await read(join(dir,'chess.json')),assets=await read(join(dir,'assets.json'));
  assets.audio.bgm.prep=assets.audio.bgm.lobby; // official mode theme during rest; never retain a battle loop
  const units=assets.audio.sfx.units,files=[],audit=[];
+ const leak=audio.bank('battle.ON_ENEMY_REACHED_EXIT')[0];
+ if(leak){assets.audio.sfx.battle.leak=`/assets/audio/sfx/${leak}`;files.push({path:assets.audio.sfx.battle.leak,sources:[RAW.aa2voice+leak]});}
  for(const [id,records]of Map.groupBy(Object.values(chess),c=>c.charId)){
   if(!id)continue;
   const skills=new Map(records.flatMap(c=>c.skills||[c.skill]).filter(Boolean).map(s=>[s.index,s]));

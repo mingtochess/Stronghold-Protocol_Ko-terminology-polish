@@ -67,9 +67,9 @@ test('combat limits and the boss overtime are REAL seconds (code) and the docs s
   assert.equal(gd.combatTimeScale, 2);
   assert.equal(gd.combatTimeLimit(1), 2 * gd.combatTimeLimitReal(1), 'Battle limit = 2 × data (game s)');
   assert.equal(gd.bossOvertimeAfterReal, 150);
-  assert.equal(gd.bossOvertimeDue(300), 0, 'nothing at 150 real s = 300 game s');
-  assert.equal(gd.bossOvertimeDue(302), 1, 'the first point at 151 real s');
-  assert.equal(gd.bossOvertimeDue(320), 10, '1 LP per real second');
+  assert.equal(gd.bossOvertimeDue(150), 0, 'nothing at 150 real s = 150 game s');
+  assert.equal(gd.bossOvertimeDue(151), 1, 'the first point at 151 real s');
+  assert.equal(gd.bossOvertimeDue(160), 10, '1 LP per real second');
   assert.equal(gd.bossLevelTime(14), 120, 'the Final Assault countdown (not a hard stop)');
   // DESIGN
   assert.ok(!/overtime −1 LP\/s after 150 s game time/.test(DESIGN), 'DESIGN §6.1: no game-second overtime');
@@ -570,8 +570,8 @@ test('playtest6b follow-up (DESIGN §20.10–§20.13): leader HP, 直接乘算, 
   assert.match(s209, /\| A merge's elite \(§20\.11\) \| takes the consumed deployed copy's tile/);
   assert.match(s209, /`shared\/constants\.js BOND_LAYER_CAP = 0`/);
   assert.match(s209, /`shared\/constants\.js BOSS_HIT_LIMIT = 0`/);
-  assert.match(s209, /Settled by the user \("保持固定血量"\)[^\n]*aliveScaling` is \*\*false\*\*/);
-  assert.equal(DATA.config.bossHpScale.aliveScaling, false, 'the user chose the fixed leader pool');
+  assert.match(s209, /Settled by the user \(2026-10-06\)[^\n]*aliveScaling` is \*\*true\*\*/);
+  assert.equal(DATA.config.bossHpScale.aliveScaling, true, 'the user chose per-participant leader HP');
   assert.equal(SIM_CONST.DIRECT_BONUS_STACKING, 'add');
   assert.match(s209, /DIRECT_BONUS_STACKING = 'multiply'/);
   // the normative lines

@@ -10,8 +10,8 @@ function setup(n,layers=0){
 }
 test('Ursus 2: no drone or speed buff',()=>{const h=setup(2);h.step(1);assert.equal(h.b.allyUnits.filter(u=>u.defId===DRONE_ID).length,0);close(h.unit('u0_a').s.aspd,100)});
 for(const n of [3,5,6])test(`Ursus ${n}: one drone, layer scaling, selective +50 ASPD`,()=>{
- const h=setup(n,10);h.step(1);const d=h.b.allyUnits.find(u=>u.defId===DRONE_ID);assert.ok(d);close(d.s.atk,1450);close(d.s.maxHp,18850);close(d.hp,d.s.maxHp);close(d.s.aspd,n===6?150:100);close(h.unit('u0_a').s.aspd,n===6?150:100);close(h.unit('u6_a').s.aspd,100);
- h.b.addLayers('p1','ursusShip',20,'test');h.step(2);close(d.s.atk,1850);close(d.s.maxHp,24050);close(d.s.aspd,n===6?150:100);assert.equal(h.b.allyUnits.filter(u=>u.defId===DRONE_ID).length,1);checkInvariants(h.b);
+ const h=setup(n,10);h.step(1);const d=h.b.allyUnits.find(u=>u.defId===DRONE_ID);assert.ok(d);close(d.s.atk,1750);close(d.s.maxHp,22750);close(d.hp,d.s.maxHp);close(d.s.aspd,n===6?150:100);close(h.unit('u0_a').s.aspd,n===6?150:100);close(h.unit('u6_a').s.aspd,100);
+ h.b.addLayers('p1','ursusShip',20,'test');h.step(2);close(d.s.atk,2250);close(d.s.maxHp,29250);close(d.s.aspd,n===6?150:100);assert.equal(h.b.allyUnits.filter(u=>u.defId===DRONE_ID).length,1);checkInvariants(h.b);
 });
 test('Default official data has no experimental faction, operators, or drone',()=>{
  for(const [file,key]of [['bonds','ursusShip'],['tokens',DRONE_ID],['chess','chess_custom_ursus_helage_a']])assert.equal(JSON.parse(readFileSync(new URL(`../../data/${file}.json`,import.meta.url)))[key],undefined);
@@ -22,9 +22,9 @@ test('Coop Ursus effects and live layer gains stay with the owning player',()=>{
  const h=makeBattle({kind:'unite',flags:{layerGainsEnabled:true},rect:{r0:9,r1:12,c0:2,c1:18},defs:{chess,tokens:{[DRONE_ID]:drone},enemies:{dummy:enemyRec({key:'dummy',hp:1e8,speed:0,atk:0})}},players:[
  {playerId:'p1',units:[{chessId:'u_a',row:10,col:3}],bonds:state(6,0)},
  {playerId:'p2',colOffset:8,units:[{chessId:'u_a',row:10,col:12}],bonds:state(3,20)}]});
- h.step(1);const d1=h.b.allyUnits.find(u=>u.defId===DRONE_ID&&u.ownerId==='p1'),d2=h.b.allyUnits.find(u=>u.defId===DRONE_ID&&u.ownerId==='p2');assert.ok(d1&&d2);close(d1.s.atk,1250);close(d2.s.atk,1650);close(d1.s.aspd,150);close(d2.s.aspd,100);
+ h.step(1);const d1=h.b.allyUnits.find(u=>u.defId===DRONE_ID&&u.ownerId==='p1'),d2=h.b.allyUnits.find(u=>u.defId===DRONE_ID&&u.ownerId==='p2');assert.ok(d1&&d2);close(d1.s.atk,1500);close(d2.s.atk,2000);close(d1.s.aspd,150);close(d2.s.aspd,100);
  for(const u of h.b.allyUnits.filter(u=>u.kind==='op'))close(u.s.aspd,u.ownerId==='p1'?150:100);
- h.b.addLayers('p2','ursusShip',10,'test');h.step(2);close(d1.s.atk,1250);close(d2.s.atk,1850);checkInvariants(h.b);
+ h.b.addLayers('p2','ursusShip',10,'test');h.step(2);close(d1.s.atk,1500);close(d2.s.atk,2250);checkInvariants(h.b);
 });
 
 test('Drone +50 ASPD shortens actual launches from five seconds to 3.33 seconds',()=>{
@@ -39,11 +39,11 @@ test('Drone +50 ASPD shortens actual launches from five seconds to 3.33 seconds'
  assert.deepEqual(counts,[3,4]);
 });
 
-test('drone pursues the enemy nearest the base despite other enemies in range, fires while travelling, and resumes',()=>{
+test('drone pursues a priority boss despite other enemies in range, fires while travelling, and resumes',()=>{
  const h=setup(3);h.step();const d=h.b.allyUnits.find(u=>u.defId===DRONE_ID);d.x=8;d.y=10;d.atkCd=1;
  const leading=h.spawn('dummy',{pos:[10,3],route:{motion:'WALK',start:[10,3],end:[10,2],checkpoints:[]}});
  const nearby=h.spawn('dummy',{pos:[10,7],route:{motion:'WALK',start:[10,7],end:[10,2],checkpoints:[]}});
- leading.base.moveSpeed=nearby.base.moveSpeed=0;leading.markDirty();nearby.markDirty();
+ leading.isBoss=true;leading.base.moveSpeed=nearby.base.moveSpeed=0;leading.markDirty();nearby.markDirty();
  h.run(.5);assert.ok(d.x<8,'does not park beside an in-range trailing enemy');const x=d.x;
  h.run(.7);assert.ok(d.stats.attacks>=1,'fires when cooldown expires during pursuit');
  assert.ok(h.eventsOf('atk').some(e=>e[1]===d.id&&e[2]===nearby.id),'fires at nearest base enemy within current radius');
@@ -60,4 +60,77 @@ test('drone cannot receive external heals and targets large enemy bodies interse
   // Use the same body shape as the stationary bosses (half width one tile).
  enemy.hitArea={width:3,height:1,offsetX:0,offsetY:0};
  assert.ok(d.profile.acquireTargets(h.b,d).includes(enemy),'body, not just its centre, can be within firing range');
+});
+
+test('Ursus shell excludes concealed enemies at impact and hits them after reveal',()=>{
+ const h=setup(3);h.run(2);const d=h.b.allyUnits.find(u=>u.defId===DRONE_ID);
+ const route={motion:'WALK',start:[11,7],end:[11,2],checkpoints:[]};
+ const target=h.spawn('dummy',{pos:[11,7],route}),hidden=h.spawn('dummy',{pos:[11,7.1],route});
+ h.b.addBuff(hidden,{key:'test:stealth',flags:{stealth:true},duration:100});d.profile.noAttack=true;
+ const hp=hidden.hp;
+ h.b.emit('attack',{attacker:d,targets:[target]});h.run(3.1);
+ assert.equal(hidden.hp,hp,'an unblocked concealed enemy is not a splash target');assert.ok(target.hp<target.s.maxHp);
+ h.b.addBuff(hidden,{key:'test:reveal',flags:{reveal:true},duration:100});
+ h.b.emit('attack',{attacker:d,targets:[target]});h.run(3.1);assert.ok(hidden.hp<hp,'revealed enemies are hit normally');
+});
+
+test('six Ursus reveals only enemies inside the live drone radius',async()=>{
+ const {enemyStealthed}=await import('../../server/sim/targeting.js');
+ const h=setup(6);h.step();const d=h.b.allyUnits.find(u=>u.defId===DRONE_ID);d.profile.noAttack=true;
+ const e=h.spawn('dummy',{pos:[11,7],route:{motion:'WALK',start:[11,7],end:[11,2],checkpoints:[]}});
+ h.b.addBuff(e,{key:'hidden',flags:{stealth:true},duration:100});d.x=7;d.y=11;
+ h.run(.1);assert.equal(enemyStealthed(e),false);
+ d.x=13;h.run(.3);assert.equal(enemyStealthed(e),true,'leaving detection range restores stealth');
+ d.x=7;h.run(.1);assert.equal(enemyStealthed(e),false);
+ h.b.kill(d,null);h.run(.3);assert.equal(enemyStealthed(e),true,'dead drone has no detection aura');
+});
+test('drone ASPD shortens the shell delay as well as attack cooldown',()=>{
+ for(const n of [3,6]){
+  const h=setup(n);h.step();const d=h.b.allyUnits.find(u=>u.defId===DRONE_ID);d.profile.noAttack=true;
+  const e=h.spawn('dummy',{pos:[11,7],route:{motion:'WALK',start:[11,7],end:[11,2],checkpoints:[]}});
+  const hp=e.hp;h.b.emit('attack',{attacker:d,targets:[e]});
+  const flight=n===6?2:3;h.run(flight-.1);assert.equal(e.hp,hp);
+  h.run(.2);assert.ok(e.hp<hp);
+ }
+});
+
+test('drone movement gets a fixed 50 percent boost, independent of Ursus layers',async()=>{
+ const {MOVE_SCALE}=await import('../../server/sim/constants.js');
+ for(const layers of [0,100]){
+  const h=setup(3,layers);h.step();const d=h.b.allyUnits.find(u=>u.defId===DRONE_ID);d.profile.noAttack=true;d.x=9;d.y=11;d.lastAttackAt=-100;
+  h.spawn('dummy',{pos:[11,3],route:{motion:'WALK',start:[11,3],end:[11,2],checkpoints:[]}});
+  const x=d.x;h.run(.2);close(x-d.x,.5*MOVE_SCALE*1.5*.2);
+ }
+});
+
+
+test('drone approach priority is boss, in-range blocked, outside blocked, other base-nearest enemies',async()=>{
+ const {droneTargets}=await import('../../server/sim/content/ursus.js');const h=setup(3);h.step();
+ const d=h.b.allyUnits.find(u=>u.defId===DRONE_ID);d.x=7;d.y=11;
+ const spawn=x=>h.spawn('dummy',{pos:[11,x],route:{motion:'WALK',start:[11,x],end:[11,2],checkpoints:[]}});
+ const close=spawn(3),outer=spawn(4),inner=spawn(7.5),boss=spawn(9.5);
+ outer.blockedBy=h.unit('u0_a');inner.blockedBy=h.unit('u1_a');boss.isBoss=true;
+ assert.deepEqual(droneTargets(h.b,d).map(e=>e.id),[boss.id,inner.id,outer.id,close.id]);
+ assert.deepEqual(droneTargets(h.b,d,true).map(e=>e.id),[inner.id]);
+});
+test('attack speed debuffs and increased attack intervals cannot slow the drone, buffs still work',()=>{
+ const h=setup(6);h.step();const d=h.b.allyUnits.find(u=>u.defId===DRONE_ID);
+ assert.equal(h.b.applyStatus(d,'aspdDown',{duration:10,value:-30}),false);
+ h.b.addBuff(d,{key:'slow',mods:{aspd:-200,batPct:.8,atkPct:-.1},duration:100});
+ h.b.addBuff(d,{key:'speed',mods:{aspd:30},duration:100});close(d.s.aspd,180);close(d.s.bat,5);
+ assert.ok(d.s.atk<1500,'other debuffs are not discarded');
+});
+test('aim follows a moving target and changes dead or out-of-range targets without resetting its deadline',()=>{
+ for(const reason of ['death','range']){
+ const h=setup(3);h.step();const d=h.b.allyUnits.find(u=>u.defId===DRONE_ID);d.profile.noAttack=true;d.x=7;d.y=11;
+ const spawn=x=>h.spawn('dummy',{pos:[11,x],route:{motion:'WALK',start:[11,x],end:[11,2],checkpoints:[]}});
+ const a=spawn(7),b=spawn(8);h.b.emit('attack',{attacker:d,targets:[a]});h.run(.8);
+ if(reason==='death')h.b.kill(a,null);else a.x=10;
+ h.run(.2);assert.ok(h.eventsOf('fx').some(e=>e[1]==='bombardAim'&&e[4].target===b.id));
+ b.x=8.2;h.run(1.5);b.x=8.3;h.run(.2);
+ const locked=h.eventsOf('fx').find(e=>e[1]==='bombardAim'&&e[4].target===null);assert.ok(locked);
+ const spot=locked[2];b.x=9.5;h.run(.4);
+ const hit=h.eventsOf('fx').find(e=>e[1]==='bombard');assert.ok(hit);close(hit[2],spot);
+ assert.equal(h.eventsOf('fx').filter(e=>e[1]==='bombardShell').length,1,'retarget never restarts the bombardment');
+ }
 });

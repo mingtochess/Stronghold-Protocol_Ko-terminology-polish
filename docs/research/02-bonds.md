@@ -373,12 +373,12 @@ Members (11 chess, 10 in current shop pool; by tier in shop: {'1': 1, '2': 1, '3
 
 - **[3 distinct]** 阿戈尔 members maxHP x(1 + 0.35 + 0.01*L).
 - **[3 distinct (battle start)]** Devour (吞噬): see algorithm.
-- **[5 distinct]** The first 3 阿戈尔 members by position — the devour order below (step 1), i.e. the deployment order, fixed at battle start — each revive immediately on their own first knock-out, whatever the order of knock-outs (max_free_respawn_cnt 3; PRTS 阿戈尔 备注 "从最先部署（更靠左和靠上的）的【阿戈尔】干员开始", players' videos; until 0.1.3 the remake gave them to the first 3 members knocked out). A devour knock-out of one of them spends its revive (it stays standing, step 4); any other member the devour knocks out stays down.
+- **[5 distinct]** The first 3 eligible knock-outs share immediate revives (max_free_respawn_cnt 3), regardless of deployment position; each member can benefit only once. A devour knock-out can spend a shared revive and cancels the revived target's pending marks. A forced exit or Skadi's module preventing a knock-out spends no shared revive.
 - Algorithm:
   1. Order: 阿戈尔 members sorted leftmost first, then topmost ("更靠左和靠上").
   2. Each 阿戈尔 in order marks the unit on the tile directly in front of it (its facing direction) and also the front-tile unit of every 阿戈尔 it has marked (chain). It never marks itself, a unit it already marked, or a unit that marked it.
   3. The marker immediately gains the base ATK of every unit it marked (added to base ATK at the final stage) and their block counts.
-  4. After all marks are placed, each mark makes its target suffer one 5000-point physical 流失 (HP loss, source = the target itself; if it dies, the kill is credited to the marker), resolved in marking order. A target knocked out for the first time has its pending marks cancelled ("目标首次被击倒后解除自身被付与但还未触发的【吞噬】效果") — also when it is back at once (the 5-tier revive, 不屈's 立刻重新部署, 埃芒加德, M3茧甲), so a revived member is not devoured again. DESIGN §22.3.
+  4. After all marks are placed, each mark makes its target suffer one 5000-point physical 流失 (HP loss, source = the target itself; if it dies, the kill is credited to the marker), resolved in marking order. A target knocked out for the first time has its pending marks cancelled ("目标首次被击倒后解除自身被付与但还未触发的【吞噬】效果") — also when it is back at once (the 5-tier revive, 不屈's 立刻重新部署, 埃芒加德, M3茧甲), so a revived member is not devoured again. Marks already placed by a dead marker still resolve. Skadi's module prevents retreat without changing deployment, so her pending marks continue. DESIGN §22.3.
   5. Each devoured unit adds layers to 阿戈尔 equal to its tier (1-6), once per unit per battle.
   6. (5-member tier) Revive is implemented as: when the unit leaves the field for any reason other than being moved, its next deployment has 0 redeploy time and 0 cost (PRTS). Devour layers: each devoured unit adds its tier once per battle (refreshes next round).
 - Formulas: `hpMultiplier = 1.35 + 0.01*L`; `devourDamage = 5000`; `layersPerDevoured = tier of devoured unit`
@@ -1339,7 +1339,7 @@ Bond items for 变形同构体 (`chess_item_6_09_e`, "携带者获得额外盟�
 
 Written 2026-09-27 by the completeness critic. Sources: the official 3/27 notice (`ak.hypergryph.com/news/8584`), PRTS `卫戍协议：盟约_下半` 更新记录, BWIKI `盟约` / `盟约/S.W.E.E.P.报告`, and the screenshot `i.meee.com.tw/9H7Kugy.png`.
 
-1. **§8 Q1 (华法琳 cap): resolved → use 12 per battle normal, 24 elite.** The official 3/27 notice says "调整每场战斗至多获得的层数". PRTS gives the numbers: "付与的特质的叠层上限从初始7/精锐14提升至初始12/精锐24". The client data (`garrison_72_*` → `garrison_95_*`, `max_add_count_per_battle` 7/14) was not updated for this line, although it already carries the other 3/27 changes: 奇迹 `baseprob` 0.18, 远见 80/150, 商业包装方案 8/7. Override `max_add_count_per_battle` to 12/24.
+1. **§8 Q1 (华法琳 cap): corrected for #175 → use the data's 7 per battle normal, 14 elite.** The previous implementation overrode `garrison_95_*` to 12/24 based on a patch-note interpretation, contradicting both `max_add_count_per_battle` and the displayed `garrison_72_*` descriptions. Remove that override in both battle simulation and client-result validation. Each activation adds 1/2 layers to each active bond; the seventh activation reaches the 7/14 cap and later activations add nothing. The earlier references to 12/24 above are historical research, not the implemented rule.
 2. **Per-match incomplete bonds (new, verified).** See 01 Addendum A2.
    - Each match disables a random set D: 3 core + 4 add-on in NORMAL+; the static list + 1 add-on in FUNNY.
    - Every operator whose bonds are **all** in D leaves the pool.

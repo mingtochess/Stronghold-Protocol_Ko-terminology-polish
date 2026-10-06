@@ -475,3 +475,14 @@ test('CHAR_DAMAGE tickers: a client result names only its own unit types (board,
   assert.deepEqual(v.result.perPlayer.p.unitStats.map((u) => u.defId), [vigil, wolf, 'enemy_9012_acloon']);
   m.dispose();
 });
+
+test('Egir continuation survives compacting/validation; carry changes affect the result digest',()=>{
+ const state={processed:true,atkFlat:1500,blockCnt:2,revives:1,revived:false};
+ const unit={uid:1,chessId:'chess_char_1_01_a',row:10,col:3};
+ const spec=buildBattleSpec({fieldId:'n:p',kind:'normal',timeLimit:60,players:[{playerId:'p',units:[unit],bonds:{egirShip:{count:3,active:true,layers:0,tier:1}}}],spawns:[]});
+ const raw={reason:'timeout',time:30,killed:0,total:0,errors:0,perPlayer:{p:perPlayer({total:0,unitsEnd:[{uid:1,defId:unit.chessId,hpPct:.7,sp:1,alive:true,egirDevour:state}]})}};
+ const compact=compactResult(raw);assert.deepEqual(compact.perPlayer.p.unitsEnd[0].egirDevour,state);
+ const checked=validateClientResult(spec,compact,{gd});assert.ok(checked.ok,checked.reason);assert.deepEqual(checked.result.perPlayer.p.unitsEnd[0].egirDevour,state);
+ const hash=resultDigest(compact);compact.perPlayer.p.unitsEnd[0].egirDevour.atkFlat+=1;assert.notDeepEqual(resultDigest(compact),hash);
+ compact.perPlayer.p.unitsEnd[0].egirDevour.revives=4;assert.equal(validateClientResult(spec,compact,{gd}).ok,false);
+});

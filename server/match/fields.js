@@ -3,7 +3,7 @@
 // Server-run combat (legacy streaming mode, SP_COMBAT=server; and the Final Assault when no field has a connected human):
 // FieldRunner steps every live field in lockstep:
 //   * real-time pacing (RealScheduler, or VirtualScheduler with instantCombat=false): an interval every 1000/30 ms
-//     accumulates elapsed real time × the match's game speed (forced 2×; `opts.combatSpeed` in tests/tools) and
+//     accumulates elapsed real time × the match's phase speed (normal 2×, boss 1×; `opts.combatSpeed` in tests/tools) and
 //     steps floor(acc / TICK) ticks, never more than maxTicksPerInterval(speed) (8 at 2×) per interval — the
 //     remainder is dropped so a stalled server never spirals.
 //   * instant (VirtualScheduler default): every field is stepped to completion synchronously.
@@ -33,7 +33,6 @@ import { TICK, SNAPSHOT_EVERY } from '../sim/constants.js';
 import { layerGainRoom } from '../../shared/constants.js';
 import { offspringMods } from '../../shared/enemyRewards.js';
 import { uniteLeft } from '../sim/spec.js';
-import { GRANTED_CAP_OVERRIDE } from '../sim/content/garrisons/battle.js';
 
 export const MAX_TICKS_PER_INTERVAL = 8;
 export const INTERVAL_MS = 1000 / 30;
@@ -578,8 +577,8 @@ function layerBondsOf(p, gd) {
  * §21.26): the traits of its units (garrisons with `bond_add_count` / `bond_add_count_multi`) and the ones their ADD_BOND
  * traits hand out (`give_garrison_id`, counted for every operator of the player — "所有【X】" reaches them all), each on
  * the bonds it names (`bond_by_id` ids; `bond_self` / `bond_actived_maxstack`: every bond of the player's snapshot and
- * units), up to the per-battle cap the sim applies (content/garrisons/battle.js: `max_add_count_per_battle`, the handed-out
- * 华法琳 trait's GRANTED_CAP_OVERRIDE). A trait the data gives no cap (初雪 / 银灰's freeze trait, 菲莱 / 百炼嘉维尔's per-skill
+ * units), up to the per-battle cap the sim applies (content/garrisons/battle.js: `max_add_count_per_battle`).
+ * A trait the data gives no cap (初雪 / 银灰's freeze trait, 菲莱 / 百炼嘉维尔's per-skill
  * 萨尔贡, 斯卡蒂's per-kill …) — or a 魔王, whose +extra on every trait gain counts toward no cap — leaves its bonds bounded
  * only by the room under 999 (Infinity here): such boards legitimately gain hundreds of layers a battle.
  * @returns {Map<string, number>} bondId → extra allowance (Infinity: uncapped)
@@ -591,23 +590,22 @@ function layerAllowanceOf(p, gd) {
   const lineup = new Set(Object.keys(p.bonds && typeof p.bonds === 'object' ? p.bonds : {}));
   for (const u of units) for (const b of gd.chess(u.chessId)?.bonds || []) lineup.add(b);
   let extra = false;
-  const credit = (g, times, handedOut) => {
+  const credit = (g, times) => {
     const bb = g.bb || {};
     if (Number.isFinite(bb.extra_cnt)) { extra = true; return; }
     if (!Number.isFinite(bb.bond_add_count) && !Number.isFinite(bb.bond_add_count_multi)) return;
     const s = g.bbStr || {};
     const bonds = s.bond_type === 'bond_by_id' ? String(s.bond_id ?? '').split(',').map((x) => x.trim()).filter((x) => gd.bond(x)) : [...lineup];
-    const override = handedOut ? GRANTED_CAP_OVERRIDE[g.garrisonId] : undefined;
-    const cap = override ?? (Number(bb.max_add_count_per_battle) > 0 ? Number(bb.max_add_count_per_battle) : Infinity);
+    const cap = Number(bb.max_add_count_per_battle) > 0 ? Number(bb.max_add_count_per_battle) : Infinity;
     for (const b of bonds) out.set(b, (out.get(b) || 0) + cap * times);
   };
   for (const u of units) {
     for (const gid of gd.chess(u.chessId)?.garrisonIds || []) {
       const g = gd.garrison(gid);
       if (!g || g.eventType !== 'IN_BATTLE') continue;
-      if (g.effectKey !== 'ADD_BOND') { credit(g, 1, false); continue; }
+      if (g.effectKey !== 'ADD_BOND') { credit(g, 1); continue; }
       const given = gd.garrison(g.bbStr?.give_garrison_id);
-      if (given && given.eventType === 'IN_BATTLE') credit(given, units.length, true);
+      if (given && given.eventType === 'IN_BATTLE') credit(given, units.length);
     }
   }
   if (extra) for (const b of out.keys()) out.set(b, Infinity);
@@ -834,7 +832,12 @@ export function validateClientResult(spec, raw, { gd = null } = {}) {
         if (!u || !Number.isInteger(u.uid) || !own.all.has(u.uid) || seen.has(u.uid)) continue;
         seen.add(u.uid);
         if (!finiteIn(u.hpPct, 0, 1) || !finiteIn(u.sp, 0, 1e5)) return bad('unit state');
-        unitsEnd.push({ uid: u.uid, defId: own.all.get(u.uid), hpPct: u.hpPct, sp: u.sp, skillActive: !!u.skillActive, alive: !!u.alive && u.hpPct > 0 });
+        let egirDevour;
+        if (u.egirDevour?.processed === true) {
+          if (!own.bonds.has('egirShip') || !finiteIn(u.egirDevour.atkFlat, 0, 1e5) || !finiteIn(u.egirDevour.blockCnt, 0, 200) || !Number.isInteger(u.egirDevour.revives) || !finiteIn(u.egirDevour.revives, 0, 3)) return bad('egir state');
+          egirDevour = { processed: true, atkFlat: u.egirDevour.atkFlat, blockCnt: u.egirDevour.blockCnt, revives: u.egirDevour.revives, revived: !!u.egirDevour.revived };
+        }
+        unitsEnd.push({ uid: u.uid, defId: own.all.get(u.uid), hpPct: u.hpPct, sp: u.sp, skillActive: !!u.skillActive, alive: !!u.alive && u.hpPct > 0, ...(egirDevour ? { egirDevour } : {}) });
       }
       const unitStats = [];
       for (const u of Array.isArray(p.unitStats) ? p.unitStats : []) {

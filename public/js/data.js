@@ -21,6 +21,7 @@
 import { useEffect, useReducer } from '../vendor/hooks.module.js';
 import { store } from './store.js';
 import { customFactionData } from '../../shared/customFactions.js';
+import { isCustomStage } from '../../shared/customExtensions.js';
 
 /** Known data files (name → URL basename). Unknown names are allowed too (`/data/<name>.json`). */
 export const DATA_FILES = Object.freeze({
@@ -277,6 +278,10 @@ function matchIndex(name, raw) {
 export const matchData = {
   get(name) {
     const raw = data.get(name), pub = store.get().match?.public;
+    if (raw && pub && name === 'stages') {
+      const chosen = new Set(pub.customExtensions?.stages || []);
+      return Object.fromEntries(Object.entries(raw).filter(([id,s]) => !isCustomStage(id,s) || chosen.has(id)));
+    }
     if (!raw || !pub || pub.customFactions === true || !['chess','bonds','items','bands'].includes(name)) return raw;
     let cached = matchViews.get(raw);
     if (!cached) { cached = customFactionData({[name]:raw},false)[name]; matchViews.set(raw,cached); }

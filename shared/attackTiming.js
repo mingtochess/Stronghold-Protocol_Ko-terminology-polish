@@ -3,6 +3,13 @@ import {FORMS} from './animationForms.js';
 export function skillIsStance(sp, role) {
   return !!(sp?.hits?.[sp?.anims?.attack?.loop]?.length && role?.loop && !sp?.hits?.[role.loop]?.length && !(role.idle && role.idle !== role.loop));
 }
+// Authored channels can contain OnAttack markers without being one-shot attacks.
+// Keep their timing metadata; only the renderer suppresses per-attack restarts.
+export function skillIsContinuous(sp, role) {
+  const key = sp?.skel || '';
+  const channels = {'char_388_mint':[1], 'char_291_aglina':[1], 'char_358_lisa':[2]};
+  return skillIsStance(sp, role) || Object.entries(channels).some(([id, indices]) => key.includes(id) && indices.includes(role?.index) && role?.via !== 'attack' && !(role?.idle && role.idle !== role.loop));
+}
 export function selectedSkillClip(sp, index) {
   const role = sp?.anims?.skills?.[String(index)] || null;
   // Utage's unnumbered Skill_Start/Loop/End is her sheathed S1, not S2.

@@ -15,6 +15,7 @@ import { html, Button, Icon, MicroLabel, Panel, TextField, PingPill, AvatarFrame
 import { toast, toastError } from '../ui/toasts.js';
 import { GuideButton } from '../ui/guide.js';
 import { SettingsButton } from '../ui/settings.js';
+import { PatchNotesButton } from '../ui/patchNotes.js';
 import { LangButton } from '../i18n/LangButton.js';
 import { LoadoutButton } from './loadout.js';
 import { net, identity } from '../net.js';
@@ -326,7 +327,7 @@ export function LobbyScreen() {
       </div>
       <div class="topbar__right">
         <${LangButton} class="lobby-lang" variant="secondary" />
-        <${SettingsButton} />
+        <${PatchNotesButton} autoOpen=${true} /><${SettingsButton} />
         <${GuideButton} class="lobby-guide" variant="secondary" />
         <${LoadoutButton} from="lobby" size="sm" class="lobby-loadout" />
         <div class="me-chip">

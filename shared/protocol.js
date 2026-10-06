@@ -1,4 +1,5 @@
 // Normative message catalogue (DESIGN §8). Used by server (validation) and client (building requests).
+import { extensionSelectionShape } from './customExtensions.js';
 // Every client→server message is `{ t, rid?, ...fields }`. Unknown `t` or invalid fields ⇒ ERR.BAD_MSG.
 
 import { DIFFICULTIES, NAME_MAX_LEN, ROOM_CODE_LEN, MAX_SEATS, EMOTES, GEO, isSpectatorCap } from './constants.js';
@@ -253,6 +254,7 @@ export const C2S = {
   'room.leave': {},
   'room.ready': { ready: isBool },
   'room.setCustomFactions': { enabled: isBool },
+  'room.setCustomExtensions': { selection: extensionSelectionShape },
   'room.setDifficulty': { difficulty: (v) => DIFFICULTIES.includes(v) },
   'room.addBot': {},
   'room.removeBot': { seat: (v) => isInt(v, 0, MAX_SEATS - 1) },

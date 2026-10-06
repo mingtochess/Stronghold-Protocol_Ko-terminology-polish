@@ -444,12 +444,13 @@ export function presetCamera(kind, viewport, options) {
   // the Final Assault prep happens on the boss field: a 'prep' camera asked for the boss rows is the boss one
   if (k === 'prep' && rect && rect.r1 <= 6) k = 'bossPrep';
   const preset = CAMERA_PRESETS[k];
+  const frameBench = opts.observedBench && ['normal', 'unite', 'boss'].includes(k);
   const side = opts.side === 'R' ? 'R' : 'L';
   const W = Math.max(1, finite(viewport?.width, 1)), H = Math.max(1, finite(viewport?.height, 1));
   const knownRect = !rect || sameRect(rect, preset.rect) || (k === 'prep' && rect.r0 >= 6 && rect.r1 <= 12 && rect.c1 <= 10)
     || (k === 'normal' && rect.r0 >= 6 && rect.r1 <= 13) || (k === 'unite' && rect.r0 >= 6 && rect.r1 <= 13)
     || (k === 'boss' && rect.r1 <= 6) || k === 'bossPrep' || k === 'pen';
-  const useOfficial = !opts.fit && knownRect && W / H >= 4 / 3 - 1e-6;
+  const useOfficial = !opts.fit && !frameBench && knownRect && W / H >= 4 / 3 - 1e-6;
   if (useOfficial) {
     const table = opts.half && preset.half ? preset.half : opts.shop === false && preset.officialNoShop ? preset.officialNoShop : preset.official;
     const key = table[side];
@@ -464,6 +465,7 @@ export function presetCamera(kind, viewport, options) {
     if (k === 'bossPrep' && side === 'R') rect = { ...rect, c0: 20 - preset.rect.c1, c1: 20 - preset.rect.c0 };
   }
   if (k === 'prep') rect = { ...rect, r0: Math.min(rect.r0, 7) };
+  if (frameBench) rect = { ...rect, r0: Math.min(rect.r0, k === 'boss' ? 0 : 7) };
   if (opts.half && (k === 'boss' || k === 'unite')) {
     const mid = Math.floor((rect.c0 + rect.c1) / 2);
     rect = side === 'R' ? { ...rect, c0: mid } : { ...rect, c1: mid };

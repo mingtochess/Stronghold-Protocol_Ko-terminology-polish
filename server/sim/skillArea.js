@@ -5,10 +5,12 @@ const AREA_SKILLS = new Set([
   'skchr_demkni_2', 'skchr_demkni_3', 'skchr_shining_3', 'skchr_cgbird_3',
   'skchr_slbell_2', 'skchr_indigo_2', 'skchr_haini_2', 'skchr_rosesa_2',
   'skchr_skadi2_2', 'skchr_skadi2_3', 'skchr_sora_2', 'skchr_heidi_1', 'skchr_heidi_2',
-  'skchr_mlynar_3', 'skchr_sbell2_3',
+  'skchr_mlynar_3', 'skchr_sbell2_3', 'skchr_mint_1', 'skchr_mint_2',
 ]);
 export function showsSkillArea(u) {
   if (u?.side !== 'ally') return false;
+  // A queued next-attack effect is not a sustained area, even with its own grid.
+  if (u.skill?.pending || (!u.skill?.isTimed && u.skill?.spec?.attack && ['instant','charges'].includes(u.skill.kind))) return false;
   // Compare live tiles with the permanent base range: also handles kit-generated
   // grids and skill buffs instead of relying on a growing operator-ID list.
   if (u.skill?.active && Array.isArray(u.rangeKeys) && Array.isArray(u.baseRangeKeys)) {

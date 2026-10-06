@@ -1,0 +1,27 @@
+// Reviewed base-skin effect colours. Evidence and fallback decisions:
+// docs/LOCAL-SKILL-RANGE-VFX-AUDIT.json. These profiles never enable a range.
+export const ADDITIONAL_SKILL_RANGE_PROFILES = Object.freeze({
+  skchr_archet_3:{"color":0xf4a244,"fillAlpha":0.12,"glowAlpha":0.025,"pulse":0,"accent":"attack"},
+  skchr_billro_3:{"color":0xf8bb45,"fillAlpha":0.12,"glowAlpha":0.06,"pulse":0.008,"accent":"field"},
+  skchr_blaze2_1:{"color":0x333ab8,"fillAlpha":0.12,"glowAlpha":0.06,"pulse":0.008,"accent":"field"},
+  skchr_blemsh_2:{"color":0xd8894e,"fillAlpha":0.12,"glowAlpha":0.06,"pulse":0.008,"accent":"field"},
+  skchr_botany_2:{"color":0x4d7eb8,"fillAlpha":0.12,"glowAlpha":0.06,"pulse":0.008,"accent":"field"},
+  skchr_cello_3:{"color":0xb85133,"fillAlpha":0.12,"glowAlpha":0.06,"pulse":0.008,"accent":"field"},
+  skchr_chen3_3:{"color":0xe0bb88,"fillAlpha":0.12,"glowAlpha":0.06,"pulse":0.008,"accent":"field"},
+  skchr_helage_3:{"color":0xbc8b46,"fillAlpha":0.12,"glowAlpha":0.06,"pulse":0.008,"accent":"field"},
+  skchr_indigo_1:{"color":0x7a3ab8,"fillAlpha":0.12,"glowAlpha":0.025,"pulse":0,"accent":"attack"},
+  skchr_indigo_2:{"color":0xd442ec,"fillAlpha":0.12,"glowAlpha":0.025,"pulse":0,"accent":"attack"},
+  skchr_oblvns_3:{"color":0x9133b8,"fillAlpha":0.12,"glowAlpha":0.06,"pulse":0.008,"accent":"field"},
+  skchr_pasngr_2:{"color":0xb86e33,"fillAlpha":0.12,"glowAlpha":0.025,"pulse":0,"accent":"attack"},
+  skchr_pasngr_3:{"color":0xc97838,"fillAlpha":0.12,"glowAlpha":0.06,"pulse":0.008,"accent":"field"},
+  skchr_rmixer_3:{"color":0xf0cf9f,"fillAlpha":0.12,"glowAlpha":0.06,"pulse":0.008,"accent":"field"},
+  skchr_rosesa_2:{"color":0xa9db59,"fillAlpha":0.12,"glowAlpha":0.025,"pulse":0,"accent":"attack"},
+  skchr_skadi2_2:{"color":0x4393ee,"fillAlpha":0.12,"glowAlpha":0.025,"pulse":0,"accent":"attack"},
+  skchr_sntlla_2:{"color":0x4d63e4,"fillAlpha":0.12,"glowAlpha":0.025,"pulse":0,"accent":"attack"},
+  skchr_surtr_3:{"color":0xffb747,"fillAlpha":0.12,"glowAlpha":0.06,"pulse":0.008,"accent":"field"},
+  skchr_svash2_2:{"color":0x8199b8,"fillAlpha":0.12,"glowAlpha":0.06,"pulse":0.008,"accent":"field"},
+  skchr_svash2_3:{"color":0x5f77b8,"fillAlpha":0.12,"glowAlpha":0.06,"pulse":0.008,"accent":"field"},
+  skchr_texas2_3:{"color":0xb84646,"fillAlpha":0.12,"glowAlpha":0.06,"pulse":0.008,"accent":"field"},
+  skchr_ulpia_1:{"color":0x91bfed,"fillAlpha":0.12,"glowAlpha":0.06,"pulse":0.008,"accent":"field"},
+  skchr_ulpia_3:{"color":0x5d8bbe,"fillAlpha":0.12,"glowAlpha":0.06,"pulse":0.008,"accent":"field"},
+});

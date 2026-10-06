@@ -150,3 +150,11 @@ test('联防: the carried SP is set after the deployment ("部署完成后…技
     }
   }
 });
+
+test('unite carries Egir history for both standing and knocked-out operators without carrying a running skill',()=>{
+ const state={processed:true,atkFlat:900,blockCnt:3,revives:2,revived:true};
+ const input=uniteInput([[1,'chess','t_run'],[2,'chess','t_down']], [{uid:1,hpPct:.7,sp:5,alive:true,skillActive:true,egirDevour:state},{uid:2,hpPct:0,sp:0,alive:false,egirDevour:state}]);
+ assert.deepEqual(input.units[0].carryState,{hpPct:.7,sp:5,egirDevour:state});
+ assert.deepEqual(input.units[1].carryState,{down:true,egirDevour:state});
+ assert.notEqual(input.units[0].carryState.egirDevour,state,'copy across phases');
+});

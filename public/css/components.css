@@ -941,3 +941,17 @@
   --bk-c: var(--red-premium);
 }
 .crash__box h2 { font-size: .3rem; }
+
+/* Patch notes share the settings button size and shared dialog palette. */
+.patch-entry { display: inline-flex; flex: none; }
+.patch-notes__hint { margin: 0 0 .18rem; color: var(--text-dim); font-size: .13rem; line-height: 1.65; }
+.patch-notes__versions { display: flex; gap: .08rem; flex-wrap: wrap; margin-bottom: .22rem; padding-bottom: .14rem; border-bottom: 1px solid var(--line-2); }
+.patch-notes__versions button { padding: .1rem .16rem; background: var(--bg-panel); border: 1px solid var(--line-2); color: var(--text-md); font: inherit; cursor: pointer; }
+.patch-notes__versions button.is-active { color: var(--mint-400); border-color: var(--mint-500); background: rgba(78,216,175,.08); }
+.patch-notes__versions small { display: block; margin-top: .04rem; font-size: .11rem; color: var(--text-dim); }
+.patch-notes__entry header { margin-bottom: .2rem; }
+.patch-notes__entry h3 { font-size: .22rem; line-height: 1.45; margin: .04rem 0 0; color: var(--text-hi); }
+.patch-notes__entry section + section { margin-top: .2rem; }
+.patch-notes__entry h4 { color: var(--mint-400); font-size: .16rem; margin: 0 0 .08rem; }
+.patch-notes__entry ul { margin: 0; padding-left: .2rem; }
+.patch-notes__entry li { font-size: .14rem; line-height: 1.7; color: var(--text-md); margin-bottom: .06rem; }

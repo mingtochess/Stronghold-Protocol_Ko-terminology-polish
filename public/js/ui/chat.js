@@ -23,6 +23,7 @@ export function ChatPanel({room = false}) {
   const [choosingFaction, setChoosingFaction] = useState(false);
   const [readId, setReadId] = useState(0);
   const input = useRef(null);
+  const focusOnOpen = useRef(false);
   const list = useRef(null);
   const composing = useRef(false);
   const followLatest = useRef(true);
@@ -33,7 +34,7 @@ export function ChatPanel({room = false}) {
     if (!messages.length || open) setReadId(lastId);
     if (open && followLatest.current && list.current) list.current.scrollTop = list.current.scrollHeight;
   }, [open, messages]);
-  useEffect(() => { if (open) { followLatest.current = true; if (list.current) list.current.scrollTop = list.current.scrollHeight; input.current?.focus(); } }, [open]);
+  useEffect(() => { if (open) { followLatest.current = true; if (list.current) list.current.scrollTop = list.current.scrollHeight; if (focusOnOpen.current) { input.current?.focus(); focusOnOpen.current = false; } } }, [open]);
   useEffect(() => {
     const onKey = (event) => {
       if (event.key !== 'Enter' || event.defaultPrevented || event.repeat || event.isComposing || event.keyCode === 229 || event.ctrlKey || event.altKey || event.metaKey || event.shiftKey) return;
@@ -41,8 +42,9 @@ export function ChatPanel({room = false}) {
       if (target?.closest?.('input, textarea, select, button, [contenteditable], [role="dialog"], [role="button"]')) return;
       if (document.querySelector('[role="dialog"], [aria-modal="true"]')) return;
       event.preventDefault();
+      focusOnOpen.current = true;
       setOpen(true);
-      input.current?.focus();
+      if (input.current) { input.current.focus(); focusOnOpen.current = false; }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
@@ -97,7 +99,7 @@ export function ChatPanel({room = false}) {
     if (event.key === 'Enter' && (event.isComposing || composing.current || event.keyCode === 229)) event.preventDefault();
   };
 
-  const toggle = html`<button class="game-chat__toggle" type="button" aria-label=${open ? '채팅 닫기' : '채팅 열기'} title=${open ? '채팅 닫기' : '채팅 열기'} aria-expanded=${open} aria-controls="game-chat-panel" onClick=${() => setOpen(!open)}>
+  const toggle = html`<button class="game-chat__toggle" type="button" aria-label=${open ? '채팅 닫기' : '채팅 열기'} title=${open ? '채팅 닫기' : '채팅 열기'} aria-expanded=${open} aria-controls="game-chat-panel" onClick=${() => { focusOnOpen.current = false; setOpen(!open); }}>
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11.5a8 8 0 0 1-8 8H8l-5 3v-6a8 8 0 0 1-1-5 9 9 0 0 1 18 0Z" /><path d="M7 10h8M7 14h5" /></svg>
       ${!open && unread ? html`<span class="game-chat__badge" aria-label=${`읽지 않은 메시지 ${unread}개`}>${unread > 99 ? '99+' : unread}</span>` : null}
     </button>`;

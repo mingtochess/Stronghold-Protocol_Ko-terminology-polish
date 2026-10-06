@@ -113,7 +113,8 @@ export class Unit {
 
   _recalc() {
     const prevMax = this._s ? this._s.maxHp : this.base.maxHp;
-    const { add, mul, flags, shield, permRangeExtend } = aggregateMods(this.buffs);
+    const statBuffs = this.profile?.attackSpeedDebuffImmune ? this.buffs.map(buff => ({...buff,mods:buff.mods && {...buff.mods,aspd:Math.max(0,buff.mods.aspd ?? 0),batPct:Math.min(0,buff.mods.batPct ?? 0)}})) : this.buffs;
+    const { add, mul, flags, shield, permRangeExtend } = aggregateMods(statBuffs);
     const a = (k) => add[k] ?? 0;
     const m = (k) => mul[k] ?? 1;
     const b = this.base;

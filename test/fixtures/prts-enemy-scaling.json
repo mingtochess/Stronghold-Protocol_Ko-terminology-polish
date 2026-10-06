@@ -1,0 +1,1228 @@
+{
+  "source": "https://prts.wiki/w/卫戍协议：盟约_下半",
+  "revision": null,
+  "checkedOn": "2026-10-06 Asia/Seoul",
+  "warning": "PRTS marks the enemy stat table user-provided, accuracy not guaranteed",
+  "speed": {
+    "abyssFromRound": 3,
+    "multiplier": 1.15
+  },
+  "modes": {
+    "mode_single_funny": {
+      "1": {
+        "atk": {
+          "expression": "0.7",
+          "multiplier": 0.7
+        },
+        "hp": {
+          "expression": "0.7",
+          "multiplier": 0.7
+        }
+      },
+      "2": {
+        "atk": {
+          "expression": "0.7",
+          "multiplier": 0.7
+        },
+        "hp": {
+          "expression": "0.7",
+          "multiplier": 0.7
+        }
+      },
+      "3": {
+        "atk": {
+          "expression": "0.7",
+          "multiplier": 0.7
+        },
+        "hp": {
+          "expression": "0.7",
+          "multiplier": 0.7
+        }
+      },
+      "4": {
+        "atk": {
+          "expression": "0.7",
+          "multiplier": 0.7
+        },
+        "hp": {
+          "expression": "0.7",
+          "multiplier": 0.7
+        }
+      },
+      "5": {
+        "atk": {
+          "expression": "0.7",
+          "multiplier": 0.7
+        },
+        "hp": {
+          "expression": "0.7",
+          "multiplier": 0.7
+        }
+      },
+      "6": {
+        "atk": {
+          "expression": "0.7",
+          "multiplier": 0.7
+        },
+        "hp": {
+          "expression": "0.7",
+          "multiplier": 0.7
+        }
+      },
+      "7": {
+        "atk": {
+          "expression": "0.7",
+          "multiplier": 0.7
+        },
+        "hp": {
+          "expression": "0.7",
+          "multiplier": 0.7
+        }
+      },
+      "8": {
+        "atk": {
+          "expression": "0.7",
+          "multiplier": 0.7
+        },
+        "hp": {
+          "expression": "0.7",
+          "multiplier": 0.7
+        }
+      },
+      "9": {
+        "atk": {
+          "expression": "0.7",
+          "multiplier": 0.7
+        },
+        "hp": {
+          "expression": "0.7",
+          "multiplier": 0.7
+        }
+      },
+      "10": {
+        "atk": {
+          "expression": "{{mdi|circle-off-outline|color=lightgrey|flip=h}}",
+          "multiplier": null
+        },
+        "hp": {
+          "expression": "{{mdi|circle-off-outline|color=lightgrey|flip=h}}",
+          "multiplier": null
+        }
+      },
+      "11": {
+        "atk": {
+          "expression": "{{mdi|circle-off-outline|color=lightgrey|flip=h}}",
+          "multiplier": null
+        },
+        "hp": {
+          "expression": "{{mdi|circle-off-outline|color=lightgrey|flip=h}}",
+          "multiplier": null
+        }
+      },
+      "12": {
+        "atk": {
+          "expression": "{{mdi|circle-off-outline|color=lightgrey|flip=h}}",
+          "multiplier": null
+        },
+        "hp": {
+          "expression": "{{mdi|circle-off-outline|color=lightgrey|flip=h}}",
+          "multiplier": null
+        }
+      },
+      "13": {
+        "atk": {
+          "expression": "{{mdi|circle-off-outline|color=lightgrey|flip=h}}",
+          "multiplier": null
+        },
+        "hp": {
+          "expression": "{{mdi|circle-off-outline|color=lightgrey|flip=h}}",
+          "multiplier": null
+        }
+      },
+      "14": {
+        "atk": {
+          "expression": "{{mdi|circle-off-outline|color=lightgrey|flip=h}}",
+          "multiplier": null
+        },
+        "hp": {
+          "expression": "{{mdi|circle-off-outline|color=lightgrey|flip=h}}",
+          "multiplier": null
+        }
+      },
+      "15": {
+        "atk": {
+          "expression": "{{mdi|circle-off-outline|color=lightgrey|flip=h}}",
+          "multiplier": null
+        },
+        "hp": {
+          "expression": "{{mdi|circle-off-outline|color=lightgrey|flip=h}}",
+          "multiplier": null
+        }
+      }
+    },
+    "mode_single_normal": {
+      "1": {
+        "atk": {
+          "expression": "1×0.7",
+          "multiplier": 0.7
+        },
+        "hp": {
+          "expression": "1×0.7",
+          "multiplier": 0.7
+        }
+      },
+      "2": {
+        "atk": {
+          "expression": "1×0.7",
+          "multiplier": 0.7
+        },
+        "hp": {
+          "expression": "1×0.7",
+          "multiplier": 0.7
+        }
+      },
+      "3": {
+        "atk": {
+          "expression": "1×0.7",
+          "multiplier": 0.7
+        },
+        "hp": {
+          "expression": "1×0.7",
+          "multiplier": 0.7
+        }
+      },
+      "4": {
+        "atk": {
+          "expression": "1.1×0.7",
+          "multiplier": 0.77
+        },
+        "hp": {
+          "expression": "1.2×0.7",
+          "multiplier": 0.84
+        }
+      },
+      "5": {
+        "atk": {
+          "expression": "1.1×0.7",
+          "multiplier": 0.77
+        },
+        "hp": {
+          "expression": "1.2×0.7",
+          "multiplier": 0.84
+        }
+      },
+      "6": {
+        "atk": {
+          "expression": "1.1×0.7",
+          "multiplier": 0.77
+        },
+        "hp": {
+          "expression": "1.2×0.7",
+          "multiplier": 0.84
+        }
+      },
+      "7": {
+        "atk": {
+          "expression": "1.1×0.7",
+          "multiplier": 0.77
+        },
+        "hp": {
+          "expression": "1.2×0.7",
+          "multiplier": 0.84
+        }
+      },
+      "8": {
+        "atk": {
+          "expression": "1.1²×0.7",
+          "multiplier": 0.8470000000000001
+        },
+        "hp": {
+          "expression": "1.2²×0.7",
+          "multiplier": 1.008
+        }
+      },
+      "9": {
+        "atk": {
+          "expression": "1.1²×0.7",
+          "multiplier": 0.8470000000000001
+        },
+        "hp": {
+          "expression": "1.2²×0.7",
+          "multiplier": 1.008
+        }
+      },
+      "10": {
+        "atk": {
+          "expression": "1.1²×0.7",
+          "multiplier": 0.8470000000000001
+        },
+        "hp": {
+          "expression": "1.2²×0.7",
+          "multiplier": 1.008
+        }
+      },
+      "11": {
+        "atk": {
+          "expression": "1.1³×0.7",
+          "multiplier": 0.9317000000000002
+        },
+        "hp": {
+          "expression": "1.2³×0.7",
+          "multiplier": 1.2095999999999998
+        }
+      },
+      "12": {
+        "atk": {
+          "expression": "1.1⁴×0.7",
+          "multiplier": 1.0248700000000002
+        },
+        "hp": {
+          "expression": "1.2⁴×0.7",
+          "multiplier": 1.45152
+        }
+      },
+      "13": {
+        "atk": {
+          "expression": "1.1⁵×0.7",
+          "multiplier": 1.1273570000000004
+        },
+        "hp": {
+          "expression": "1.2⁵×0.7",
+          "multiplier": 1.7418239999999996
+        }
+      },
+      "14": {
+        "atk": {
+          "expression": "1.1⁵×0.7",
+          "multiplier": 1.1273570000000004
+        },
+        "hp": {
+          "expression": "1.2⁵×0.7",
+          "multiplier": 1.7418239999999996
+        }
+      },
+      "15": {
+        "atk": {
+          "expression": "{{mdi|circle-off-outline|color=lightgrey|flip=h}}",
+          "multiplier": null
+        },
+        "hp": {
+          "expression": "{{mdi|circle-off-outline|color=lightgrey|flip=h}}",
+          "multiplier": null
+        }
+      }
+    },
+    "mode_single_hard": {
+      "1": {
+        "atk": {
+          "expression": "1×0.8",
+          "multiplier": 0.8
+        },
+        "hp": {
+          "expression": "1×0.8",
+          "multiplier": 0.8
+        }
+      },
+      "2": {
+        "atk": {
+          "expression": "1×0.8",
+          "multiplier": 0.8
+        },
+        "hp": {
+          "expression": "1×0.8",
+          "multiplier": 0.8
+        }
+      },
+      "3": {
+        "atk": {
+          "expression": "1×0.8",
+          "multiplier": 0.8
+        },
+        "hp": {
+          "expression": "1×0.8",
+          "multiplier": 0.8
+        }
+      },
+      "4": {
+        "atk": {
+          "expression": "1×0.8",
+          "multiplier": 0.8
+        },
+        "hp": {
+          "expression": "1×0.8",
+          "multiplier": 0.8
+        }
+      },
+      "5": {
+        "atk": {
+          "expression": "1.1×0.8",
+          "multiplier": 0.8800000000000001
+        },
+        "hp": {
+          "expression": "1.2×0.8",
+          "multiplier": 0.96
+        }
+      },
+      "6": {
+        "atk": {
+          "expression": "1.1×0.8",
+          "multiplier": 0.8800000000000001
+        },
+        "hp": {
+          "expression": "1.2×0.8",
+          "multiplier": 0.96
+        }
+      },
+      "7": {
+        "atk": {
+          "expression": "1.1×0.8",
+          "multiplier": 0.8800000000000001
+        },
+        "hp": {
+          "expression": "1.2×0.8",
+          "multiplier": 0.96
+        }
+      },
+      "8": {
+        "atk": {
+          "expression": "1.1×0.8",
+          "multiplier": 0.8800000000000001
+        },
+        "hp": {
+          "expression": "1.2×0.8",
+          "multiplier": 0.96
+        }
+      },
+      "9": {
+        "atk": {
+          "expression": "1.1²×0.8",
+          "multiplier": 0.9680000000000002
+        },
+        "hp": {
+          "expression": "1.2²×0.8",
+          "multiplier": 1.152
+        }
+      },
+      "10": {
+        "atk": {
+          "expression": "1.1²×0.8",
+          "multiplier": 0.9680000000000002
+        },
+        "hp": {
+          "expression": "1.2²×0.8",
+          "multiplier": 1.152
+        }
+      },
+      "11": {
+        "atk": {
+          "expression": "1.1³×0.8",
+          "multiplier": 1.0648000000000004
+        },
+        "hp": {
+          "expression": "1.2³×0.8",
+          "multiplier": 1.3823999999999999
+        }
+      },
+      "12": {
+        "atk": {
+          "expression": "1.1³×0.8",
+          "multiplier": 1.0648000000000004
+        },
+        "hp": {
+          "expression": "1.2³×0.8",
+          "multiplier": 1.3823999999999999
+        }
+      },
+      "13": {
+        "atk": {
+          "expression": "1.1⁴×0.8",
+          "multiplier": 1.1712800000000003
+        },
+        "hp": {
+          "expression": "1.2⁴×0.8",
+          "multiplier": 1.65888
+        }
+      },
+      "14": {
+        "atk": {
+          "expression": "1.1⁴×0.8",
+          "multiplier": 1.1712800000000003
+        },
+        "hp": {
+          "expression": "1.2⁴×0.8",
+          "multiplier": 1.65888
+        }
+      },
+      "15": {
+        "atk": {
+          "expression": "1.1⁴×0.8",
+          "multiplier": 1.1712800000000003
+        },
+        "hp": {
+          "expression": "1.2⁴×0.8",
+          "multiplier": 1.65888
+        }
+      }
+    },
+    "mode_single_abyss": {
+      "1": {
+        "atk": {
+          "expression": "1.1",
+          "multiplier": 1.1
+        },
+        "hp": {
+          "expression": "1.2",
+          "multiplier": 1.2
+        }
+      },
+      "2": {
+        "atk": {
+          "expression": "1.1²",
+          "multiplier": 1.2100000000000002
+        },
+        "hp": {
+          "expression": "1.2²",
+          "multiplier": 1.44
+        }
+      },
+      "3": {
+        "atk": {
+          "expression": "1.1²",
+          "multiplier": 1.2100000000000002
+        },
+        "hp": {
+          "expression": "1.2²",
+          "multiplier": 1.44
+        }
+      },
+      "4": {
+        "atk": {
+          "expression": "1.1²",
+          "multiplier": 1.2100000000000002
+        },
+        "hp": {
+          "expression": "1.2²",
+          "multiplier": 1.44
+        }
+      },
+      "5": {
+        "atk": {
+          "expression": "1.1²",
+          "multiplier": 1.2100000000000002
+        },
+        "hp": {
+          "expression": "1.2²",
+          "multiplier": 1.44
+        }
+      },
+      "6": {
+        "atk": {
+          "expression": "1.1³",
+          "multiplier": 1.3310000000000004
+        },
+        "hp": {
+          "expression": "1.2³",
+          "multiplier": 1.7279999999999998
+        }
+      },
+      "7": {
+        "atk": {
+          "expression": "1.1³",
+          "multiplier": 1.3310000000000004
+        },
+        "hp": {
+          "expression": "1.2³",
+          "multiplier": 1.7279999999999998
+        }
+      },
+      "8": {
+        "atk": {
+          "expression": "1.1³",
+          "multiplier": 1.3310000000000004
+        },
+        "hp": {
+          "expression": "1.2³",
+          "multiplier": 1.7279999999999998
+        }
+      },
+      "9": {
+        "atk": {
+          "expression": "1.1³",
+          "multiplier": 1.3310000000000004
+        },
+        "hp": {
+          "expression": "1.2³",
+          "multiplier": 1.7279999999999998
+        }
+      },
+      "10": {
+        "atk": {
+          "expression": "1.1⁴",
+          "multiplier": 1.4641000000000004
+        },
+        "hp": {
+          "expression": "1.2⁴",
+          "multiplier": 2.0736
+        }
+      },
+      "11": {
+        "atk": {
+          "expression": "1.1⁵",
+          "multiplier": 1.6105100000000006
+        },
+        "hp": {
+          "expression": "1.2⁵",
+          "multiplier": 2.4883199999999994
+        }
+      },
+      "12": {
+        "atk": {
+          "expression": "1.1⁵",
+          "multiplier": 1.6105100000000006
+        },
+        "hp": {
+          "expression": "1.2⁵",
+          "multiplier": 2.4883199999999994
+        }
+      },
+      "13": {
+        "atk": {
+          "expression": "1.1⁶",
+          "multiplier": 1.7715610000000008
+        },
+        "hp": {
+          "expression": "1.2⁶",
+          "multiplier": 2.9859839999999993
+        }
+      },
+      "14": {
+        "atk": {
+          "expression": "1.1⁷",
+          "multiplier": 1.9487171000000012
+        },
+        "hp": {
+          "expression": "1.2⁷",
+          "multiplier": 3.583180799999999
+        }
+      },
+      "15": {
+        "atk": {
+          "expression": "1.1⁷",
+          "multiplier": 1.9487171000000012
+        },
+        "hp": {
+          "expression": "1.2⁷",
+          "multiplier": 3.583180799999999
+        }
+      }
+    },
+    "mode_multi_funny": {
+      "1": {
+        "atk": {
+          "expression": "1×0.8",
+          "multiplier": 0.8
+        },
+        "hp": {
+          "expression": "1×0.8",
+          "multiplier": 0.8
+        }
+      },
+      "2": {
+        "atk": {
+          "expression": "1×0.8",
+          "multiplier": 0.8
+        },
+        "hp": {
+          "expression": "1×0.8",
+          "multiplier": 0.8
+        }
+      },
+      "3": {
+        "atk": {
+          "expression": "1×0.8",
+          "multiplier": 0.8
+        },
+        "hp": {
+          "expression": "1×0.8",
+          "multiplier": 0.8
+        }
+      },
+      "4": {
+        "atk": {
+          "expression": "1×0.8",
+          "multiplier": 0.8
+        },
+        "hp": {
+          "expression": "1×0.8",
+          "multiplier": 0.8
+        }
+      },
+      "5": {
+        "atk": {
+          "expression": "1×0.8",
+          "multiplier": 0.8
+        },
+        "hp": {
+          "expression": "1×0.8",
+          "multiplier": 0.8
+        }
+      },
+      "6": {
+        "atk": {
+          "expression": "1×0.8",
+          "multiplier": 0.8
+        },
+        "hp": {
+          "expression": "1×0.8",
+          "multiplier": 0.8
+        }
+      },
+      "7": {
+        "atk": {
+          "expression": "1×0.8",
+          "multiplier": 0.8
+        },
+        "hp": {
+          "expression": "1×0.8",
+          "multiplier": 0.8
+        }
+      },
+      "8": {
+        "atk": {
+          "expression": "1×0.8",
+          "multiplier": 0.8
+        },
+        "hp": {
+          "expression": "1×0.8",
+          "multiplier": 0.8
+        }
+      },
+      "9": {
+        "atk": {
+          "expression": "1×0.8",
+          "multiplier": 0.8
+        },
+        "hp": {
+          "expression": "1×0.8",
+          "multiplier": 0.8
+        }
+      },
+      "10": {
+        "atk": {
+          "expression": "1×0.8",
+          "multiplier": 0.8
+        },
+        "hp": {
+          "expression": "1×0.8",
+          "multiplier": 0.8
+        }
+      },
+      "11": {
+        "atk": {
+          "expression": "1×0.8",
+          "multiplier": 0.8
+        },
+        "hp": {
+          "expression": "1×0.8",
+          "multiplier": 0.8
+        }
+      },
+      "12": {
+        "atk": {
+          "expression": "1.1×0.8",
+          "multiplier": 0.8800000000000001
+        },
+        "hp": {
+          "expression": "1.2×0.8",
+          "multiplier": 0.96
+        }
+      },
+      "13": {
+        "atk": {
+          "expression": "1.1×0.8",
+          "multiplier": 0.8800000000000001
+        },
+        "hp": {
+          "expression": "1.2×0.8",
+          "multiplier": 0.96
+        }
+      },
+      "14": {
+        "atk": {
+          "expression": "1.1×0.8",
+          "multiplier": 0.8800000000000001
+        },
+        "hp": {
+          "expression": "1.2×0.8",
+          "multiplier": 0.96
+        }
+      },
+      "15": {
+        "atk": {
+          "expression": "{{mdi|circle-off-outline|color=lightgrey|flip=h}}",
+          "multiplier": null
+        },
+        "hp": {
+          "expression": "{{mdi|circle-off-outline|color=lightgrey|flip=h}}",
+          "multiplier": null
+        }
+      }
+    },
+    "mode_multi_normal": {
+      "1": {
+        "atk": {
+          "expression": "1×0.8",
+          "multiplier": 0.8
+        },
+        "hp": {
+          "expression": "1×0.8",
+          "multiplier": 0.8
+        }
+      },
+      "2": {
+        "atk": {
+          "expression": "1.1×0.8",
+          "multiplier": 0.8800000000000001
+        },
+        "hp": {
+          "expression": "1.2×0.8",
+          "multiplier": 0.96
+        }
+      },
+      "3": {
+        "atk": {
+          "expression": "1.1×0.8",
+          "multiplier": 0.8800000000000001
+        },
+        "hp": {
+          "expression": "1.2×0.8",
+          "multiplier": 0.96
+        }
+      },
+      "4": {
+        "atk": {
+          "expression": "1.1²×0.8",
+          "multiplier": 0.9680000000000002
+        },
+        "hp": {
+          "expression": "1.2²×0.8",
+          "multiplier": 1.152
+        }
+      },
+      "5": {
+        "atk": {
+          "expression": "1.1²×0.8",
+          "multiplier": 0.9680000000000002
+        },
+        "hp": {
+          "expression": "1.2²×0.8",
+          "multiplier": 1.152
+        }
+      },
+      "6": {
+        "atk": {
+          "expression": "1.1²×0.8",
+          "multiplier": 0.9680000000000002
+        },
+        "hp": {
+          "expression": "1.2²×0.8",
+          "multiplier": 1.152
+        }
+      },
+      "7": {
+        "atk": {
+          "expression": "1.1²×0.8",
+          "multiplier": 0.9680000000000002
+        },
+        "hp": {
+          "expression": "1.2²×0.8",
+          "multiplier": 1.152
+        }
+      },
+      "8": {
+        "atk": {
+          "expression": "1.1³×0.8",
+          "multiplier": 1.0648000000000004
+        },
+        "hp": {
+          "expression": "1.2³×0.8",
+          "multiplier": 1.3823999999999999
+        }
+      },
+      "9": {
+        "atk": {
+          "expression": "1.1⁴×0.8",
+          "multiplier": 1.1712800000000003
+        },
+        "hp": {
+          "expression": "1.2⁴×0.8",
+          "multiplier": 1.65888
+        }
+      },
+      "10": {
+        "atk": {
+          "expression": "1.1⁴×0.8",
+          "multiplier": 1.1712800000000003
+        },
+        "hp": {
+          "expression": "1.2⁴×0.8",
+          "multiplier": 1.65888
+        }
+      },
+      "11": {
+        "atk": {
+          "expression": "1.1⁵×0.8",
+          "multiplier": 1.2884080000000004
+        },
+        "hp": {
+          "expression": "1.2⁵×0.8",
+          "multiplier": 1.9906559999999995
+        }
+      },
+      "12": {
+        "atk": {
+          "expression": "1.1⁶×0.8",
+          "multiplier": 1.4172488000000008
+        },
+        "hp": {
+          "expression": "1.2⁶×0.8",
+          "multiplier": 2.3887871999999994
+        }
+      },
+      "13": {
+        "atk": {
+          "expression": "1.1⁷×0.8",
+          "multiplier": 1.5589736800000011
+        },
+        "hp": {
+          "expression": "1.2⁷×0.8",
+          "multiplier": 2.8665446399999994
+        }
+      },
+      "14": {
+        "atk": {
+          "expression": "1.1⁷×0.8",
+          "multiplier": 1.5589736800000011
+        },
+        "hp": {
+          "expression": "1.2⁷×0.8",
+          "multiplier": 2.8665446399999994
+        }
+      },
+      "15": {
+        "atk": {
+          "expression": "{{mdi|circle-off-outline|color=lightgrey|flip=h}}",
+          "multiplier": null
+        },
+        "hp": {
+          "expression": "{{mdi|circle-off-outline|color=lightgrey|flip=h}}",
+          "multiplier": null
+        }
+      }
+    },
+    "mode_multi_hard": {
+      "1": {
+        "atk": {
+          "expression": "1.1",
+          "multiplier": 1.1
+        },
+        "hp": {
+          "expression": "1.2",
+          "multiplier": 1.2
+        }
+      },
+      "2": {
+        "atk": {
+          "expression": "1.1²",
+          "multiplier": 1.2100000000000002
+        },
+        "hp": {
+          "expression": "1.2²",
+          "multiplier": 1.44
+        }
+      },
+      "3": {
+        "atk": {
+          "expression": "1.1²",
+          "multiplier": 1.2100000000000002
+        },
+        "hp": {
+          "expression": "1.2²",
+          "multiplier": 1.44
+        }
+      },
+      "4": {
+        "atk": {
+          "expression": "1.1³",
+          "multiplier": 1.3310000000000004
+        },
+        "hp": {
+          "expression": "1.2³",
+          "multiplier": 1.7279999999999998
+        }
+      },
+      "5": {
+        "atk": {
+          "expression": "1.1³",
+          "multiplier": 1.3310000000000004
+        },
+        "hp": {
+          "expression": "1.2³",
+          "multiplier": 1.7279999999999998
+        }
+      },
+      "6": {
+        "atk": {
+          "expression": "1.1³",
+          "multiplier": 1.3310000000000004
+        },
+        "hp": {
+          "expression": "1.2³",
+          "multiplier": 1.7279999999999998
+        }
+      },
+      "7": {
+        "atk": {
+          "expression": "1.1³",
+          "multiplier": 1.3310000000000004
+        },
+        "hp": {
+          "expression": "1.2³",
+          "multiplier": 1.7279999999999998
+        }
+      },
+      "8": {
+        "atk": {
+          "expression": "1.1³",
+          "multiplier": 1.3310000000000004
+        },
+        "hp": {
+          "expression": "1.2³",
+          "multiplier": 1.7279999999999998
+        }
+      },
+      "9": {
+        "atk": {
+          "expression": "1.1⁴",
+          "multiplier": 1.4641000000000004
+        },
+        "hp": {
+          "expression": "1.2⁴",
+          "multiplier": 2.0736
+        }
+      },
+      "10": {
+        "atk": {
+          "expression": "1.1⁵",
+          "multiplier": 1.6105100000000006
+        },
+        "hp": {
+          "expression": "1.2⁵",
+          "multiplier": 2.4883199999999994
+        }
+      },
+      "11": {
+        "atk": {
+          "expression": "1.1⁶",
+          "multiplier": 1.7715610000000008
+        },
+        "hp": {
+          "expression": "1.2⁶",
+          "multiplier": 2.9859839999999993
+        }
+      },
+      "12": {
+        "atk": {
+          "expression": "1.1⁶",
+          "multiplier": 1.7715610000000008
+        },
+        "hp": {
+          "expression": "1.2⁶",
+          "multiplier": 2.9859839999999993
+        }
+      },
+      "13": {
+        "atk": {
+          "expression": "1.1⁷",
+          "multiplier": 1.9487171000000012
+        },
+        "hp": {
+          "expression": "1.2⁷",
+          "multiplier": 3.583180799999999
+        }
+      },
+      "14": {
+        "atk": {
+          "expression": "1.1⁸",
+          "multiplier": 2.1435888100000016
+        },
+        "hp": {
+          "expression": "1.2⁸",
+          "multiplier": 4.2998169599999985
+        }
+      },
+      "15": {
+        "atk": {
+          "expression": "1.1⁸",
+          "multiplier": 2.1435888100000016
+        },
+        "hp": {
+          "expression": "1.2⁸",
+          "multiplier": 4.2998169599999985
+        }
+      }
+    },
+    "mode_multi_abyss": {
+      "1": {
+        "atk": {
+          "expression": "1.1",
+          "multiplier": 1.1
+        },
+        "hp": {
+          "expression": "1.2",
+          "multiplier": 1.2
+        }
+      },
+      "2": {
+        "atk": {
+          "expression": "1.1²",
+          "multiplier": 1.2100000000000002
+        },
+        "hp": {
+          "expression": "1.2²",
+          "multiplier": 1.44
+        }
+      },
+      "3": {
+        "atk": {
+          "expression": "1.1²",
+          "multiplier": 1.2100000000000002
+        },
+        "hp": {
+          "expression": "1.2²",
+          "multiplier": 1.44
+        }
+      },
+      "4": {
+        "atk": {
+          "expression": "1.1³",
+          "multiplier": 1.3310000000000004
+        },
+        "hp": {
+          "expression": "1.2³",
+          "multiplier": 1.7279999999999998
+        }
+      },
+      "5": {
+        "atk": {
+          "expression": "1.1³",
+          "multiplier": 1.3310000000000004
+        },
+        "hp": {
+          "expression": "1.2⁴",
+          "multiplier": 2.0736
+        }
+      },
+      "6": {
+        "atk": {
+          "expression": "1.1⁴",
+          "multiplier": 1.4641000000000004
+        },
+        "hp": {
+          "expression": "1.2⁴×1.08",
+          "multiplier": 2.239488
+        }
+      },
+      "7": {
+        "atk": {
+          "expression": "1.1⁵",
+          "multiplier": 1.6105100000000006
+        },
+        "hp": {
+          "expression": "1.2⁷",
+          "multiplier": 3.583180799999999
+        }
+      },
+      "8": {
+        "atk": {
+          "expression": "1.1⁵",
+          "multiplier": 1.6105100000000006
+        },
+        "hp": {
+          "expression": "1.2⁸",
+          "multiplier": 4.2998169599999985
+        }
+      },
+      "9": {
+        "atk": {
+          "expression": "1.1⁵",
+          "multiplier": 1.6105100000000006
+        },
+        "hp": {
+          "expression": "1.2⁸",
+          "multiplier": 4.2998169599999985
+        }
+      },
+      "10": {
+        "atk": {
+          "expression": "1.1⁵",
+          "multiplier": 1.6105100000000006
+        },
+        "hp": {
+          "expression": "1.2⁸",
+          "multiplier": 4.2998169599999985
+        }
+      },
+      "11": {
+        "atk": {
+          "expression": "1.1⁶",
+          "multiplier": 1.7715610000000008
+        },
+        "hp": {
+          "expression": "1.2⁹",
+          "multiplier": 5.1597803519999985
+        }
+      },
+      "12": {
+        "atk": {
+          "expression": "1.1⁶",
+          "multiplier": 1.7715610000000008
+        },
+        "hp": {
+          "expression": "1.2<sup>10</sup>",
+          "multiplier": 6.191736422399997
+        }
+      },
+      "13": {
+        "atk": {
+          "expression": "1.1⁷",
+          "multiplier": 1.9487171000000012
+        },
+        "hp": {
+          "expression": "1.2<sup>10</sup>×1.08",
+          "multiplier": 6.687075336191998
+        }
+      },
+      "14": {
+        "atk": {
+          "expression": "1.1⁸",
+          "multiplier": 2.1435888100000016
+        },
+        "hp": {
+          "expression": "1.2<sup>10</sup>×1.08",
+          "multiplier": 6.687075336191998
+        }
+      },
+      "15": {
+        "atk": {
+          "expression": "1.1⁸",
+          "multiplier": 2.1435888100000016
+        },
+        "hp": {
+          "expression": "1.2<sup>10</sup>×1.08",
+          "multiplier": 6.687075336191998
+        }
+      }
+    }
+  }
+}

@@ -1816,7 +1816,7 @@ const KITS = {
         }),
         skchr_svash2_3: () => ({
           kind: 'duration',
-          targeting: skillRange(chess, def),
+          targeting: { ...skillRange(chess, def), canHitFly: true },
           attack: {
             atkScale: num(bb.bird_atk_scale, 1),
             onEachHit({ battle, unit, target }) {

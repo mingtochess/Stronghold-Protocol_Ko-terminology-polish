@@ -19,8 +19,10 @@ import { toast, toastError } from '../ui/toasts.js';
 import { copyText } from '../ui/clipboard.js';
 import { FactionBadge } from '../ui/chatFaction.js';
 import { SettingsButton } from '../ui/settings.js';
+import { PatchNotesButton } from '../ui/patchNotes.js';
 import { GuideButton } from '../ui/guide.js';
 import { LoadoutButton } from './loadout.js';
+import { CustomExtensionsDialog } from '../ui/customExtensions.js';
 import { net } from '../net.js';
 import { store, useStore, shallowEqual, emptyMatch, isSpectating } from '../store.js';
 import { difficultyInfo } from './lobby.js';
@@ -192,6 +194,7 @@ function DifficultyPicker({ room, isHost, busy, onPick }) {
 
 /** Room screen component. */
 export function RoomScreen() {
+  const [extensionsOpen,setExtensionsOpen] = useState(false);
   const room = useStore((s) => s.room);
   const me = useStore((s) => s.me, shallowEqual);
   const conn = useStore((s) => s.connection, shallowEqual);
@@ -279,7 +282,7 @@ export function RoomScreen() {
           <${MicroLabel}>当前延迟<//>
         </div>
         <${GuideButton} class="room-guide" variant="secondary" />
-        <${SettingsButton} />
+        <${PatchNotesButton} /><${SettingsButton} />
       </div>
       <div class="topbar__center">
         <${MicroLabel} tone="mint">${coop ? 'ALLIANCE LOBBY' : 'SOLO SIMULATION'}<//>
@@ -306,14 +309,15 @@ export function RoomScreen() {
     </main>
     <${SpectatorBar} facts=${facts} myId=${me.playerId} busy=${busy} onRemove=${removeSpectator} onSit=${sit} />
 
+    <${CustomExtensionsDialog} open=${extensionsOpen} room=${room} isHost=${facts.isHost} disabled=${!!busy || !online} onClose=${()=>setExtensionsOpen(false)}
+      onSave=${selection=>run('extensions',async()=>{await net.request('room.setCustomExtensions',{selection});setExtensionsOpen(false);})} />
     <footer class="room-bar">
       <div class="room-bar__left">
         <span class="room-bar__label">模拟难度<${MicroLabel}>DIFFICULTY<//></span>
         <${DifficultyPicker} room=${room} isHost=${facts.isHost} busy=${busy} onPick=${setDifficulty} />
       </div>
       <div class="room-bar__center">
-        <label class="room-custom-factions"><input type="checkbox" checked=${!!room.customFactions} disabled=${!facts.isHost || !!busy || !online}
-          onChange=${e=>net.request('room.setCustomFactions',{enabled:e.target.checked}).catch(toastError)} /> 커스텀 진영 추가 <small>(우르수스)</small></label>
+        <${Button} variant="secondary" size="md" icon="settings" class="room-custom-extensions" disabled=${!!busy || !online} onClick=${()=>setExtensionsOpen(true)}>커스텀 확장 설정 <span class="lo-entry__n num">${Object.values(room.customExtensions || {bonds:room.customFactions?['ursus']:[]}).reduce((n,ids)=>n+(Array.isArray(ids)?ids.length:0),0)}</span><//>
         <div class="ready-count" hidden=${!coop}>
           <span class="t-lo">已就绪</span>
           <b class="num">${facts.readyHumans}</b><span class="num t-dim">/${facts.humans.length}</span>

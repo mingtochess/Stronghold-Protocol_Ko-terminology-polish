@@ -95,9 +95,10 @@ import {
   phaseMode, phaseBanner, isCombatPhase, showDeadPill, isBossPhase, placementContext, canPlace, boardTargets, dropIntent,
   battleOverSfx,
   snapHud, activeBubbles, shortcutFor, shortcutBlocked, closesOnFieldPress, phaseTotalSeconds, homeFieldId, ownFieldId, normalizeSp, sortedPlayers,
+  terrainInfo,
   countdownState, shopBlockReason, stageOverrides, effectiveStage, watchTarget, dropFailureReason,
-  previewEnemyKey, prepCamera, prepCameraFor, foldCamera, deployFieldOf, panelSide, panelSlots, bondPopupPlace, chessLoadout, unitLoadout,
-  mergeTarget, modeOffBonds, readyFundsPrompt,
+  previewEnemyKey, prepCamera, prepCameraFor, foldCamera, deployFieldOf, fieldTile, panelSide, panelSlots, bondPopupPlace, chessLoadout, unitLoadout,
+  mergeTarget, modeOffBonds, readyFundsPrompt, ownerBandId,
 } from '../ui/gameLogic.js';
 import { toast } from '../ui/toasts.js';
 import { BriefingScreen } from './briefing.js';
@@ -207,8 +208,13 @@ function MatchScreen() {
 
   const [watching, setWatching] = useState(null);        // fieldId the player chose to watch (null = home)
   const [observedBenches, setObservedBenches] = useState(null);
+  const [liveTeamHp, setLiveTeamHp] = useState(null);
   const [watchWho, setWatchWho] = useState(null);        // { fieldId, playerId }: the teammate picked with 前往查看
   useEffect(() => net.on('m.bench', setObservedBenches), []);
+  useEffect(() => net.on('b.pool', msg => {
+    const current = live.current.pub;
+    if (isBossPhase(current?.phase) && Number.isFinite(msg.teamLp)) setLiveTeamHp({ round: current.round, lp: msg.teamLp });
+  }), []);
   const [drawer, setDrawer] = useState(null);            // 'enemies' | 'info' | null
   const [bondOpen, setBondOpen] = useState(null);        // { id, ownerId, from }: the bond popup and whose bond it shows
   const [detail, setDetail] = useState(null);            // detail target
@@ -309,11 +315,12 @@ function MatchScreen() {
   const shopFolded = showShop && (pen ? penRef.current.collapsed : collapsed);
   const cancelFacingRef = useRef(() => {});
   const setCam = useCallback((kind, opts) => {
+    opts = { ...opts, observedBench: !combat && (spectator || watchingOther) };
     camRef.current = { kind, opts: opts || {} };
     setCamKind(kind);
     if (penRef.current.on) { penRef.current.on = false; setPen(false); setCollapsed(penRef.current.collapsed); }
     view?.setCamera(kind, opts);
-  }, [view]);
+  }, [view, combat, spectator, watchingOther]);
   // 休整期 only; never while a piece is being placed (the wheel sits on a tile of the board camera)
   const penAvail = phase === PHASE.PREP && !!view && viewKind !== 'loading';
   /** Pan to the enemy preview pen (on) or back to the camera in use before (off). */
@@ -382,6 +389,15 @@ function MatchScreen() {
     const st = ownView ? ownStage : baseStage;
     if (st) view.setStage(st);
   }, [view, ownView, ownStage, baseStage]);
+  // the stage behind the board ON SCREEN — the own one (机变 overrides applied) or, while watching a teammate, the plain
+  // one — and how a tapped BOARD tile maps to it (GitHub issue #184: tileClick → gameLogic.terrainInfo). Everywhere but a
+  // boss-prep board the two spaces are the same: a 最终攻势 / 隐秘核心 battle renders the stage's own rows (GEO.BOSS_RECT),
+  // 联防 / normal rects are stage rows; the boss PREP draws the player's half (stage rows 2–5) as board rows 9–12
+  // (render/prepfield.js toDisp), which is exactly gameLogic.fieldTile.
+  live.current.terrainStage = ownView ? ownStage : baseStage;
+  live.current.terrainTile = showPrep && (deployField === 'bossL' || deployField === 'bossR')
+    ? (row, col) => fieldTile(deployField, row, col)
+    : (row, col) => [row, col];
   const staleFieldRef = useRef(null);
   const enteredFieldRef = useRef(null);
   const pressSel = useRef(null);                         // the selected piece when the current field press began
@@ -457,11 +473,12 @@ function MatchScreen() {
   }, [view, showPrep, priv, editable, field, combat, mode, watchingOther, watching, holdSeq]);
 
   useEffect(() => {
-    if (!view || !spectator) return;
+    if (!view) return;
+    if (combat || (!spectator && !watchingOther)) { view.setObservedBench?.(null); return; }
     const packet = observedBenches?.fieldId === field?.fieldId ? observedBenches : null;
     const bench = packet?.benches?.find(b => b.playerId === watchWho?.playerId) || packet?.benches?.[0];
     view.setObservedBench?.(bench || null, { boss: field?.kind === 'boss' || field?.kind === 'hidden', unite: field?.kind === 'unite', side: bench?.side || field?.sides?.[bench?.playerId] || 'L' });
-  }, [view, spectator, observedBenches, field, watchWho]);
+  }, [view, combat, spectator, watchingOther, observedBenches, field, watchWho]);
 
   // battle frames straight from the socket (server-run combat, 20 Hz) or from the local simulation (client-side combat,
   // battle/runner.js, every animation frame) — never through the store. Frames go to the view as received: the game
@@ -583,7 +600,7 @@ function MatchScreen() {
     const prev = prevPhase.current;
     prevPhase.current = phase;
     if (prev === phase) return;
-    const b = phaseBanner(phase, pub);
+    const b = phaseBanner(phase, pub, myId);
     if (b) setBanner({ ...b, key: phaseKey });
     if (phase === PHASE.ROUND_START) audio.sfx('roundStart');
     else if (phase === PHASE.PREP) audio.sfx('rest', { volume: 0.7 });
@@ -763,16 +780,24 @@ function MatchScreen() {
 
   const watchField = useCallback((fid) => { requestWatch(fid); }, []);
 
-  // a spectator seat has no board of its own: in 休整期 / 机变 / round start it is shown the first player still in (as a
-  // tap on that row would — g.watch 'n:<pid>', the read-only board), once per phase; a row switches to another player
-  const scoutedRef = useRef(null);
+  // the server starts every phase reset with an eliminated human / spectator seat scouting the
+  // player they last watched (Match.startRound, prep scout 'n:<pid>'). The screen adopts that board like a 前往查看
+  // tap — once per phase and board, only from home (watching nothing), so a 返回战场 this phase is not overridden.
+  const autoScoutRef = useRef(null);
   useEffect(() => {
-    if (!spectator || !pub || scoutedRef.current === phaseKey) return;
-    const target = spectatorTarget(pub, spectatorChoice.current);
-    if (!target) return;
-    scoutedRef.current = phaseKey;
-    requestWatch(target.fieldId, target.playerId); // one attempt per phase; avoid failure/rollback retry loops
-  }, [spectator, phaseKey, pub?.fields, watching]);
+    if (!pub || watching || !field?.prep || (alive && !spectator)) return;
+    const fid = field.fieldId;
+    if (typeof fid !== 'string' || !fid.startsWith('n:') || fid === ownFieldId(myId)) return;
+    const key = `${phaseKey}:${fid}`;
+    if (autoScoutRef.current === key) return;
+    autoScoutRef.current = key;
+    // the phase reset's prep frame marked this very board stale (watching is null for that one render, so the own
+    // prep branch ran with the scout meta in `field`): un-mark it, or the re-entry below is refused and the board
+    // stays blank until the watched player acts (field report)
+    if (staleFieldRef.current === field) staleFieldRef.current = null;
+    setWatching(fid);
+    setWatchWho({ fieldId: fid, playerId: fid.slice(2) });
+  }, [field, pub, watching, alive, spectator, phaseKey, myId]);
 
   // ---- view events (drag & drop, clicks) ----------------------------------------------------------------------
   useEffect(() => {
@@ -896,6 +921,19 @@ function MatchScreen() {
         pressSel.current = null;
         setSel(wasSel ? null : { uid: e.uid });
         if (wasSel) setDetail((d) => (d?.kind === 'piece' && d.uid === e.uid ? null : d));
+      }),
+      // a tap on the ground itself: a special terrain tile explains itself (GitHub issue #184 「建议加入对于特殊地形的单击
+      // 信息提示」) — 活性源石 / 沼泽 / 排气格栅 / 深水区 / 红蓝门 / 传送, with the numbers of the stage behind the board.
+      // An ordinary tile (road / floor / wall) says nothing, so the press keeps its other meanings (deselect, close).
+      view.on('tileClick', (t) => {
+        if (!t || !Number.isInteger(t.row) || !Number.isInteger(t.col)) return;
+        const L = live.current;
+        const [row, col] = L.terrainTile(t.row, t.col);
+        const info = terrainInfo(L.terrainStage, row, col);
+        if (!info) return;
+        audio.sfx('click', { volume: 0.4 });
+        setSel(null);
+        setDetail({ kind: 'terrain', terrain: info });
       }),
     ];
     return () => { moveOff?.(); for (const off of offs) { try { off?.(); } catch { /* ignore */ } } };
@@ -1290,7 +1328,8 @@ function MatchScreen() {
         readyBusy=${readyBusy} readyCount=${readyCount} playerCount=${solo ? 1 : aliveCount}
         pen=${pen} penAvail=${penAvail} onPen=${togglePen} config=${gd.config} frozenAt=${frozenAt}
         pause=${canPause || paused ? { show: canPause, paused, busy: pauseBusy, onToggle: () => togglePause(!paused) } : null}
-        live=${liveLpNow} spectator=${spectator}
+        live=${liveLpNow} spectator=${spectator} watchedPlayerId=${watchWho?.playerId || field?.players?.[0]}
+        liveTeamLp=${liveTeamHp?.round === pub?.round ? liveTeamHp.lp : null}
         spectators=${specFacts.list} myId=${specFacts.myId} isHost=${specFacts.isHost}
         onRemoveSpectator=${(playerId) => actions.removeSpectator(playerId)} />
 
@@ -1299,7 +1338,7 @@ function MatchScreen() {
           owner=${strip.name} onOpen=${(id) => openBond(id, strip.ownerId, 'strip')} />
       </div>
 
-      <${TeamPanel} pub=${pub} myId=${myId} watching=${watchingNow} bubbles=${bubbles} onWatch=${watchPlayer} cap=${gd.config?.lpCapPerRound ?? 10} uniteLocal=${uniteLocal}
+      <${TeamPanel} pub=${pub} myId=${myId} watching=${watchingNow} bubbles=${bubbles} onWatch=${watchPlayer} cap=${gd.config?.lpCapPerRound ?? 10} uniteLocal=${uniteLocal} normalLeaks=${battleState?.leaks}
         self=${Number.isFinite(priv?.lp) ? { lp: priv.lp, pending: liveLpNow.pending, unite: liveLpNow.unite, left: liveLpNow.left } : null}
         observe=${cc ? { canObserve: (p) => observeTarget(p, pub, myId, { observing: watchingOther, ownDone: localDone }), observing: watchingOther, onBack: backHome } : null} />
 
@@ -1326,9 +1365,7 @@ function MatchScreen() {
         spectating=${!alive} spectator=${spectator} onWatch=${watchField}
         client=${cc ? { progress, observing: observingName ? { name: observingName } : null, onBack: alive ? backHome : null, layers, layer, onLayer: setLayer } : null} />` : null}
 
-      ${showDeadPill(alive, phase) ? (spectator
-        ? html`<div class="gm__dead gm__dead--spectator" role="status"><${GIcon} name="eye" />观战中 · 点击左侧成员头像切换查看</div>`
-        : html`<div class="gm__dead" role="status"><${Icon} name="close" />你已被淘汰 · 可继续观战队友</div>`) : null}
+      ${!spectator && showDeadPill(alive, phase) ? html`<div class="gm__dead" role="status"><${Icon} name="close" />你已被淘汰 · 可继续观战队友</div>` : null}
 
       <${Ticker} />
 

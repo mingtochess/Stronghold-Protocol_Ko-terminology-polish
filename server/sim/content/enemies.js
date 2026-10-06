@@ -1705,9 +1705,20 @@ function kitFirstAoe(ab) {
 function kitDefDecay(ab) {
   const max = T(ab, 'def_reduce.max_stack_cnt') ?? 0, def = T(ab, 'def_reduce.def') ?? 0, res = T(ab, 'def_reduce.magic_resistance') ?? 0;
   return [{
-    taken(c, b, e) {
+    taken(c, b, e, a) {
       if (!(max > 0)) return;
-      b.addBuff(e, { key: 'ab:defDecay', refresh: 'stack', stacks: 1, maxStacks: max, persist: true, mods: { defFlat: def / max, resFlat: res / max } });
+      a.hits = Math.min(max, (a.hits || 0) + 1);
+      // PRTS: the first layer is inert; from the second layer the full layer count applies.
+      const n = a.hits >= 2 ? a.hits : 0;
+      b.addBuff(e, { key: 'ab:defDecay', refresh: 'replace', persist: true, visible: true, mods: { defFlat: def * n / max, resFlat: res * n / max } });
+      const stage = a.hits >= (T(ab, 'def_reduce.change2_stack_cnt') ?? Infinity) ? 2
+        : a.hits >= (T(ab, 'def_reduce.change1_stack_cnt') ?? Infinity) ? 1 : 0;
+      if (stage && stage !== a.stage) {
+        if (a.stage) b.removeBuff(e, `ab:mirrorCrack${a.stage}`);
+        b.addBuff(e, { key: `ab:mirrorCrack${stage}`, persist: true, visible: true });
+        b.fx('phase', { id: e.id, x: e.x, y: e.y, kind: 'mirrorCrack', stage });
+        a.stage = stage;
+      }
     },
   }];
 }
@@ -2139,8 +2150,8 @@ function kitLeaderMisc(key, ab, e) {
       const bar = artsBarrier(s ? s.bb.dynamic ?? 0 : T(ab, 'shield.dynamic') ?? 0, { key: 'ab:rockPower',
         whileUp: { hpPct: (s ? s.bb.max_hp : null) ?? T(ab, 'shield.max_hp') ?? 0, aspd: (s ? s.bb.attack_speed : null) ?? T(ab, 'shield.attack_speed') ?? 0 } });
       return [bar, {
-        // 攻击时攻击力永久提升，最多六层 (the blackboard ATK is the 6-stack total [ASSUMED split])
-        attack(c, b, e2) { b.addBuff(e2, { key: 'ab:rockCharge', refresh: 'stack', stacks: 1, maxStacks: 6, persist: true, mods: { atkPct: (T(ab, 'charge.attack@enemy_mdrock_s_1[charge].atk') ?? 0) / 6 } }); },
+        // PRTS / enemy handbook: +60% ATK per attack, up to six stacks, not +60% total.
+        attack(c, b, e2) { b.addBuff(e2, { key: 'ab:rockCharge', refresh: 'stack', stacks: 1, maxStacks: 6, persist: true, visible: true, mods: { atkPct: T(ab, 'charge.attack@enemy_mdrock_s_1[charge].atk') ?? 0 } }); },
       }, skill(s, (b, e2) => bar.refresh(b, e2, bar))];
     }
     case 'enemy_1513_dekght': {
@@ -3067,10 +3078,16 @@ export const KITS = Object.freeze({
   enemy_10162_mnctpt: (ab) => [{                                     // 自制投石机 · 3-hit attacks with small splash
     dealt(c, b, e) {
       const n = T(ab, 'Attack.attack@times') ?? 1, r = T(ab, 'Attack.attack@projectile_range') ?? 0;
-      const t = c.target;
-      for (let i = 1; i < n; i++) hurt(b, e, t, e.s.atk, 'phys');
+      const t = c.target, x = t.x, y = t.y, atk = e.s.atk;
+      const interval = Math.max(0, T(ab, 'Attack.attack@hit_interval') ?? 0);
+      const impact = (direct) => {
+        if (direct && t.alive) hurt(b, e, t, atk, 'phys');
+        if (r > 0) for (const u of areaAllies(b, e, x, y, r)) if (u !== t) hurt(b, e, u, atk, 'phys');
+        b.fx('explode', { x, y, r, kind: 'catapult' });
+      };
       // the stone's splash ("碰撞无视迷彩"): an area selection — no unblocking 隐匿 ally
-      if (r > 0) for (const u of areaAllies(b, e, t.x, t.y, r)) if (u !== t) for (let i = 0; i < n; i++) hurt(b, e, u, e.s.atk, 'phys');
+      impact(false); // the first direct hit already landed
+      for (let i = 1; i < n; i++) b.after(i * interval, () => impact(true));
     },
   }],
   enemy_1050_lslime: (ab, e) => kitLeaderMisc('enemy_1050_lslime', ab, e),   // “庞贝” · 4 targets, burning DoT, self-blast when blocked, ASPD up below half

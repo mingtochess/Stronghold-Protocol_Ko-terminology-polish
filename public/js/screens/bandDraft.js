@@ -96,6 +96,7 @@ export function teammateBands(picks, myId) {
  * @param {{ bands: any[], taken: Map<string, any>, myPick: string|null, myTurn: boolean, defaultId?: string }} o
  */
 export function draftSelection(sel, { bands, taken, myPick, myTurn, defaultId = DEFAULT_TIMEOUT_BAND }) {
+  if (myPick) return myPick;
   if (!Array.isArray(bands) || !bands.length) return sel;
   const free = timeoutBand(bands, taken, defaultId) || bands[0].bandId;
   if (!sel) return myPick || free;
@@ -167,7 +168,7 @@ export function BandDraftScreen() {
   const myId = useStore((s) => s.me.playerId);
   const roomSolo = useStore((s) => s.room?.mode === 'solo');
   const gd = useGameData();
-  const [sel, setSel] = useState(null);
+  const [selection, setSel] = useState(null);
   const [busy, setBusy] = useState(null);
   const [exit, setExit] = useState(false);
   const [skipped, setSkipped] = useState(false);
@@ -195,11 +196,10 @@ export function BandDraftScreen() {
   // default selection: my pick, else what a timeout gives me (华法琳 while free); when my turn comes while the selected
   // band has been taken by a teammate meanwhile (队友已选), move the selection back to that default
   const defaultId = gd.config?.bandDraft?.timeoutBandId || DEFAULT_TIMEOUT_BAND;
-  const takenKey = [...taken.keys()].sort().join(',');
+  const sel = draftSelection(selection, { bands, taken, myPick, myTurn, defaultId });
   useEffect(() => {
-    const next = draftSelection(sel, { bands, taken, myPick, myTurn, defaultId });
-    if (next !== sel) setSel(next);
-  }, [bands.length, myPick, myTurn, takenKey]);
+    if (selection !== sel) setSel(sel);
+  }, [selection, sel]);
   // "your turn" cue
   useEffect(() => { if (myTurn && !solo) audio.sfx('yourTurn'); }, [myTurn]);
   // the 本局信息 dialog never outlives the turn it was opened in: a turn change (a pick, a skip, a turn that ran out, an

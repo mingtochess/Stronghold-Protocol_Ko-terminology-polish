@@ -89,7 +89,7 @@ describe('UI: draftSelection (review regression)', () => {
     assert.equal(draftSelection('a', { bands, taken, myPick: null, myTurn: false }), 'a', 'browsing a taken band is fine while waiting');
     assert.equal(draftSelection('a', { bands, taken, myPick: null, myTurn: true }), 'b', 'my turn: off the taken band');
     assert.equal(draftSelection('c', { bands, taken, myPick: null, myTurn: true }), 'c', 'a free selection is kept');
-    assert.equal(draftSelection('a', { bands, taken, myPick: 'c', myTurn: false }), 'a', 'after my pick nothing moves');
+    assert.equal(draftSelection('a', { bands, taken, myPick: 'c', myTurn: false }), 'c', 'confirmed server pick replaces the preview');
     assert.equal(draftSelection('x', { bands: [], taken, myPick: null, myTurn: true }), 'x', 'no bands: unchanged');
   });
 });
@@ -296,4 +296,9 @@ describe('UI: one countdown and the highlighted band (user playtest #4 item 4)',
     if (m.draft.order.length - m.draft.idx > 1) assert.deepEqual(m.handle('p_0', { t: 'g.bandSkip' }), { ok: true }, 'the co-op skip stays');
     m.dispose();
   });
+});
+
+test('confirmed strategy overrides a stale preview after timeout or server assignment',()=>{
+ const bands=[{bandId:'band_bldsk'},{bandId:'band_lisa'}];
+ assert.equal(draftSelection('band_lisa',{bands,taken:new Map(),myPick:'band_bldsk',myTurn:false}),'band_bldsk');
 });

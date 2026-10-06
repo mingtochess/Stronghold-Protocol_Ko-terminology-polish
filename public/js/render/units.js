@@ -65,6 +65,7 @@
 // screen rect for tooltips and overlays (view.pieceScreenRect). A dragged (lifted) item plate is drawn centred on its
 // ground point, i.e. on the pointer (render/app.js).
 
+
 import { FORMS } from '../../../shared/animationForms.js';
 import { UF, ANIM } from '../../../shared/constants.js';
 import { SpineActor } from './spine.js';
@@ -72,22 +73,113 @@ import { diamondTexture, shadowTexture, fxAtlas, tierChip, statusTexture, itemTe
 import { COLORS, TIER_COLORS, ENEMY_FRAME, UNIT, PROJ, statusIconKey, statusIconSuppressed } from './style.js';
 import { drawCrate, rowDepthKey, ROW_KEY, deviceBoxOf, DEVICE_BOX } from './tiles.js';
 
-// Stable, subdued range styling per operator; independent of runtime unit IDs and skins.
+// Art-directed operator colours, shared by skins; unknown operators use a
+// neutral white until a representative colour is supplied, never a random hue.
+const RANGE_PALETTE = {
+  mlynar:0xf1c64f, svrash:0xb9def5, mostma:0x779bf0, mint:0x8fcec0,
+  lisa:0xf1dd9c, angel:0xed795e, aglina:0xe99c6a, demkni:0xebc586,
+  shining:0xcdd9ed, cgbird:0xaecbe7, indigo:0x9595e3, silent:0x92d2b3,
+  skadi2:0xe78596, sora:0xf0ce79, heidi:0xbaca85, reed2:0xf09257,
+  sntlla:0xaccce4, helage:0xdec9a7, glassb:0xdbc189, let:0xe67e75,
+  roser:0xd79aab, istina:0xbfc088, botany:0x9ac485, botani:0x9ac485, absin:0x9bcbb5,
+  texalt:0x9aa7e1, tex:0x9aa7e1, degen:0xdbbc72, surtr:0xee7166,
+  eyjafj:0xe59f91, ami:0x7bbfea, lin:0xcf9fe4, carnel:0xe69173,
+  beewax:0xeac47b, beeswx:0xeac47b, dusk:0x8abca8, rosmon:0x99bbd5, slbell:0xa59bd4,
+  haini:0xe9c292, rmixer:0xc69bdf, wisdel:0xed8178, ascal:0xb296d0,
+};
+const ART_RANGE_COLORS = new Map();
+const RANGE_COLOR_LOADING = new Set();
+export function representativeArtColor(image) {
+  try {
+    const canvas=document.createElement('canvas');canvas.width=canvas.height=24;
+    const ctx=canvas.getContext('2d');ctx.drawImage(image,0,0,24,24);
+    const pixels=ctx.getImageData(0,0,24,24).data,buckets=new Map();
+    for(let i=0;i<pixels.length;i+=4){
+      const r=pixels[i],g=pixels[i+1],b=pixels[i+2],lo=Math.min(r,g,b),hi=Math.max(r,g,b);
+      if(pixels[i+3]<128 || hi<60 || hi>245 || hi-lo<30)continue;
+      const key=(r>>5)*64+(g>>5)*8+(b>>5),v=buckets.get(key)||{weight:0,r:0,g:0,b:0};
+      const weight=(hi-lo)/255;v.weight+=weight;v.r+=r*weight;v.g+=g*weight;v.b+=b*weight;buckets.set(key,v);
+    }
+    const chosen=[...buckets.values()].sort((a,b)=>b.weight-a.weight)[0];
+    if(!chosen)return null;
+    const channel=n=>Math.round(n/chosen.weight*.8+45);
+    return (channel(chosen.r)<<16)|(channel(chosen.g)<<8)|channel(chosen.b);
+  }catch{return null;}
+}
+function loadRangeArtColor(info,assets) {
+  const id=info.charId;if(!id || ART_RANGE_COLORS.has(id)||RANGE_COLOR_LOADING.has(id))return;
+  const url=assets?.picture?.(id);if(!url || !assets.image)return;
+  RANGE_COLOR_LOADING.add(id);
+  Promise.resolve(assets.image(url)).then(image=>{const color=representativeArtColor(image);ART_RANGE_COLORS.set(id,color ?? 0xc7d4d9);}).catch(()=>ART_RANGE_COLORS.set(id,0xc7d4d9)).finally(()=>RANGE_COLOR_LOADING.delete(id));
+}
 export function skillRangeStyle(info) {
-  const id = String(info.charId || info.defId || info.spine || 'operator').replace(/_[ab]$/, '');
-  let hash = 2166136261;
-  for (const c of id) hash = Math.imul(hash ^ c.charCodeAt(0), 16777619) >>> 0;
-  const colors = [0x79d9ba, 0x80bfe8, 0xd5a4e6, 0xe4c27d, 0x8ad0ce, 0xe6a5a1];
-  const patterns = [
-    [[-.22,-.22,.22,.22]],
-    [[-.22,.22,.22,-.22]],
-    [[-.2,0,.2,0],[0,-.2,0,.2]],
-    [[-.24,-.12,.16,-.12],[-.16,.12,.24,.12]],
-  ];
-  const base = colors[hash % colors.length], shade = ((hash >>> 8) & 15) - 7;
-  const channel = shift => Math.max(0, Math.min(255, ((base >>> shift) & 255) + shade));
-  const color = (channel(16) << 16) | (channel(8) << 8) | channel(0);
-  return {color, pattern:patterns[Math.floor(hash / colors.length) % patterns.length]};
+  const id = String(info.charId || info.defId || info.spine || '').replace(/^skin_/, '');
+  const match = Object.entries(RANGE_PALETTE).find(([name]) => new RegExp(`_${name}(?:_|$)`).test(id));
+  const color = match?.[1] ?? ART_RANGE_COLORS.get(info.charId) ?? 0xc7d4d9;
+  const lane = Math.max(0,Object.keys(RANGE_PALETTE).indexOf(match?.[0]));
+  const channels=[color>>16&255,color>>8&255,color&255], hi=Math.max(...channels);
+  const vivid=channels.map(c=>Math.round(Math.max(0,hi-(hi-c)*1.45)));
+  const outlineColor=(vivid[0]<<16)|(vivid[1]<<8)|vivid[2];
+  return {color,outlineColor,inset:.055+(lane%4)*.065,fillAlpha:.17,glowAlpha:0,pulse:0,accent:null,source:'operator'};
+}
+// Offset each clockwise union edge towards its interior. The stroke never
+// straddles the boundary; staggered inner lanes preserve overlapping colours.
+export function skillRangeInset([x0,y0,x1,y1], inset) {
+  const len=Math.hypot(x1-x0,y1-y0);if(!len)return [x0,y0,x1,y1];
+  const dx=-(y1-y0)/len*inset,dy=(x1-x0)/len*inset;
+  return [x0+dx,y0+dy,x1+dx,y1+dy];
+}
+
+/** Union boundary of skill tiles: shared tile edges never become outlines. */
+export function skillRangeEdges(tiles, inset=0) {
+  const key = (r,c) => `${Math.round(r*1e6)},${Math.round(c*1e6)}`;
+  const occupied = new Set(tiles.map(([r,c]) => key(r,c)));
+  const edges = new Map();
+  for (const [r,c] of tiles) {
+    const out=[];
+    for (const [nr,nc,x0,y0,x1,y1] of [
+      [r-1,c,-.5,-.5,.5,-.5], [r,c+1,.5,-.5,.5,.5],
+      [r+1,c,.5,.5,-.5,.5], [r,c-1,-.5,.5,-.5,-.5],
+    ]) if (!occupied.has(key(nr,nc))) out.push([x0,y0,x1,y1]);
+    edges.set(`${r},${c}`,out);
+  }
+  if(inset>0){
+    const records=[];const starts=new Map(),ends=new Map();
+    for(const [r,c] of tiles)for(const edge of edges.get(`${r},${c}`)){
+      const [x0,y0,x1,y1]=edge,len=Math.hypot(x1-x0,y1-y0);
+      const rec={r,c,edge,nx:-(y1-y0)/len,ny:(x1-x0)/len};records.push(rec);
+      for(const [map,x,y]of [[starts,c+x0,r+y0],[ends,c+x1,r+y1]]){const k=key(y,x);if(!map.has(k))map.set(k,[]);map.get(k).push(rec);}
+    }
+    const joint=(rec,list,x,y)=>{
+      const other=list?.find(v=>v!==rec&&v.r===rec.r&&v.c===rec.c)||list?.find(v=>v!==rec);
+      if(!other)return [x+rec.nx*inset,y+rec.ny*inset];
+      const denominator=1+rec.nx*other.nx+rec.ny*other.ny;
+      if(denominator<.01)return [x+rec.nx*inset,y+rec.ny*inset];
+      return [x+(rec.nx+other.nx)*inset/denominator,y+(rec.ny+other.ny)*inset/denominator];
+    };
+    for(const rec of records){const [x0,y0,x1,y1]=rec.edge;
+      const a=joint(rec,ends.get(key(rec.r+y0,rec.c+x0)),x0,y0);
+      const b=joint(rec,starts.get(key(rec.r+y1,rec.c+x1)),x1,y1);
+      rec.edge.splice(0,4,...a,...b);
+    }
+  }
+  return edges;
+}
+
+/** Fixed world-space dash lengths keep the border steady while the camera moves. */
+export function skillRangeDashes([x0,y0,x1,y1], closeCorner=false) {
+  const length=Math.hypot(x1-x0,y1-y0),segments=[];
+  if(!length)return segments;
+  for(let distance=0;distance<length;distance+=1/3){
+    const a=distance/length,b=Math.min(length,distance+.22)/length;
+    segments.push([x0+(x1-x0)*a,y0+(y1-y0)*a,x0+(x1-x0)*b,y0+(y1-y0)*b]);
+  }
+  if(closeCorner && segments.length){
+    const last=segments.at(-1),gap=Math.hypot(x1-last[2],y1-last[3]);
+    if(gap<=.09){last[2]=x1;last[3]=y1;}
+    else{const t=Math.max(0,1-.08/length);segments.push([x0+(x1-x0)*t,y0+(y1-y0)*t,x1,y1]);}
+  }
+  return segments;
 }
 
 const clamp = (v, lo, hi) => (v < lo ? lo : v > hi ? hi : v);
@@ -307,8 +399,10 @@ export class UnitView {
     // --- display objects
     this.snowTiles = [];
     this.snowFx = new P.Graphics();ctx.layers.groundFx.addChild(this.snowFx);
+    (ctx._rangeViews ||= new Set()).add(this);
     this.skillZone = info.skillZoneGrid?.length ? new P.Graphics() : null;
     if(this.skillZone)ctx.layers.groundFx.addChild(this.skillZone);
+    this.skillZoneExtra = new Map();
     this.attackRange = (Number(info.rangeRadius)>0 || info.hitArea) ? new P.Graphics() : null;
     if(this.attackRange)ctx.layers.groundFx.addChild(this.attackRange);
     this.shadow = new P.Sprite(ctx.shadowTex || shadowTexture());
@@ -330,9 +424,10 @@ export class UnitView {
       this.root.addChild(this.aura);
     }
     this.stateFx = new P.Graphics();
-    this.root.addChild(this.stateFx);
     this.body = new P.Container();
     this.root.addChild(this.body);
+    // Ice/refraction must cover the body: drawing behind the opaque Spine erases most of the effect.
+    this.root.addChild(this.stateFx);
     this.fallback = new P.Sprite(P.Texture.EMPTY);
     this.fallback.anchor.set(0.5, 1);
     this.body.addChild(this.fallback);
@@ -600,7 +695,7 @@ export class UnitView {
   // ---- state input ---------------------------------------------------------------------------------------
 
   _baseFromAnim() {
-    if (this.anim === ANIM.STUN || (this.flags & (UF.STUNNED | UF.FROZEN | UF.SLEEP))) return 'stun';
+    if (this.statuses.has('stun') || this.anim === ANIM.STUN || (this.flags & (UF.STUNNED | UF.FROZEN | UF.SLEEP))) return 'stun';
     if (this.anim === ANIM.MOVE) return 'move';
     return 'idle';
   }
@@ -765,6 +860,7 @@ export class UnitView {
       this.statuses.delete('skill');
       this.skillTiles = undefined;
       if (this.skillZone) { this.skillZone.clear(); this.skillZone.visible = false; }
+      for (const extra of this.skillZoneExtra.values()) { extra.clear(); extra.visible = false; }
     }
     if (this.actor) this.actor.setSkill(on,{instant:this.info.skillDuration===0 && !this.info.skillNextAttack});
   }
@@ -779,6 +875,7 @@ export class UnitView {
   onStatus(key, on) {
     if (typeof key !== 'string') return;
     if (on) this.statuses.add(key); else this.statuses.delete(key);
+    if (key === 'stun' && this.alive && !(this.flags & UF.FROZEN)) this.actor?.setBase(on ? 'stun' : this._baseFromAnim(this.anim));
   }
 
   /**
@@ -797,6 +894,7 @@ export class UnitView {
     this.statuses.delete('skill');
     this.skillTiles = undefined;
     if (this.skillZone) { this.skillZone.clear(); this.skillZone.visible = false; }
+      for (const extra of this.skillZoneExtra.values()) { extra.clear(); extra.visible = false; }
     this.snowFx.clear();
     this._modelDirty = true;
     this._dieForm = this._formSpec();
@@ -888,22 +986,27 @@ export class UnitView {
     const p = cam.project(this.x, this.y, this.z + this.hover + this.lift, this.screen);
     const s = p.s;
     // State effects follow the projected unit, including flying height, rather than the camera.
-    const visualStates = this._iconKeys().filter(k=>['freeze','cold','burn','poison','shield','refraction','stealth','stun','sleep','invuln'].includes(k));
+    const visualStates = this._iconKeys(Infinity).filter(k=>['freeze','cold','burn','poison','shield','refraction','stealth','stun','sleep','invuln','bind','slow','silence','fear','fragile','weaken','healFree','neural','necrosis'].includes(k));
+    if ((this.flags & UF.SHIELD) && !visualStates.includes('shield')) visualStates.push('shield');
+    if (this.statuses.has('ab:rockCharge')) visualStates.push('rage');
+    if (this.statuses.has('ab:mirrorCrack2')) visualStates.push('mirrorCrack2');
+    else if (this.statuses.has('ab:mirrorCrack1')) visualStates.push('mirrorCrack1');
     if (this.statuses.has('ab:rage') || this.statuses.has('ab:lowhp')) visualStates.push('rage');
     const authoredStates = [...(this.form ? [this.form] : []), ...visualStates, ...[...this.statuses].map(k => k.split(':').at(-1))];
     if (this.statuses.has('skill')) authoredStates.push(`skill${(this.info.skillIndex ?? 0)+1}`);
     const authoredState = this.actor?.setVisualStates(authoredStates);
     this.stateFx.clear();
     if (this.alive && !this.down && visualStates.length) {
-      const colors = {stun:0xf1ce76,sleep:0xbab7e8,invuln:0xf7dfab,freeze:0x9fd4ff,cold:0xcfe6ff,burn:0xff8e51,poison:0xb899d7,shield:0x80d9c4,refraction:0x89bfe7,stealth:0xaaaaaa,rage:0xff5941};
+      const colors = {stun:0xf1ce76,sleep:0xbab7e8,invuln:0xf7dfab,freeze:0x74cfff,cold:0xcfe6ff,burn:0xff8e51,poison:0xb899d7,shield:0x80d9c4,refraction:0x7820cc,stealth:0xaaaaaa,rage:0xff5941,bind:0xccaa72,slow:0x709bd1,silence:0xd7bf90,fear:0x925ca8,fragile:0xe9bd83,weaken:0xb39baa,healFree:0xd57777,neural:0xdcba55,necrosis:0x9562bd,mirrorCrack1:0xb9d8eb,mirrorCrack2:0xe1eefa};
       for (const state of visualStates) {
         if (this.actor?.authoredVisualStates?.has(state) || (authoredState && !this.actor?.authoredVisualStates)) continue;
-        this.stateFx.lineStyle(Math.max(.6,s*.008),colors[state],.65);
+        this.stateFx.lineStyle(Math.max(1.2,s*.018),colors[state],.88);
         if (state === 'freeze') {
-          this.stateFx.beginFill(0x9fdcff,.22);
-          this.stateFx.drawPolygon([-s*.3,-s*.05,-s*.35,-s*.5,-s*.16,-s*.82,s*.15,-s*.74,s*.33,-s*.4,s*.28,-s*.05]);
+          this.stateFx.beginFill(0x9fdcff,.43);
+          this.stateFx.drawPolygon([-s*.4,0,-s*.44,-s*.55,-s*.24,-s*.98,s*.12,-s*1.02,s*.42,-s*.55,s*.4,0]);
           this.stateFx.endFill();
-          this.stateFx.moveTo(-s*.16,-s*.82).lineTo(0,-s*.3).lineTo(s*.28,-s*.05);
+          this.stateFx.moveTo(-s*.24,-s*.98).lineTo(0,-s*.35).lineTo(s*.4,0);
+          this.stateFx.moveTo(s*.12,-s*1.02).lineTo(0,-s*.35).lineTo(-s*.4,0);
         } else if (state === 'stealth' && this.info.side === 'ally') {
           this.stateFx.lineStyle(0);
           for (let i=0;i<5;i++) {
@@ -911,21 +1014,56 @@ export class UnitView {
             this.stateFx.drawEllipse(Math.sin(t*.7+i*2)*s*.2,-s*(.12+i*.1),s*(.24+i*.02),s*.1);
             this.stateFx.endFill();
           }
-        } else if (state === 'shield') this.stateFx.drawEllipse(0,-s*.38,s*.32,s*.43);
+        } else if (state === 'shield') {
+          this.stateFx.beginFill(0x80d9c4,.14);
+          this.stateFx.drawEllipse(0,-s*.42,s*.4,s*.52);
+          this.stateFx.endFill();
+        }
         else if (state === 'refraction') {
-          // Translucent refracting arcs shimmer around the body while the RES trait is active.
-          this.stateFx.lineStyle(Math.max(.7,s*.009),0xaecbff,.42+.13*Math.sin(t*4));
-          this.stateFx.drawEllipse(0,-s*.38,s*.34,s*.43);
+          // Original Refraction is a purple hexagonal membrane, not a blue shield.
+          this.stateFx.lineStyle(Math.max(1.8,s*.024),0x7820cc,.8+.1*Math.sin(t*4));
+          this.stateFx.beginFill(0x471080,.30);
+          this.stateFx.drawPolygon([0,-s*.96,s*.39,-s*.72,s*.39,-s*.19,0,s*.06,-s*.39,-s*.19,-s*.39,-s*.72]);
+          this.stateFx.endFill();
           for (let i=0;i<3;i++) {
-            const y=-s*(.16+i*.2);
-            const dx=s*.03*Math.sin(t*3+i*2);
-            this.stateFx.moveTo(-s*.27+dx,y).quadraticCurveTo(0,y-s*.06,s*.27+dx,y);
+            const y=-s*(.2+i*.24),x=Math.sin(t*.7+i*2)*s*.17,r=s*.105;
+            this.stateFx.drawPolygon(Array.from({length:6},(_,j)=>[x+Math.cos(j*Math.PI/3)*r,y+Math.sin(j*Math.PI/3)*r]).flat());
           }
         } else if (state === 'rage') {
           for (let i=0;i<3;i++) { const x=(i-1)*s*.18;
             this.stateFx.moveTo(x,-s*.1).lineTo(x+s*.03*Math.sin(t*7+i),-s*(.4+.1*Math.sin(t*5+i)));
           }
-        } else this.stateFx.drawEllipse(0,-s*.08,s*.32,s*.12);
+        } else if (state.startsWith('mirrorCrack')) {
+          const count=state==='mirrorCrack2'?5:2;
+          for(let i=0;i<count;i++) { const x=(i-(count-1)/2)*s*.12,y=-s*(.2+i*.1);
+            this.stateFx.moveTo(x-s*.06,y+s*.13).lineTo(x+s*.03,y).lineTo(x-s*.02,y-s*.15);
+          }
+        } else if (state === 'bind') {
+          this.stateFx.drawEllipse(0,-s*.05,s*.35,s*.1);
+          this.stateFx.moveTo(-s*.25,-s*.04).lineTo(s*.25,-s*.25);
+          this.stateFx.moveTo(s*.25,-s*.04).lineTo(-s*.25,-s*.25);
+        } else if (['silence','healFree'].includes(state)) {
+          this.stateFx.drawCircle(0,-s*.85,s*.09);
+          this.stateFx.moveTo(-s*.07,-s*.92).lineTo(s*.07,-s*.78);
+        } else if (['slow','weaken','fragile'].includes(state)) {
+          const y=-s*(.14+Math.sin(t*3)*.02);
+          this.stateFx.moveTo(-s*.13,y-s*.07).lineTo(0,y).lineTo(s*.13,y-s*.07);
+          this.stateFx.moveTo(-s*.13,y+s*.03).lineTo(0,y+s*.1).lineTo(s*.13,y+s*.03);
+        } else if (state === 'stun' || state === 'sleep' || state === 'fear') {
+          for (let i=0;i<3;i++) {
+            const a=t*2+i*Math.PI*2/3;
+            this.stateFx.drawCircle(Math.cos(a)*s*.2,-s*.9+Math.sin(a)*s*.05,s*.035);
+          }
+        } else if (state === 'cold') {
+          for (let i=0;i<3;i++) { const x=(i-1)*s*.2, y=-s*(.2+i*.19);
+            this.stateFx.moveTo(x-s*.06,y).lineTo(x+s*.06,y);
+            this.stateFx.moveTo(x,y-s*.06).lineTo(x,y+s*.06);
+          }
+        } else if (['burn','poison','neural','necrosis'].includes(state)) {
+          for (let i=0;i<4;i++) { const x=(i-1.5)*s*.16,y=-s*(.1+((t*.7+i*.23)% .65));
+            this.stateFx.drawCircle(x,y,s*.04);
+          }
+        } else this.stateFx.drawEllipse(0,-s*.38,s*.38,s*.48);
       }
     }
     // fades
@@ -983,21 +1121,44 @@ export class UnitView {
     }
     if(this.skillZone){
       const g=this.skillZone;g.clear();g.visible=this.alive&&!this.down&&(this.statuses.has('skill')||!!this.skillTiles?.length);
+      for(const extra of this.skillZoneExtra.values()){extra.clear();extra.visible=false;}
       if(g.visible){
-        placeOnGround(this.ctx,g,this.ctx.layers.groundFx,this.y,this.z);
+        placeOnGround(this.ctx,g,this.ctx.layers.groundFx,this.y,0);
+        loadRangeArtColor(this.info,this.ctx.assets);
         const style = skillRangeStyle(this.info);
-        const edgeWidth = clamp(s*.018, 1.4, 2.6);
-        for(const [dr,dc] of this.skillTiles || this.info.skillZoneGrid || []){
-          const [r,c]=this.skillTiles ? [dr-this.y,dc-this.x] : this.dir==='UP'?[dc,-dr]:this.dir==='LEFT'?[-dr,-dc]:this.dir==='DOWN'?[-dc,dr]:[dr,dc];
-          const pts=[];for(const [dx,dy]of [[-.48,-.48],[.48,-.48],[.48,.48],[-.48,.48]]){const q=cam.project(this.x+c+dx,this.y+r+dy,this.z+.02);pts.push(q.x,q.y);}
-          g.lineStyle(edgeWidth,style.color,.65*alpha);
-          g.beginFill(style.color,.065*alpha);g.drawPolygon(pts);g.endFill();
-          g.lineStyle(Math.max(.8,edgeWidth*.55),style.color,.28*alpha);
-          for(const [x0,y0,x1,y1] of style.pattern){
-            const a=cam.project(this.x+c+x0,this.y+r+y0,this.z+.025);
-            const b=cam.project(this.x+c+x1,this.y+r+y1,this.z+.025);
-            g.moveTo(a.x,a.y);g.lineTo(b.x,b.y);
+        const active=[...(this.ctx._rangeViews || [])].filter(v=>v.alive&&!v.down&&(v.statuses.has('skill') || v.skillTiles?.length)&&(v.info.skillZoneGrid?.length || v.skillTiles?.length));
+        const ids=[...new Set(active.map(v=>v.info.charId || v.info.spine || String(v.id)))].sort();
+        const lane=Math.max(0,ids.indexOf(this.info.charId || this.info.spine || String(this.id)));
+        style.inset=.065+Math.min(5,lane)*.045;
+        const edgeWidth = clamp(s*.052, 3.6, 6);
+        const tiles=(this.skillTiles || this.info.skillZoneGrid || []).map(([dr,dc])=>this.skillTiles ? [dr-this.y,dc-this.x] : this.dir==='UP'?[dc,-dr]:this.dir==='LEFT'?[-dr,-dc]:this.dir==='DOWN'?[-dc,dr]:[dr,dc]);
+        const boundary=skillRangeEdges(tiles,style.inset);
+        for(const [r,c] of tiles){
+          const tileX=this.x+c,tileY=this.y+r,z=groundZ(this.ctx,tileX,tileY),h=.5;
+          let tileGraphics=g;
+          if(z>RAISED_Z){
+            const key=Math.round(tileY);tileGraphics=this.skillZoneExtra.get(key);
+            if(!tileGraphics){tileGraphics=new this.P.Graphics();this.skillZoneExtra.set(key,tileGraphics);}
+            tileGraphics.visible=true;placeOnGround(this.ctx,tileGraphics,this.ctx.layers.groundFx,tileY,z);
           }
+          const pts=[];for(const [dx,dy]of [[-h,-h],[h,-h],[h,h],[-h,h]]){const q=cam.project(tileX+dx,tileY+dy,z+.02);pts.push(q.x,q.y);}
+          tileGraphics.lineStyle(0);
+          tileGraphics.beginFill(style.color,(style.fillAlpha+style.pulse*Math.sin(t*1.6))*alpha);tileGraphics.drawPolygon(pts);tileGraphics.endFill();
+          // A restrained continuous haze under the dashed boundary preserves
+          // the original skill atmosphere without hatching or hiding the tiles.
+          if(style.glowAlpha){
+            tileGraphics.lineStyle(edgeWidth*1.8,style.color,style.glowAlpha*alpha);
+            for(const [x0,y0,x1,y1] of (boundary.get(`${r},${c}`)||[])){
+              const a=cam.project(tileX+x0,tileY+y0,z+.02),b=cam.project(tileX+x1,tileY+y1,z+.02);
+              tileGraphics.moveTo(a.x,a.y);tileGraphics.lineTo(b.x,b.y);
+            }
+          }
+          tileGraphics.lineStyle(edgeWidth,style.outlineColor,.92*alpha);
+          for(const [x0,y0,x1,y1] of (boundary.get(`${r},${c}`) || []).flatMap(edge=>skillRangeDashes(edge,true))){
+            const a=cam.project(tileX+x0,tileY+y0,z+.02),b=cam.project(tileX+x1,tileY+y1,z+.02);
+            tileGraphics.moveTo(a.x,a.y);tileGraphics.lineTo(b.x,b.y);
+          }
+
         }
       }
     }
@@ -1047,6 +1208,7 @@ export class UnitView {
         if (this._tint !== tint) { this._tint = tint; this.actor.spine.tint = tint; }
       }
     }
+    this.ctx.fx?.weaponTrail?.(this,dt,cam);
     // the diamond is only needed while no model shows (a cross-fade keeps whatever diamond was already up)
     if (!spineShown) this._ensurePicture();
     if (!spineShown || this.swapT < 1) {
@@ -1335,7 +1497,6 @@ export class UnitView {
   // slot the unit keeps a private RenderTexture (same visuals, one extra framebuffer switch).
 
   _impBox() {
-    if (this._box) return this._box;
     let b = null;
     try { b = this.actor.spine.getLocalBounds(); } catch { b = null; }
     let x0 = -220, y0 = -420, x1 = 220, y1 = 40;
@@ -1343,6 +1504,14 @@ export class UnitView {
       const padX = Math.max(60, b.width * 0.3), padY = Math.max(50, b.height * 0.22);
       x0 = Math.min(b.x - padX, -140); x1 = Math.max(b.x + b.width + padX, 140);
       y0 = Math.min(b.y - padY, -260); y1 = Math.max(b.y + b.height + padY * 0.4, 30);
+    }
+    // A deploy/attack pose can extend beyond the first idle frame. Grow the
+    // cached target rather than cropping later poses (or shrinking between hits).
+    if (this._box) {
+      x1 = Math.max(x1, this._box.x0 + this._box.w);
+      y1 = Math.max(y1, this._box.y0 + this._box.h);
+      x0 = Math.min(x0, this._box.x0);
+      y0 = Math.min(y0, this._box.y0);
     }
     this._box = { x0, y0, w: x1 - x0, h: y1 - y0 };
     return this._box;
@@ -1433,11 +1602,11 @@ export class UnitView {
     }
   }
 
-  _iconKeys() {
+  _iconKeys(limit = 4) {
     const out = ICON_TMP;
     out.length = 0;
     const f = this.flags;
-    const push = (k) => { if (k && !out.includes(k) && out.length < 4) out.push(k); };
+    const push = (k) => { if (k && !out.includes(k) && out.length < limit) out.push(k); };
     if (f & UF.FROZEN) push('freeze');
     else if (f & UF.STUNNED) push('stun');
     if (f & UF.SLEEP) push('sleep');
@@ -1445,7 +1614,7 @@ export class UnitView {
     if (f & UF.INVULN) push('invuln');
     if (f & UF.STEALTH) push('stealth');
     for (const k of this.statuses) {
-      if (out.length >= 4) break;
+      if (out.length >= limit) break;
       if (k === 'skill') continue;
       // a burst's lock ('burnBurst', 'neuralBurst' … — the 爆发冷却) is shown by the element gauge row under the bars
       // (b.snap `elem`); only a feed without gauges (an older recording) shows it as a status
@@ -1472,6 +1641,7 @@ export class UnitView {
   setHover(on) { this.hovered = !!on; }
 
   destroy() {
+    this.ctx._rangeViews?.delete(this);
     if (this.destroyed) return;
     this.destroyed = true;
     this._dropActor();
@@ -1479,6 +1649,7 @@ export class UnitView {
     if(this.attackRange)this.attackRange.destroy();
     this.snowFx?.destroy();
     if(this.skillZone)this.skillZone.destroy();
+    for(const extra of this.skillZoneExtra.values())extra.destroy();this.skillZoneExtra.clear();
     this.blockIcon.destroy();
     if (this.facingArrow) this.facingArrow.destroy();
     this.hud.destroy({ children: true });

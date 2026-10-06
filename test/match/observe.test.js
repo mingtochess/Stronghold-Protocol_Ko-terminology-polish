@@ -28,7 +28,7 @@ test('observeTarget: prep, own battle running / over, boss pairs, eliminated pla
     { fieldId: 'b1', kind: 'boss', players: ['a', 'b'], live: true },
     { fieldId: 'b2', kind: 'boss', players: ['d'], live: true },
   ], [...players, P('d', 3)]);
-  assert.match(observeTarget(P('d', 3), fa, 'a').reason, /另一组/);
+  assert.deepEqual(observeTarget(P('d', 3), fa, 'a'), { fieldId: 'b2' });
   assert.match(observeTarget(players[1], fa, 'a').reason, /同一战场/);
   const dead = pubOf('FINAL_ASSAULT', fa.fields, [{ ...players[0], alive: false }, players[1], P('d', 3)]);
   assert.deepEqual(observeTarget(P('d', 3), dead, 'a'), { fieldId: 'b2' }, 'eliminated: anything');

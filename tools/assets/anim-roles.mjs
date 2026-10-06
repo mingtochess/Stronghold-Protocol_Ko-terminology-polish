@@ -224,8 +224,8 @@ function resolveMove(names, find, form) {
 }
 
 function resolveStun(find) {
-  const stun = find('Stun');
-  const begin = find('Stun_Begin');
+  const stun = find('Stun') ?? find('Stun_Loop') ?? find('Stun_Idle') ?? find('Stunned') ?? find('Dizzy');
+  const begin = find('Stun_Begin') ?? find('Stun_Start');
   if (stun) return clip(begin, stun, find('Stun_End'));
   if (begin) return clip(null, begin, null);
   return null;

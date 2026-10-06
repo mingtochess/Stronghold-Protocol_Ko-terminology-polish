@@ -5,11 +5,11 @@
 //
 //   ADD_BOND            grants `give_garrison_id` to other operators before the first deployment (targets parsed from
 //                       the text: 身前一格 / 身前一格【X】/ 自身和身前一格 / 同一行最右边 / 所有【X】). A unit owns a garrison id
-//                       at most once (耀骑士临光 already carries the 144/159 it grants to itself). The 华法琳-granted trait
-//                       (garrison_95) is capped 12 / 24 per battle instead of the data's 7 / 14 (research 02 Addendum 1).
+//                       at most once (耀骑士临光 already carries the 144/159 it grants to itself). Granted traits use
+//                       the same data-driven caps as native traits (华法琳: 7 / 14 layers per battle).
 //   layer events        act1autochess_gar_event_useskill (skillStart) · _selfkillenemy (kill, every check_cnt) ·
-//                       _selfdead (death 'killed'; texts with 替身 also on every substitute ⇄ body swap, read from the
-//                       dollkeeper flag unit.trait.doll) · _consume_ammo (ammoUsed; range_id 0-1 self, 1-1 front tile,
+//                       _selfdead (death 'killed'; texts with 替身 also on each dollSwap body ⇄ substitute transition,
+//                       never on death cleanup) · _consume_ammo (ammoUsed; range_id 0-1 self, 1-1 front tile,
 //                       x-5 self + 4 adjacent, pooled counter) · _enemy_abflag_inrange (an enemy in range ENTERS
 //                       'freeze', × prob) · act2autochess_gar_event_onstart (every deploy) ·
 //                       act2autochess_gar_event_allyenemy_sleepstun_inrange (an enemy or operator in range ENTERS
@@ -17,7 +17,8 @@
 //                       (engine statusApplied ctx.entered). Targets: bond_by_id / bond_self (own active bonds) / bond_actived_maxstack;
 //                       amounts: by_count / by_charcount_samerow / by_charlevel; conditions character_same_row /
 //                       character_same_col (≥ check_count incl. self). Gains go through support.gainLayers with
-//                       reason 'garrison', source = the trait's owner, cap = max_add_count_per_battle per (instance, bond).
+//                       reason 'garrison', source = the trait's owner, cap = max_add_count_per_battle per (instance, bond);
+//                       a single dynamic highest-bond target shares its instance's cap across target changes.
 //   act1autochess_gar_event_addition_cnt (魔王)  layerGain: a 'garrison' gain whose source stands on the tile in front
 //                       of 魔王 (range_id 1-1) — or was knocked out there this instant (幽灵鲨 "被击倒时"; engine ctx.tile)
 //                       — gets +extra_cnt per bond (the extra does not count toward the source's per-battle cap).
@@ -39,9 +40,6 @@
 import * as S from '../support/index.js';
 import { mitigate } from '../../damage.js';
 import { frontOf } from '../../dir.js';
-
-/** 华法琳's granted trait: per-battle cap override (research 02 Addendum 1: PRTS 3/27 "初始7/精锐14 → 初始12/精锐24"). */
-export const GRANTED_CAP_OVERRIDE = Object.freeze({ garrison_95_a: 12, garrison_95_b: 24 });
 
 const ids = (s) => String(s ?? '').split(',').map((x) => x.trim()).filter(Boolean);
 const EMPTY = Object.freeze([]);
@@ -65,8 +63,7 @@ export function install(battle) {
     if (set.has(g.garrisonId)) return null;
     set.add(g.garrisonId);
     const bb = g.bb || {};
-    const override = grantedBy ? GRANTED_CAP_OVERRIDE[g.garrisonId] : undefined;
-    const cap = override ?? (S.num(bb.max_add_count_per_battle, 0) > 0 ? S.num(bb.max_add_count_per_battle) : Infinity);
+    const cap = S.num(bb.max_add_count_per_battle, 0) > 0 ? S.num(bb.max_add_count_per_battle) : Infinity;
     const it = {
       unit, g, gid: g.garrisonId, key: g.effectKey, bb, bbStr: g.bbStr || {}, grantedBy,
       cap, capKey: `gar:${g.garrisonId}:${unit.id}`, cnt: 0, k: -1,
@@ -189,10 +186,13 @@ export function fireGain(battle, it) {
   if (!conditionMet(battle, it)) return 0;
   const bonds = targetBonds(battle, it);
   if (!bonds.length) return 0;
-  const n = amountOf(battle, it);
+  const totalCap = it.bbStr.bond_type === 'bond_actived_maxstack' && Number.isFinite(it.cap);
+  const n = Math.min(amountOf(battle, it), totalCap ? Math.max(0, it.cap - (it.used ?? 0)) : Infinity);
   const added = S.gainLayers(battle, {
     playerId: it.unit.ownerId, bonds, n, requireActive: true, source: it.unit, reason: 'garrison', cap: it.cap, capKey: it.capKey,
   });
+  // A single dynamic target shares one source cap; 魔王's extra is not part of the source's allowance.
+  if (totalCap && added > 0) it.used = (it.used ?? 0) + Math.min(Math.floor(n), added);
   if (added > 0) S.fxOn(battle, 'garrison', it.unit, `gar:${it.gid}`, it.key, { n: added });
   return added;
 }
@@ -278,16 +278,10 @@ const INSTALLERS = {
     });
     const swaps = list.filter((it) => /替身/.test(it.g.desc || ''));
     if (!swaps.length) return;
-    for (const it of swaps) it.doll = false;
-    battle.on('tick', () => {
-      for (let i = 0; i < swaps.length; i++) {
-        const it = swaps[i];
-        const u = it.unit;
-        const doll = !!(u.trait && u.trait.doll);
-        if (doll === it.doll) continue;
-        it.doll = doll;
-        if (u.alive && u.deployed) fireGain(battle, it);
-      }
+    const byDoll = byUnit(swaps);
+    battle.on('dollSwap', ({ unit }) => {
+      const arr = byDoll.get(unit);
+      if (arr && S.onField(unit)) for (const it of arr) fireGain(battle, it);
     });
   },
 

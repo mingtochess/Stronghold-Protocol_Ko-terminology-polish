@@ -65,8 +65,8 @@ test('a spectator seat watches a whole match (各自行动, 联防, 最终攻势
   }
   const kinds = new Set(starts.map((x) => x.kind));
   for (const k of ['normal', 'unite', 'boss']) assert.ok(kinds.has(k), `a ${k} field was shown (${[...kinds]})`);
-  // what it was shown in 各自行动 is what an eliminated player is shown: the first field of the phase
-  for (const st of starts.filter((x) => x.kind === 'normal')) assert.equal(st.fieldId, 'n:p_0');
+  // Manual p_1 selection remains the preference across rounds.
+  for (const st of starts.filter((x) => x.kind === 'normal')) assert.equal(st.fieldId, 'n:p_1');
   // the Final Assault's end reaches the boss field it watched, like every human shown that field
   const ends = h.allTo(S, 'b.end');
   assert.ok(ends.some((e) => e.fieldId === starts.filter((x) => x.kind === 'boss').pop().fieldId), 'b.end of the watched boss field');
@@ -176,4 +176,25 @@ test('spectators see only the watched player bench, updated after purchases or m
   assert.equal(packet.benches[0].pieces[0].uid, ps.hand[0].uid);
   assert.deepEqual(privateKeys(packet), []);
   assert.equal(h.allTo(S, 'm.private').length, 0);
+});
+
+test('a playing member scouting a teammate receives the same read-only bench as a spectator',()=>{
+ const h=makeMatch({humans:2,fake:true}).start();h.autoHumans();h.toPrep(1);
+ const ps=h.ps('p_1');ps.hand[0]=ps.newPiece('chess','chess_char_1_01_a');
+ assert.deepEqual(h.m.handle('p_0',{t:'g.watch',fieldId:'n:p_1'}),{ok:true});
+ const packet=h.lastTo('p_0','m.bench');assert.equal(packet.fieldId,'n:p_1');assert.equal(packet.benches[0].pieces[0].uid,ps.hand[0].uid);assert.deepEqual(privateKeys(packet),[]);
+ ps.hand[0]=null;h.m.markPrivate(ps);h.m.flush();assert.equal(h.lastTo('p_0','m.bench').benches[0].pieces[0],null);h.m.dispose();
+});
+
+test('prep scouting resolves the watched player skin and notices a skin change',async t=>{
+ const {DATA}=await import('./harness.js');
+ const base=Object.values(DATA.chess).find(c=>!c.isGolden&&c.visible);
+ const skin={id:'test_skin',assets:{spine:'skin_test_front',avatar:'skin_test_portrait'}};
+ const rec={...base,skins:[skin]};
+ const h=makeMatch({fake:true,data:{...DATA,chess:{...DATA.chess,[rec.chessId]:rec}}});t.after(()=>h.m.dispose());
+ const ps=h.ps('p_0');ps.board.clear();const piece=ps.newPiece('chess',rec.chessId);ps.board.set('0,0',piece);
+ const before=h.m._prepScoutSig(ps);ps.loadout={[rec.chessId]:{skin:skin.id}};
+ const meta=h.m.prepFieldMeta(ps),u=meta.units.find(u=>u.uid===piece.uid);
+ assert.equal(u.spine,skin.assets.spine);assert.equal(u.avatar,skin.assets.avatar);assert.equal(u.skinId,skin.id);
+ assert.notEqual(h.m._prepScoutSig(ps),before);
 });

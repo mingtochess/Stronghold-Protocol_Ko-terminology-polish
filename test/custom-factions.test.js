@@ -28,7 +28,7 @@ test('disabled Ursus entries do not discard ordinary skill and skin preferences'
  const preferences={[id]:{skill:0,skin},chess_custom_ursus_leto_a:{skill:0}};
  const original=structuredClone(preferences);
  for(const enabled of [false,true,false]){
-  const h=makeMatch({data,customFactions:enabled,seats:[{seat:0,playerId:'p_0',name:'P0',isBot:false,connected:true,loadout:preferences}]});
+  const h=makeMatch({data,customExtensions:{bonds:enabled?['ursus']:[],stages:[]},seats:[{seat:0,playerId:'p_0',name:'P0',isBot:false,connected:true,loadout:preferences}]});
   try{
    assert.equal(h.ps('p_0').loadout[id].skill,0);
    assert.equal(h.ps('p_0').loadout[id].skin,skin);
@@ -80,7 +80,7 @@ test('Ursus descriptions use the same highlighted thresholds and live layer form
  assert.deepEqual(bond.thresholds,[3,6]);
  assert.ok(bond.descRaw.includes('<@autochess.dgreen>3</>'));
  const effect=formatBondEffect(bond,10);
- assert.ok(effect.includes('+45%'));
+ assert.ok(effect.includes('+75%'));
  assert.ok(!effect.includes('{0:'));
  assert.ok(parseRichText(effect).some(s=>s.cls.includes('ba.vup')));
  assert.ok(effect.includes('[우르수스]'));

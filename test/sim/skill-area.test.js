@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {showsSkillArea} from '../../server/sim/skillArea.js';
 const unit=id=>({side:'ally',def:{skill:{skillId:id}},skill:{spec:{}}});
 test('area effects show fields; ordinary stat and attack range buffs do not',()=>{
- for(const id of ['skchr_lisa_3','skchr_mostma_2','skchr_mostma_3','skchr_slbell_2','skchr_rosesa_2','skchr_skadi2_3'])assert.equal(showsSkillArea(unit(id)),true,id);
+ for(const id of ['skchr_mint_1','skchr_mint_2','skchr_lisa_3','skchr_mostma_2','skchr_mostma_3','skchr_slbell_2','skchr_rosesa_2','skchr_skadi2_3'])assert.equal(showsSkillArea(unit(id)),true,id);
  for(const id of ['skchr_lisa_1','skchr_lisa_2','skchr_mostma_1','skchr_silverash_3','skchr_helage_3','skcom_atk_up[3]'])assert.equal(showsSkillArea(unit(id)),false,id);
  const future=unit('new_skill');future.skill.spec.areaEffect=true;assert.equal(showsSkillArea(future),true);
  future.side='enemy';assert.equal(showsSkillArea(future),false);
@@ -47,4 +47,12 @@ test('Degenbrecher S3 shows its real field during the full slash sequence',async
  const u=h.unit('chess_char_6_19_a');assert.ok(u.skill.activate('manual',{free:true}));
  const field=()=>h.b.snapshot().skillRanges.find(e=>e[0]===u.id);
  assert.equal(field()[1].length,13);h.run(2.8);assert.ok(field());h.run(.3);assert.equal(field(),undefined);
+});
+
+test('pending next-attack skills never expose persistent skill fields',()=>{
+ for(const kind of ['instant','charges']){
+  const u=unit('skchr_gumer_1');u.skill={active:true,isTimed:false,kind,spec:{attack:{},areaEffect:true}};
+  u.rangeKeys=[1,2,3];u.baseRangeKeys=[1];assert.equal(showsSkillArea(u),false);
+ }
+ const u=unit('skchr_gumer_1');u.skill.pending=true;u.skill.spec.areaEffect=true;assert.equal(showsSkillArea(u),false);
 });

@@ -25,10 +25,10 @@ test('All 19 Ursus skills, normal and elite: selected authored runtime and compl
  }}assert.equal(total,38);
  }finally{setGameData(null)}
 });
-test('Botani acquisition adds six Ursus/Swift layers even while inactive; morph grants Ursus only when paired',{skip:!ready},()=>{
+test('Botani acquisition adds six / twelve Ursus/Swift layers even while inactive; morph grants Ursus only when paired',{skip:!ready},()=>{
  const h=makeMatch({data,customFactions:true,mode:'solo',fake:true}).start();h.toPrep(1);const ps=h.ps('p_0');ps.layers={};ps.board.clear();ps.hand.fill(null);ps.temp.fill(null);ps.recompute();
  ps.acquireChess(id('botany'),{source:'test'});assert.equal(ps.layers.ursusShip,6);assert.equal(ps.layers.swiftShip,6);assert.equal(!!ps.bonds.ursusShip?.active,false);
- ps.acquireChess(id('botany',true),{source:'test'});assert.equal(ps.layers.ursusShip,12);assert.equal(ps.layers.swiftShip,12);
+ ps.acquireChess(id('botany',true),{source:'test'});assert.equal(ps.layers.ursusShip,18);assert.equal(ps.layers.swiftShip,18);
  const gd=new GameData(data),base=Object.values(data.chess).find(c=>c.visible&&!c.isGolden&&!c.bonds.includes('ursusShip')).chessId;
  assert.ok(!pieceBonds(gd,{id:base,items:[{id:'chess_item_custom_ursus_a'}]}).includes('ursusShip'));
  for(const suffix of ['a','b'])assert.ok(pieceBonds(gd,{id:base,items:[{id:`chess_item_custom_ursus_${suffix}`},{id:'chess_item_6_09_e_a'}]}).includes('ursusShip'));
@@ -80,9 +80,13 @@ test('Absinthe S2 refuses targets above half HP; Botani S1 adds both extra arts 
  const hb=combat('botany',0),bot=hb.unit(id('botany')),target=hb.enemy();bot.skill.gainSp(1000);bot.skill.activate();hb.run(3);assert.ok(target.elem.erosion>0);assert.ok(hb.hooksOf('hit').some(c=>c.source===bot&&c.dmg.tags?.includes('botany-extra')));assert.equal(hb.b.errorCount,0);
  }finally{setGameData(null)}
 });
-test('Zima preparation starts grant eight / sixteen Ursus layers when active',{skip:!ready},()=>{
+test('Zima preparation start and end each grant eight / sixteen layers when active',{skip:!ready},()=>{
  for(const elite of [false,true]){const h=makeMatch({data,customFactions:true,mode:'solo',fake:true}).start();h.toPrep(1);const ps=h.ps('p_0');ps.board.clear();ps.hand.fill(null);ps.temp.fill(null);ps.layers={};ps.bandId=null;
   const p=ps.acquireChess(id('headb2',elite),{source:'test'});ps.board.set('10,3',p);ps.hand.fill(null);ps.bondCountBonus.ursusShip=3;ps.recompute();h.m.dispatch(ps,'onRoundStart',{round:h.m.round});assert.equal(ps.layers.ursusShip,elite?16:8);
+  h.m.dispatch(ps,'onPrepEnd',{round:h.m.round});assert.equal(ps.layers.ursusShip,elite?32:16);
+  assert.equal(h.m.dispatcher.triggerGarrisons(ps,p,'SERVER_PREP_FIN'),1,'prep-end trait can be triggered by other operators');assert.equal(ps.layers.ursusShip,elite?48:24);
+  ps.bondCountBonus.ursusShip=0;ps.recompute();h.m.dispatch(ps,'onPrepEnd',{});assert.equal(ps.layers.ursusShip,elite?48:24,'inactive bond gains nothing');
+  ps.bondCountBonus.ursusShip=3;ps.board.clear();ps.hand[0]=p;ps.recompute();h.m.dispatch(ps,'onRoundStart',{});h.m.dispatch(ps,'onPrepEnd',{});assert.equal(ps.layers.ursusShip,elite?48:24,'bench trait does not run');h.m.dispose();
  }
 });
 test('Ursus Cutlass applies normal / elite ATK and max-HP buffs through the real equipment runtime',{skip:!ready},()=>{
@@ -95,7 +99,7 @@ test('Ursus drone approaches and attacks stationary ground and flying targets wi
  setGameData(data);try{for(const motion of ['WALK','FLY']){
  const raw={...data,enemies:{...data.enemies,drone_target:enemyRec({key:'drone_target',hp:1e7,atk:0,speed:0,motion})}};
  const h=makeBattle({data:raw,autoFinish:false,captureNoisy:true,units:[{chessId:id('turdus'),row:10,col:3}],bonds:{ursusShip:{count:3,active:true,tier:1,layers:20}},enemies:[{key:'drone_target',time:0,route:{motion,start:[10,6],end:[9,2],checkpoints:[]}}]});
- h.run(18);const drone=h.b.allyUnits.find(u=>u.defId==='token_custom_ursus_drone'),enemy=h.enemy();assert.ok(drone);assert.ok(drone.stats.attacks>=2);assert.ok(enemy.hp<enemy.s.maxHp);assert.ok(h.hooksOf('hit').some(c=>c.credit===drone&&c.target===enemy));assert.equal(drone.s.atk,1650);assert.equal(drone.s.maxHp,21450);assert.equal(h.b.errorCount,0);checkInvariants(h.b);
+ h.run(18);const drone=h.b.allyUnits.find(u=>u.defId==='token_custom_ursus_drone'),enemy=h.enemy();assert.ok(drone);assert.ok(drone.stats.attacks>=2);assert.ok(enemy.hp<enemy.s.maxHp);assert.ok(h.hooksOf('hit').some(c=>c.credit===drone&&c.target===enemy));assert.equal(drone.s.atk,2000);assert.equal(drone.s.maxHp,26000);assert.equal(h.b.errorCount,0);checkInvariants(h.b);
  }}finally{setGameData(null)}
 });
 test('Airborne Ursus drone pursues distant enemies, stops in range, and resumes pursuit after target loss',{skip:!ready},()=>{
@@ -123,12 +127,12 @@ test('Updated affiliations/tier and default/alternate skill icons follow the UI 
  assert.equal(data.assets.bonds.ursusShip,'/assets/custom/ursus/icon-full.png');
  for(const c of Object.values(data.chess).filter(c=>c.chessId.startsWith('chess_custom_ursus_'))){assert.match(skillIconUrl(data.assets,c),/\/custom\/ursus\/skill\//);for(const sk of c.skills)assert.match(skillRecordIconUrl(data.assets,sk),/\/custom\/ursus\/skill\//)}
 });
-test('Leto: own Ursus skill activations grant two layers each, capped at ten activations for normal and elite',{skip:!ready},()=>{
+test('Leto: own Ursus skill activations grant 2/4 layers per activation, capped at ten activations',{skip:!ready},()=>{
  const plain=Object.values(data.chess).find(c=>c.visible&&!c.isGolden&&!c.bonds.includes('ursusShip')&&(c.garrisonIds||[]).every(g=>data.garrisons[g].eventType!=='IN_BATTLE')).chessId;
  setGameData(data);try{for(const elite of [false,true]){
  const h=combat('leto',0,elite,{flags:{layerGainsEnabled:true},bonds:{ursusShip:{count:3,active:true,tier:1,layers:0}},enemies:[],units:[{chessId:id('leto',elite),row:10,col:3},{chessId:id('glassb'),row:11,col:3},{chessId:plain,row:12,col:3}]});
  const own=h.unit(id('glassb')),other=h.unit(plain);h.b.emit('skillStart',{unit:other});assert.equal(h.b.getPlayer('p1').bonds.ursusShip.layers,0);
- for(let i=0;i<20;i++)h.b.emit('skillStart',{unit:own});assert.equal(h.b.getPlayer('p1').bonds.ursusShip.layers,20);assert.equal(h.b.errorCount,0);
+ for(let i=0;i<20;i++)h.b.emit('skillStart',{unit:own});assert.equal(h.b.getPlayer('p1').bonds.ursusShip.layers,elite?40:20);assert.equal(h.b.errorCount,0);
  }}finally{setGameData(null)}
 });
 test('Drone spawns one tile right of map centre; shells wait three seconds, hit a fixed 1.2-radius area, and survive shooter death',{skip:!ready},()=>{
@@ -158,27 +162,27 @@ test('Drone ignores taunt for base-distance priority and pursues the leading ene
  }finally{setGameData(null)}
 });
 
-test('Ukusik preparation grants +4 to each of her active bonds, normal and elite',{skip:!ready},()=>{
+test('Ukusik preparation grants +4 / +8 to each active bond',{skip:!ready},()=>{
  for(const elite of [false,true]){
   const h=makeMatch({data,customFactions:true,mode:'solo',fake:true}).start();h.toPrep(1);const ps=h.ps('p_0');
   ps.board.clear();ps.hand.fill(null);ps.temp.fill(null);ps.layers={};ps.bandId=null;
   const p=ps.acquireChess(id('turdus',elite),{source:'test'});ps.board.set('10,3',p);ps.hand.fill(null);
   ps.bondCountBonus.ursusShip=3;ps.bondCountBonus.deputShip=3;ps.recompute();
   const active=['ursusShip','deputShip'].filter(k=>ps.bonds[k]?.active);assert.ok(active.includes('ursusShip'));
-  h.m.dispatch(ps,'onRoundStart',{round:h.m.round});for(const k of active)assert.equal(ps.layers[k],4);
+  h.m.dispatch(ps,'onRoundStart',{round:h.m.round});for(const k of active)assert.equal(ps.layers[k],elite?8:4);
  }
 });
 
-for(const elite of [false,true])test(`Istina ${elite?'elite':'normal'}: only sluggish deaths inside range grant +2 to active bonds, at most seven triggers`,{skip:!ready},(t)=>{
+for(const elite of [false,true])test(`Istina ${elite?'elite':'normal'}: only sluggish deaths inside range grant +2 / +4 to active bonds, at most seven triggers`,{skip:!ready},(t)=>{
  setGameData(data);t.after(()=>setGameData(null));
  const state=()=>({count:3,active:true,tier:1,layers:0});
  const h=combat('glassb',0,elite,{flags:{layerGainsEnabled:true},bonds:{ursusShip:state(),visiShip:state()},enemies:[]});const u=h.unit(id('glassb',elite));
  const layers=()=>['ursusShip','visiShip'].map(k=>h.b.getPlayer('p1').bonds[k].layers);
  const death=(status,pos=[10,4],killer=null)=>{const e=h.spawn('dummy',{pos,route:{motion:'WALK',start:pos,end:[10,2],checkpoints:[]}});if(status)h.b.applyStatus(e,status,{duration:5,source:u,value:.5});h.b.kill(e,killer);};
- assert.match(data.garrisons[u.def.raw.garrisonIds[0]].desc,/정지.*\[우르수스\]\/\[예견\].*\+2.*전투당 최대 7회 발동/);
+ assert.match(data.garrisons[u.def.raw.garrisonIds[0]].desc,new RegExp(`정지.*\\[우르수스\\]/\\[예견\\].*\\+${elite?4:2}.*전투당 최대 7회 발동`));
  death('slow');death('stun');death('freeze');death(null);death('sluggish',[12,9]);assert.deepEqual(layers(),[0,0]);
- death('sluggish');assert.deepEqual(layers(),[2,2],'another source or no credited killer still qualifies');
- for(let i=0;i<9;i++)death('sluggish');assert.deepEqual(layers(),[14,14],'one death is one trigger even when both bonds gain');
+ death('sluggish');assert.deepEqual(layers(),elite?[4,4]:[2,2],'another source or no credited killer still qualifies');
+ for(let i=0;i<9;i++)death('sluggish');assert.deepEqual(layers(),elite?[28,28]:[14,14],'one death is one trigger even when both bonds gain');
 });
 
 test('Istina never grants inactive bonds and shares one seven-trigger budget across later activation',{skip:!ready},(t)=>{
@@ -196,4 +200,27 @@ test('Ursus default skills match the requested roster for normal and elite recor
   const rec=data.chess[id(key,elite)];assert.equal(rec.skill.index,index,rec.name);
   assert.equal(resolveRecordLoadout(rec).skillIndex,index,rec.name);
  }
+});
+
+test('every Ursus operator has distinct normal and elite trait data and matching nested effects',{skip:!ready},()=>{
+ const normals=Object.values(data.chess).filter(c=>!c.isGolden&&c.bonds.includes('ursusShip'));
+ assert.equal(normals.length,10);
+ for(const c of normals){const elite=data.chess[c.goldenId];assert.ok(elite,c.name);
+  const gs=c.garrisonIds.map(g=>data.garrisons[g]),es=elite.garrisonIds.map(g=>data.garrisons[g]);
+  assert.notDeepEqual(gs.map(g=>g.bb),es.map(g=>g.bb),c.name+' must improve on promotion');
+  assert.notDeepEqual(gs.map(g=>g.desc),es.map(g=>g.desc),c.name+' description must show the improvement');
+  for(const g of [...gs,...es])if(g.garrisonId.startsWith('garrison_ursus_'))for(const effect of g.effects||[]){
+   assert.deepEqual(effect.bb,g.bb,g.garrisonId);assert.deepEqual(effect.bbStr,g.bbStr,g.garrisonId);assert.equal(effect.eventType,g.eventType);
+   if(g.eventTypes)assert.deepEqual(effect.eventTypes,g.eventTypes);
+  }
+ }
+});
+
+test('in-place Ukusik promotion uses the upgraded prep trait on the same piece',{skip:!ready},()=>{
+ const h=makeMatch({data,customFactions:true,mode:'solo',fake:true}).start();h.toPrep(1);const ps=h.ps('p_0');
+ ps.board.clear();ps.hand.fill(null);ps.temp.fill(null);ps.layers={};ps.bandId=null;
+ const p=ps.acquireChess(id('turdus'),{source:'test'});ps.hand.fill(null);ps.board.set('10,3',p);ps.bondCountBonus.ursusShip=3;ps.recompute();
+ h.m.dispatch(ps,'onRoundStart',{});assert.equal(ps.layers.ursusShip,4);
+ assert.ok(ps.promote(p));assert.equal(p.id,id('turdus',true));
+ h.m.dispatch(ps,'onRoundStart',{});assert.equal(ps.layers.ursusShip,12,'elite contributes eight, not four');h.m.dispose();
 });

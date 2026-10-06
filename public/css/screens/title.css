@@ -256,4 +256,4 @@
   color: var(--text-dim);
 }
 
-.title-settings { position: absolute; top: max(.24rem, env(safe-area-inset-top)); right: max(.3rem, env(safe-area-inset-right)); z-index: 3; }
+.title-tools { display: flex; align-items: center; gap: .16rem; position: absolute; top: max(.24rem, env(safe-area-inset-top)); right: max(.3rem, env(safe-area-inset-right)); z-index: 3; }

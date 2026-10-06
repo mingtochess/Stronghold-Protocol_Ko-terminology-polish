@@ -59,3 +59,62 @@ test('personally selected candidates remain in the pool when every one of their 
  const rng=()=>0;rng.shuffle=()=>{};
  const result=drawDisabledBonds(gd,rng);assert.deepEqual(result.banned,['ordinary']);
 });
+
+test('Dawnstriker S3 auto-casts on airborne targets; only the opening wave hits air',()=>{
+ setGameData(data);try{
+  const raw={...data,enemies:{...data.enemies,air:enemyRec({key:'air',hp:1e7,speed:0,atk:0,motion:'FLY'})}};
+  for(const tier of [5,6])for(const elite of [false,true]){
+   const h=makeBattle({data:raw,autoFinish:false,captureNoisy:true,units:[{chessId:id('chen3',tier,elite),row:10,col:3,skillIndex:2}],enemies:[{key:'air',pos:[10,4],route:{motion:'FLY',start:[10,4],end:[10,2],checkpoints:[]}}]});
+   h.run(2);const u=h.unit(id('chen3',tier,elite)),e=h.enemy();assert.ok(e.isFlying);u.skill.gainSp(1000);
+   assert.ok(h.runUntil(()=>u.skill.active,1),'air alone starts the sword wave');
+   assert.ok(h.hooksOf('hit').some(c=>c.target===e&&c.dmg.tags?.includes('chen3-sword-wave')));
+   const hp=e.hp;h.run(3);assert.equal(e.hp,hp,'sustained slashes remain ground-only');assert.equal(h.b.errorCount,0);
+  }
+ }finally{setGameData(null)}
+});
+
+test('verified anti-air skill variants activate and damage when only a flying enemy is present',()=>{
+ setGameData(data);try{
+  const cases=[['chess_custom_recruit_wisdel_6_a',2],['chess_char_5_14_a',2],['chess_char_6_19_a',2],['chess_char_5_19_a',2]];
+  for(const [chessId,skillIndex] of cases){
+   const raw={...data,enemies:{...data.enemies,air:enemyRec({key:'air',hp:1e7,speed:0,atk:0,motion:'FLY'})}};
+   const h=makeBattle({data:raw,autoFinish:false,captureNoisy:true,units:[{chessId,row:10,col:3,skillIndex}],enemies:[{key:'air',pos:[10,4],route:{motion:'FLY',start:[10,4],end:[10,2],checkpoints:[]}}]});h.run(2);const u=h.unit(chessId),e=h.enemy();assert.ok(e.isFlying);u.skill.gainSp(1000);
+   assert.ok(h.runUntil(()=>h.hooksOf('hit').some(c=>c.source===u&&c.target===e),5),`${chessId}: air-only auto-cast deals damage`);assert.equal(h.b.errorCount,0);
+  }
+ }finally{setGameData(null)}
+});
+
+test('Ascalon poison propagation excludes concealed enemies without applying its slow',()=>{
+ setGameData(data);try{
+  const h=combat('ascln',1),u=h.unit(id('ascln')),e=h.enemy();u.skill.gainSp(1000);if(!u.skill.active)u.skill.activate('test');
+  const hidden=h.spawn('dummy',{pos:[e.y,e.x+.1],route:{motion:'WALK',start:[e.y,e.x+.1],end:[10,2],checkpoints:[]}});
+  h.b.addBuff(hidden,{key:'test:stealth',duration:100,flags:{stealth:true}});
+  h.b.dealDamage(u,e,{amount:10,type:'phys',isAttack:true});assert.ok(e.findBuff(`ascln:poison:${u.id}`));
+  h.b.kill(e,u);assert.equal(hidden.findBuff(`ascln:poison:${u.id}`),null,'no poison or associated movement debuff is spread to concealment');
+ }finally{setGameData(null)}
+});
+
+test('Ascalon S2 slow multiplies module slow, affects air, and poison tick survives frequent hits',()=>{
+ setGameData(data);try{
+  const h=combat('ascln',1,true),u=h.unit(id('ascln',6,true)),e=h.enemy();
+  e.x=4;e.y=10;e.markDirty();h.b.removeBuff(e,`ascln:poison:${u.id}`);h.b.addBuff(u,{key:'test-disarm',flags:{disarm:true},duration:100});
+  u.skill.gainSp(1000);if(!u.skill.active)u.skill.activate('test');h.step();
+  const ratio=Math.max(.05,(1+(u.def.raw.module?.active?-.2:0))*(1+u.skill.bb.move_speed));
+  assert.ok(Math.abs(e.s.moveSpeed/e.base.moveSpeed-ratio)<1e-6,JSON.stringify({actual:e.s.moveSpeed/e.base.moveSpeed,ratio,x:e.x,y:e.y,buffs:e.buffs,active:u.skill.active}));
+  e.motion='FLY';h.step();assert.ok(Math.abs(e.s.moveSpeed/e.base.moveSpeed-ratio)<1e-6,'S2 and module affect air too');e.motion='WALK';
+  const before=h.hooksOf('hit').filter(c=>c.dmg.tags?.includes('ascln-poison')).length;
+  for(let n=0;n<8;n++){h.b.dealDamage(u,e,{amount:1,type:'phys',isAttack:true});h.run(.2);}
+  assert.ok(h.hooksOf('hit').filter(c=>c.dmg.tags?.includes('ascln-poison')).length>before,'repeated attacks do not postpone every poison tick');
+  const p=e.findBuff(`ascln:poison:${u.id}`);assert.equal(p.stacks,3);
+  assert.ok(Math.abs(p.mods.moveMul**3-(1+u.def.raw.talents[0].bb.move_speed*3))<1e-6);
+  u.deployed=false;h.step();assert.equal(e.findBuff(`ascln:poison:${u.id}`),null);
+ }finally{setGameData(null)}
+});
+
+test('Narantuya S1 actually shortens her range and restores it when toggled off',()=>{
+ setGameData(data);try{
+ const h=combat('narant',0),u=h.unit(id('narant')),grid=u.rangeGrid.map(p=>[...p]);
+ u.skill.gainSp(1000);u.skill.activate('test');assert.ok(u.rangeGrid.length<grid.length);
+ u.skill.gainSp(1000);u.skill.activate('test');assert.deepEqual(u.rangeGrid,grid);
+ }finally{setGameData(null)}
+});

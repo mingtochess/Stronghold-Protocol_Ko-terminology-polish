@@ -150,7 +150,7 @@ describe('particles', () => {
     assert.ok(peakProj >= 3 && peakAdd > 20, `busy enough (${peakProj} shots, ${peakAdd} particles at once)`);
     assert.equal(fx.addPc.children.length, peakAdd, 'additive particle sprites = the peak alive at once');
     assert.equal(fx.normPc.children.length, peakNorm, 'normal-blend particle sprites = the peak alive at once');
-    assert.equal(fx.projLayer.children.length, 3 * peakProj, 'three sprites per projectile record');
+    assert.equal(fx.projLayer.children.length, 4 * peakProj, 'three sprites plus one pooled path per projectile record');
     assert.equal(fx.shadowLayer.children.length, peakProj);
     assert.ok(fx.parts.length <= fx.maxParticles);
   });
@@ -474,11 +474,11 @@ test('Explosion particles keep their world position and scale when the camera ch
  fx.snowfall(0xffffff);const snow=fx.parts.at(-1);assert.equal(snow.world,null);
 });
 
-test('ranged projectile heads and widths are 20 percent larger without changing flight time',()=>{
+test('ranged projectile heads and widths are 80 percent larger without changing flight time',()=>{
  const a=unit(90,4,10),b=unit(91,8,10,{isEnemy:true}),{fx}=makeFx({views:[a,b]});
  fx.attack(a,b,'orb');const pr=fx.projs[0];
- assert.ok(Math.abs(pr.spec.head-PROJ.orb.head*1.2)<1e-9);
- assert.ok(Math.abs(pr.spec.width-PROJ.orb.width*1.2)<1e-9);
+ assert.ok(Math.abs(pr.spec.head-PROJ.orb.head*1.8)<1e-9);
+ assert.ok(Math.abs(pr.spec.width-PROJ.orb.width*1.8)<1e-9);
  assert.ok(Math.abs(pr.dur-4/PROJ.orb.speed/2)<1e-9);
 });
 test('interleaved melee attacks retain their individual flat contact effects',()=>{
@@ -487,4 +487,44 @@ test('interleaved melee attacks retain their individual flat contact effects',()
  fx.damage(target,100,'phys',a);fx.damage(target,100,'phys',b);
  assert.equal(fx.contacts.length,2);
  assert.equal(liveTex(fx,'spark').length,0);assert.equal(liveTex(fx,'glow').length,0);
+});
+
+test('wide active attacks sweep once per volley and release their graphics',()=>{
+ const src=unit(1,3,10,{dir:'RIGHT',statuses:new Set(['skill']),info:{charId:'char_172_svrash',skillIndex:2,skillZoneGrid:[[0,3]]}});
+ const targets=[unit(2,5,10),unit(3,5,11)];const {fx}=makeFx({views:[src,...targets]});
+ fx.attack(src,targets[0],'none');fx.attack(src,targets[1],'none');assert.equal(fx.sweeps.length,1);
+ run(fx,.4);assert.equal(fx.sweeps.length,0);
+ assert.equal(FX.wideAttackEffect(src.info,false),false);
+});
+
+test('drone warning follows its target, retargets without resetting time, and freezes its landing point at drop',()=>{
+ const src=unit(80,5,10),a=unit(81,6,10,{isEnemy:true}),b=unit(82,7,10,{isEnemy:true});
+ const {fx}=makeFx({views:[src,a,b]});
+ fx.simFx('bombardShell',a.x,a.y,{id:src.id,target:a.id,shot:1,vertical:true,t:3,fall:.44});
+ const pr=fx.projs[0];a.x=6.4;run(fx,.2);assert.equal(pr.tx,a.x);assert.ok(pr.warnRings.every(r=>r.x===a.x));
+ const time=pr.t;fx.simFx('bombardAim',b.x,b.y,{id:src.id,shot:1,target:b.id});assert.equal(pr.t,time);assert.equal(pr.aimTarget,b.id);
+ b.x=7.2;run(fx,.5);assert.equal(pr.tx,b.x);fx.simFx('bombardAim',7.2,10,{id:src.id,shot:1,target:null});
+ b.x=9;run(fx,.2);assert.equal(pr.tx,7.2);
+});
+
+test('fixed trail lifetime gives faster shots a longer tail; pooled paths clear on release',()=>{
+ const a=unit(1,3,10),b=unit(2,9,10,{isEnemy:true});
+ const slow=makeFx().fx,fast=makeFx().fx;
+ slow.attack(a,b,'arrow');fast.attack(a,b,'arrow');
+ slow.projs[0].dur=.8;fast.projs[0].dur=.4;
+ slow.update(.12);fast.update(.12);
+ assert.ok(fast.projs[0].trail.scale.x>slow.projs[0].trail.scale.x*1.4);
+ assert.ok(fast.projs[0].path);fast.clear();assert.equal(fast.projs.length,0);
+});
+
+test('weapon tail follows mesh deformation and clears when the attack stops',()=>{
+ const fx=makeFx().fx;let shift=0;
+ const slot={data:{name:'F_Sword'},bone:{worldX:0,worldY:0},getAttachment:()=>({worldVerticesLength:8,computeWorldVertices(slot,start,count,out){out.set([shift,0,shift+25,0,shift+25,5,shift,5]);}})};
+ const a=unit(1,3,10);a.actor={mode:'attack',spine:{toGlobal:p=>p,skeleton:{slots:[slot]}}};
+ a.body={toGlobal:p=>({x:800+p.x,y:400+p.y})};a.modelK=1;a.flipValue=1;
+ fx.weaponTrail(a,.016,cam);shift=20;fx.weaponTrail(a,.016,cam);
+ assert.equal(fx.weaponTrails.get(a).samples.length,2);
+ assert.notEqual(fx.weaponTrails.get(a).samples[0].x,fx.weaponTrails.get(a).samples[1].x);
+ a.actor.mode='stun';fx.weaponTrail(a,.016,cam);assert.equal(fx.weaponTrails.get(a).samples.length,0);
+ fx.clear();assert.equal(fx.weaponTrails.size,0);
 });

@@ -1,4 +1,5 @@
 // server/lobby.js — rooms, seats, host, AI seats, ready/start, reconnect, and room → Match wiring
+import { customExtensionCatalog, extensionSelectionShape, normalizeCustomExtensions } from '../shared/customExtensions.js';
 // (DESIGN §2, §6.1 LOBBY, §8.1). Implements the handler interface consumed by server/net.js.
 //
 // Rules (the choices where DESIGN is silent are marked ▸):
@@ -153,6 +154,8 @@ export class Room {
     this.chatSequence = 0;
     this.chatMembers = new Map();
     this.customFactions = false;
+    this.customExtensions = { bonds: [], stages: [] };
+    this.customExtensionCatalog = { bonds: [], stages: [] };
     /** @type {any} summary passed to onEnd by the last match */
     this.lastSummary = null;
     /**
@@ -192,6 +195,8 @@ export class Room {
       mode: this.mode,
       difficulty: this.difficulty,
       customFactions: this.customFactions,
+      customExtensions: structuredClone(this.customExtensions),
+      customExtensionCatalog: this.customExtensionCatalog,
       inMatch: !!this.match,
       // the host's spectator cap, so the client can label the 观战席 strip "n/cap" (0 = spectating off)
       spectatorCap: this.spectatorCap,
@@ -304,6 +309,7 @@ export class Lobby {
       case 'room.leave': return this.leave(session);
       case 'room.ready': return this.ready(session, msg);
       case 'room.setCustomFactions': return this.setCustomFactions(session, msg);
+      case 'room.setCustomExtensions': return this.setCustomExtensions(session, msg);
       case 'room.setDifficulty': return this.setDifficulty(session, msg);
       case 'room.addBot': return this.addBot(session);
       case 'room.removeBot': return this.removeBot(session, msg);
@@ -380,6 +386,7 @@ export class Lobby {
     // room keeps the choice — an absent / non-integer value falls back to the default MAX_SPECTATORS.
     const cap = mode !== 'coop' ? 0 : (isSpectatorCap(spectators) ? spectators : MAX_SPECTATORS);
     const room = new Room(code, mode, difficulty, this.now(), cap);
+    room.customExtensionCatalog = customExtensionCatalog(this.safeData());
     room.ownerKey = key;
     room.seats[0] = this.humanSeat(0, session);
     room.hostId = session.playerId;
@@ -489,12 +496,21 @@ export class Lobby {
 
   setCustomFactions(session, { enabled }) {
     const room = this.roomOf(session);
+    return this.setCustomExtensions(session, { selection: { ...room?.customExtensions, bonds: enabled ? ['ursus'] : [] } });
+  }
+
+  setCustomExtensions(session, { selection }) {
+    const room = this.roomOf(session);
     if (!room) return fail(ERR.NOT_IN_ROOM);
     if (room.hostId !== session.playerId) return fail(ERR.NOT_HOST);
     if (room.match) return fail(ERR.ROOM_STARTED);
+    if (!extensionSelectionShape(selection)) return fail(ERR.BAD_MSG);
+    const selected = normalizeCustomExtensions(selection, this.safeData());
+    if (Object.keys(selection).some(k => selection[k].some(id => !selected[k].includes(id)))) return fail(ERR.BAD_MSG);
     this.dropReplay(room, session.playerId);
-    room.customFactions = enabled;
-    if (!enabled) for (const member of room.chatMembers.values()) if (member.faction === '우르수스') member.faction = null;
+    room.customExtensions = selected;
+    room.customFactions = selected.bonds.includes('ursus');
+    if (!room.customFactions) for (const member of room.chatMembers.values()) if (member.faction === '우르수스') member.faction = null;
     for (const s of room.seats) if (s && !s.isBot && s.playerId !== room.hostId) s.ready = false;
     this.broadcastState(room);
     this.broadcastRoom(room, {t:'m.chatHistory',messages:room.chatHistory,factions:Object.fromEntries([...room.chatMembers].map(([id,m])=>[id,m.faction]))});
@@ -643,6 +659,7 @@ export class Lobby {
         mode: room.mode,
         difficulty: room.difficulty,
         customFactions: room.customFactions,
+        customExtensions: structuredClone(room.customExtensions),
         modeId: modeIdFor(room.mode, room.difficulty),
         seats,
         // the spectator seats (header): watched like eliminated players, never players

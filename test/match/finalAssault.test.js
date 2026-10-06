@@ -17,25 +17,25 @@ test('pairing by seat: (1,2), (3,4); an odd player alone', () => {
   assert.deepEqual(pairPlayers([p(3), p(1), p(0), p(2)]).map((g) => g.map((x) => x.seat)), [[0, 1], [2, 3]]);
 });
 
-test('boss pool = bloodPoint[difficulty] in co-op whatever the alive count (× alive / 4 only with aliveScaling; solo × 0.25) × tuning; shared and never negative', () => {
+test('boss pool = bloodPoint[difficulty] in co-op × alive count; solo × 1 × tuning; shared and never negative', () => {
   // research numbers (data/tuning.json left out); DESIGN §20.10: notice 5114's "敌方领袖的总生命值不变" is about the
   // mirrored copies, the one note on player count (巴哈姆特 12294 "聯機隊友(撤退/死掉)變少，最後boss血條也會變少") has no
   // proportion — config bossHpScale.aliveScaling (off) would apply × alive / 4
   const { tuning, ...RAW } = DATA; // eslint-disable-line no-unused-vars
   const gd = new GameData(RAW, 'mode_multi_hard');
-  for (const n of [4, 3, 2, 1, undefined, 9]) assert.equal(bossPoolHp(gd, 'boss_1', n), 1800000, `${n} alive`);
+  for (const n of [4, 3, 2, 1, undefined, 9]) assert.equal(bossPoolHp(gd, 'boss_1', n), 1800000 * Math.min(4, n || 4), `${n} alive`);
   assert.equal(gd.bossPoolHp('boss_1', 2), bossPoolHp(gd, 'boss_1', 2), 'GameData agrees');
   // the flip: config bossHpScale.aliveScaling true scales the pool by alive / 4
   const scaled = new GameData({ ...RAW, config: { ...RAW.config, bossHpScale: { ...RAW.config.bossHpScale, aliveScaling: true },
     modes: { ...RAW.config.modes, mode_multi_hard: { ...RAW.config.modes.mode_multi_hard, bossHpScale: { ...RAW.config.modes.mode_multi_hard.bossHpScale, aliveScaling: true } } } } }, 'mode_multi_hard');
-  assert.equal(bossPoolHp(scaled, 'boss_1', 4), 1800000);
-  assert.equal(bossPoolHp(scaled, 'boss_1', 3), 1350000);
-  assert.equal(bossPoolHp(scaled, 'boss_1', 2), 900000);
-  assert.equal(bossPoolHp(scaled, 'boss_1', 1), 450000);
-  assert.equal(bossPoolHp(scaled, 'boss_1'), 1800000, 'no count given: a full team');
-  assert.equal(bossPoolHp(scaled, 'boss_1', 9), 1800000, 'never above the data value');
-  assert.equal(bossPoolHp(new GameData(RAW, 'mode_single_abyss'), 'boss_5', 1), 750000);
-  assert.equal(bossPoolHp(new GameData(RAW, 'mode_single_funny'), 'boss_2', 1), 56250);
+  assert.equal(bossPoolHp(scaled, 'boss_1', 4), 7200000);
+  assert.equal(bossPoolHp(scaled, 'boss_1', 3), 5400000);
+  assert.equal(bossPoolHp(scaled, 'boss_1', 2), 3600000);
+  assert.equal(bossPoolHp(scaled, 'boss_1', 1), 1800000);
+  assert.equal(bossPoolHp(scaled, 'boss_1'), 7200000, 'no count given: a full team');
+  assert.equal(bossPoolHp(scaled, 'boss_1', 9), 7200000, 'never above the data value');
+  assert.equal(bossPoolHp(new GameData(RAW, 'mode_single_abyss'), 'boss_5', 1), 3000000);
+  assert.equal(bossPoolHp(new GameData(RAW, 'mode_single_funny'), 'boss_2', 1), 225000);
   // the balance layer multiplies the pool (docs/BALANCE.md)
   for (const modeId of ['mode_single_funny', 'mode_multi_hard']) {
     const tuned = new GameData(DATA, modeId);
@@ -98,7 +98,7 @@ for (const n of [1, 2, 3, 4]) {
   });
 }
 
-test('overtime: −1 team LP per REAL second after 150 real s (300 game s at 2×); team LP 0 ends every field → defeat (13 rounds passed)', () => {
+test('overtime: −1 team LP per REAL second after 150 real s (150 game s at 1×); team LP 0 ends every field → defeat (13 rounds passed)', () => {
   const h = makeMatch({ mode: 'coop', difficulty: 'FUNNY', humans: 2, seed: 50, fake: true, script: (b) => (b.kind === 'boss' ? { bossDps: 1 } : {}) }).start();
   const m = h.m;
   h.drive(() => m.phase === PHASE.PREP && m.round === 14);
@@ -109,7 +109,7 @@ test('overtime: −1 team LP per REAL second after 150 real s (300 game s at 2×
   const end = h.runToEnd();
   assert.equal(end.victory, false);
   assert.equal(end.roundsPassed, 13);
-  assert.ok(Math.abs(f.time - 340) < 2.5, `ended ≈ 300 + 2 × 20 game s (${f.time})`);
+  assert.ok(Math.abs(f.time - 170) < 2.5, `ended ≈ 150 + 20 game s (${f.time})`);
   assert.equal(m.teamLp, 0);
   m.dispose();
 });
@@ -182,25 +182,25 @@ test('Hidden Core is skipped at Σ layers ≤ threshold, on FUNNY, or with team 
   m.dispose();
 });
 
-test('Final Assault: a fighting player may only watch its own boss field; eliminated players spectate any field', () => {
+test('Final Assault: players can spectate other boss fields without changing their own battle', () => {
   const h = makeMatch({ mode: 'coop', difficulty: 'FUNNY', humans: 4, seed: 54, fake: true, instant: false, script: (b) => (b.kind === 'boss' ? { bossDps: 1 } : {}) }).start();
   const m = h.m;
   h.drive(() => m.phase === PHASE.PREP && m.round === 14);
   h.ps('p_3').eliminate(13);
   h.drive(() => m.phase === PHASE.FINAL_ASSAULT);
   assert.deepEqual(m.fields.map((f) => [f.fieldId, f.players]), [['b1', ['p_0', 'p_1']], ['b2', ['p_2']]]);
-  assert.equal(m.handle('p_0', { t: 'g.watch', fieldId: 'b2' }).error, 'BAD_TARGET', 'the other group is hidden');
-  assert.equal(m.handle('p_2', { t: 'g.watch', fieldId: 'b1' }).error, 'BAD_TARGET');
+  assert.deepEqual(m.handle('p_0', { t: 'g.watch', fieldId: 'b2' }), { ok: true });
+  assert.deepEqual(m.handle('p_2', { t: 'g.watch', fieldId: 'b1' }), { ok: true });
   assert.deepEqual(m.handle('p_1', { t: 'g.watch', fieldId: 'b1' }), { ok: true });
   assert.deepEqual(m.handle('p_3', { t: 'g.watch', fieldId: 'b2' }), { ok: true }, 'an eliminated player spectates freely');
   assert.deepEqual(m.handle('p_3', { t: 'g.watch', fieldId: 'b1' }), { ok: true });
-  assert.equal(m.watchers.get('p_0'), 'b1', 'the refused watch keeps the default (own) field');
+  assert.equal(m.watchers.get('p_0'), 'b2', 'watching changes the displayed field only');
   // the prep-scouting id of a player of the other group is no way around the rule, and never detaches the viewer
   const scouted = h.allTo('p_0', 'm.field').length;
   assert.deepEqual(m.handle('p_0', { t: 'g.watch', fieldId: 'n:p_2' }), { error: 'BAD_TARGET', detail: 'no such field' });
   assert.deepEqual(m.handle('p_0', { t: 'g.watch', fieldId: 'n:p_1' }), { error: 'BAD_TARGET', detail: 'no such field' });
   assert.equal(h.allTo('p_0', 'm.field').length, scouted, 'no board of the other group was sent');
-  assert.equal(m.watchers.get('p_0'), 'b1', 'still streaming the own boss field');
+  assert.equal(m.watchers.get('p_0'), 'b2', 'invalid prep IDs preserve the watched boss field');
   const snaps = h.allTo('p_0', 'b.snap').length;
   h.sched.advance(500);
   assert.ok(h.allTo('p_0', 'b.snap').length > snaps, 'b.snap of b1 keeps coming');

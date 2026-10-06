@@ -1400,8 +1400,8 @@ test(`${nm('enemy_10162_mnctpt')}: three hits per attack with a small splash`, (
   const h = arena({ units: [{ chessId: 't_wall', row: 10, col: 4 }] });
   h.step();
   const e = put(h, 'enemy_10162_mnctpt', [10, 7]);
-  h.runUntil(() => e.stats.attacks >= 1, 10);
-  h.run(0.5);
+  h.runUntil(() => h.unit('t_wall').stats.taken > 0, 10);
+  h.run(0.7);
   approx(h.unit('t_wall').stats.taken, tb('enemy_10162_mnctpt', 'Attack.attack@times') * e.s.atk);
 });
 
@@ -1564,7 +1564,7 @@ test(`${nm('enemy_1511_mdrock')}: stacking ATK on attacks; barrier raises max HP
   h.run(0.3);
   assert.equal(e.s.aspd, 100 + tb('enemy_1511_mdrock', 'shield.attack_speed'));
   h.runUntil(() => e.stats.attacks >= 2, 20);
-  approx(e.s.atk, E.enemy_1511_mdrock.stats.atk * (1 + 2 * tb('enemy_1511_mdrock', 'charge.attack@enemy_mdrock_s_1[charge].atk') / 6));
+  approx(e.s.atk, E.enemy_1511_mdrock.stats.atk * (1 + 2 * tb('enemy_1511_mdrock', 'charge.attack@enemy_mdrock_s_1[charge].atk')));
 });
 
 test(`${nm('enemy_1513_dekght')} + ${nm('enemy_1513_dekght_2')}: plus-shaped hits / two targets; each rages when the other dies`, () => {
@@ -2960,4 +2960,32 @@ test(`${nm('enemy_10122_uacann_2')}: its 燃烧区域 (不可对空) spares a fl
   assert.ok(burns.some((c) => c.target === w), 'the wall burns');
   assert.ok(!burns.some((c) => c.target === y), 'the dragon does not');
   assert.ok(!h.hooksOf('damaged').some((c) => c.source === e && c.target === y), 'nor is it shot or splashed');
+});
+
+test('Mudrock attack charge adds 60% each time, saturates at six and remains visible',()=>{
+ const h=arena({units:[{chessId:'t_wall',row:9,col:5}]});h.step();const e=put(h,'enemy_1511_mdrock',[9,5]);
+ h.runUntil(()=>e.stats.attacks>=7,40);
+ assert.ok(e.stats.attacks>=7);
+ approx(e.s.atk,E.enemy_1511_mdrock.stats.atk*(1+6*.6));
+ assert.equal(e.findBuff('ab:rockCharge').visible,true);
+});
+
+for(const key of ['enemy_1329_cbshld','enemy_1329_cbshld_2'])test(`${key}: first decay layer is inert; crack effects follow the enemy-specific thresholds`,()=>{
+ const h=arena();h.step();const e=put(h,key,[10,7]);
+ h.b.dealDamage(null,e,{amount:1,type:'true'});approx(e.s.def,E[key].stats.def);approx(e.s.res,E[key].stats.res);
+ h.b.dealDamage(null,e,{amount:1,type:'true'});approx(e.s.def,E[key].stats.def+2*tb(key,'def_reduce.def')/tb(key,'def_reduce.max_stack_cnt'));
+ const first=tb(key,'def_reduce.change1_stack_cnt'),second=tb(key,'def_reduce.change2_stack_cnt');
+ for(let i=2;i<first;i++)h.b.dealDamage(null,e,{amount:1,type:'true'});
+ assert.ok(e.findBuff('ab:mirrorCrack1'));assert.ok(!e.findBuff('ab:mirrorCrack2'));
+ for(let i=first;i<second;i++)h.b.dealDamage(null,e,{amount:1,type:'true'});
+ assert.ok(!e.findBuff('ab:mirrorCrack1'));assert.ok(e.findBuff('ab:mirrorCrack2'));
+});
+
+test('catapult follow-up stones use the data hit interval, and already launched stones survive the shooter death',()=>{
+ const h=arena({units:[{chessId:'t_wall',row:10,col:4}],captureNoisy:true});h.step();const e=put(h,'enemy_10162_mnctpt',[10,7]);
+ h.runUntil(()=>h.unit('t_wall').stats.taken>0,10);const u=h.unit('t_wall'),atk=e.s.atk;
+ approx(u.stats.taken,atk,1e-6,'first stone only');h.b.kill(e,null);
+ h.run(.2);approx(u.stats.taken,atk);
+ h.run(.15);approx(u.stats.taken,2*atk);
+ h.run(.3);approx(u.stats.taken,3*atk);
 });

@@ -22,8 +22,8 @@ test('Kaschey: host gate, HP 22, promotion discount once per round, floor zero',
  ps.promote(give(h.m,ps,normal.chessId));assert.equal(ps.shop.upgradePrice,10);
  // Real automatic three-copy merge.
  for(let i=0;i<3;i++)ps.acquireChess(ursus,{source:'test'});
- assert.equal(ps.shop.upgradePrice,8);
- ps.promote(give(h.m,ps,ursus));assert.equal(ps.shop.upgradePrice,8);
- h.m.round++;ps.promote(give(h.m,ps,ursus));assert.equal(ps.shop.upgradePrice,6);
+ assert.equal(ps.shop.upgradePrice,6);
+ ps.promote(give(h.m,ps,ursus));assert.equal(ps.shop.upgradePrice,6);
+ h.m.round++;ps.promote(give(h.m,ps,ursus));assert.equal(ps.shop.upgradePrice,2);
  h.m.round++;ps.shop.upgradePrice=1;ps.promote(give(h.m,ps,ursus));assert.equal(ps.shop.upgradePrice,0);
 });

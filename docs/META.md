@@ -362,7 +362,7 @@ that per garrison with `garrisonHooks(garrison) → hook[]`, e.g. "<进入休整
 | `SERVER_GAIN` 获得时 | `onGain` | the gained piece — run **×2 while 投资人 is active, ×3 at ≥ 100 投资人 layers** |
 | `SERVER_PREP_START` 进入休整期时 | `onRoundStart` | owned chess: board, and hand unless `bbStr.conditionkey === 'character_target_inboard'` |
 | `SERVER_PREP_FIN` 休整期结束时 | `onPrepEnd` | same |
-| `SERVER_REFRESH_SHOP` 刷新时 | `onRefresh` | same — manual refreshes only (`ev.trigger` marks a re-run); 拉普兰德's "本回合首次主动刷新" counts per copy (`incPieceCounter`) |
+| `SERVER_REFRESH_SHOP` 刷新时 | `onRefresh` | board/hand chess snapshotted before any refresh handler runs; removed or form-changed pieces are skipped. Refresh gifts and new elites wait for the next refresh. Manual refreshes only (`ev.trigger` marks a re-run); 拉普兰德's "本回合首次主动刷新" counts per copy and trait (`incPieceCounter`) |
 | `SERVER_CHESS_SOLD` 售出时 | `onSold` | the sold piece |
 | `SERVER_PRICE` 购买价格 | `onPrice` (first) | the chess in the priced slot (`ctx.source.where === 'shop'`); SERVER_CHESS_PRICE `bb.price` is the discount off the tier price (至简 3 − 2 = 1, 红豆 2 − 1 = 1: both texts say 购买价格为1) |
 | `IN_BATTLE` | — | battle side (server/sim/content/garrisons.js `install`) |
@@ -390,8 +390,9 @@ shopSlots() effect(id)` (`piece(uid)` adds `area`, `holderUid`, `idx`; "身前�
 counters `counter(k) setCounter(k, v) incCounter(k, n)` (player scope, persistent; prefix keys with your module) and
 `pieceCounter(uid, k) incPieceCounter(uid, k, n)` (per piece, current round only: 0 in a new round and for a new piece —
 bought, granted, transformed —; a move keeps it; an elite merged this round keeps the highest of its copies'
-[ASSUMED]; `PlayerState.pieceRoundCount`; prefix keys with your module too) — 拉普兰德's "本回合首次主动刷新" is the
-first manual refresh that copy witnesses (player feedback after 0.1.0: "获得该干员后该回合的首次刷新" also stacks; a copy
+[ASSUMED]; `PlayerState.pieceRoundCount`; prefix keys with your module too) — 拉普兰德 scopes her refresh key by
+garrison ID, so her normal and elite traits each count their own first manual refresh, even after a same-round merge
+or in-place promotion (player feedback: "获得该干员后该回合的首次刷新" also stacks; a copy
 bought after selling one this round is a new copy and fires on its own first refresh [ASSUMED]).
 
 Writes (all validated, never throw on bad input, never make funds / pools negative):
@@ -786,9 +787,9 @@ round was over. The official 1 s `broadcastBeginDelay` is not modelled.
 * Promotions by effects (升华, 博士投影) keep the equipment; merges return it; 突变细胞's transformation returns it (the
   cell included) before its new operator is gained into the 整备区 — the carrier's tile is left empty (official footage,
   DESIGN §21.1).
-* An elite merged in a round keeps the highest per-piece round counter of its copies (`pieceRoundCount`): an elite made
-  from 拉普兰德 copies that already fired this round does not fire again before the next round (conservative; the
-  official server's instance handling is not observable). A 拉普兰德 bought after selling one in the same round is a new
+* An elite merged in a round keeps the highest per-piece round counter of its copies (`pieceRoundCount`), but 拉普兰德's
+  elite trait has a separate refresh key: its first manual refresh adds +8 even if the normal copies already fired.
+  In-place promotions use the same rule; moving does not reset it. A 拉普兰德 bought after selling one in the same round is a new
   copy and fires on its own first refresh ("获得该干员后"; each such +4 costs 3 + 1 refresh − 1 refund and needs her in
   the shop).
 * Chess granted by effects need a free pool copy unless `requirePool: false` (then they hold 0 copies).
@@ -809,3 +810,6 @@ round was over. The official 1 s `broadcastBeginDelay` is not modelled.
 * A merge completed after the prep (SETTLE effects) keeps its reward offer for the next prep; its elite goes where a prep
   merge's would — onto the tile of a consumed deployed copy (PRTS 卫戍协议/帮助 "若消耗已部署至作战区的干员，则发送至作战区
   对应位置"), else to the hand, overflowing into temp (temp pieces that arrive after the prep wait through the next prep).
+
+### 2026-10-06 boss HP policy override
+Solo uses full bloodPoint HP; co-op uses bloodPoint × alive participants at boss-round start (1–4). This supersedes all earlier fixed-pool / solo ×0.25 descriptions. The pool is shared and remains fixed during that battle.

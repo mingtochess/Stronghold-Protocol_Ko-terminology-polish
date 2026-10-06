@@ -1,5 +1,9 @@
 import {assets} from '../assets.js';
 import {projectileStyle,meleeStyle} from './projectileStyle.js';
+export function wideAttackEffect(info, active) {
+  if (!active) return false;
+  return (info?.skillIndex === 2 && ['char_172_svrash','char_213_mostma','char_4064_mlynar','char_426_billro','char_4080_lin'].includes(info.charId)) || info?.subProf === 'phalanx';
+}
 // render/fx.js — battle visual effects with pooling and hard caps (DESIGN §9).
 //
 //   projectiles  b.ev 'atk' by projKind (render/style.js PROJ): sniper tracers with a muzzle flash; arts / heal / enemy
@@ -35,7 +39,7 @@ import {projectileStyle,meleeStyle} from './projectileStyle.js';
 // (adaptive load level ≥ 2), and trails yield to bursts near the particle cap (SOFT_CAP).
 
 import { fxAtlas } from './textures.js';
-import { DMG_STYLE, dmgStyleKey, HIT_TINT, PROJ, COLORS } from './style.js';
+import { DMG_STYLE, dmgStyleKey, HIT_TINT, PROJ, COLORS, UNIT } from './style.js';
 
 /**
  * The sim's projectile speeds (server/sim/constants.js PROJECTILE_SPEEDS — pure data, served read-only at
@@ -176,7 +180,7 @@ export const FX_KINDS = Object.freeze({
   // blasts
   aoe: { a: 'blast', c: 0xffb35c }, explode: { a: 'blast', c: 0xff7a33 }, explosion: { a: 'blast', c: 0xff7a33 },
   // `pt`: always at the event's (x, y) (its `id` is the shooter); `heavy`: debris + scorch
-  bombard: { a: 'blast', c: 0xffa04a, r: 1.5, pt: true, heavy: true }, bombardShell: { a: 'shell', c: 0xff5a3a, r: 1.5, pt: true },
+  bombard: { a: 'blast', c: 0xffa04a, r: 1.5, pt: true, heavy: true }, bombardAim: { a: 'none' }, bombardShell: { a: 'shell', c: 0xff5a3a, r: 1.5, pt: true },
   airstrike: { a: 'blast', c: 0xff8a3d, r: 1.5, heavy: true }, splash: { a: 'blast', c: 0xffc27a },
   scorchBurst: { a: 'blast', c: 0xff6a2a }, champagneBomb: { a: 'blast', c: 0xffd27a }, shockBlast: { a: 'blast', c: 0x9fd4ff, smoke: 0x1c2630 },
   frostNova: { a: 'blast', c: 0x9fe6ff, smoke: 0x1c2630 }, sunBurst: { a: 'blast', c: 0xffe28a }, meltdown: { a: 'blast', c: 0xff5a2a, r: 1.5, heavy: true },
@@ -336,8 +340,10 @@ export class FxSystem {
     this.parts = [];          // active particle records { sp, add, x, y, vx, … }
     this.freeAdd = []; this.freeNorm = [];   // pooled particle records (their sprites stay in the containers)
     this.contacts = [];
+    this.sweeps = [];
     this.projs = [];
     this.projFree = [];
+    this.weaponTrails = new Map();
     this.projLayer = new P.Container();
     ctx.layers.fxAdd.addChild(this.projLayer);
     this.locks = [];          // lock-on reticles { view, id, src, x, y, z, t, idle, max, out, ring, core, shell }
@@ -406,6 +412,7 @@ export class FxSystem {
   explosion(x,y,z,...args){return this._anchored(x,y,z,()=>this._explosion(x,y,z,...args))}
   _impact(pr,cam){return this._anchored(pr.tx,pr.ty,pr.tz,()=>this._impactAnchored(pr,cam))}
   simFx(kind,x,y,extra){
+    if(kind==='bombardAim')return this._simFx(kind,x,y,extra);
     const ex=extra&&typeof extra==='object'?extra:{},spec=fxSpec(kind,ex);
     if(spec.a==='none')return;
     const at=spec.pt?this._point(Number(x),Number(y)):this._where(Number(x),Number(y),ex);
@@ -524,7 +531,32 @@ export class FxSystem {
   // ---- projectiles -----------------------------------------------------------------------------------------
 
   /** b.ev 'atk' visual. src/tgt are views (tgt may be null). */
+  _wideSweep(src) {
+    const g=new this.P.Graphics(); this.ctx.layers.groundFx.addChild(g);
+    const grid=src.info.skillZoneGrid || [], radius=Math.min(4.5,Math.max(2.4,...grid.map(([r,c])=>Math.hypot(r,c))));
+    const angle={RIGHT:0,DOWN:Math.PI/2,LEFT:Math.PI,UP:-Math.PI/2}[src.dir] ?? (src.facing<0?Math.PI:0);
+    this.sweeps.push({g,x:src.x,y:src.y,angle,radius,t:0,dur:.3,color:src.info.attackType==='arts'?0xa7c6f4:0xdfead9});
+  }
+
+  _updateSweeps(dt) {
+    this.sweeps=this.sweeps.filter(a=>{
+      a.t+=dt;if(a.t>=a.dur){a.g.destroy();return false;}
+      const cam=this.ctx.cam(),r=a.radius*(.75+.25*a.t/a.dur),points=[];
+      for(const [radius,reverse] of [[r,false],[r-.16,true]])for(let i=0;i<=32;i++){
+        const angle=a.angle-Math.PI/2+(reverse?32-i:i)/32*Math.PI;
+        const x=a.x+Math.cos(angle)*radius,y=a.y+Math.sin(angle)*radius,p=cam.project(x,y,this._groundZ(x,y)+.025);
+        points.push(p.x,p.y);
+      }
+      a.g.clear();a.g.lineStyle(1.8,a.color,.65);a.g.beginFill(a.color,.15);a.g.drawPolygon(points);a.g.endFill();a.g.alpha=1-a.t/a.dur;
+      return true;
+    });
+  }
+
   _attack(src, tgt, kind) {
+    if (wideAttackEffect(src?.info, src?.statuses?.has('skill'))) {
+      if (src._wideAttackFxTime !== this.time) { src._wideAttackFxTime=this.time; this._wideSweep(src); }
+      return;
+    }
     if (!src) return;
     if (!this.attackKinds) this.attackKinds = new Map();
     this.attackKinds.set(src.id, kind || 'none');
@@ -532,7 +564,7 @@ export class FxSystem {
     if (kind === 'chain' || kind === 'chainHeal') { if (tgt && tgt !== src) this._beam(src, tgt, kind === 'chainHeal' ? 0x7dffa8 : 0xc9a2ff, 0.22, 1, true); return; }
     if (kind === 'beam') { if (tgt && tgt !== src) this._beam(src, tgt, src.isEnemy ? 0xff7a5a : 0xffe6a8, 0.18, 0.15); return; }
     const original = projectileStyle(kind,src.info,src.isEnemy);
-    const spec = original && {...original, width: original.width * 1.2, head: original.head * 1.2};
+    const spec = original && {...original, width: original.width * 1.8, head: original.head * 1.8};
     if (!spec || !tgt) {
       if (kind === 'none' || !kind) this._slashAt = src.id;
       return;
@@ -580,7 +612,8 @@ export class FxSystem {
       shadow.tint = 0x000000;
       shadow.visible = false;
       this.shadowLayer.addChild(shadow);
-      pr = { trail, halo, core, shadow };
+      const path = new P.Graphics();this.projLayer.addChild(path);
+      pr = { trail, halo, core, shadow, path };
     }
     return pr;
   }
@@ -608,6 +641,7 @@ export class FxSystem {
 
   _releaseProj(pr) {
     pr.trail.visible = pr.halo.visible = pr.core.visible = pr.shadow.visible = false;
+    pr.path?.clear();
     pr.src = pr.tgt = null;
     this.projFree.push(pr);
   }
@@ -648,15 +682,26 @@ export class FxSystem {
     if (k >= 1 && !pr.hit) { pr.hit = true; pr.fade = 0; this._impact(pr, cam); }
     let fk = 0;
     if (pr.hit) { pr.fade += dt; fk = pr.fade / SHOT_FADE; if (fk >= 1) return false; }
+    const path=pr.path;path?.clear();
+    // A fixed lifetime means fast rounds leave longer tails. Sample the actual
+    // parabola rather than stretching a straight sprite across a curved path.
+    if(path){
+      const start=Math.max(0,k-.085/Math.max(.01,pr.dur));
+      for(let i=0;i<8;i++){
+        const a=this._shotPoint(pr,start+(k-start)*i/8,cam,{}),b=this._shotPoint(pr,start+(k-start)*(i+1)/8,cam,{});
+        path.lineStyle(Math.max(1.4,b.s*spec.width*.6*(i+1)/8),pr.trailTint || spec.tint,(.18+.55*(i+1)/8)*(1-fk));
+        path.moveTo(a.x,a.y);path.lineTo(b.x,b.y);
+      }
+    }
     const p = this._shotPoint(pr, k, cam, this._p);
-    const kb = Math.max(0, k - (pr.arc ? 0.12 : 0.25));
+    const kb = Math.max(0, k - Math.min(.65, .085 / Math.max(.01,pr.dur)));
     const q = this._shotPoint(pr, kb, cam, this._q);
     const s = p.s, px = p.x, py = p.y;
     const seg = Math.hypot(px - q.x, py - q.y);
     if (seg > 0.5) pr.ang = Math.atan2(py - q.y, px - q.x);
     const thin = look === 'tracer' || look === 'dart';
     const flown = k > kb ? seg * (k / (k - kb)) : 0;
-    const L = Math.min(spec.len * s, flown) * (1 - fk);
+    const L = Math.min(s*1.65, seg, flown) * (1 - fk);
     const tr = pr.trail;
     tr.position.set(px, py);
     tr.rotation = pr.ang;
@@ -782,21 +827,26 @@ export class FxSystem {
     const k = pr.t / pr.dur;
     if (k >= 1) return false;
     let x, y, z, zq;
-    if (pr.vertical && k < Math.max(0,1-.22/pr.dur)) {
+    if(pr.vertical && pr.t < pr.dur-pr.fallTime){
+      const target=this._viewOf(pr.aimTarget);
+      if(target && !target.destroyed && target.alive!==false){pr.tx=target.x;pr.ty=target.y;pr.tz=this._groundZ(pr.tx,pr.ty);}
+      for(const ring of pr.warnRings || []){ring.x=pr.tx;ring.y=pr.ty;ring.z=pr.tz;}
+    }
+    if (pr.vertical && k < Math.max(0,1-pr.fallTime/pr.dur)) {
       pr.trail.visible=pr.halo.visible=pr.core.visible=pr.shadow.visible=false;
       return true;
     }
     pr.trail.visible=pr.halo.visible=pr.core.visible=true;
     if (k < pr.rise && !pr.vertical) {
-      const u = k / pr.rise, ub = Math.max(0, u - 0.25);
+      const u = k / pr.rise, ub = Math.max(0, u - .085/Math.max(.01,pr.dur*pr.rise));
       const sv = pr.src;
       if (sv && !sv.destroyed) { pr.x0 = sv.x; pr.y0 = sv.y; }
       x = pr.x0; y = pr.y0;
       z = pr.z0 + SHELL_UP * (1 - (1 - u) * (1 - u));          // out of the barrel fast, slowing as it climbs
       zq = pr.z0 + SHELL_UP * (1 - (1 - ub) * (1 - ub));
     } else {
-      const start=pr.vertical?Math.max(0,1-.22/pr.dur):pr.rise;
-      const u = (k - start) / (1 - start), ub = Math.max(0, u - 0.25);
+      const start=pr.vertical?Math.max(0,1-pr.fallTime/pr.dur):pr.rise;
+      const u = (k - start) / (1 - start), ub = Math.max(0, u - .085/Math.max(.01,pr.dur*(1-start)));
       x = pr.tx; y = pr.ty;
       z = pr.tz + SHELL_UP * (1 - u * u);                       // falling faster and faster
       zq = pr.tz + SHELL_UP * (1 - ub * ub) + 0.3;
@@ -816,7 +866,7 @@ export class FxSystem {
     const tr = pr.trail;
     tr.position.set(px, py);
     tr.rotation = pr.ang;
-    tr.scale.set(Math.max(0.001, Math.min(spec.len * s, seg * 1.6) / 128), (spec.width * s) / 20);
+    tr.scale.set(Math.max(0.001, Math.min(s*1.65, seg) / 128), (spec.width * s) / 20);
     tr.alpha = 0.95;
     const hs = spec.head * s;
     pr.halo.position.set(px, py);
@@ -927,6 +977,7 @@ export class FxSystem {
   mortar(src, x, y, r, flight, vertical = false) {
     const pr = this._takeProj();
     const gz = this._groundZ(x, y);
+    pr.warnRings=null;pr.aimTarget=null;pr.shot=null;pr.fallTime=.22;
     pr.vertical = vertical; pr.kind = 'bombardShell'; pr.spec = BOMBARD_SHELL; pr.src = src; pr.tgt = null;
     pr.x0 = src ? src.x : x; pr.y0 = src ? src.y : y; pr.z0 = src ? bodyZ(this.ctx.cam(), src, SHOT_HEIGHT.launch) : gz + 0.5;
     pr.tx = x; pr.ty = y; pr.tz = gz;
@@ -941,7 +992,7 @@ export class FxSystem {
     const rr = Math.max(0.5, r);
     this.ring(x, y, gz, rr, rr * 0.22, 0xff5a3a, pr.dur, 'shock', 'in');
     this.ring(x, y, gz, rr * 0.96, rr, 0xff7a4a, pr.dur, 'ring', 'pulse');
-    if(vertical)this.ring(x,y,gz,.45,.45,0xff3b30,pr.dur,'reticle','pulse');
+    if(vertical){this.ring(x,y,gz,.45,.45,0xff3b30,pr.dur,'reticle','pulse');pr.warnRings=this.rings.slice(-3);}
     if (src && this.rich && !vertical) {
       // the shot leaves her upwards: a muzzle flash and a streak climbing out of sight
       const p = this._bodyPt(src, SHOT_HEIGHT.launch, this._g);
@@ -1586,7 +1637,7 @@ export class FxSystem {
     this._aura(view, true);
   }
 
-  /** Subtle, repeating skill-state marks beside the unit; no rotating magic circle. */
+  /** A persistent hexagon on the tile marks skill activity without a large flare. */
   _aura(view, on) {
     let a=this.auras.get(view.id);
     if(on){
@@ -1607,12 +1658,10 @@ export class FxSystem {
       const p=cam.project(v.x,v.y,(v.z||0)+(v.hover||0)+(v.lift||0),this._p);
       this._onGround(a.sp,v.y,v.z||0);a.sp.position.set(p.x,p.y);
       a.sp.clear();
-      for(let i=0;i<3;i++){
-        const progress=(a.t*.8+i/3)%1,fade=Math.sin(progress*Math.PI);
-        const y=-p.s*(.08+progress*.55),w=p.s*.065;
-        a.sp.lineStyle(Math.max(.9,p.s*.012),0xffc37a,fade*.95);
-        for(const side of [-1,1]){const x=side*p.s*.23;
-          a.sp.moveTo(x-w,y+w).lineTo(x,y).lineTo(x+w,y+w);}
+      a.sp.lineStyle(Math.max(1.5,p.s*.024),0xffc37a,.85);
+      for(let i=0;i<=6;i++){
+        const angle=i*Math.PI/3,q=cam.project(v.x+Math.cos(angle)*.43,v.y+Math.sin(angle)*.43,this._groundZ(v.x,v.y)+.018);
+        if(!i)a.sp.moveTo(q.x-p.x,q.y-p.y);else a.sp.lineTo(q.x-p.x,q.y-p.y);
       }
     }
   }
@@ -1716,6 +1765,11 @@ export class FxSystem {
    */
   _simFx(kind, x, y, extra) {
     const ex = extra && typeof extra === 'object' ? extra : {};
+    if(kind==='bombardAim'){
+      const pr=this.projs.find(p=>p.vertical&&p.src?.id===ex.id&&p.shot===ex.shot);
+      if(pr){pr.aimTarget=ex.target;pr.tx=Number(x);pr.ty=Number(y);pr.tz=this._groundZ(pr.tx,pr.ty);for(const ring of pr.warnRings||[]){ring.x=pr.tx;ring.y=pr.ty;ring.z=pr.tz;}}
+      return;
+    }
     const spec = fxSpec(kind, ex);
     if (spec.a === 'none') return; // an event the screen does not show (hitCap)
     const at = spec.pt ? this._point(Number(x), Number(y)) : this._where(Number(x), Number(y), ex);
@@ -1743,7 +1797,8 @@ export class FxSystem {
         // 蕾缪安 S3: a shell fired now by `id` that lands at (x, y) after `t` game seconds (its 'bombard' explodes there)
         const flight = num(ex.t ?? ex.flight ?? ex.dur ?? ex.duration, 1) / ts;
         this._touchLocks(ex.id ?? ex.src ?? null);
-        this.mortar(this._viewOf(ex.id ?? ex.src), at.x, at.y, r, flight, !!ex.vertical);
+        const pr=this.mortar(this._viewOf(ex.id ?? ex.src), at.x, at.y, r, flight, !!ex.vertical);
+        pr.aimTarget=ex.target??null;pr.shot=ex.shot??null;pr.fallTime=num(ex.fall,.22*ts)/ts;
         break;
       }
       case 'zone': this.zone(at.x, at.y, at.z, r, col, Math.max(0.6, dur || 1.5), spec.tex); break;
@@ -2189,7 +2244,68 @@ export class FxSystem {
   }
 
   /** Remove everything (battle reset). */
+  /** Weapon tips sampled from the currently animated attachment, not a ground slash. */
+  weaponTrail(view, dt, cam) {
+    const actor=view.actor, sp=actor?.spine;
+    const attacking=actor && ['attack','skillCast'].includes(actor.mode);
+    const kind=this.attackKinds?.get(view.id);
+    const ranged=(kind && kind!=='none') || ['SNIPER','CASTER','MEDIC','SUPPORT'].includes(view.info.profession);
+    const slots=sp?.skeleton?.slots;
+    let rec=this.weaponTrails.get(view);
+    if(!attacking || ranged || !view.alive || view.down || view.flags & 4){
+      if(rec){rec.samples.length=0;rec.g.clear();}return;
+    }
+    if(!slots || !sp.toGlobal || !cam.unproject)return;
+    const weapon=slots.find(slot=>/weapon|sword|blade|spear|hammer|knife|katana|lance|rapier|scythe|axe|mace/i.test(slot.data?.name || '') && (slot.getAttachment?.()?.offset?.length>=8 || slot.getAttachment?.()?.worldVerticesLength>=4));
+    if(!weapon)return;
+    const att=weapon.getAttachment(),bone=weapon.bone;
+    let vertices;
+    if(att.offset?.length>=8){
+      vertices=[];
+      for(let i=0;i<att.offset.length;i+=2){const x=att.offset[i],y=att.offset[i+1];vertices.push(x*(bone.matrix?.a ?? bone.a)+y*(bone.matrix?.c ?? bone.b)+bone.worldX,x*(bone.matrix?.b ?? bone.c)+y*(bone.matrix?.d ?? bone.d)+bone.worldY);}
+    }else{
+      vertices=new Float32Array(att.worldVerticesLength);
+      att.computeWorldVertices(weapon,0,vertices.length,vertices,0,2);
+    }
+    let tip=null,far=-1;
+    for(let i=0;i<vertices.length;i+=2){
+      const x=vertices[i],y=vertices[i+1],d=(x-bone.worldX)**2+(y-bone.worldY)**2;
+      if(d>far){far=d;tip={x,y};}
+    }
+    if(!tip)return;
+    // Atlas impostors park their Spine off-screen. Project bone coordinates
+    // through the displayed unit container, never through the parked skeleton.
+    const scale=cam.project(view.x,view.y,view.z+view.hover).s*UNIT.modelScale*(view.modelK || 1);
+    const screen=view.body?.toGlobal ? view.body.toGlobal({x:tip.x*scale*(view.flipValue ?? 1),y:tip.y*scale}) : sp.toGlobal(tip);
+    const z=view.z+view.hover,world=cam.unproject(screen.x,screen.y,z,{});
+    if(!world)return;
+    if(!rec){const g=new this.P.Graphics();this.projLayer.addChild(g);rec={g,samples:[],age:0,actor};this.weaponTrails.set(view,rec);}
+    if(rec.actor!==actor){rec.samples.length=0;rec.actor=actor;}
+    rec.age+=dt;
+    const previous=rec.samples.at(-1);
+    if(!previous || Math.hypot(previous.x-world.x,previous.y-world.y)>.012)rec.samples.push({x:world.x,y:world.y,z,t:rec.age});
+    while(rec.samples.length && (rec.age-rec.samples[0].t>.10 || rec.samples.length>12))rec.samples.shift();
+    rec.g.clear();
+    const color=meleeStyle(view.info)==='arts'?0xa7b8dc:0xe6e4d8;
+    for(let i=1;i<rec.samples.length;i++){
+      const a=rec.samples[i-1],b=rec.samples[i],pa=cam.project(a.x,a.y,a.z),pb=cam.project(b.x,b.y,b.z);
+      // No idle shimmer; only moving weapon tips leave a short, tapering tail.
+      rec.g.lineStyle(Math.max(1.2,pb.s*.027*i/rec.samples.length),color,.48*i/rec.samples.length);
+      rec.g.moveTo(pa.x,pa.y);rec.g.lineTo(pb.x,pb.y);
+    }
+  }
+
+  _updateWeaponTrails() {
+    for(const [view,rec]of this.weaponTrails){
+      if(view.destroyed || !view.alive || !view.actor || !['attack','skillCast'].includes(view.actor.mode)){
+        rec.g.clear();rec.samples.length=0;
+        if(view.destroyed){rec.g.destroy();this.weaponTrails.delete(view);}
+      }
+    }
+  }
+
   clear() {
+    for(const rec of this.weaponTrails.values())rec.g.destroy();this.weaponTrails.clear();
     for(const c of this.contacts)c.g.destroy();this.contacts.length=0;
     for (const p of this.parts) this._freeParticle(p);
     this.parts.length = 0;
@@ -2205,6 +2321,7 @@ export class FxSystem {
     this.rings.length = 0;
     for (const a of this.auras.values()) a.sp.destroy({ children: true });
     this.auras.clear();
+    for(const sweep of this.sweeps)sweep.g.destroy();this.sweeps.length=0;
     for (const p of this.pops) p.c.destroy({ children: true });
     this.pops.length = 0;
     this.beamList.length = 0;
@@ -2223,6 +2340,8 @@ export class FxSystem {
   }
 
   update(dt) {
+    this._updateWeaponTrails();
+    this._updateSweeps(dt);
     this.contacts=this.contacts.filter(c=>{c.t+=dt;if(c.t>=c.dur){c.g.destroy();return false;}const p=this.ctx.cam().project(c.x,c.y,c.z);c.g.position.set(p.x,p.y);c.g.scale.set(p.s/Math.max(1,c.s));c.g.alpha=1-c.t/c.dur;return true;});
     this.time += dt;
     this._updateParticles(dt);

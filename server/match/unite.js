@@ -6,7 +6,7 @@
 // seat; with 2 helpers the one ranked first by most units > active bond > Σ active bond layers (存疑) > most undowned
 // units "率先迎敌" on the RIGHT-hand field (colOffset +8, where the escaped_multi routes enter), the other keeps the
 // left half (colOffset 0); a lone helper plays escaped_single on its own field. Their operators keep the HP ratio and
-// the SP (技力, stored charges included) from the end of their own combat, nothing else — a skill still running then
+// the SP (技力, stored charges included) from the end of their own combat, plus Egir devour/revive history — a skill still running then
 // enters switched off (BattleResult.unitsEnd → PlayerBattleInput.units[].carryState `{ hpPct, sp }`, "阵地以其当前状态";
 // community report #34 / GitHub #82: it used to restart for free). An operator knocked out at the end of its own combat (alive false) is fielded with
 // `carryState: { down: true }`: PRTS "部署完成后，将对应单位的生命比例、技力修改至与上一阶段结束时相同（召唤物仅修改技力，
@@ -126,13 +126,14 @@ export function uniteBattleOpts(m, plan, timeLimit) {
     for (const u of (r && r.unitsEnd) || []) {
       if (!u || u.uid == null) continue;
       const sp = Number.isFinite(u.sp) ? Math.max(0, u.sp) : 0;
+      const egir = u.egirDevour?.processed === true ? { egirDevour: { ...u.egirDevour } } : {};
       // a summon: its SP only ("召唤物仅修改技力"); one off the field at the end enters fresh [ASSUMED]
       if (summonUids.has(u.uid)) { if (u.alive) carry.set(u.uid, { sp }); continue; }
       // knocked out at the end of its own combat: 强制退场 right after the deployment (see header)
-      if (!u.alive) { carry.set(u.uid, { down: true }); continue; }
+      if (!u.alive) { carry.set(u.uid, { down: true, ...egir }); continue; }
       // HP ratio and SP only: a skill still running at the end is not carried (unitsEnd `skillActive` stays unused —
       // community report #34, GitHub #82)
-      carry.set(u.uid, { hpPct: Number.isFinite(u.hpPct) ? Math.max(0.01, Math.min(1, u.hpPct)) : 1, sp });
+      carry.set(u.uid, { hpPct: Number.isFinite(u.hpPct) ? Math.max(0.01, Math.min(1, u.hpPct)) : 1, sp, ...egir });
     }
     // 2 helpers: the first one meets the enemies first on the right-hand field (escaped_multi enters at col 18)
     const colOffset = plan.helpers.length > 1 && i === 0 ? 8 : 0;

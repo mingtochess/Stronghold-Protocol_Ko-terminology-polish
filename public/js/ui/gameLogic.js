@@ -29,6 +29,7 @@ import { rangeTiles, pieceDir } from './facing.js';
 import { layoutPen } from '../render/pen.js';
 import { BOSS_ROW_SHIFT, MAX_COL } from '../render/prepfield.js';
 import { bossLevelSeconds } from './matchStatus.js';
+import { sameFieldmates, nameOf } from '../battle/observe.js';
 
 // ---- small helpers -------------------------------------------------------------------------------
 
@@ -150,9 +151,18 @@ export function boardTileOf(field, r, c) {
   return [r - BOSS_ROW_SHIFT, field === 'bossR' ? MAX_COL - c : c];
 }
 
-/** Banner shown when a phase starts: { title, sub?, tone } or null. */
-export function phaseBanner(phase, pub) {
+/** The band (策略) a player picked, from m.public.players[].bandId (Match.js marksPublic) — the detail card shows it
+ *   on a teammate's unit (user playtest #2 item 2: watching a teammate revealed nothing about their 策略). */
+export function ownerBandId(pub, ownerId) {
+  const p = Array.isArray(pub?.players) ? pub.players.find((x) => x && x.playerId === ownerId) : null;
+  return typeof p?.bandId === 'string' && p.bandId ? p.bandId : null;
+}
+
+/** Banner shown when a phase starts: { title, sub?, tone } or null. `myId`: the viewer, to name the players sharing
+ *   their battlefield (最终攻势 / 隐秘核心 pair, 联防 field — user playtest #5); null keeps the generic copy. */
+export function phaseBanner(phase, pub, myId = null) {
   const r = int(pub?.round, 0);
+  const mates = () => sameFieldmates(pub, myId).map((id) => nameOf(pub, id));
   switch (phase) {
     case PHASE.BATTLE_CHECK: return { title: '协议启动', micro: 'PROTOCOL START', tone: 'mint', sub: '模拟即将开始', duration: 2600 };
     case PHASE.ROUND_START: return { title: `第 ${r} 回合`, micro: `ROUND ${String(r).padStart(2, '0')}`, tone: 'mint', sub: '资金已到账' };
@@ -160,12 +170,20 @@ export function phaseBanner(phase, pub) {
     case PHASE.PREP: return { title: '休整期', micro: `ROUND ${String(r).padStart(2, '0')} // REST`, tone: 'mint', sub: '部署干员，准备迎敌' };
     case PHASE.COMBAT: return { title: '作战开始', micro: 'COMBAT', tone: 'orange', sub: '各自行动阶段' };
     case PHASE.UNITE: {
+      const shared = mates();
+      if (shared.length) return { title: '联防阶段', micro: 'JOINT DEFENSE', tone: 'orange', sub: `你与【${shared.join('、')}】在同一战场，守住防线` };
       const names = new Map(sortedPlayers(pub).map((p) => [p.playerId, p.name || '博士']));
       const helpers = Array.isArray(pub?.unite?.helpers) ? pub.unite.helpers.map((id) => names.get(id)).filter(Boolean) : [];
       return { title: '联防阶段', micro: 'JOINT DEFENSE', tone: 'orange', sub: helpers.length ? `联防：${helpers.join('、')}` : '完美作战的博士迎战突破防线的敌人' };
     }
-    case PHASE.FINAL_ASSAULT: return { title: '最终攻势', micro: 'FINAL ASSAULT', tone: 'red', sub: '击败敌方领袖' };
-    case PHASE.HIDDEN_CORE: return { title: '隐秘核心', micro: 'HIDDEN CORE', tone: 'red', sub: '被源石侵蚀的假想敌' };
+    case PHASE.FINAL_ASSAULT: {
+      const shared = mates();
+      return { title: '最终攻势', micro: 'FINAL ASSAULT', tone: 'red', sub: shared.length ? `你与【${shared.join('、')}】在同一战场，击败敌方领袖` : '击败敌方领袖' };
+    }
+    case PHASE.HIDDEN_CORE: {
+      const shared = mates();
+      return { title: '隐秘核心', micro: 'HIDDEN CORE', tone: 'red', sub: shared.length ? `你与【${shared.join('、')}】在同一战场，被源石侵蚀的假想敌` : '被源石侵蚀的假想敌' };
+    }
     case PHASE.SETTLE: return null;
     default: return null;
   }
@@ -895,6 +913,117 @@ export function deploySets(stage, field = 'normal', overrides = {}) {
   return { melee, ranged };
 }
 
+// ---- special terrain tips (GitHub issue #184: 特殊地形的单击信息提示) ----------------------------------------
+
+/**
+ * What tapping a special tile says. `lines` are functions of the stage's own terrain parameters (`stage.special[<terrain>]`
+ * and the tile's `bb`, the very numbers the sim runs on — server/sim/content/devices.js), so a tip can never disagree with
+ * the battle; the prose is ours (docs/PLAYING.md wording, PRTS 特殊地形 / 沼泽控制 / 深水区 地形信息).
+ * `tag` is the chip above the name; `fact` needs the tile's own legend entry (see terrainInfo).
+ */
+const TERRAIN_TIPS = Object.freeze({
+  infection: {
+    name: '活性源石', tag: '特殊地形',
+    lines: (st) => {
+      const b = isObj(st?.infection?.bb) ? st.infection.bb : {};
+      const dmg = param(b.damage, 0);
+      const mods = [];
+      if (param(b.atk, 0)) mods.push(`攻击力 +${Math.round(param(b.atk, 0) * 100)}%`);
+      if (param(b.attack_speed, 0)) mods.push(`攻击速度 +${param(b.attack_speed, 0)}`);
+      return [
+        dmg ? `部署于其上的我方单位、经过的敌方单位，每秒受到 ${dmg} 点真实伤害（无来源）` : '在其上的我方单位与经过的敌方单位持续受到伤害',
+        mods.length ? `同时获得：${mods.join('、')}` : null,
+        param(b.duration, 0) ? `效果持续 ${param(b.duration, 0)} 秒；离开地块后仍然保留，再次接触会重新计时` : null,
+      ].filter(Boolean);
+    },
+  },
+  mire: {
+    name: '沼泽', tag: '特殊地形',
+    lines: (st) => {
+      const m = isObj(st?.mire) ? st.mire : {};
+      const per = param(m.aspdPerStack, -0.05);
+      const move = param(m.moveMulPerStack, -0.05);
+      const max = param(m.maxStacks, 10);
+      const heavy = param(m.heavyWeight, 3);
+      return [
+        `留在沼泽里的单位每 ${param(m.intervalSec, 1)} 秒获得 1 层「陷入沼泽」：攻击速度 ${pctText(per)}${move ? `，敌方单位还有移动速度 ${pctText(move)}` : ''}`,
+        heavy ? `重量 ≥ ${heavy} 的敌人一次获得 2 层` : null,
+        `最多 ${max} 层；离开沼泽后解除`,
+      ].filter(Boolean);
+    },
+  },
+  smog: {
+    name: '排气格栅', tag: '特殊地形',
+    // the sim gives the tile's buff `flags: { stealth: true }` (devices.js enterTerrain): enemy ranged targeting
+    // skips it like 隐匿 — and, like 隐匿, it does NOT stop the enemy it blocks from attacking it (PRTS 隐匿).
+    lines: () => [
+      '站在排气格栅上的干员不会被敌方的远程攻击选中（效果相当于隐匿）',
+      '但挡住敌人的干员仍会被它攻击到',
+    ],
+  },
+  deepsea: {
+    name: '深水区', tag: '特殊地形',
+    lines: (st) => {
+      const b = isObj(st?.deepsea?.bb) ? st.deepsea.bb : {};
+      const dmg = param(b['sea_drown[enemy].damage'], 0);
+      const aspd = param(b['sea_drown[enemy].attack_speed'], 0);
+      const move = param(b['sea_drown[enemy].move_speed'], 0);
+      const out = [];
+      if (dmg) out.push(`敌人每秒受到 ${dmg} 点伤害`);
+      const mods = [];
+      if (aspd) mods.push(`攻击速度 ${pctText(aspd)}`);
+      if (move && move !== 1) mods.push(`移动速度 ×${move}`);
+      if (mods.length) out.push(mods.join('、'));
+      // devices.js tickDeepsea: sourceless true damage tagged 'dot' / 'periodic' / 'deepsea' — deliberately NOT 'terrain'
+      // (环境伤害, which is what 活性源石's tick is): it is nobody's damage, so no 干员's 增伤 / 穿透 / 装备 applies.
+      out.push('溺水伤害属于无来源伤害（不吃干员的增伤、穿透与装备加成），也不归类为环境伤害');
+      out.push('拒绝部署（特制水上平台可以让这一格变得可部署）');
+      return out;
+    },
+  },
+  start: { name: '红门', tag: '敌方入口', lines: () => ['敌方单位从这里出场'] },
+  end: { name: '蓝门', tag: '保护目标', lines: () => ['敌人走进这里会扣你的目标生命值（LP），一回合至多 10 点'] },
+  telin: { name: '传送入口', tag: '特殊地形', lines: () => ['敌人走到这里会从场上消失'] },
+  telout: { name: '传送出口', tag: '特殊地形', lines: () => ['消失的敌人会从这里重新出现'] },
+});
+
+/** Tile keys that carry a tip of their own although the legend gives them no `special` tag (gates, teleports). */
+const TIP_BY_TILEKEY = Object.freeze({ tile_start: 'start', tile_end: 'end', tile_telin: 'telin', tile_telout: 'telout' });
+/** 深水区's own legend entry is the one tile whose mechanism overrides the level's buildableType (grid.js DEPLOY_REFUSED_TILES). */
+const BUILDABILITY = Object.freeze({ ALL: '可部署', MELEE: '仅近战位可部署', RANGED: '仅远程位可部署', NONE: '不可部署' });
+
+const param = (v, d) => (Number.isFinite(Number(v)) ? Number(v) : d);
+const pctText = (v) => `${v > 0 ? '+' : '−'}${Math.abs(Math.round(param(v, 0) * 100))}%`;
+
+/**
+ * The tip a tap on board tile (row, col) opens (GitHub issue #184 — "建议加入对于特殊地形的单击信息提示"), or null for an
+ * ordinary tile (road / floor / wall / fence …): those say nothing, so a tap on them still just closes what is open.
+ * The tile comes from the stage the board on screen is built from (`stage.rows` + `stage.tiles`, data/stages.json), and
+ * the numbers from that stage's own terrain parameters — the same values the sim runs.
+ * @param {{ rows?: string[], tiles?: Record<string, any>, special?: any } | null | undefined} stage the shown field's stage
+ * @param {number} row board row (row 0 = the bottom row, DESIGN §1)
+ * @param {number} col
+ * @returns {{ key:string, name:string, tag:string, row:number, col:number, lines:string[], facts:string[] } | null}
+ */
+export function terrainInfo(stage, row, col) {
+  const rows = Array.isArray(stage?.rows) ? stage.rows : null;
+  const line = rows && Number.isInteger(row) && row >= 0 ? rows[row] : null;
+  if (typeof line !== 'string' || !Number.isInteger(col) || col < 0 || col >= line.length) return null;
+  const tiles = isObj(stage.tiles) ? stage.tiles : null;
+  const tile = tiles ? tiles[line[col]] : null;
+  if (!isObj(tile)) return null;
+  const key = tile.special || TIP_BY_TILEKEY[tile.tileKey] || null;
+  const tip = key ? TERRAIN_TIPS[key] : null;
+  if (!tip) return null;
+  const facts = [];
+  const build = BUILDABILITY[tile.buildable];
+  if (build) facts.push(build);
+  if (tile.height === 'HIGH') facts.push('高台');
+  if (tile.groundPassable === false) facts.push('只有空中单位能通过');
+  else if (tile.groundPassable === true) facts.push('地面单位可通过');
+  return { key, name: tip.name, tag: tip.tag, row, col, lines: tip.lines(stage.special).filter((s) => typeof s === 'string' && s), facts };
+}
+
 // ---- per-player stage overrides (terrain 机变 cards) ------------------------------------------------------
 
 const OBSTACLE_ROLES = new Set(['crate', 'mound']);
@@ -1570,7 +1699,9 @@ export function shortcutFor(e) {
  * right-click or long press — or a battle / teammate unit). Shop, reward, bond-member and intel (enemy) cards stay.
  * @param {{ kind?: string }|null|undefined} detail
  */
-export const closesOnFieldPress = (detail) => detail?.kind === 'piece' || detail?.kind === 'unit';
+// a card opened BY a field press (a piece, a unit, a special terrain tile: issue #184) closes on the next press of
+// the field; the ones opened from the shop / hand / HUD stay until their own close button (or the flow that opened them)
+export const closesOnFieldPress = (detail) => detail?.kind === 'piece' || detail?.kind === 'unit' || detail?.kind === 'terrain';
 
 /**
  * Whether an open overlay swallows a game shortcut: a modal / the guide own the keyboard (Esc included — they close

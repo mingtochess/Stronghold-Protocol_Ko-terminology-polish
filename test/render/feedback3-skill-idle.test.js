@@ -111,3 +111,21 @@ test('Indigo and Ptilopsis S2 continuous loops are never interrupted by normal a
   a.setSkill(false);run(a,3);assert.equal(a.skillOn,false);
  }
 });
+
+
+test('Mint S2: its OnAttack markers never restart the continuous skill pose', () => {
+  const a=actor('char_388_mint',1);a.setSkill(true);run(a,1);
+  assert.ok(a.log.some(([op,name,loop])=>op==='queue'&&name==='Skill_2_Loop'&&loop));
+  const current=a.current; const before=a.log.length;
+  for(let i=0;i<5;i++){a.beginAttack(.3,1);a.attack(1);run(a,.2);}
+  assert.equal(a.log.length,before);assert.equal(a.current,current);
+  a.setSkill(false);assert.equal(a.current,'Skill_2_End');
+});
+
+test('stun aliases in a skin play their own loop and ignore attacks', () => {
+ const entry={anims:{idle:'Idle',attack:{loop:'Attack'}},animations:{Idle:1,Attack:1,Stun_Start:.2,Stun_Loop:1,Stun_End:.2}};
+ const a=new SpineActor({animations:Object.keys(entry.animations).map(name=>({name}))},entry);
+ a.setBase('stun');assert.equal(a.current,'Stun_Start');run(a,.4);
+ assert.equal(a.roles.stun.loop,'Stun_Loop');a.attack(1);assert.equal(a.current,'Stun_Start');
+ a.setBase('idle');assert.equal(a.current,'Idle');
+});

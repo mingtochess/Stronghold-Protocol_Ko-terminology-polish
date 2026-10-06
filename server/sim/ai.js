@@ -58,7 +58,7 @@ export function effectiveProfile(u) {
     if (tg.maxTargets != null) p.maxTargets = tg.maxTargets;
     if (tg.priority) p.priority = tg.priority;
     if (tg.allInRange != null) p.allInRange = tg.allInRange;
-    if (tg.canHitFly != null) p.canHitFly = tg.canHitFly;
+    if (tg.canHitFly != null) { p.canHitFly = tg.canHitFly; if (tg.canHitFly) p.groundOnly = false; }
   }
   return p;
 }
@@ -81,11 +81,12 @@ export function updateAlly(b, u, dt) {
     const pending = u.mem.attackWindup;
     if (pending.seq !== u.deploySeq || pending.skillActive !== !!sk?.active) { cancelWindup(b, u); return; }
     const candidates = acquireTargets(b, u, pending.profile);
-    const valid = new Set(candidates);
     const previous = pending.targets;
-    let targets = previous.filter(t => valid.has(t));
+    // Once an attack starts, walking outside its range does not cancel it.
+    // Death or loss of targetability still permits a replacement before impact.
+    let targets = previous.filter(t => pending.profile.heal ? (t.alive && t.deployed && !t.hidden) : canTargetEnemy(u, t, pending.profile) && (!pending.profile.windupNeedsRange || candidates.includes(t)));
     // A replacement inherits the existing wind-up and hit deadline, without restarting Spine.
-    if (b.time + 1e-9 < pending.until) {
+    if (b.time + 1e-9 < pending.until || pending.profile.windupNeedsRange) {
       for (const t of candidates) {
         if (targets.length >= previous.length) break;
         if (!targets.includes(t)) targets.push(t);

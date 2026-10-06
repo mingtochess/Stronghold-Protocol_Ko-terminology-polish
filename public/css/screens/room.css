@@ -308,3 +308,17 @@
 .ready-count__icons .icon.is-on { color: var(--mint-400); filter: drop-shadow(0 0 4px var(--mint-glow)); }
 
 .room-bar .btn--xl { min-width: 3.2rem; letter-spacing: .2em; }
+
+/* Custom extensions use the shared modal, button and mint panel palette. */
+.custom-ext__hint { color: var(--text-muted, #91a49d); margin: 0 0 0.1rem; line-height: 1.6; }
+.custom-ext__tabs { display: flex; gap: 0.05rem; border-bottom: 1px solid #385148; margin-bottom: 0.12rem; }
+.custom-ext__tabs button { display: flex; gap: 0.075rem; align-items: center; padding: 0.065rem 0.11rem; color: #9aaca5; background: transparent; border: 0; border-bottom: 2px solid transparent; font: inherit; cursor: pointer; }
+.custom-ext__tabs button.is-active { color: #5ee6c2; border-bottom-color: #5ee6c2; }
+.custom-ext__panel { min-height: 1.2rem; }
+.custom-ext__card { display: flex; align-items: flex-start; gap: 0.085rem; padding: 0.1rem; margin-top: 0.08rem; border: 1px solid #385148; background: #121d18; cursor: pointer; }
+.custom-ext__card.is-selected { border-color: #5ee6c2; background: #173329; }
+.custom-ext__card input { margin-top: 0.025rem; accent-color: #5ee6c2; }
+.custom-ext__card strong { display: block; color: #e1eee8; margin-bottom: 0.04rem; }
+.custom-ext__card small { display: block; color: #9aaca5; line-height: 1.6; }
+.custom-ext__empty { color: #91a49d; padding: 0.1rem 0; }
+.custom-ext .modal__actions { gap: 0.065rem; }

@@ -429,3 +429,13 @@ describe('three.js PerspectiveCamera equivalence (the 3D board layer)', () => {
     assert.ok(p.near > 0 && p.far > p.near);
   });
 });
+
+test('observed battle cameras keep bench feet and heads inside the padded viewport',()=>{
+ for(const [width,height] of [[1280,720],[800,360],[390,844]])for(const kind of ['normal','unite','boss'])for(const side of ['L','R']){
+  const cam=presetCamera(kind,{width,height,padding:{top:60,bottom:90,left:30,right:30}},{observedBench:true,side,half:kind!=='normal'});
+  const row=kind==='boss'?0:7,cols=kind==='normal'?[3,9]:kind==='unite'?(side==='R'?[11,17]:[3,9]):(side==='R'?[11,17]:[3,9]);
+  for(const col of cols)for(const z of [.16,1.25]){
+   const p=cam.project(col,row,z);assert.ok(p.x>=30&&p.x<=width-30,`${kind}/${side} x`);assert.ok(p.y>=60&&p.y<=height-90,`${kind}/${side} y`);
+  }
+ }
+});

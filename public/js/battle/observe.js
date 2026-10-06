@@ -5,7 +5,7 @@
 //   * own battle over: "⌛ 作战结束，等待队友完成作战" + the teammates' progress; tap a teammate → 前往查看 → a local
 //     replica of their battle; 返回战场 goes back;
 //   * 联防 / 最终攻势: the ‹ › pill switches the camera LEFT half / 全景 / RIGHT half of the own field; the other pair's
-//     boss field is never shown to a fighting player;
+//     players can also scout another pair's boss field;
 //   * eliminated: anything.
 
 import { PHASE } from '../../../shared/constants.js';
@@ -39,6 +39,34 @@ export function nameOf(pub, playerId) {
   return players(pub).find((p) => p.playerId === playerId)?.name || '队友';
 }
 
+const SHARED_FIELD = new Set([PHASE.UNITE, PHASE.FINAL_ASSAULT, PHASE.HIDDEN_CORE]);
+
+/**
+ * The player ids fighting on the viewer's battlefield in the shared-field phases — 最终攻势 / 隐秘核心: the seat pair
+ * (finalAssault.js pairPlayers, the field's `players`); 联防: everyone on the unite field, the helpers it lists plus
+ * the leakers it covers (the unite field's `players` carries only the helpers, `pub.unite.leakers` the rest). Boss-round
+ * prep (回合开始 / 机变 / 休整期): the pairing is planned before the fight (Match._planBossWaves) and published as
+ * `pub.bossPairing` — the frames show while the board is still being prepared. Empty in the solo phases (各自行动: one
+ * field per player), outside these phases, and without a viewer (`myId`). User playtest #5: nothing on screen said who
+ * shares your field — the phase banner names them and the team panel frames their avatar.
+ */
+export function sameFieldmates(pub, myId) {
+  if (!myId || !isObj(pub)) return [];
+  if (pub.phase === PHASE.UNITE) {
+    const ids = [
+      ...(Array.isArray(pub.unite?.leakers) ? pub.unite.leakers : []),
+      ...(Array.isArray(pub.unite?.helpers) ? pub.unite.helpers : []),
+    ];
+    return [...new Set(ids.filter((pid) => typeof pid === 'string' && pid))].filter((pid) => pid !== myId);
+  }
+  if (SHARED_FIELD.has(pub.phase)) {
+    const f = fieldOf(pub, myId);
+    if (f && Array.isArray(f.players)) return f.players.filter((pid) => pid !== myId);
+  }
+  const pair = Array.isArray(pub.bossPairing) ? pub.bossPairing.find((g) => Array.isArray(g) && g.includes(myId)) : null;
+  return pair ? pair.filter((pid) => typeof pid === 'string' && pid !== myId) : [];
+}
+
 /**
  * What tapping a team row does: `{ back: true }` (own row while observing), `{ fieldId }` to observe, or `{ reason }`.
  * @param {any} p m.public player row
@@ -60,7 +88,6 @@ export function observeTarget(p, pub, myId, { observing = false, ownDone = false
   const own = fieldOf(pub, myId);
   if (!meAlive || !own) return { fieldId: target.fieldId };
   if (own.fieldId === target.fieldId) return { reason: '队友与你在同一战场，使用 ‹ › 切换视角' };
-  if (target.kind === 'boss' || target.kind === 'hidden') return { reason: '无法查看另一组队友的战场' };
   if (own.kind === 'normal' && own.live !== false && !ownDone) return { reason: '作战中无法查看队友，作战结束后可前往查看' };
   return { fieldId: target.fieldId };
 }

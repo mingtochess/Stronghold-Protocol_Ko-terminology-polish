@@ -579,6 +579,13 @@ export class Battle {
         sp: u.skill && !u.skill.noSkill ? Math.round(u.skill.spTotal * 100) / 100 : 0,
         skillActive: !!(u.skill && u.skill.active && u.skill.kind !== 'passive'),
         alive: !!u.alive,
+        ...(u.mem.egirDevourProcessed ? { egirDevour: {
+          processed: true,
+          atkFlat: u.mem.egirDevourMods?.atkFlat || 0,
+          blockCnt: u.mem.egirDevourMods?.blockCnt || 0,
+          revives: u.mem.egirRevives || 0,
+          revived: !!u.mem.egirRevived,
+        } } : {}),
       }));
       pp.unitStats = ps.units.map((u) => ({
         id: u.id, uid: u.uid, defId: u.defId, name: u.name, kind: u.kind,
@@ -1391,6 +1398,7 @@ export class Battle {
     const src = opts.source;
     if (src && src.side && src.side !== target.side && target.s.flags.invulnerable && target.s.flags.untargetable) return false;
     if (!opts.ignoreSelect && target.s.flags.liftoff && evadesGround(src, target)) return false;
+    if(key==='aspdDown' && target.profile?.attackSpeedDebuffImmune && (opts.value ?? -30)<0)return false;
     const tpl = STATUS[key] || { flags: { [key]: true } };
     let duration = opts.duration == null ? Infinity : Number(opts.duration);
     let value = opts.value;

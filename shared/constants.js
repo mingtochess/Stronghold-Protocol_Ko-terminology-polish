@@ -1,9 +1,9 @@
 // Shared enums & constants (server + browser). Pure ESM, no Node APIs.
 
 export const PROTOCOL_VERSION = 1;
-/** Release version shown to players (title screen, server banner, /healthz). Kept equal to package.json "version"
- * (test/version.test.js); PROTOCOL_VERSION above is the separate wire-format number. */
-export const APP_VERSION = '0.1.3';
+/** Upstream package version stays valid SemVer; the lowercase suffix identifies site updates. */
+export const BASE_VERSION = '0.1.3';
+export const APP_VERSION = `${BASE_VERSION}c`;
 
 export const MAX_SEATS = 4;
 /**

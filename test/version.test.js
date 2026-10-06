@@ -6,25 +6,31 @@ import assert from 'node:assert/strict';
 import { readFileSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { APP_VERSION, PROTOCOL_VERSION } from '../shared/constants.js';
+import { APP_VERSION, BASE_VERSION, PROTOCOL_VERSION } from '../shared/constants.js';
+
+import { PATCH_NOTES } from '../shared/patchNotes.js';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const read = (p) => readFileSync(join(ROOT, p), 'utf8');
 const pkg = JSON.parse(read('package.json'));
 const lock = JSON.parse(read('package-lock.json'));
 
-test('one release version: package.json, package-lock.json and APP_VERSION', () => {
-  assert.match(APP_VERSION, /^\d+\.\d+\.\d+$/);
-  assert.equal(pkg.version, APP_VERSION);
-  assert.equal(lock.version, APP_VERSION);
-  assert.equal(lock.packages[''].version, APP_VERSION);
+test('base package version and letter-suffixed site version stay consistent', () => {
+  assert.match(APP_VERSION, /^\d+\.\d+\.\d+[a-z]$/);
+  assert.equal(APP_VERSION.slice(0,-1),BASE_VERSION);
+  assert.equal(PATCH_NOTES[0].version,APP_VERSION);
+  assert.equal(new Set(PATCH_NOTES.map(n=>n.version)).size,PATCH_NOTES.length);
+  for(const note of PATCH_NOTES)assert.match(note.version,/^\d+\.\d+\.\d+[a-z]$/);
+  assert.equal(pkg.version, BASE_VERSION);
+  assert.equal(lock.version, BASE_VERSION);
+  assert.equal(lock.packages[''].version, BASE_VERSION);
   assert.equal(PROTOCOL_VERSION, 1, 'the wire protocol number is separate from the release version');
   assert.equal(pkg.private, true, 'never published to npm');
 });
 
 test('CHANGELOG.md opens with the release version, and the README links it', () => {
   const log = read('CHANGELOG.md');
-  const first = log.match(/^## (\d+\.\d+\.\d+) — (\d{4}-\d{2}-\d{2})/m);
+  const first = log.match(/^## (\d+\.\d+\.\d+[a-z]?) — (\d{4}-\d{2}-\d{2})/m);
   assert.ok(first, 'a "## x.y.z — date" heading');
   assert.equal(first[1], APP_VERSION, 'the newest entry is the current version');
   assert.match(log, /^## 0\.1\.0 — 2026-10-02/m, 'the first public release stays listed');

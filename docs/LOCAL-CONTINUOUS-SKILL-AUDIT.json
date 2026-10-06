@@ -1,0 +1,1975 @@
+[
+  {
+    "id": "char_1020_reed2",
+    "side": "back",
+    "index": 1,
+    "clip": "Skill_2",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_1023_ghost2",
+    "side": "front",
+    "index": 0,
+    "clip": "Skill_1",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_102_texas",
+    "side": "front",
+    "index": 0,
+    "clip": "Skill",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_102_texas",
+    "side": "front",
+    "index": 1,
+    "clip": "Skill",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_102_texas",
+    "side": "front",
+    "index": 2,
+    "clip": "Skill",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_1040_blaze2",
+    "side": "front",
+    "index": 2,
+    "clip": "Skill_3_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_1040_blaze2",
+    "side": "back",
+    "index": 2,
+    "clip": "Skill_3_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_128_plosis",
+    "side": "front",
+    "index": 0,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_128_plosis",
+    "side": "front",
+    "index": 1,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_128_plosis",
+    "side": "front",
+    "index": 2,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_128_plosis",
+    "side": "back",
+    "index": 0,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_128_plosis",
+    "side": "back",
+    "index": 1,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_128_plosis",
+    "side": "back",
+    "index": 2,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_136_hsguma",
+    "side": "front",
+    "index": 0,
+    "clip": "Skill",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_136_hsguma",
+    "side": "front",
+    "index": 1,
+    "clip": "Skill",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_136_hsguma",
+    "side": "front",
+    "index": 2,
+    "clip": "Skill",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_136_hsguma",
+    "side": "back",
+    "index": 0,
+    "clip": "Skill",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_136_hsguma",
+    "side": "back",
+    "index": 1,
+    "clip": "Skill",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_136_hsguma",
+    "side": "back",
+    "index": 2,
+    "clip": "Skill",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_150_snakek",
+    "side": "front",
+    "index": 0,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_150_snakek",
+    "side": "front",
+    "index": 1,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_150_snakek",
+    "side": "front",
+    "index": 2,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_173_slchan",
+    "side": "front",
+    "index": 0,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_173_slchan",
+    "side": "front",
+    "index": 1,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_173_slchan",
+    "side": "front",
+    "index": 2,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_173_slchan",
+    "side": "back",
+    "index": 0,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_173_slchan",
+    "side": "back",
+    "index": 1,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_173_slchan",
+    "side": "back",
+    "index": 2,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_196_sunbr",
+    "side": "front",
+    "index": 1,
+    "clip": "Skill_2_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_202_demkni",
+    "side": "front",
+    "index": 0,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_202_demkni",
+    "side": "front",
+    "index": 1,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_202_demkni",
+    "side": "front",
+    "index": 2,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_213_mostma",
+    "side": "front",
+    "index": 0,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_213_mostma",
+    "side": "front",
+    "index": 2,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_213_mostma",
+    "side": "back",
+    "index": 0,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_213_mostma",
+    "side": "back",
+    "index": 2,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_245_cello",
+    "side": "front",
+    "index": 2,
+    "clip": "Skill_3_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_245_cello",
+    "side": "back",
+    "index": 2,
+    "clip": "Skill_3_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_291_aglina",
+    "side": "front",
+    "index": 1,
+    "clip": "Skill2_Loop",
+    "attackMarkers": [
+      0.233
+    ],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_337_utage",
+    "side": "front",
+    "index": 0,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_337_utage",
+    "side": "front",
+    "index": 1,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_337_utage",
+    "side": "front",
+    "index": 2,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_337_utage",
+    "side": "back",
+    "index": 0,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_337_utage",
+    "side": "back",
+    "index": 1,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_337_utage",
+    "side": "back",
+    "index": 2,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_358_lisa",
+    "side": "front",
+    "index": 2,
+    "clip": "Skill3_Loop",
+    "attackMarkers": [
+      0.567
+    ],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_381_bubble",
+    "side": "front",
+    "index": 0,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_381_bubble",
+    "side": "front",
+    "index": 1,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_381_bubble",
+    "side": "front",
+    "index": 2,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_381_bubble",
+    "side": "back",
+    "index": 0,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_381_bubble",
+    "side": "back",
+    "index": 1,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_381_bubble",
+    "side": "back",
+    "index": 2,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_388_mint",
+    "side": "front",
+    "index": 1,
+    "clip": "Skill_2_Loop",
+    "attackMarkers": [
+      0.167
+    ],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_388_mint",
+    "side": "back",
+    "index": 1,
+    "clip": "Skill_2_Loop",
+    "attackMarkers": [
+      0.167
+    ],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_4010_etlchi",
+    "side": "front",
+    "index": 1,
+    "clip": "Skill_2_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_4010_etlchi",
+    "side": "back",
+    "index": 1,
+    "clip": "Skill_2_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_4056_titi",
+    "side": "front",
+    "index": 1,
+    "clip": "Skill_2_Idle",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_4056_titi",
+    "side": "back",
+    "index": 1,
+    "clip": "Skill_2_Idle",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_4122_grabds",
+    "side": "front",
+    "index": 1,
+    "clip": "Skill_2_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_4122_grabds",
+    "side": "back",
+    "index": 1,
+    "clip": "Skill_2_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_4139_papyrs",
+    "side": "front",
+    "index": 1,
+    "clip": "Skill_2_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_4139_papyrs",
+    "side": "back",
+    "index": 1,
+    "clip": "Skill_2_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_4145_ulpia",
+    "side": "front",
+    "index": 0,
+    "clip": "Skill_1_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_4145_ulpia",
+    "side": "back",
+    "index": 0,
+    "clip": "Skill_1_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_4148_philae",
+    "side": "front",
+    "index": 1,
+    "clip": "Skill_2_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_4148_philae",
+    "side": "back",
+    "index": 1,
+    "clip": "Skill_2_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_4162_cathy",
+    "side": "front",
+    "index": 1,
+    "clip": "Skill_2_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_4162_cathy",
+    "side": "back",
+    "index": 1,
+    "clip": "Skill_2_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_4193_lemuen",
+    "side": "front",
+    "index": 1,
+    "clip": "Skill_2_Idle",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_4193_lemuen",
+    "side": "front",
+    "index": 2,
+    "clip": "Skill_3_Idle",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_4193_lemuen",
+    "side": "back",
+    "index": 1,
+    "clip": "Skill_2_Idle",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_4193_lemuen",
+    "side": "back",
+    "index": 2,
+    "clip": "Skill_3_Idle",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_4194_rmixer",
+    "side": "front",
+    "index": 2,
+    "clip": "Skill_3_Idle",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_4194_rmixer",
+    "side": "back",
+    "index": 2,
+    "clip": "Skill_3_Idle",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_427_vigil",
+    "side": "front",
+    "index": 0,
+    "clip": "Skill1",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_427_vigil",
+    "side": "front",
+    "index": 1,
+    "clip": "Skill2",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_427_vigil",
+    "side": "back",
+    "index": 0,
+    "clip": "Skill1",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_427_vigil",
+    "side": "back",
+    "index": 1,
+    "clip": "Skill2",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_469_indigo",
+    "side": "front",
+    "index": 0,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_469_indigo",
+    "side": "front",
+    "index": 1,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_469_indigo",
+    "side": "front",
+    "index": 2,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_469_indigo",
+    "side": "back",
+    "index": 0,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_469_indigo",
+    "side": "back",
+    "index": 1,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_469_indigo",
+    "side": "back",
+    "index": 2,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_474_glady",
+    "side": "front",
+    "index": 0,
+    "clip": "Skill_1_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_474_glady",
+    "side": "front",
+    "index": 2,
+    "clip": "Skill_3_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_474_glady",
+    "side": "back",
+    "index": 0,
+    "clip": "Skill_1_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_474_glady",
+    "side": "back",
+    "index": 2,
+    "clip": "Skill_3_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_608_acpion",
+    "side": "front",
+    "index": 1,
+    "clip": "Skill_2",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_608_acpion",
+    "side": "back",
+    "index": 1,
+    "clip": "Skill_2",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_197_poca",
+    "side": "front",
+    "index": 0,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_197_poca",
+    "side": "front",
+    "index": 1,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_197_poca",
+    "side": "front",
+    "index": 2,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_197_poca",
+    "side": "back",
+    "index": 0,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_197_poca",
+    "side": "back",
+    "index": 1,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_197_poca",
+    "side": "back",
+    "index": 2,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_4182_oblvns",
+    "side": "front",
+    "index": 1,
+    "clip": "Skill_2_Idle_A",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_4182_oblvns",
+    "side": "back",
+    "index": 1,
+    "clip": "Skill_2_Idle_A",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_1050_chen3",
+    "side": "front",
+    "index": 1,
+    "clip": "Skill_2_Disappear",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "char_1050_chen3",
+    "side": "back",
+    "index": 1,
+    "clip": "Skill_2_Disappear",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_202_demkni_test_1",
+    "side": "front",
+    "index": 0,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_202_demkni_test_1",
+    "side": "front",
+    "index": 1,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_202_demkni_test_1",
+    "side": "front",
+    "index": 2,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_245_cello_sale_12",
+    "side": "front",
+    "index": 2,
+    "clip": "Skill_3_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_245_cello_sale_12",
+    "side": "back",
+    "index": 2,
+    "clip": "Skill_3_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_128_plosis_epoque_3",
+    "side": "front",
+    "index": 0,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_128_plosis_epoque_3",
+    "side": "front",
+    "index": 1,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_128_plosis_epoque_3",
+    "side": "front",
+    "index": 2,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_128_plosis_epoque_3",
+    "side": "back",
+    "index": 0,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_128_plosis_epoque_3",
+    "side": "back",
+    "index": 1,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_128_plosis_epoque_3",
+    "side": "back",
+    "index": 2,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_213_mostma_epoque_5",
+    "side": "front",
+    "index": 0,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_213_mostma_epoque_5",
+    "side": "front",
+    "index": 2,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_213_mostma_epoque_5",
+    "side": "back",
+    "index": 0,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_213_mostma_epoque_5",
+    "side": "back",
+    "index": 2,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_102_texas_epoque_7",
+    "side": "front",
+    "index": 0,
+    "clip": "Skill",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_102_texas_epoque_7",
+    "side": "front",
+    "index": 1,
+    "clip": "Skill",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_102_texas_epoque_7",
+    "side": "front",
+    "index": 2,
+    "clip": "Skill",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_197_poca_epoque_12",
+    "side": "front",
+    "index": 0,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_197_poca_epoque_12",
+    "side": "front",
+    "index": 1,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_197_poca_epoque_12",
+    "side": "front",
+    "index": 2,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_197_poca_epoque_12",
+    "side": "back",
+    "index": 0,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_197_poca_epoque_12",
+    "side": "back",
+    "index": 1,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_197_poca_epoque_12",
+    "side": "back",
+    "index": 2,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_337_utage_epoque_15",
+    "side": "front",
+    "index": 0,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_337_utage_epoque_15",
+    "side": "front",
+    "index": 1,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_337_utage_epoque_15",
+    "side": "front",
+    "index": 2,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_337_utage_epoque_15",
+    "side": "back",
+    "index": 0,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_337_utage_epoque_15",
+    "side": "back",
+    "index": 1,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_337_utage_epoque_15",
+    "side": "back",
+    "index": 2,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_358_lisa_epoque_22",
+    "side": "front",
+    "index": 2,
+    "clip": "Skill3_Loop",
+    "attackMarkers": [
+      0.567
+    ],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_388_mint_epoque_22",
+    "side": "front",
+    "index": 1,
+    "clip": "Skill_2_Loop",
+    "attackMarkers": [
+      0.167
+    ],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_388_mint_epoque_22",
+    "side": "back",
+    "index": 1,
+    "clip": "Skill_2_Loop",
+    "attackMarkers": [
+      0.167
+    ],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_427_vigil_epoque_27",
+    "side": "front",
+    "index": 0,
+    "clip": "Skill1",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_427_vigil_epoque_27",
+    "side": "front",
+    "index": 1,
+    "clip": "Skill2",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_427_vigil_epoque_27",
+    "side": "back",
+    "index": 0,
+    "clip": "Skill1",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_427_vigil_epoque_27",
+    "side": "back",
+    "index": 1,
+    "clip": "Skill2",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_388_mint_epoque_30",
+    "side": "front",
+    "index": 1,
+    "clip": "Skill_2_Loop",
+    "attackMarkers": [
+      0.167
+    ],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_388_mint_epoque_30",
+    "side": "back",
+    "index": 1,
+    "clip": "Skill_2_Loop",
+    "attackMarkers": [
+      0.167
+    ],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_1020_reed2_epoque_30",
+    "side": "back",
+    "index": 1,
+    "clip": "Skill_2",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_474_glady_epoque_33",
+    "side": "front",
+    "index": 0,
+    "clip": "Skill_1_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_474_glady_epoque_33",
+    "side": "front",
+    "index": 2,
+    "clip": "Skill_3_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_474_glady_epoque_33",
+    "side": "back",
+    "index": 0,
+    "clip": "Skill_1_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_474_glady_epoque_33",
+    "side": "back",
+    "index": 2,
+    "clip": "Skill_3_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_4145_ulpia_epoque_48",
+    "side": "front",
+    "index": 0,
+    "clip": "Skill_1_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_4145_ulpia_epoque_48",
+    "side": "back",
+    "index": 0,
+    "clip": "Skill_1_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_469_indigo_nian_7",
+    "side": "front",
+    "index": 0,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_469_indigo_nian_7",
+    "side": "front",
+    "index": 1,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_469_indigo_nian_7",
+    "side": "front",
+    "index": 2,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_469_indigo_nian_7",
+    "side": "back",
+    "index": 0,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_469_indigo_nian_7",
+    "side": "back",
+    "index": 1,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_469_indigo_nian_7",
+    "side": "back",
+    "index": 2,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_4148_philae_nian_12",
+    "side": "front",
+    "index": 1,
+    "clip": "Skill_2_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_4148_philae_nian_12",
+    "side": "back",
+    "index": 1,
+    "clip": "Skill_2_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_136_hsguma_nian_3",
+    "side": "front",
+    "index": 0,
+    "clip": "Skill",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_136_hsguma_nian_3",
+    "side": "front",
+    "index": 1,
+    "clip": "Skill",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_136_hsguma_nian_3",
+    "side": "front",
+    "index": 2,
+    "clip": "Skill",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_136_hsguma_nian_3",
+    "side": "back",
+    "index": 0,
+    "clip": "Skill",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_136_hsguma_nian_3",
+    "side": "back",
+    "index": 1,
+    "clip": "Skill",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_136_hsguma_nian_3",
+    "side": "back",
+    "index": 2,
+    "clip": "Skill",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_196_sunbr_summer_1",
+    "side": "front",
+    "index": 1,
+    "clip": "Skill_2_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_337_utage_summer_4",
+    "side": "front",
+    "index": 0,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_337_utage_summer_4",
+    "side": "front",
+    "index": 1,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_337_utage_summer_4",
+    "side": "front",
+    "index": 2,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_337_utage_summer_4",
+    "side": "back",
+    "index": 0,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_337_utage_summer_4",
+    "side": "back",
+    "index": 1,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_337_utage_summer_4",
+    "side": "back",
+    "index": 2,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_136_hsguma_summer_16",
+    "side": "front",
+    "index": 0,
+    "clip": "Skill",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_136_hsguma_summer_16",
+    "side": "front",
+    "index": 1,
+    "clip": "Skill",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_136_hsguma_summer_16",
+    "side": "front",
+    "index": 2,
+    "clip": "Skill",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_136_hsguma_summer_16",
+    "side": "back",
+    "index": 0,
+    "clip": "Skill",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_136_hsguma_summer_16",
+    "side": "back",
+    "index": 1,
+    "clip": "Skill",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_136_hsguma_summer_16",
+    "side": "back",
+    "index": 2,
+    "clip": "Skill",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_1020_reed2_summer_17",
+    "side": "back",
+    "index": 1,
+    "clip": "Skill_2",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_381_bubble_marthe_11",
+    "side": "front",
+    "index": 0,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_381_bubble_marthe_11",
+    "side": "front",
+    "index": 1,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_381_bubble_marthe_11",
+    "side": "front",
+    "index": 2,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_381_bubble_marthe_11",
+    "side": "back",
+    "index": 0,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_381_bubble_marthe_11",
+    "side": "back",
+    "index": 1,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_381_bubble_marthe_11",
+    "side": "back",
+    "index": 2,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_291_aglina_summer_5",
+    "side": "front",
+    "index": 1,
+    "clip": "Skill2_Loop",
+    "attackMarkers": [
+      0.233,
+      0.7,
+      1.167,
+      1.633
+    ],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_102_texas_winter_1",
+    "side": "front",
+    "index": 0,
+    "clip": "Skill",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_102_texas_winter_1",
+    "side": "front",
+    "index": 1,
+    "clip": "Skill",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_102_texas_winter_1",
+    "side": "front",
+    "index": 2,
+    "clip": "Skill",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_4010_etlchi_winter_5",
+    "side": "front",
+    "index": 1,
+    "clip": "Skill_2_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_4010_etlchi_winter_5",
+    "side": "back",
+    "index": 1,
+    "clip": "Skill_2_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_1040_blaze2_winter_5",
+    "side": "front",
+    "index": 2,
+    "clip": "Skill_3_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_1040_blaze2_winter_5",
+    "side": "back",
+    "index": 2,
+    "clip": "Skill_3_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_1020_reed2_snow_8",
+    "side": "back",
+    "index": 1,
+    "clip": "Skill_2",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_173_slchan_wild_1",
+    "side": "front",
+    "index": 0,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_173_slchan_wild_1",
+    "side": "front",
+    "index": 1,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_173_slchan_wild_1",
+    "side": "front",
+    "index": 2,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_173_slchan_wild_1",
+    "side": "back",
+    "index": 0,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_173_slchan_wild_1",
+    "side": "back",
+    "index": 1,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_173_slchan_wild_1",
+    "side": "back",
+    "index": 2,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_150_snakek_wild_1",
+    "side": "front",
+    "index": 0,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_150_snakek_wild_1",
+    "side": "front",
+    "index": 1,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_150_snakek_wild_1",
+    "side": "front",
+    "index": 2,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_358_lisa_wild_3",
+    "side": "front",
+    "index": 2,
+    "clip": "Skill3_Loop",
+    "attackMarkers": [
+      0.567
+    ],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_173_slchan_wwf_1",
+    "side": "front",
+    "index": 0,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_173_slchan_wwf_1",
+    "side": "front",
+    "index": 1,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_173_slchan_wwf_1",
+    "side": "front",
+    "index": 2,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_173_slchan_wwf_1",
+    "side": "back",
+    "index": 0,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_173_slchan_wwf_1",
+    "side": "back",
+    "index": 1,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_173_slchan_wwf_1",
+    "side": "back",
+    "index": 2,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_202_demkni_boc_1",
+    "side": "front",
+    "index": 0,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_202_demkni_boc_1",
+    "side": "front",
+    "index": 1,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_202_demkni_boc_1",
+    "side": "front",
+    "index": 2,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_474_glady_boc_5",
+    "side": "front",
+    "index": 0,
+    "clip": "Skill_1_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_474_glady_boc_5",
+    "side": "front",
+    "index": 2,
+    "clip": "Skill_3_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_474_glady_boc_5",
+    "side": "back",
+    "index": 0,
+    "clip": "Skill_1_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_474_glady_boc_5",
+    "side": "back",
+    "index": 2,
+    "clip": "Skill_3_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_1023_ghost2_boc_6",
+    "side": "front",
+    "index": 0,
+    "clip": "Skill_1",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_4194_rmixer_boc_12",
+    "side": "front",
+    "index": 2,
+    "clip": "Skill_3_Idle",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_4194_rmixer_boc_12",
+    "side": "back",
+    "index": 2,
+    "clip": "Skill_3_Idle",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_291_aglina_boc_1",
+    "side": "front",
+    "index": 1,
+    "clip": "Skill2_Loop",
+    "attackMarkers": [
+      0.233
+    ],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_213_mostma_ambienceSynesthesia_6",
+    "side": "front",
+    "index": 0,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_213_mostma_ambienceSynesthesia_6",
+    "side": "front",
+    "index": 2,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_213_mostma_ambienceSynesthesia_6",
+    "side": "back",
+    "index": 0,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_213_mostma_ambienceSynesthesia_6",
+    "side": "back",
+    "index": 2,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_202_demkni_ambienceSynesthesia_7",
+    "side": "front",
+    "index": 0,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_202_demkni_ambienceSynesthesia_7",
+    "side": "front",
+    "index": 1,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_202_demkni_ambienceSynesthesia_7",
+    "side": "front",
+    "index": 2,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_4193_lemuen_ambienceSynesthesia_7",
+    "side": "front",
+    "index": 1,
+    "clip": "Skill_2_Idle",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_4193_lemuen_ambienceSynesthesia_7",
+    "side": "front",
+    "index": 2,
+    "clip": "Skill_3_Idle",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_4193_lemuen_ambienceSynesthesia_7",
+    "side": "back",
+    "index": 1,
+    "clip": "Skill_2_Idle",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_4193_lemuen_ambienceSynesthesia_7",
+    "side": "back",
+    "index": 2,
+    "clip": "Skill_3_Idle",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_358_lisa_lxh_1",
+    "side": "front",
+    "index": 2,
+    "clip": "Skill3_Loop",
+    "attackMarkers": [
+      0.567
+    ],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_4139_papyrs_game_8",
+    "side": "front",
+    "index": 1,
+    "clip": "Skill_2_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_4139_papyrs_game_8",
+    "side": "back",
+    "index": 1,
+    "clip": "Skill_2_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_4122_grabds_yun_3",
+    "side": "front",
+    "index": 1,
+    "clip": "Skill_2_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_4122_grabds_yun_3",
+    "side": "back",
+    "index": 1,
+    "clip": "Skill_2_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_150_snakek_yun_7",
+    "side": "front",
+    "index": 0,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_150_snakek_yun_7",
+    "side": "front",
+    "index": 1,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_150_snakek_yun_7",
+    "side": "front",
+    "index": 2,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_4182_oblvns_avemujica_1",
+    "side": "front",
+    "index": 1,
+    "clip": "Skill_2_Idle_A",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_4182_oblvns_avemujica_1",
+    "side": "back",
+    "index": 1,
+    "clip": "Skill_2_Idle_A",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_197_poca_rilakkuma_1",
+    "side": "front",
+    "index": 0,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_197_poca_rilakkuma_1",
+    "side": "front",
+    "index": 1,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_197_poca_rilakkuma_1",
+    "side": "front",
+    "index": 2,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_197_poca_rilakkuma_1",
+    "side": "back",
+    "index": 0,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_197_poca_rilakkuma_1",
+    "side": "back",
+    "index": 1,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  },
+  {
+    "id": "skin_char_197_poca_rilakkuma_1",
+    "side": "back",
+    "index": 2,
+    "clip": "Skill_Loop",
+    "attackMarkers": [],
+    "separateAttackAnimation": false
+  }
+]

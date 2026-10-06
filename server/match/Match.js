@@ -1,5 +1,5 @@
 import {loadoutRecord, resolveRecordLoadout} from '../../shared/loadoutRecord.js';
-import { customFactionData } from '../../shared/customFactions.js';
+import { applyCustomExtensions, normalizeCustomExtensions } from '../../shared/customExtensions.js';
 // server/match/Match.js — the match & meta engine: state machine, timers, round loop, co-op orchestration,
 // broadcasting views (DESIGN §6, §8). Rules are documented in the module headers of ./PlayerState.js, ./pool.js,
 // ./board.js, ./bondsMeta.js, ./effectsMeta.js, ./choices.js, ./waves.js, ./unite.js, ./finalAssault.js,
@@ -109,7 +109,7 @@ import { customFactionData } from '../../shared/customFactions.js';
 //   opts.BattleClass   Battle implementation (default server/sim/Battle.js; tests inject test/match/fakeBattle.js)
 //   opts.battleContent 'full' | 'generic' | 'none' (sim content mode, default 'full')
 //   opts.timerScale    multiplier on every real-time phase timer (default 1)
-//   opts.combatSpeed   game seconds per real second while battles run in real time (default 2, the forced 2×)
+//   opts.combatSpeed   explicit tool/test speed override; defaults: normal/unite 2×, boss/hidden 1×
 //   opts.botRehearsal  candidate layouts a bot simulates per prep before placing (default 3, 0 = heuristic only;
 //                      a whole battle per candidate: ~20–300 ms of CPU each, see server/match/bot.js createRehearsal)
 //   opts.botSliceMs    wall-clock ms of rehearsal per scheduler callback (default 8 with a real scheduler, unbounded
@@ -231,6 +231,13 @@ function dataSourceFor(data) {
 }
 
 export class Match {
+  // Boss phases use the original 1× clock. Explicit tool/test overrides still
+  // accelerate every phase, including headless pacing and client replicas.
+  get gameSpeed() {
+    return this._combatSpeedOverride ?? ([PHASE.FINAL_ASSAULT,PHASE.HIDDEN_CORE].includes(this.phase) ? this.gd.bossTimeScale : GAME_SPEED);
+  }
+  set gameSpeed(value) { this._combatSpeedOverride = value; }
+
   /** @param {object} opts see MATCH INTERFACE above */
   constructor(opts) {
     if (!opts || !Array.isArray(opts.seats) || opts.seats.length === 0) throw new TypeError('Match: seats required');
@@ -248,8 +255,9 @@ export class Match {
     this.broadcastFn = opts.broadcast;
     this.onEndFn = opts.onEnd;
     this.data = opts.data && typeof opts.data === 'object' ? opts.data : {};
-    this.customFactions = opts.customFactions === true;
-    this.data = customFactionData(this.data, this.customFactions);
+    this.customExtensions = normalizeCustomExtensions(opts.customExtensions, this.data, opts.customFactions === true);
+    this.customFactions = this.customExtensions.bonds.includes('ursus');
+    this.data = applyCustomExtensions(this.data, this.customExtensions);
     this.gd = new GameData(this.data, this.modeId);
     if (!this.difficulty) this.difficulty = this.gd.difficulty;
     this.isSolo = this.mode === 'solo' || this.gd.isSolo;
@@ -260,7 +268,7 @@ export class Match {
     this.BattleClass = typeof opts.BattleClass === 'function' ? opts.BattleClass : Battle;
     this.battleContent = opts.battleContent || 'full';
     this.timerScale = Number.isFinite(opts.timerScale) && opts.timerScale >= 0 ? opts.timerScale : 1;
-    this.gameSpeed = Number.isFinite(opts.combatSpeed) && opts.combatSpeed > 0 ? Math.min(opts.combatSpeed, 200) : GAME_SPEED;
+    this._combatSpeedOverride = Number.isFinite(opts.combatSpeed) && opts.combatSpeed > 0 ? Math.min(opts.combatSpeed, 200) : null;
     /** layouts a bot rehearses per prep with the real simulation (bot.js; 0 = heuristic placement only) */
     this.botRehearsal = Number.isInteger(opts.botRehearsal) && opts.botRehearsal >= 0 ? Math.min(opts.botRehearsal, 8) : BOT_REHEARSAL_DEFAULT;
     /** wall-clock budget of one rehearsal slice (scheduleBotPrep) */
@@ -376,6 +384,10 @@ export class Match {
     /** playerId → fieldId */
     this.watchers = new Map();
     this._benchSignatures = new Map();
+    /** watch preference: playerId → playerId — the human a viewer last watched with a manual g.watch; every phase
+     * reset starts eliminated humans and spectator seats on that player's field again (the first human still in as
+     * the fallback) instead of dropping them onto their own dead board / the first seat */
+    this.watchPref = new Map();
     this.lastResults = new Map();
     this.unitePlan = null;
     /** server-run 联防: the leakers' counts last published (_uniteTick) */
@@ -433,7 +445,7 @@ export class Match {
     }
     try { this.flush(); } catch (e) { this.reportError('flush', e); }
     if (res && typeof res === 'object' && res.error) return res;
-    if (ps.spectator && msg.t === 'g.watch') this._sendSpectatorBench(ps.playerId, true);
+    if (msg.t === 'g.watch') this._sendSpectatorBench(ps.playerId, true);
     return OK;
   }
 
@@ -495,7 +507,17 @@ export class Match {
       if (this.clientCombat) this._resendBattle(ps);
       else {
         let fid = this.watchers.get(playerId);
-        if (!fid && ps.spectator && this.fields.length) { fid = this.fields[0].fieldId; this.watchers.set(playerId, fid); }
+        if (!fid && ps.spectator) {
+          if (this.fields.length) {
+            // a joining spectator seat follows the same chain (preference, first human still in)
+            fid = (this._watchTargetField(ps, this.fields) || this.fields[0]).fieldId;
+          } else {
+            // prep / between rounds: the same scouting chain startRound uses
+            const target = this._watchTargetOf(ps);
+            if (target) fid = `n:${target}`;
+          }
+          if (fid) this.watchers.set(playerId, fid);
+        }
         if (fid) this._sendField(playerId, fid);
       }
     } else if (this.lastResultMsg) {
@@ -793,7 +815,7 @@ export class Match {
       for (const ps of list) {
         if (!(ps.isBot || ps.left || !ps.connected)) this._sendPrivate(ps, false);
         this._notifyPrepScouts(ps);
-        for (const sid of this.spectators.keys()) this._sendSpectatorBench(sid);
+        for (const sid of this.watchers.keys()) this._sendSpectatorBench(sid);
       }
     }
     if (this._pubDirty || forcePublic) this._maybeSendPublic(forcePublic);
@@ -873,6 +895,7 @@ export class Match {
       modeId: this.modeId,
       difficulty: this.difficulty,
       customFactions: this.customFactions,
+      customExtensions: structuredClone(this.customExtensions),
       stageId: this.stageId,
       factions: this.factions.slice(),
       disabledBonds: [...new Set([...this.disabledBonds, ...this.staticInactiveBonds])].sort(),
@@ -920,6 +943,13 @@ export class Match {
       }),
     };
     if (this.teamLp != null) v.teamLp = Math.max(0, Math.round(this.teamLp));
+    // Boss-round prep (回合开始 / 机变 / 休整期): the seat pairs are already planned (_planBossWaves) — publish them so
+    // the team panel can frame the co-field players while the fight is still being prepared (user playtest #5: nothing
+    // on screen said who you fight the boss beside until the assault banner flashed once). Gone at the next round's
+    // start with bossWaves; during the battle itself pub.fields[].players carries the same pairing.
+    if (this.bossWaves && (this.phase === PHASE.ROUND_START || this.phase === PHASE.SP_DRAFT || this.phase === PHASE.PREP)) {
+      v.bossPairing = this.bossWaves.map((w) => w.players.slice());
+    }
     // 最终攻势 / 隐秘核心: when the overtime drain starts (ms epoch; `deadline` is the level's 120 s countdown)
     if ((this.phase === PHASE.FINAL_ASSAULT || this.phase === PHASE.HIDDEN_CORE) && this.overtimeAt) v.overtimeAt = this.overtimeAt;
     if (this.bossPool) v.bossHp = { hp: Math.max(0, Math.round(this.bossPool.hp)), max: Math.round(this.bossPool.maxHp) };
@@ -961,11 +991,12 @@ export class Match {
     const group = this.bossGroupOf(ps);
     const bossPrep = !!group;
     for (const { r, c, piece } of boardOrder(ps.board)) {
-      const rec = piece.kind === 'token' ? this.gd.token(piece.id) : this.gd.chess(piece.id);
-      const assets = (rec && rec.assets) || {};
+      let rec = piece.kind === 'token' ? this.gd.token(piece.id) : this.gd.chess(piece.id);
       // DESIGN §16: the skill / module THIS player's operator fights with (the scout's detail card shows it, like the
       // sim's UnitInfo in a shared field); moduleId only for an elite
       const lo = piece.kind === 'chess' && rec ? ps.loadoutFor(rec) : null;
+      if(rec && piece.kind === 'chess')rec=loadoutRecord(rec,resolveRecordLoadout(rec,lo));
+      const assets = (rec && rec.assets) || {};
       const [row, col] = fieldTile(bossPrep ? (group.side === 'R' ? 'bossR' : 'bossL') : 'normal', r, c);
       units.push({
         id: piece.uid, uid: piece.uid, kind: piece.kind === 'token' ? 'token' : 'op', side: 'ally', ownerId: ps.playerId, defId: piece.id,
@@ -974,6 +1005,7 @@ export class Match {
         x: col, y: row, dir: pieceDir(piece), facing: pieceDir(piece) === 'LEFT' ? -1 : 1, maxHp: rec && rec.stats && Number.isFinite(rec.stats.maxHp) ? rec.stats.maxHp : 1,
         skillIndex: lo && Number.isInteger(lo.skillIndex) ? lo.skillIndex : undefined,
         moduleId: lo && typeof lo.moduleId === 'string' ? lo.moduleId : undefined,
+        skinId: lo?.skinId, charId: rec?.charId,
         // the equipped items (like the sim's UnitInfo): a 变形同构体 wearer shows as a member of the bond it grants
         items: piece.kind === 'chess' && Array.isArray(piece.items) && piece.items.length ? piece.items.map((it) => it.id) : undefined,
       });
@@ -990,7 +1022,7 @@ export class Match {
     const parts = [];
     for (const { r, c, piece } of boardOrder(ps.board)) {
       const items = piece.kind === 'chess' && Array.isArray(piece.items) ? piece.items.map((it) => `${it.uid}:${it.id}`).join(',') : '';
-      parts.push(`${piece.uid}:${piece.id}@${r},${c}:${pieceDir(piece)}:${items}`);
+      parts.push(`${piece.uid}:${piece.id}@${r},${c}:${pieceDir(piece)}:${items}:${JSON.stringify(ps.loadoutFor(this.gd.chess(piece.id)) || {})}`);
     }
     return parts.join(';');
   }
@@ -1115,7 +1147,7 @@ export class Match {
 
   _sendSpectatorBench(sid, force = false) {
     const fieldId = this.watchers.get(sid);
-    if (!fieldId || !this.spectators.has(sid)) return;
+    if (!fieldId) return;
     const field = this.fields.find(f => f.fieldId === fieldId);
     const ids = fieldId.startsWith('n:') ? [fieldId.slice(2)] : (field?.players || []);
     const piece = (ps,p) => {
@@ -1137,15 +1169,40 @@ export class Match {
     this.sendTo(sid, packet);
   }
 
+  /** remember the human owner of a manually watched field (the automatic assignments never touch
+   * it, so "the player I last went to myself" is the whole state). */
+  _watchPrefSet(ps, f) {
+    const owner = Array.isArray(f?.players) ? (f.players.find((p) => p !== ps.playerId) ?? f.players[0]) : null;
+    if (owner) this.watchPref.set(ps.playerId, owner);
+  }
+
+  /** the seated human a viewer follows — the one they last watched manually while still in, else
+   * the first seated human still in (seat order), never the viewer itself; null when nobody qualifies. */
+  _watchTargetOf(ps) {
+    const tries = [];
+    const pref = this.watchPref.get(ps.playerId);
+    if (typeof pref === 'string') tries.push(pref);
+    const mate = this.order.find((q) => !q.isBot && !q.left && q.alive && q.playerId !== ps.playerId);
+    if (mate) tries.push(mate.playerId);
+    return tries.find((pid) => {
+      const t = this.players.get(pid);
+      return pid !== ps.playerId && !!t && t.alive && !t.left;
+    }) || null;
+  }
+
+  /** The field of `_watchTargetOf` among `fields` (null when the target has no field this phase). */
+  _watchTargetField(ps, fields) {
+    const pid = this._watchTargetOf(ps);
+    return pid ? fields.find((f) => f.players.includes(pid)) || null : null;
+  }
+
   watch(ps, fieldId) {
     if (typeof fieldId !== 'string') return fail(ERR.BAD_TARGET);
     if (this.clientCombat && this.fields.length && this.fields.some((x) => x.cc)) return this._watchClient(ps, fieldId);
     const f = this.fields.find((x) => x.fieldId === fieldId);
     if (f) {
-      // 最终攻势 / 隐秘核心: "两名参与者会处于同一个战场，但无法查看另一组队友的战场情况" — a fighting player sees its own
-      // boss field only (eliminated / departed players spectate freely)
-      const own = this.fieldOf(ps);
-      if ((f.kind === 'boss' || f.kind === 'hidden') && own && own !== f.fieldId) return fail(ERR.BAD_TARGET, 'other group hidden');
+      // Viewing another boss field changes only the stream; the player's battle keeps running.
+      this._watchPrefSet(ps, f);
       this.watchers.set(ps.playerId, fieldId);
       this._sendField(ps.playerId, fieldId);
       return OK;
@@ -1158,6 +1215,7 @@ export class Match {
       if (this.fields.length) return fail(ERR.BAD_TARGET, 'no such field');
       const target = this.players.get(fieldId.slice(2));
       if (!target || !target.alive) return fail(ERR.BAD_TARGET);
+      this.watchPref.set(ps.playerId, target.playerId);
       this.watchers.set(ps.playerId, fieldId);
       this._notifyPrepScouts(target, { to: ps.playerId });
       return OK;
@@ -1545,6 +1603,15 @@ export class Match {
     }
     for (const ps of alive) ps.recompute();
     this.setDeadline(DELAYS.ROUND_START / 1000, () => this.afterRoundStart(), { silent: this.soloUntimed });
+    // an eliminated human / spectator seat starts the round scouting the player they last watched
+    // (a manual g.watch), else the first seated human still in — instead of their own dead board
+    for (const ps of this._viewers()) {
+      if (!ps.spectator && ps.alive) continue;
+      const target = this._watchTargetOf(ps);
+      if (!target) continue;
+      this.watchers.set(ps.playerId, `n:${target}`);
+      if (ps.connected) this._notifyPrepScouts(this.players.get(target), { to: ps.playerId });
+    }
     this.markPublic();
   }
 
@@ -1945,7 +2012,7 @@ export class Match {
     this.watchers.clear();
     for (const ps of this._viewers()) {
       const own = this.fields.find((f) => f.players.includes(ps.playerId));
-      const f = own || this.fields[0];
+      const f = own || this._watchTargetField(ps, this.fields) || this.fields[0];
       if (!f) continue;
       this.watchers.set(ps.playerId, f.fieldId);
       if (ps.connected) this._sendField(ps.playerId, f.fieldId);
@@ -2097,7 +2164,7 @@ export class Match {
     const seq = `${this.battlePrefix}.${this.round}.${++this._battleSeq}`;
     // protocol ids are ≤ 64 chars (shared/protocol.js isId): the field id is informational, the sequence is unique
     const battleId = seq.length + 1 + String(fieldId).length <= 64 ? `${seq}.${fieldId}` : seq;
-    const spec = buildBattleSpec({ ...opts, flags: {...opts.flags, customFactions:this.customFactions}, battleId, fieldId, kind, content: this.battleContent, boss });
+    const spec = buildBattleSpec({ ...opts, flags: {...opts.flags, customFactions:this.customFactions,customExtensions:this.customExtensions}, battleId, fieldId, kind, content: this.battleContent, boss });
     let total = 0;
     for (const x of spec.spawns) if (x && x.tag !== 'boss' && x.tag !== 'part') total += Math.max(1, Math.floor(Number(x.count) || 1));
     return {
@@ -2448,8 +2515,11 @@ export class Match {
     if (first) {
       for (const ps of this._viewers()) {
         if (ps.alive || this.watchers.has(ps.playerId)) continue;
-        this.watchers.set(ps.playerId, first.fieldId);
-        this._sendStart(ps.playerId, first, { watch: true });
+        // the field of the player they last watched manually, else the first seated human still
+        // in; `first` (research 09 §3.1 "Keep-watching auto-observes the first available field") stays the fallback
+        const t = this._watchTargetField(ps, fields) || first;
+        this.watchers.set(ps.playerId, t.fieldId);
+        this._sendStart(ps.playerId, t, { watch: true });
       }
     }
     this.markPublic();
@@ -2620,9 +2690,9 @@ export class Match {
     if (!f) return fail(ERR.BAD_TARGET, 'no such field');
     const own = this.fields.find((x) => x.players.includes(ps.playerId)) || null;
     if (ps.alive) {
-      if ((f.kind === 'boss' || f.kind === 'hidden') && own && own !== f) return fail(ERR.BAD_TARGET, 'other group hidden');
       if (f.kind === 'normal' && own && own !== f && own.live) return fail(ERR.WRONG_PHASE, 'own battle running');
     }
+    this._watchPrefSet(ps, f);
     this.watchers.set(ps.playerId, f.fieldId);
     this.sendTo(ps.playerId, this._startMsg(f, ps.playerId, { watch: !f.players.includes(ps.playerId) }));
     return OK;
@@ -2634,7 +2704,7 @@ export class Match {
     const fid = this.watchers.get(ps.playerId);
     let f = fid ? this.fields.find((x) => x.fieldId === fid) : null;
     if (!f) f = this.fields.find((x) => x.players.includes(ps.playerId)) || (this.phase === PHASE.UNITE ? this.fields[0] : null);
-    if (!f && !ps.alive) f = this.fields[0] || null;
+    if (!f && !ps.alive) f = this._watchTargetField(ps, this.fields) || this.fields[0] || null;
     if (!f) return;
     this.watchers.set(ps.playerId, f.fieldId);
     this.sendTo(ps.playerId, this._startMsg(f, ps.playerId, { watch: !f.players.includes(ps.playerId) }));
@@ -2683,7 +2753,8 @@ export class Match {
   _watchBossFields(fields) {
     for (const ps of this._viewers()) {
       const own = fields.find((f) => f.players.includes(ps.playerId)) || null;
-      const f = own || fields[0];
+      // an eliminated human / spectator seat follows their last manually watched player
+      const f = own || this._watchTargetField(ps, fields) || fields[0];
       if (!f) continue;
       this.watchers.set(ps.playerId, f.fieldId);
       this._sendStart(ps.playerId, f, { watch: !own });
@@ -3081,7 +3152,7 @@ export class Match {
     this.overtimeApplied = 0;
     // HUD: the boss level's countdown (maxPlayTime, 120 real s — the battle goes on past it) and the moment the
     // overtime drain starts (150 real s), both on the field clock
-    const onClock = (realS) => this.sched.now() + Math.round(((realS * this.gd.combatTimeScale) / this.gameSpeed) * 1000);
+    const onClock = (realS) => this.sched.now() + Math.round(((realS * this.gd.bossTimeScale) / this.gameSpeed) * 1000);
     const levelTime = this.gd.bossLevelTime(this.round);
     this.deadline = this.sched.instant || !levelTime ? 0 : onClock(levelTime);
     this.overtimeAt = this.sched.instant ? 0 : onClock(this.gd.bossOvertimeAfterReal);

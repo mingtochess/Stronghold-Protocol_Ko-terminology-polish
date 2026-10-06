@@ -308,12 +308,15 @@ test('skill range clears immediately on death and skill end, including offscreen
  v.update(1/60,cam(),3);assert.equal(v.skillZone.visible,false);
 });
 
-test('operator range style is stable across copies and skins with sparse patterns', async()=>{
+test('operator range style is stable across copies and skins with representative colours and no hatching', async()=>{
  const {skillRangeStyle}=await import('../../public/js/render/units.js');
  const a=skillRangeStyle({charId:'char_358_lisa',id:1,spine:'skin_a'});
  assert.deepEqual(a,skillRangeStyle({charId:'char_358_lisa',id:2,spine:'skin_b'}));
  const b=skillRangeStyle({charId:'char_1020_reed2'});assert.notDeepEqual(a,b);
- assert.ok(a.pattern.length<=2);for(const segment of a.pattern)assert.ok(segment.every(x=>Math.abs(x)<=.25));
+ assert.equal(a.pattern,undefined);
+ assert.equal(skillRangeStyle({charId:'char_4064_mlynar'}).color,0xf1c64f);
+ const {skillRangeInset}=await import('../../public/js/render/units.js');
+ assert.deepEqual(skillRangeInset([-.5,-.5,.5,-.5],.1),[-.5,-.4,.5,-.4]);
 });
 
 test('fixed-facing aerial units never flip towards attack targets',()=>{
@@ -338,7 +341,97 @@ test('concealed allies stay fully opaque and have fog; refraction draws only whi
  v.update(1/60,cam(),0);
  assert.equal(v.root.alpha,1); assert.ok(clouds>=5);
  const e=view({side:'enemy'}); e.statuses.add('ab:refraction');
- let arcs=0; e.stateFx.quadraticCurveTo=()=>{arcs++;return e.stateFx;};
- e.update(1/60,cam(),0); assert.equal(arcs,3);
+ let arcs=0; e.stateFx.drawPolygon=()=>{arcs++;return e.stateFx;};
+ e.update(1/60,cam(),0); assert.equal(arcs,4);
  arcs=0; e.statuses.delete('ab:refraction'); e.update(1/60,cam(),1); assert.equal(arcs,0);
+});
+
+test('impostor bounds grow for taller attack poses and never crop back to the initial pose',()=>{
+ let bounds={x:-80,y:-150,width:160,height:180};
+ const view={actor:{spine:{getLocalBounds:()=>bounds}},_box:null};
+ const first=UnitView.prototype._impBox.call(view);
+ bounds={x:-110,y:-520,width:230,height:560};
+ const attack=UnitView.prototype._impBox.call(view);
+ assert.ok(attack.y0<=bounds.y);assert.ok(attack.y0<first.y0,'the initial pose must not permanently crop the head');
+ bounds={x:-80,y:-150,width:160,height:180};
+ assert.deepEqual(UnitView.prototype._impBox.call(view),attack,'returning to idle retains stable texture bounds');
+});
+
+test('skill tiles follow each tile height, and raised overlays clear immediately on retreat',()=>{
+ const heights=[],camera=cam(),ctx=fakeViewCtx(fake.P,{assets:store(),heightAt:(r,c)=>c===6?.6:0,cam:()=>camera});
+ const original=camera.project.bind(camera);camera.project=(x,y,z,out)=>{heights.push({x,y,z});return original(x,y,z,out);};
+ const v=new UnitView(ctx,{id:100,side:'ally',kind:'op',x:5,y:10,maxHp:1000,dir:'RIGHT',skillZoneGrid:[[0,0],[0,1]],charId:'test'});
+ v.setSkill(true);v.update(.016,camera,0);
+ assert.ok(heights.some(p=>Math.abs(p.x-5)<=.5&&Math.abs(p.z-.02)<1e-6));
+ assert.ok(heights.some(p=>Math.abs(p.x-6)<=.5&&Math.abs(p.z-.62)<1e-6));
+ assert.equal(v.skillZoneExtra.size,1);v.die();assert.ok([...v.skillZoneExtra.values()].every(g=>!g.visible));v.destroy();
+});
+
+
+test('skill range outline follows the union shape without shared tile borders',async()=>{
+ const {skillRangeEdges}=await import('../../public/js/render/units.js');
+ const adjacent=skillRangeEdges([[0,0],[0,1]]);
+ assert.equal([...adjacent.values()].flat().length,6);
+ assert.ok(!adjacent.get('0,0').some(([x0,y0,x1,y1])=>x0===.5&&x1===.5));
+ assert.ok(!adjacent.get('0,1').some(([x0,y0,x1,y1])=>x0===-.5&&x1===-.5));
+ const box=skillRangeEdges(Array.from({length:9},(_,i)=>[Math.floor(i/3),i%3]));
+ assert.equal(box.get('1,1').length,0);assert.equal([...box.values()].flat().length,12);
+ const l=skillRangeEdges([[0,0],[0,1],[1,0]]);assert.equal([...l.values()].flat().length,8);
+ const shifted=skillRangeEdges([[0-.9,0-.3],[0-.9,1-.3],[1-.9,0-.3]]);assert.equal([...shifted.values()].flat().length,8);
+});
+
+
+test('skill range dash marks leave stable gaps on horizontal and vertical outer edges',async()=>{
+ const {skillRangeDashes}=await import('../../public/js/render/units.js');
+ const horizontal=skillRangeDashes([-.5,-.5,.5,-.5]);assert.equal(horizontal.length,3);
+ for(const [i,edge]of horizontal.entries()){
+  assert.ok(Math.abs(edge[2]-edge[0]-.22)<1e-6);
+  assert.ok(edge[2]<(horizontal[i+1]?.[0]??.5));
+ }
+ const vertical=skillRangeDashes([.5,-.5,.5,.5]);assert.equal(vertical.length,3);
+ assert.ok(vertical.every(e=>e[0]===.5&&e[2]===.5));
+ assert.deepEqual(skillRangeDashes([0,0,0,0]),[]);
+});
+
+test('inset union boundaries meet at convex and concave corners, without internal tile edges',async()=>{
+ const {skillRangeEdges,skillRangeDashes}=await import('../../public/js/render/units.js');
+ for(const tiles of [[[0,0]],[[0,0],[0,1]],[[0,0],[0,1],[1,0]],[[0,0],[1,1]]]){
+  const boundary=skillRangeEdges(tiles,.1),points=new Map();
+  for(const [r,c]of tiles)for(const e of boundary.get(`${r},${c}`)){
+   for(const [x,y]of [[e[0]+c,e[1]+r],[e[2]+c,e[3]+r]]){const key=`${x.toFixed(5)},${y.toFixed(5)}`;points.set(key,(points.get(key)||0)+1);}
+   const dashes=skillRangeDashes(e,true);assert.deepEqual(dashes[0].slice(0,2),e.slice(0,2));assert.deepEqual(dashes.at(-1).slice(2),e.slice(2));
+  }
+  assert.ok([...points.values()].every(count=>count===2),'every contour corner joins exactly two edges');
+ }
+ const edges=skillRangeEdges([[0,0]],.1).get('0,0');assert.deepEqual(edges[0],[-.4,-.4,.4,-.4]);
+});
+
+test('all skills use the same operator palette with a more saturated boundary and readable fill',async()=>{
+ const {skillRangeStyle}=await import('../../public/js/render/units.js');
+ for(const charId of ['char_358_lisa','char_388_mint','char_4064_mlynar','char_469_indigo']){
+  const a=skillRangeStyle({charId,skillIndex:0});
+  for(const skillIndex of [1,2])assert.deepEqual(a,skillRangeStyle({charId,skillIndex}));
+  assert.equal(a.source,'operator');assert.equal(a.fillAlpha,.17);
+  const rgb=c=>[c>>16&255,c>>8&255,c&255],spread=c=>Math.max(...rgb(c))-Math.min(...rgb(c));
+  assert.ok(spread(a.outlineColor)>=spread(a.color));assert.equal(a.pattern,undefined);
+ }
+ assert.equal(skillRangeStyle({charId:'char_4064_mlynar'}).color,0xf1c64f);
+});
+
+test('status effects are not dropped when the four HUD icon slots are full; shield flag produces a barrier',async()=>{
+ const {UF}=await import('../../shared/constants.js');
+ const v=view({side:'enemy'});v.flags=UF.STUNNED|UF.SLEEP|UF.COLD|UF.INVULN|UF.SHIELD;v.statuses.add('ab:refraction');
+ assert.equal(v._iconKeys().length,4);
+ assert.ok(v._iconKeys(Infinity).includes('refraction'));
+ let bubbles=0,polys=0;v.stateFx.drawEllipse=()=>{bubbles++;return v.stateFx;};v.stateFx.drawPolygon=()=>{polys++;return v.stateFx;};
+ v.update(1/60,cam(),0);assert.ok(bubbles>=2);assert.equal(polys,4);
+});
+
+test('freeze covers the full body and pauses Spine instead of changing its playback rate permanently',async()=>{
+ const {UF}=await import('../../shared/constants.js');const v=view({side:'enemy'},{},store({spine:true}));await tick();await tick();
+ const updates=[];v.actor.update=dt=>updates.push(dt);
+ assert.ok(v.root.children.indexOf(v.stateFx)>v.root.children.indexOf(v.body),'ice is drawn in front of the opaque body');
+ const polys=[];v.stateFx.drawPolygon=p=>{polys.push(p);return v.stateFx;};
+ v.flags=UF.FROZEN;v.update(1/60,cam(),0);assert.ok(polys[0].some((v,i)=>i%2===1&&v<0));assert.ok(updates.every(dt=>dt===0));
+ v.flags=0;v.update(1/60,cam(),1);assert.ok(updates.at(-1)>0);
 });

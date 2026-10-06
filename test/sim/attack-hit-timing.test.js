@@ -13,9 +13,9 @@ for (const side of ['ally','enemy']) test(`${side}: no damage before OnAttack; o
  const initial=target.hp;assert.ok(source.mem.attackWindup);const until=source.mem.attackWindup.until;
  h.run(.3);assert.equal(target.hp,initial);while(h.b.time<until+1e-8)h.step();assert.equal(source.stats.attacks,1);h.run(.2);assert.ok(target.hp<initial);assert.equal(h.b.errorCount,0);
 });
-test('target lost during wind-up cancels, without damage or extra strike',()=>{
+test('a living target leaving range does not cancel the committed attack',()=>{
  const h=scenario();h.step();const u=h.unit('timed'),e=h.enemies()[0];e.x=18;e.y=10;e.tileC=18;h.run(.6);
- assert.equal(u.stats.attacks,0);assert.equal(u.mem.attackWindup,undefined);assert.ok(h.events.some(e=>e[0]==='atkCancel'));
+ assert.equal(u.stats.attacks,1);assert.equal(u.mem.attackWindup,undefined);assert.ok(!h.events.some(e=>e[0]==='atkCancel'));assert.ok(e.hp<e.s.maxHp);
 });
 test('Spine extraction keeps skill OnAttack; attack speed compresses wind-up in the same ratio',()=>{
  const sp={anims:{idle:'Idle',attack:{loop:'Attack'},skills:{2:{loop:'Skill'}}},animations:{Attack:1,Skill:2},hits:{Attack:[.4],Skill:[.8]}};
@@ -40,4 +40,14 @@ test('a pre-hit target death retargets without resetting the wind-up deadline or
  assert.equal(h.eventsOf('atkRetarget').filter(e=>e[1]===u.id).length,1);
  while(h.b.time<until+1e-8)h.step();
  assert.equal(u.stats.attacks,1);assert.ok(h.eventsOf('atk').some(e=>e[1]===u.id&&e[2]===replacement.id));
+});
+
+test('a range-sensitive drone wind-up retargets a living enemy leaving range without a new attack animation',()=>{
+ const h=scenario();h.step();const u=h.unit('timed'),a=h.enemies()[0];
+ u.mem.attackWindup.profile.windupNeedsRange=true;
+ const until=u.mem.attackWindup.until;
+ const next=h.spawn('timed_enemy',{pos:[10,4],route:{motion:'WALK',start:[10,4],end:[10,2],checkpoints:[]}});
+ a.x=18;h.run(.1);assert.equal(u.mem.attackWindup.until,until);assert.equal(u.mem.attackWindup.targets[0],next);
+ assert.equal(h.eventsOf('atkStart').filter(e=>e[1]===u.id).length,1);
+ h.run(.4);assert.equal(u.stats.attacks,1);
 });

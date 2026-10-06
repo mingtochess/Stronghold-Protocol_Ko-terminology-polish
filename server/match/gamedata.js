@@ -107,14 +107,9 @@ export class GameData {
   }
 
   /**
-   * Official shared leader HP pool (DESIGN §20.10): ONE pool for every boss field of the match (official tip "最终攻势中，
-   * 所有人将一起对敌方领袖造成伤害"; the mirrored copies of a pair field share it — notice 5114 "两侧的敌方领袖共享生命值
-   * （敌方领袖的总生命值不变）", which is about those copies, not about the number of players). Co-op = bloodPoint
-   * [difficulty]; with config bossHpScale.aliveScaling (default false) × alive / aliveFull (4) — 巴哈姆特 12294 "聯機隊友
-   * (撤退/死掉)變少，最後boss血條也會變少" is one community note without a proportion, kept off until confirmed (it would
-   * shorten fights after eliminations, the opposite of the playtest report); `aliveCount` omitted ⇒ a full team. Solo = bloodPoint ×
-   * bossHpScale.solo (0.25 = one player of four, [ASSUMED]). Leaders are never scaled by enemyScale ("领袖单位于服务器的
-   * 生命值加成不受上述加成影响").
+   * One shared leader HP pool for every field. User-defined balance: solo uses
+   * bloodPoint[difficulty]; co-op multiplies it by alive participants at round start.
+   * The general enemyScale HP multiplier does not apply to this pool.
    * @param {string} bossId
    * @param {number} [aliveCount] alive players at the Final Assault / Hidden Core start (co-op)
    * @returns {number}
@@ -128,21 +123,19 @@ export class GameData {
     return Math.max(1, Math.round(base * this.bossPoolShare(aliveCount)));
   }
 
-  /**
-   * Multiplier of bloodPoint for the leader pool (see bossPoolHp): solo = bossHpScale.solo (0.25); co-op = coop (1) ×
-   * min(alive, aliveFull) / aliveFull when bossHpScale.aliveScaling (mode entry first, then the global one).
-   * @param {number} [aliveCount]
+  /** Solo uses the full base HP. Co-op uses base × alive participants (1–4)
+   * sampled at boss-round start; every field damages the same pool.
    */
   bossPoolShare(aliveCount) {
     const ms = this.mode.bossHpScale && typeof this.mode.bossHpScale === 'object' ? this.mode.bossHpScale : {};
     const cs = this.config.bossHpScale && typeof this.config.bossHpScale === 'object' ? this.config.bossHpScale : {};
     const pick = (k, d) => (Number.isFinite(ms[k]) && ms[k] > 0 ? ms[k] : Number.isFinite(cs[k]) && cs[k] > 0 ? cs[k] : d);
-    if (this.isSolo) return pick('solo', 0.25);
-    const scaling = typeof ms.aliveScaling === 'boolean' ? ms.aliveScaling : cs.aliveScaling === true;
+    if (this.isSolo) return pick('solo', 1);
+    const scaling = typeof ms.aliveScaling === 'boolean' ? ms.aliveScaling : cs.aliveScaling !== false;
     const full = Math.max(1, Math.floor(pick('aliveFull', 4)));
     const n = Number(aliveCount);
     const alive = scaling && Number.isFinite(n) && n >= 1 ? Math.min(full, Math.floor(n)) : full;
-    return pick('coop', 1) * (alive / full);
+    return pick('coop', 4) * (alive / full);
   }
 
   /** config.titles with the tuning overrides (stat / rule per title id) merged in. */
@@ -389,16 +382,18 @@ export class GameData {
   get bossOvertimeAfterReal() { return Math.max(0, numOr(this.config.bossOvertimeAfter, DEFAULTS.bossOvertimeAfter)); }
   /** Team LP drained per REAL second of overtime. */
   get bossOvertimeDrainReal() { return Math.max(0, numOr(this.config.bossOvertimeDrainPerSec, DEFAULTS.bossOvertimeDrainPerSec)); }
-  /** Overtime start in GAME seconds of a boss field clock (150 real s × the forced 2× = 300). */
-  get bossOvertimeAfter() { return this.bossOvertimeAfterReal * this.combatTimeScale; }
-  /** Team LP drained per GAME second of overtime (1 per real second = 0.5 per game second). */
-  get bossOvertimeDrain() { return this.bossOvertimeDrainReal / this.combatTimeScale; }
+  /** Original boss phases run at 1×, independently of normal combat. */
+  get bossTimeScale() { return 1; }
+  /** Overtime start in GAME seconds of a boss field clock (150 real s at 1× = 150). */
+  get bossOvertimeAfter() { return this.bossOvertimeAfterReal * this.bossTimeScale; }
+  /** Team LP drained per GAME second of overtime (1 per real second = 1 per game second). */
+  get bossOvertimeDrain() { return this.bossOvertimeDrainReal / this.bossTimeScale; }
   /**
    * Team LP the overtime drain has taken when a boss field clock reads `gt` game seconds: bossOvertimeDrainReal per
    * whole REAL second past bossOvertimeAfterReal (the first point at 151 real s).
    */
   bossOvertimeDue(gt) {
-    const over = (Number(gt) || 0) / this.combatTimeScale - this.bossOvertimeAfterReal;
+    const over = (Number(gt) || 0) / this.bossTimeScale - this.bossOvertimeAfterReal;
     return over >= 1 ? Math.floor(over) * this.bossOvertimeDrainReal : 0;
   }
   get dp() {
