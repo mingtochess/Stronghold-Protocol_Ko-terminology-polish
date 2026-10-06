@@ -12,6 +12,10 @@ export function skillIsContinuous(sp, role) {
 }
 export function selectedSkillClip(sp, index) {
   const role = sp?.anims?.skills?.[String(index)] || null;
+  // Vendela's short Skill clip is the activation gesture of her stat/counter buff.
+  // Her normal attacks retain Attack while S1/S2 runs.
+  if (/char_494_vendla/.test(sp?.skel || '') && role && [0,1].includes(index))
+    return {...sp.anims.attack, begin:null, end:null, index, via:'attack', activation:role.loop};
   // Utage's unnumbered Skill_Start/Loop/End is her sheathed S1, not S2.
   if (index === 1 && /char_337_utage/.test(sp?.skel || '') && role && skillIsStance(sp, role))
     return {...sp.anims.attack, begin:null, end:null, index, via:'attack'};
@@ -28,10 +32,12 @@ export function spineAttackTiming(sp) {
   if (!sp?.anims) return null;
   const skills = {};
   for (const [i, role] of Object.entries(sp.anims.skills || {})) {
-    if (role.via !== 'attack') { const timing = clipTiming(sp, role); if (timing) skills[i] = timing; }
+    const selected = selectedSkillClip(sp, Number(i)) || role;
+    if (selected.via !== 'attack') { const timing = clipTiming(sp, selected); if (timing) skills[i] = timing; }
   }
   if (sp.anims.skill?.index != null && !skills[sp.anims.skill.index] && sp.anims.skill.via !== 'attack') {
-    const timing = clipTiming(sp, sp.anims.skill); if (timing) skills[sp.anims.skill.index] = timing;
+    const selected = selectedSkillClip(sp, sp.anims.skill.index) || sp.anims.skill;
+    const timing = selected.via === 'attack' ? null : clipTiming(sp, selected); if (timing) skills[sp.anims.skill.index] = timing;
   }
   return { attack: clipTiming(sp, sp.anims.attack), skills, deploy: sp.anims.deploy !== sp.anims.idle ? Math.max(0,sp.animations?.[sp.anims.deploy] || 0) : 0 };
 }

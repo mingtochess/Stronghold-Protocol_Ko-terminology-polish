@@ -27,7 +27,7 @@ function check(entry,index,label){
  assert.ok(finalProgress>=duration,`${label}: final frame advances before idle`);
  return true;
 }
-test('Vendela S2 Front and Back finish their short Skill attack recovery before idle',()=>{
+test('Vendela S2 Front and Back finish their normal Attack recovery before idle',()=>{
  for(const face of ['front','back'])assert.ok(check(assets.chars.char_494_vendla.spine[face],1,`Vendela ${face}`));
 });
 test('all manifest operator, enemy and token attack clips share the recovery fix',()=>{
@@ -42,4 +42,17 @@ test('all manifest operator, enemy and token attack clips share the recovery fix
  }
  assert.ok(count>500,`audited ${count} attack clips`);
  console.log(`Recovery audit: ${count} authored attack/skill clips`);
+});
+
+test('Vendela buffs use normal attacks and play the short gesture only on activation',()=>{
+ for(const index of [0,1])for(const face of ['front','back']){
+  const a=actor(assets.chars.char_494_vendla.spine[face],index);a.skillOn=false;
+  a.setSkill(true);assert.equal(a.current,'Skill');
+  a.update(.51);assert.equal(a.current,'Idle');
+  assert.equal(a._attackClip().loop,'Attack');
+  a.beginAttack(1.6,.567);assert.equal(a.current,'Attack');
+  const e=a.spine.state.tracks[0];a.update(.567);a.attack(1.6);
+  assert.equal(a.spine.state.tracks[0],e);a.update(.799);assert.equal(a.current,'Attack');
+  a.update(.01);assert.equal(a.current,'Idle');
+ }
 });

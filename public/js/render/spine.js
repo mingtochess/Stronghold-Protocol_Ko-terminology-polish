@@ -457,6 +457,13 @@ export class SpineActor {
       this.skillCastUntil=this.clock+(sk.begin?this.dur(sk.begin):0)+this.dur(sk.loop);
       return;
     }
+    if (on && this.has(sk?.activation) && this.mode === 'base') {
+      this.mode = 'skillBegin'; this.skillBeginBlocking = false;
+      this.skillClipOnce = true;
+      this._play(sk.activation, false, {mix:.08});
+      this.skillBeginUntil = this.clock + this.dur(sk.activation);
+      return;
+    }
     if (on && sk) {
       this.skillEndPending = false;
       this.skillClipOnce = false;

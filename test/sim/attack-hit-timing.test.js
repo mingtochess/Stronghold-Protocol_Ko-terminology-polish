@@ -60,3 +60,9 @@ test('a range-sensitive drone wind-up retargets a living enemy leaving range wit
  assert.equal(h.eventsOf('atkStart').filter(e=>e[1]===u.id).length,1);
  h.run(.4);assert.equal(u.stats.attacks,1);
 });
+
+test('Vendela active buff timing uses Attack, not its short activation gesture',()=>{
+ const sp={skel:'char_494_vendla.skel',anims:{attack:{loop:'Attack'},skills:{0:{loop:'Skill'},1:{loop:'Skill'}}},animations:{Attack:1.367,Skill:.5},hits:{Attack:[.567],Skill:[.167]}};
+ const timing=spineAttackTiming(sp);assert.deepEqual(timing.skills,{});
+ assert.equal(attackWindup({def:{attackTiming:{front:timing},skill:{index:1}},s:{interval:1.6},skill:{active:true}}),.567);
+});
