@@ -2,9 +2,16 @@
 import {test} from 'node:test';import assert from 'node:assert/strict';
 import {FxSystem} from '../../public/js/render/fx.js';import {presetCamera} from '../../public/js/render/projection.js';
 class Text{constructor(text){this.text=text;this.anchor={set(){}};this.scale={set(){}};this.position={set(){}};}destroy(){}}
-function make(mode){const fx=Object.create(FxSystem.prototype);Object.assign(fx,{P:{BitmapText:Text},ctx:{cam:()=>presetCamera('normal',{width:1280,height:720}),layers:{text:{addChild(){}}},settings:{damageNumberMode:mode}},nums:[],numFree:[],time:0,_p:{},_q:{}});return fx;}
+function make(mode){const fx=Object.create(FxSystem.prototype);Object.assign(fx,{P:{BitmapText:Text},ctx:{cam:()=>presetCamera('normal',{width:1280,height:720}),layers:{text:{children:[],addChild(t){const i=this.children.indexOf(t);if(i>=0)this.children.splice(i,1);this.children.push(t);}}},settings:{damageNumberMode:mode}},nums:[],numFree:[],time:0,_p:{},_q:{}});return fx;}
 for(const mode of ['all','basic','sum'])test(`${mode}: rapid mixed hits never stack above the head`,()=>{const fx=make(mode),u={x:6,y:10,z:0,_headTiles:1.2,maxHp:5000};for(let i=0;i<30;i++){fx.number(u,100+i,['phys','arts','true'][i%3],false);fx._updateNums(.02);fx.time+=.02;}assert.ok(fx.nums.length>0);assert.ok(fx.nums.every(n=>n.oy===0));const s=fx.ctx.cam().project(6,10,1.2*.8).s;assert.ok(fx.nums.every(n=>Math.abs(n.ox)<=s*.035+1e-6));});
 test('all retains simultaneous damage events despite overlap',()=>{const fx=make('all'),u={x:6,y:10,z:0,_headTiles:1.2};for(let i=0;i<9;i++)fx.number(u,100+i,'phys',false);fx._updateNums(.01);assert.equal(fx.nums.length,9);assert.ok(fx.nums.every(n=>n.oy===0&&!n.fading));});
 test('sum retains total while all remains independent',()=>{for(const mode of ['sum','all']){const fx=make(mode),u={x:6,y:10,z:0,_headTiles:1.2};fx.number(u,120,'phys',false);fx.time+=.05;fx.number(u,80,'phys',false);assert.equal(fx.nums.length,mode==='sum'?1:2);if(mode==='sum')assert.equal(fx.nums[0].value,200);}});
 test('none produces no damage texts',()=>{const fx=make('none');fx.number({x:6,y:10},100,'phys');assert.equal(fx.nums.length,0);});
 test('same-height texts still rise, fade and return to their pool',()=>{const fx=make('all'),u={x:6,y:10,z:0,_headTiles:1.2};fx.number(u,100,'phys');const t=fx.nums[0];fx._updateNums(.2);assert.equal(t.oy,0);assert.ok(t._y<fx.ctx.cam().project(6,10,t.z0).y);fx._updateNums(2);assert.equal(fx.nums.length,0);assert.ok([...fx._numPools.values()].some(pool=>pool.length>0));});
+
+test('new damage texts are promoted in front when older pooled text is reused',()=>{
+ const fx=make('all'),u={x:6,y:10};fx.number(u,100,'phys');const first=fx.nums[0];fx.number(u,200,'arts');const second=fx.nums[1];fx._releaseNum(first);fx.nums.splice(0,1);fx.number(u,300,'phys');assert.equal(fx.nums.at(-1).text,first.text);assert.deepEqual(fx.ctx.layers.text.children,[second.text,first.text]);
+});
+test('a newly merged sum is also displayed in front of older numbers',()=>{
+ const fx=make('sum'),u={x:6,y:10};fx.number(u,100,'phys');const first=fx.nums[0].text;fx.number(u,200,'arts');fx.number(u,50,'phys');assert.equal(fx.ctx.layers.text.children.at(-1),first);
+});

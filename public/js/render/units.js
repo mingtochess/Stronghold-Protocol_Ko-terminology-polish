@@ -118,13 +118,12 @@ export function skillRangeStyle(info) {
   const id = String(info.charId || info.defId || info.spine || '').replace(/^skin_/, '');
   const match = Object.entries(RANGE_PALETTE).find(([name]) => new RegExp(`_${name}(?:_|$)`).test(id));
   const theme=skillVisualTheme(info,match?.[1] ?? ART_RANGE_COLORS.get(info.charId) ?? 0xc7d4d9);
-  const raw=theme.color;
-  const rgb=[raw>>16&255,raw>>8&255,raw&255], high=Math.max(...rgb), low=Math.min(...rgb);
-  // Neutral/near-white artwork cannot produce a readable range. Use vivid cyan.
-  const saturated=high-low<35 ? [0,190,255] : rgb.map(c=>Math.round((c-low)/(high-low)*255));
-  const color=(saturated[0]<<16)|(saturated[1]<<8)|saturated[2];
-  const channels=[color>>16&255,color>>8&255,color&255], hi=Math.max(...channels);
-  const vivid=channels.map(c=>Math.round(Math.max(0,hi-(hi-c)*2.05)));
+  const color=theme.color;
+  const rgb=[color>>16&255,color>>8&255,color&255],high=Math.max(...rgb),low=Math.min(...rgb);
+  const saturation=high>0?(high-low)/high:0;
+  // Strengthen only bright, washed-out outlines. Preserve hue, brightness and fill.
+  const pastel=high>=180 && saturation<.45;
+  const vivid=pastel && saturation>0 ? rgb.map(c=>Math.round(high-(high-c)*(.60/saturation))) : rgb;
   const outlineColor=(vivid[0]<<16)|(vivid[1]<<8)|vivid[2];
   return {color,outlineColor,inset:.065,fillAlpha:theme.fillAlpha,glowAlpha:0,pulse:0,accent:theme.accent,source:theme.source};
 }

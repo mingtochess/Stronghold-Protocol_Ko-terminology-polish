@@ -314,7 +314,7 @@ test('operator range style is stable across copies and skins with representative
  assert.deepEqual(a,skillRangeStyle({charId:'char_358_lisa',id:2,spine:'skin_b'}));
  const b=skillRangeStyle({charId:'char_1020_reed2'});assert.notDeepEqual(a,b);
  assert.equal(a.pattern,undefined);
- assert.equal(skillRangeStyle({charId:'char_4064_mlynar'}).color,0xffbb00);
+ assert.equal(skillRangeStyle({charId:'char_4064_mlynar'}).color,0xf1c64f);
  const {skillRangeInset}=await import('../../public/js/render/units.js');
  assert.deepEqual(skillRangeInset([-.5,-.5,.5,-.5],.1),[-.5,-.4,.5,-.4]);
 });
@@ -408,7 +408,7 @@ test('inset union boundaries meet at convex and concave corners, without interna
  const edges=skillRangeEdges([[0,0]],.1).get('0,0');assert.deepEqual(edges[0],[-.4,-.4,.4,-.4]);
 });
 
-test('all skills use the same operator palette with a more saturated boundary and readable fill',async()=>{
+test('operator colours stay intact while pastel outlines gain saturation',async()=>{
  const {skillRangeStyle}=await import('../../public/js/render/units.js');
  for(const charId of ['char_358_lisa','char_388_mint','char_4064_mlynar','char_469_indigo']){
   const a=skillRangeStyle({charId,skillIndex:0});
@@ -417,7 +417,7 @@ test('all skills use the same operator palette with a more saturated boundary an
   const rgb=c=>[c>>16&255,c>>8&255,c&255],spread=c=>Math.max(...rgb(c))-Math.min(...rgb(c));
   assert.ok(spread(a.outlineColor)>=spread(a.color));assert.equal(a.pattern,undefined);
  }
- assert.equal(skillRangeStyle({charId:'char_4064_mlynar'}).color,0xffbb00);
+ assert.equal(skillRangeStyle({charId:'char_4064_mlynar'}).color,0xf1c64f);
 });
 
 test('status effects are not dropped when the four HUD icon slots are full; shield flag produces a barrier',async()=>{
@@ -511,4 +511,16 @@ test('airborne movers enter union fields aloft and never ease through raised sur
  late.sync(sample(11,0),.2);for(let i=0;i<90;i++)late.update(1/60,camera,.2+i/60);assert.equal(late.flying,false);assert.equal(late.hover,0,'temporary flight still expires and lands');
  const ground=view({side:'enemy',kind:'enemy'});ground.ctx.heightAt=()=>.55;ground.sync(sample(12,0),0);ground.update(1/60,camera,0);assert.equal(ground.z,0,'ground enemy movement is unchanged');
  native.destroy();late.destroy();ground.destroy();
+});
+
+test('range fill keeps its original colour; saturated outlines are not recoloured',async()=>{
+ const {skillRangeStyle}=await import('../../public/js/render/units.js');
+ const {skillVisualTheme}=await import('../../public/js/render/skillVisualTheme.js');
+ for(const info of [{charId:'char_4064_mlynar'},{charId:'char_172_svrash'},{charId:'char_350_surtr'}]){
+  const raw=skillVisualTheme(info).color,s=skillRangeStyle(info);assert.equal(s.color,raw);
+  const rgb=c=>[c>>16&255,c>>8&255,c&255],a=rgb(raw),b=rgb(s.outlineColor);
+  const sat=(Math.max(...a)-Math.min(...a))/Math.max(...a);
+  if(sat>=.45)assert.equal(s.outlineColor,raw,'already saturated hue remains unchanged');
+  else{assert.equal(Math.max(...a),Math.max(...b),'brightness remains unchanged');assert.ok((Math.max(...b)-Math.min(...b))/Math.max(...b)>.59);}
+ }
 });

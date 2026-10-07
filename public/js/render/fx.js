@@ -1414,6 +1414,7 @@ export class FxSystem {
       merge.lastHit = now;
       merge.end = Math.min(merge.life + NUM_LIFE * 0.75, Math.max(merge.end, merge.life + NUM_LIFE * 0.6), NUM_MAX_LIFE);
       this._sizeNum(merge);
+      this.ctx.layers.text.addChild(merge.text);
       return;
     }
     if (aggregate && mine >= NUM_PER_TARGET && oldest) this._fadeNum(oldest, 0.1);
@@ -1493,9 +1494,10 @@ export class FxSystem {
     if (!t) {
       const text = new P.BitmapText('0', { fontName: font, fontSize: 24, align: 'center' });
       text.anchor.set(0.5, 1);
-      this.ctx.layers.text.addChild(text);
       t = { text, font };
     }
+    // Pooled text keeps its original child index unless explicitly promoted.
+    this.ctx.layers.text.addChild(t.text);
     return t;
   }
 
