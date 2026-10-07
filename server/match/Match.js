@@ -459,7 +459,7 @@ export class Match {
   setLoadout(playerId, loadout) {
     const ps = this.players.get(playerId);
     if (!ps || ps.isBot || ps.left) return fail(ERR.NOT_IN_ROOM);
-    if (this.disposed || this.ended || this.phase !== PHASE.INFO_CHECK) return fail(ERR.WRONG_PHASE, 'loadout locked for this match');
+    if (this.disposed || this.ended || ![PHASE.INFO_CHECK,PHASE.BAND_DRAFT].includes(this.phase)) return fail(ERR.WRONG_PHASE, 'loadout locked for this match');
     let res = OK;
     this.guard(() => {
       if (!ps.setLoadout(loadout)) { res = fail(ERR.BAD_TARGET, 'loadout does not match the game data'); return; }
@@ -1018,17 +1018,20 @@ export class Match {
     // PR #129). Part of the meta for every watcher alike — the spectator seat's copy equals a teammate's
     // (test/match/spectator.test.js). User playtest #2 item 1 (GitHub #44).
     const benchUnit = (piece, i, y) => {
-      const rec = piece.kind === 'item' ? this.gd.item(piece.id) : piece.kind === 'token' ? this.gd.token(piece.id) : this.gd.chess(piece.id);
-      const assets = (rec && rec.assets) || {};
+      let rec = piece.kind === 'item' ? this.gd.item(piece.id) : piece.kind === 'token' ? this.gd.token(piece.id) : this.gd.chess(piece.id);
       const lo = piece.kind === 'chess' && rec ? ps.loadoutFor(rec) : null;
+      if (rec && piece.kind === 'chess') rec = loadoutRecord(rec, resolveRecordLoadout(rec, lo));
+      const assets = (rec && rec.assets) || {};
+      const [row, col] = fieldTile(bossPrep ? (group.side === 'R' ? 'bossR' : 'bossL') : 'normal', y, i);
       units.push({
         id: piece.uid, uid: piece.uid, kind: piece.kind === 'token' ? 'token' : piece.kind === 'item' ? 'item' : 'op',
         side: 'ally', ownerId: ps.playerId, defId: piece.id,
         name: rec ? rec.name : piece.id, tier: rec && Number.isInteger(rec.tier) ? rec.tier : 1, golden: !!(rec && rec.isGolden),
         spine: assets.spine || (rec && rec.charId) || piece.id, avatar: assets.avatar || (rec && rec.charId) || piece.id,
-        x: i, y, maxHp: rec && rec.stats && Number.isFinite(rec.stats.maxHp) ? rec.stats.maxHp : 1,
+        x: col, y: row, facing: bossPrep && group.side === 'R' ? -1 : 1, maxHp: rec && rec.stats && Number.isFinite(rec.stats.maxHp) ? rec.stats.maxHp : 1,
         skillIndex: lo && Number.isInteger(lo.skillIndex) ? lo.skillIndex : undefined,
         moduleId: lo && typeof lo.moduleId === 'string' ? lo.moduleId : undefined,
+        skinId: lo?.skinId, charId: rec?.charId,
         items: piece.kind === 'chess' && Array.isArray(piece.items) && piece.items.length ? piece.items.map((it) => it.id) : undefined,
       });
     };
@@ -1059,13 +1062,13 @@ export class Match {
       const piece = ps.hand[i];
       if (!piece) continue;
       const items = piece.kind === 'chess' && Array.isArray(piece.items) ? piece.items.map((it) => `${it.uid}:${it.id}`).join(',') : '';
-      parts.push(`h${i}:${piece.uid}:${piece.id}:${items}`);
+      parts.push(`h${i}:${piece.uid}:${piece.id}:${items}:${JSON.stringify(ps.loadoutFor(this.gd.chess(piece.id)) || {})}`);
     }
     for (let i = 0; i < ps.temp.length; i++) {
       const piece = ps.temp[i];
       if (!piece) continue;
       const items = piece.kind === 'chess' && Array.isArray(piece.items) ? piece.items.map((it) => `${it.uid}:${it.id}`).join(',') : '';
-      parts.push(`t${i}:${piece.uid}:${piece.id}:${items}`);
+      parts.push(`t${i}:${piece.uid}:${piece.id}:${items}:${JSON.stringify(ps.loadoutFor(this.gd.chess(piece.id)) || {})}`);
     }
     return parts.join(';');
   }
@@ -1197,7 +1200,7 @@ export class Match {
       if (!p) return null;
       const rec = p.kind === 'chess' ? this.gd.chess(p.id) : null;
       const appearance = rec ? loadoutRecord(rec,resolveRecordLoadout(rec,ps.loadoutFor(rec))) : null;
-      return {...ps.pieceView(p), ...(appearance?.assets ? {assets:appearance.assets} : {})};
+      return {...ps.pieceView(p), ...(appearance?.assets ? {assets:appearance.assets, skinId:ps.loadoutFor(rec)?.skinId, charId:rec.charId} : {})};
     };
     const benches = ids.map(id => typeof id === 'string' ? this.players.get(id) : this.players.get(id.playerId)).filter(Boolean).map(ps => ({
       playerId: ps.playerId,

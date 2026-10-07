@@ -914,6 +914,7 @@ export async function createFieldView(host, options = {}) {
     return {
       kind: 'op', side: 'ally', defId: piece.id,
       spine: piece.assets?.spine || rec?.assets?.spine || rec?.charId || null, avatar: piece.assets?.avatar || rec?.assets?.avatar || rec?.charId || null,
+      skinId: piece.skinId ?? selected?.skinId, charId: piece.charId ?? rec?.charId,
       tier: rec?.tier || piece.tier || 1, golden: !!(piece.golden || rec?.isGolden), dir,
     };
   }
@@ -1659,8 +1660,8 @@ export async function createFieldView(host, options = {}) {
         if (!v) break;
         const amt = Number(e[2]) || 0;
         const m = meleePending.get(v.id);
-        let src = null;
-        if (m && now - m.t < 0.35) { src = m.src; meleePending.delete(v.id); fx._slashAt = src.id; }
+        let src = e[4]?.sourceId != null ? views.get(e[4].sourceId) || null : null;
+        if (m && now - m.t < 0.35 && (!src || src === m.src)) { src = m.src; meleePending.delete(v.id); fx._slashAt = src.id; }
         fx.damage(v, amt, e[3], src, e[4]);
         break;
       }
@@ -1745,6 +1746,7 @@ export async function createFieldView(host, options = {}) {
   function syncBattle(renderT) {
     if (renderT0Battle == null) renderT0Battle = renderT;
     interp.sample(renderT, sample);
+    fx.noteBubbles(interp.notesAt(renderT));
     for (const [id, s] of sample) {
       let v = views.get(id);
       if (!v && gone.has(id)) {

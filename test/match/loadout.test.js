@@ -183,7 +183,7 @@ test('client-side combat: the b.start spec of the owner carries the loadout of i
   m.dispose();
 });
 
-test('Match.setLoadout: accepted during INFO_CHECK only; re-checked; bots / strangers refused', () => {
+test('Match.setLoadout: accepted during INFO_CHECK and BAND_DRAFT; re-checked; bots / strangers refused', () => {
   const h = makeMatch({ mode: 'coop', humans: 2, bots: 1, seed: 4 }).start();
   const m = h.m;
   const ps = h.ps('p_0');
@@ -201,8 +201,10 @@ test('Match.setLoadout: accepted during INFO_CHECK only; re-checked; bots / stra
   h.sched.advance(1);
   assert.equal(m.phase, PHASE.BAND_DRAFT);
   const r = m.setLoadout('p_0', {});
-  assert.equal(r.error, ERR.WRONG_PHASE, 'locked after INFO_CHECK');
-  assert.deepEqual(ps.loadout, lo);
+  assert.deepEqual(r,{ok:true},'editable through strategy draft');
+  assert.deepEqual(ps.loadout,{});
+  m.phase=PHASE.PREP;
+  assert.equal(m.setLoadout('p_0',lo).error,ERR.WRONG_PHASE,'locked once gameplay starts');
   m.dispose();
 });
 

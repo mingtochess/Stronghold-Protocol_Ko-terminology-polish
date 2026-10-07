@@ -118,3 +118,36 @@ test('Narantuya S1 actually shortens her range and restores it when toggled off'
  u.skill.gainSp(1000);u.skill.activate('test');assert.deepEqual(u.rangeGrid,grid);
  }finally{setGameData(null)}
 });
+
+test('Sakiko basic attacks create a travelling note; no direct basic damage precedes note contact',()=>{
+ setGameData(data);try{
+  for(const tier of [5,6])for(const elite of [false,true])for(const index of [0,1,2]){
+   const h=combat('oblvns',index,elite,tier,{enemies:[]}),u=h.unit(id('oblvns',tier,elite));
+   u.skill.rule='NEVER';u.skill.spType='none';u.skill.charges=0;u.mem.sakikoNotes=[];
+   const e=h.spawn('dummy',{pos:[10,5.4]}),hp=e.hp;
+   assert.ok(h.runUntil(()=>u.mem.sakikoNotes.some(n=>n.target===e),5));
+   assert.ok(u.stats.attacks>=1);assert.equal(e.hp,hp,'attack creates a note without immediate damage');
+   u.atkCd=100;
+   assert.ok(h.runUntil(()=>e.hp<hp,4),'travelling note reaches its target');
+   const hits=h.hooksOf('hit').filter(c=>c.source===u&&c.target===e);
+   assert.ok(hits.length);assert.ok(hits.every(c=>c.dmg.isAttack&&c.dmg.tags?.includes('sakiko-note')),'damage comes only from notes');
+   assert.equal(h.b.errorCount,0);
+  }
+ }finally{setGameData(null)}
+});
+
+test('Sakiko generates notes continuously with no enemy in attack range',()=>{
+ setGameData(data);try{
+  for(const tier of [5,6])for(const elite of [false,true]){
+   const h=combat('oblvns',2,elite,tier,{enemies:[]}),u=h.unit(id('oblvns',tier,elite));
+   u.skill.rule='NEVER';u.skill.spType='none';
+   assert.ok(h.runUntil(()=>u.mem.sakikoNotes.length>0,5));
+   assert.equal(h.b.enemies.length,0);assert.ok(u.mem.sakikoNotes.every(n=>!n.target));
+   assert.equal(h.b.errorCount,0);
+  }
+ }finally{setGameData(null)}
+});
+
+test('Sakiko snapshot exposes real note coordinates with stable IDs and removes them on retreat',()=>{
+ setGameData(data);try{const h=combat('oblvns',2,false,6,{enemies:[]}),u=h.unit(id('oblvns'));u.skill.rule='NEVER';u.skill.spType='none';assert.ok(h.runUntil(()=>u.mem.sakikoNotes.length>0,5));const n=u.mem.sakikoNotes[0],snap=h.b.snapshot();assert.ok(snap.sakikoNotes.some(v=>v[0]===u.id&&v[1]===n.id&&Math.abs(v[2]-n.x)<.011));u.deployed=false;assert.equal(h.b.snapshot().sakikoNotes.length,0);}finally{setGameData(null)}
+});

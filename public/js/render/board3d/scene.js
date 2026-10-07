@@ -29,8 +29,8 @@ import { syncThreeCamera } from '../projection.js';
 
 /** Lighting rig (tuned against the official screenshots: bright even tops, darker sides, soft shadows). */
 export const LIGHTING = Object.freeze({
-  key: { color: 0xfff1df, intensity: 2.6, dir: [-5.2, -3.4, 10] },
-  hemi: { sky: 0xe4ecf4, ground: 0x4a5058, intensity: 0.6 },
+  key: { color: 0xfff1df, intensity: 2.8, dir: [-5.2, -3.4, 10] },
+  hemi: { sky: 0xe4ecf4, ground: 0x4a5058, intensity: 0.5 },
   env: 1.0,
   emissive: 0.25,
   roughness: 0.78,
@@ -255,7 +255,7 @@ export class BoardScene {
       mire: mireMaterial(T, this.tex, this.focus),
       infection: infectionMaterial(T, this.tex, this.focus),
       smog: smogMaterial(T, this.tex, this.focus),
-      shadowCatcher: new T.ShadowMaterial({ opacity: 0.32, color: 0x000000 }),
+      shadowCatcher: new T.ShadowMaterial({ opacity: 0.44, color: 0x000000 }),
     };
     this.mat.crateFade = null;
     this.originalTextures = {};

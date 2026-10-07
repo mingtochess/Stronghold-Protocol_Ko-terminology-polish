@@ -208,7 +208,7 @@ describe('shots', () => {
     assert.equal(pr.tx, 9.5);
     const contacts = liveTex(fx, 'dot').length;
     assert.ok(contacts >= 1, 'short arrival contact');
-    assert.equal(liveTex(fx, 'flare').length,0,'no star-shaped hit sparkle');
+    assert.equal(liveTex(fx, 'skillContact').length,0,'no star-shaped hit sparkle');
     run(fx, 0.2);
     assert.equal(fx.projs.length, 0, 'released after its short fade');
     assert.equal(pr.trail.visible || pr.halo.visible || pr.core.visible, false);
@@ -457,8 +457,8 @@ describe('fx placement, quality, melee, skill', () => {
     const { fx } = makeFx({ views: [v] });
     fx.skill(v, true);
     assert.equal(liveTex(fx, 'pillar').length, 0);
-    assert.equal(liveTex(fx, 'flare').length, 1);
-    assert.ok(liveTex(fx, 'flare')[0].a0 <= .5);
+    assert.equal(liveTex(fx, 'skillContact').length, 1);
+    assert.ok(liveTex(fx, 'skillContact')[0].a0 <= .5);
     assert.equal(fx.rings.length,0);
     assert.equal(fx.auras.size, 1);
     run(fx, 1);
@@ -564,7 +564,9 @@ test('weapon tail follows mesh deformation and clears when the attack stops',()=
  const slot={data:{name:'F_Sword'},bone:{worldX:0,worldY:0},getAttachment:()=>({worldVerticesLength:8,computeWorldVertices(slot,start,count,out){out.set([shift,0,shift+25,0,shift+25,5,shift,5]);}})};
  const a=unit(1,3,10);a.actor={mode:'attack',spine:{toGlobal:p=>p,skeleton:{slots:[slot]}}};
  a.body={toGlobal:p=>({x:800+p.x,y:400+p.y})};a.modelK=1;a.flipValue=1;
- fx.weaponTrail(a,.016,cam);shift=20;fx.weaponTrail(a,.016,cam);
+ fx.weaponTrail(a,.016,cam);const polygons=[];fx.weaponTrails.get(a).g.drawPolygon=points=>polygons.push(points);shift=20;fx.weaponTrail(a,.016,cam);
+ assert.ok(polygons.length>0,'camera scratch-point reuse must not collapse the trail to zero');
+ assert.ok(polygons.every(p=>p.every(Number.isFinite)));
  assert.equal(fx.weaponTrails.get(a).samples.length,2);
  assert.notEqual(fx.weaponTrails.get(a).samples[0].x,fx.weaponTrails.get(a).samples[1].x);
  a.actor.mode='stun';fx.weaponTrail(a,.016,cam);assert.equal(fx.weaponTrails.get(a).samples.length,0);
@@ -607,7 +609,7 @@ test('projectile bodies remain opaque with normal blending while boomerangs igno
  assert.equal(fx.projs[0].core.alpha,1);
  assert.equal(fx.projs[0].core.blendMode,fake.P.BLEND_MODES.NORMAL);
  fx.clear();fx.attack(src,tgt,'arrow');fx.update(DT);
- assert.equal(fx.projs[0].core.texture,fx.tex.projectileDot);
+ assert.equal(fx.projs[0].core.texture,fx.tex.bulletBody);
  assert.equal(fx.projs[0].core.alpha,1);
  assert.equal(fx.projs[0].core.blendMode,fake.P.BLEND_MODES.NORMAL);fx.clear();
 });

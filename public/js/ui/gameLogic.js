@@ -1724,7 +1724,7 @@ export function shortcutBlocked(act, { modal = false, drawer = false } = {}) {
 
 // ---- settings ------------------------------------------------------------------------------------------------------
 
-export const DEFAULT_SETTINGS = Object.freeze({ bgm: 0.6, sfx: 0.8, voice: 0.6, voiceLanguage: 'kr', chatVolume: 0.5, chatSound: 'notification-glass', chatFactionNotifications: false, chatCooldown: defaultChatCooldown('notification-glass'), muted: false, damageNumbers: true, damageNumberMode: 'basic', quality: 'high' });
+export const DEFAULT_SETTINGS = Object.freeze({ bgm: 0.6, sfx: 0.8, voice: 0.6, voiceLanguage: 'kr', chatVolume: 0.5, chatSound: 'emote', chatSoundCustomized: false, chatFactionNotifications: false, chatCooldown: defaultChatCooldown('emote'), muted: false, damageNumbers: true, damageNumberMode: 'basic', quality: 'high' });
 const QUALITIES = ['high', 'medium', 'low'];
 
 /**
@@ -1742,6 +1742,7 @@ export function sanitizeSettings(raw) {
     voice: vol(r.voice, DEFAULT_SETTINGS.voice),
     chatVolume: vol(r.chatVolume, DEFAULT_SETTINGS.chatVolume),
     chatSound,
+    chatSoundCustomized: r.chatSoundCustomized === true,
     chatFactionNotifications: typeof r.chatFactionNotifications === 'boolean' ? r.chatFactionNotifications : DEFAULT_SETTINGS.chatFactionNotifications,
     chatCooldown: Number.isFinite(r.chatCooldown) ? clamp(Math.round(r.chatCooldown), 1, 5) : defaultChatCooldown(chatSound),
     voiceLanguage: r.voiceLanguage === 'jp' ? 'jp' : 'kr',
@@ -1750,6 +1751,16 @@ export function sanitizeSettings(raw) {
     damageNumberMode: DAMAGE_NUMBER_MODES.includes(r.damageNumberMode) || typeof r.damageNumbers === 'boolean' ? damageNumberMode(r) : DEFAULT_SETTINGS.damageNumberMode,
     quality: QUALITIES.includes(r.quality) ? r.quality : DEFAULT_SETTINGS.quality,
   };
+}
+
+/** Upgrade the old default on load; explicit choices made by current clients survive. */
+export function migrateSavedSettings(raw) {
+  if (isObj(raw) && raw.chatSound === 'notification-glass' && raw.chatSoundCustomized !== true) {
+    return sanitizeSettings({ ...raw, chatSound: DEFAULT_SETTINGS.chatSound,
+      ...(raw.chatCooldown === defaultChatCooldown('notification-glass')
+        ? { chatCooldown: DEFAULT_SETTINGS.chatCooldown } : {}) });
+  }
+  return sanitizeSettings(raw);
 }
 
 // ---- result -----------------------------------------------------------------------------------------------------------

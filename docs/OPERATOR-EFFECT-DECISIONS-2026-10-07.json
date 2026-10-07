@@ -1,0 +1,887 @@
+{
+  "scope": "현재 카탈로그의 시각 처리 정책 분류. 모든 스킬의 실전·영상 검증을 뜻하지 않음",
+  "operators": [
+    {
+      "id": "chess_char_1_01_a",
+      "operator": "隐现",
+      "charId": "char_498_inside",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_1_02_a",
+      "operator": "角峰",
+      "charId": "char_199_yak",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_1_03_a",
+      "operator": "惊蛰",
+      "charId": "char_306_leizi",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_1_04_a",
+      "operator": "深巡",
+      "charId": "char_4137_udflow",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_1_05_a",
+      "operator": "红豆",
+      "charId": "char_290_vigna",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_1_06_a",
+      "operator": "刺玫",
+      "charId": "char_494_vendla",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_1_07_a",
+      "operator": "普罗旺斯",
+      "charId": "char_145_prove",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_1_08_a",
+      "operator": "德克萨斯",
+      "charId": "char_102_texas",
+      "decision": "전용 재구성: 원본 texas_skill_01_range의 주황·금색 검비"
+    },
+    {
+      "id": "chess_char_1_09_a",
+      "operator": "跃跃",
+      "charId": "char_4100_caper",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_1_10_a",
+      "operator": "古米",
+      "charId": "char_196_sunbr",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_1_11_a",
+      "operator": "地灵",
+      "charId": "char_183_skgoat",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_1_12_a",
+      "operator": "艾丝黛尔",
+      "charId": "char_127_estell",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_1_13_a",
+      "operator": "波登可",
+      "charId": "char_258_podego",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_1_14_a",
+      "operator": "格雷伊",
+      "charId": "char_253_greyy",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_1_15_a",
+      "operator": "盟约·辅助干员",
+      "charId": "char_616_pithst",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_1_16_a",
+      "operator": "锡人",
+      "charId": "char_4151_tinman",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_1_17_a",
+      "operator": "深靛",
+      "charId": "char_469_indigo",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_1_18_a",
+      "operator": "宴",
+      "charId": "char_337_utage",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_1_19_a",
+      "operator": "野鬃",
+      "charId": "char_496_wildmn",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_1_20_a",
+      "operator": "雷蛇",
+      "charId": "char_107_liskam",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_2_01_a",
+      "operator": "送葬人",
+      "charId": "char_279_excu",
+      "decision": "조정 유지: 범위 타일에 맞춰 넓은 충격파를 제한"
+    },
+    {
+      "id": "chess_char_2_02_a",
+      "operator": "赫默",
+      "charId": "char_108_silent",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_2_03_a",
+      "operator": "崖心",
+      "charId": "char_173_slchan",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_2_04_a",
+      "operator": "小满",
+      "charId": "char_4122_grabds",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_2_05_a",
+      "operator": "哈洛德",
+      "charId": "char_4114_harold",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_2_06_a",
+      "operator": "莎草",
+      "charId": "char_4139_papyrs",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_2_07_a",
+      "operator": "幽灵鲨",
+      "charId": "char_143_ghost",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_2_08_a",
+      "operator": "泡泡",
+      "charId": "char_381_bubble",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_2_09_a",
+      "operator": "休谟斯",
+      "charId": "char_491_humus",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_2_10_a",
+      "operator": "洛洛",
+      "charId": "char_4040_rockr",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_2_11_a",
+      "operator": "风丸",
+      "charId": "char_4016_kazema",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_2_12_a",
+      "operator": "砾",
+      "charId": "char_237_gravel",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_2_13_a",
+      "operator": "蒂比",
+      "charId": "char_4191_tippi",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_2_14_a",
+      "operator": "调香师",
+      "charId": "char_181_flower",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_2_15_a",
+      "operator": "协律",
+      "charId": "char_4051_akkord",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_2_16_a",
+      "operator": "拉普兰德",
+      "charId": "char_140_whitew",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_2_17_a",
+      "operator": "折桠",
+      "charId": "char_4207_branch",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_2_18_a",
+      "operator": "灰毫",
+      "charId": "char_431_ashlok",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_2_19_a",
+      "operator": "锡人",
+      "charId": "char_4151_tinman",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_3_01_a",
+      "operator": "能天使",
+      "charId": "char_103_angel",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_3_02_a",
+      "operator": "断崖",
+      "charId": "char_294_ayer",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_3_03_a",
+      "operator": "诗怀雅",
+      "charId": "char_308_swire",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_3_04_a",
+      "operator": "琳琅诗怀雅",
+      "charId": "char_1033_swire2",
+      "decision": "유지: 해당되는 원본 전용 에셋 우선. 개별 영상 대조는 미완료"
+    },
+    {
+      "id": "chess_char_3_05_a",
+      "operator": "斯卡蒂",
+      "charId": "char_263_skadi",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_3_06_a",
+      "operator": "菲莱",
+      "charId": "char_4148_philae",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_3_07_a",
+      "operator": "见行者",
+      "charId": "char_4036_forcer",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_3_08_a",
+      "operator": "薄绿",
+      "charId": "char_388_mint",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_3_09_a",
+      "operator": "海霓",
+      "charId": "char_4079_haini",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_3_10_a",
+      "operator": "松果",
+      "charId": "char_440_pinecn",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_3_11_a",
+      "operator": "雪猎",
+      "charId": "char_4211_snhunt",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_3_12_a",
+      "operator": "瑕光",
+      "charId": "char_423_blemsh",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_3_13_a",
+      "operator": "至简",
+      "charId": "char_4054_malist",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_3_14_a",
+      "operator": "初雪",
+      "charId": "char_174_slbell",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_3_15_a",
+      "operator": "巫恋",
+      "charId": "char_254_vodfox",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_3_16_a",
+      "operator": "蛇屠箱",
+      "charId": "char_150_snakek",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_3_17_a",
+      "operator": "流星",
+      "charId": "char_126_shotst",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_3_18_a",
+      "operator": "忍冬",
+      "charId": "char_4026_vulpis",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_3_19_a",
+      "operator": "伺夜",
+      "charId": "char_427_vigil",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_3_20_a",
+      "operator": "耶拉",
+      "charId": "char_4013_kjera",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_3_21_a",
+      "operator": "空弦",
+      "charId": "char_332_archet",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_4_01_a",
+      "operator": "信仰搅拌机",
+      "charId": "char_4194_rmixer",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_4_02_a",
+      "operator": "莫斯提马",
+      "charId": "char_213_mostma",
+      "decision": "조정 유지: 범위 타일에 맞춰 넓은 충격파를 제한"
+    },
+    {
+      "id": "chess_char_4_03_a",
+      "operator": "耶拉",
+      "charId": "char_4013_kjera",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_4_04_a",
+      "operator": "伊内丝",
+      "charId": "char_4087_ines",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_4_05_a",
+      "operator": "蜜蜡",
+      "charId": "char_344_beewax",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_4_06_a",
+      "operator": "寒芒克洛丝",
+      "charId": "char_1021_kroos2",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_4_07_a",
+      "operator": "风笛",
+      "charId": "char_222_bpipe",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_4_08_a",
+      "operator": "瑰盐",
+      "charId": "char_4163_rosesa",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_4_09_a",
+      "operator": "水月",
+      "charId": "char_437_mizuki",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_4_10_a",
+      "operator": "阿罗玛",
+      "charId": "char_446_aroma",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_4_11_a",
+      "operator": "凯瑟琳",
+      "charId": "char_4162_cathy",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_4_12_a",
+      "operator": "歌蕾蒂娅",
+      "charId": "char_474_glady",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_4_13_a",
+      "operator": "灵知",
+      "charId": "char_206_gnosis",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_4_14_a",
+      "operator": "莱恩哈特",
+      "charId": "char_373_lionhd",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_4_15_a",
+      "operator": "录武官",
+      "charId": "char_4196_reckpr",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_4_16_a",
+      "operator": "缄默德克萨斯",
+      "charId": "char_1028_texas2",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_4_17_a",
+      "operator": "星熊",
+      "charId": "char_136_hsguma",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_4_18_a",
+      "operator": "泥岩",
+      "charId": "char_311_mudrok",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_4_19_a",
+      "operator": "焰尾",
+      "charId": "char_420_flamtl",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_4_20_a",
+      "operator": "远牙",
+      "charId": "char_430_fartth",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_4_21_a",
+      "operator": "白面鸮",
+      "charId": "char_128_plosis",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_4_22_a",
+      "operator": "银灰",
+      "charId": "char_172_svrash",
+      "decision": "조정 유지: 범위 타일에 맞춰 넓은 충격파를 제한"
+    },
+    {
+      "id": "chess_char_4_23_a",
+      "operator": "百炼嘉维尔",
+      "charId": "char_1026_gvial2",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_4_24_a",
+      "operator": "卡涅利安",
+      "charId": "char_426_billro",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_4_25_a",
+      "operator": "魔王",
+      "charId": "char_4134_cetsyr",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_4_26_a",
+      "operator": "华法琳",
+      "charId": "char_171_bldsk",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_5_01_a",
+      "operator": "圣约送葬人",
+      "charId": "char_1032_excu2",
+      "decision": "조정 유지: 범위 타일에 맞춰 넓은 충격파를 제한"
+    },
+    {
+      "id": "chess_char_5_02_a",
+      "operator": "缇缇",
+      "charId": "char_4056_titi",
+      "decision": "유지: 해당되는 원본 전용 에셋 우선. 개별 영상 대조는 미완료"
+    },
+    {
+      "id": "chess_char_5_03_a",
+      "operator": "烛煌",
+      "charId": "char_1040_blaze2",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_5_04_a",
+      "operator": "华法琳",
+      "charId": "char_171_bldsk",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_5_05_a",
+      "operator": "乌尔比安",
+      "charId": "char_4145_ulpia",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_5_06_a",
+      "operator": "隐德来希",
+      "charId": "char_4010_etlchi",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_5_07_a",
+      "operator": "史尔特尔",
+      "charId": "char_350_surtr",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_5_08_a",
+      "operator": "号角",
+      "charId": "char_4039_horn",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_5_09_a",
+      "operator": "魔王",
+      "charId": "char_4134_cetsyr",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_5_10_a",
+      "operator": "铃兰",
+      "charId": "char_358_lisa",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_5_11_a",
+      "operator": "塞雷娅",
+      "charId": "char_202_demkni",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_5_12_a",
+      "operator": "夕",
+      "charId": "char_2015_dusk",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_5_13_a",
+      "operator": "归溟幽灵鲨",
+      "charId": "char_1023_ghost2",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_5_14_a",
+      "operator": "凛御银灰",
+      "charId": "char_1045_svash2",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_5_15_a",
+      "operator": "引星棘刺",
+      "charId": "char_1039_thorn2",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_5_16_a",
+      "operator": "白面鸮",
+      "charId": "char_128_plosis",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_5_17_a",
+      "operator": "山",
+      "charId": "char_264_f12yin",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_5_18_a",
+      "operator": "百炼嘉维尔",
+      "charId": "char_1026_gvial2",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_5_19_a",
+      "operator": "玛恩纳",
+      "charId": "char_4064_mlynar",
+      "decision": "조정 유지: 범위 타일에 맞춰 넓은 충격파를 제한"
+    },
+    {
+      "id": "chess_char_5_20_a",
+      "operator": "安洁莉娜",
+      "charId": "char_291_aglina",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_5_21_a",
+      "operator": "寒檀",
+      "charId": "char_341_sntlla",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_5_22_a",
+      "operator": "妮芙",
+      "charId": "char_4146_nymph",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_5_23_a",
+      "operator": "录武官",
+      "charId": "char_4196_reckpr",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_6_01_a",
+      "operator": "蕾缪安",
+      "charId": "char_4193_lemuen",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_6_02_a",
+      "operator": "圣聆初雪",
+      "charId": "char_1046_sbell2",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_6_03_a",
+      "operator": "余",
+      "charId": "char_2026_yu",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_6_04_a",
+      "operator": "浊心斯卡蒂",
+      "charId": "char_1012_skadi2",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_6_05_a",
+      "operator": "异客",
+      "charId": "char_472_pasngr",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_6_06_a",
+      "operator": "佩佩",
+      "charId": "char_4058_pepe",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_6_07_a",
+      "operator": "维娜·维多利亚",
+      "charId": "char_1019_siege2",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_6_08_a",
+      "operator": "焰影苇草",
+      "charId": "char_1020_reed2",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_6_09_a",
+      "operator": "塑心",
+      "charId": "char_245_cello",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_6_10_a",
+      "operator": "妮芙",
+      "charId": "char_4146_nymph",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_6_11_a",
+      "operator": "缪尔赛思",
+      "charId": "char_249_mlyss",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_6_12_a",
+      "operator": "迷迭香",
+      "charId": "char_391_rosmon",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_6_13_a",
+      "operator": "新约能天使",
+      "charId": "char_1041_angel2",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_6_14_a",
+      "operator": "流明",
+      "charId": "char_4042_lumen",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_6_15_a",
+      "operator": "仇白",
+      "charId": "char_4082_qiubai",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_6_16_a",
+      "operator": "溯光星源",
+      "charId": "char_1047_halo2",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_6_17_a",
+      "operator": "耀骑士临光",
+      "charId": "char_1014_nearl2",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_6_18_a",
+      "operator": "荒芜拉普兰德",
+      "charId": "char_1038_whitw2",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_6_19_a",
+      "operator": "锏",
+      "charId": "char_4116_blkkgt",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_char_6_20_a",
+      "operator": "纯烬艾雅法拉",
+      "charId": "char_1016_agoat2",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_custom_ursus_turdus_a",
+      "operator": "우쿠시크",
+      "charId": "char_4224_turdus",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_custom_ursus_helage_a",
+      "operator": "헬라그",
+      "charId": "char_188_helage",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_custom_ursus_headb2_a",
+      "operator": "지마 더 레이징 타이드",
+      "charId": "char_1051_headb2",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_custom_ursus_glassb_a",
+      "operator": "이스티나",
+      "charId": "char_195_glassb",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_custom_ursus_poca_a",
+      "operator": "로사",
+      "charId": "char_197_poca",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_custom_ursus_leto_a",
+      "operator": "레토",
+      "charId": "char_194_leto",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_custom_ursus_brownb_a",
+      "operator": "비헌터",
+      "charId": "char_137_brownb",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_custom_ursus_botany_a",
+      "operator": "보타니",
+      "charId": "char_4223_botany",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_custom_recruit_oblvns_5_a",
+      "operator": "토가와 사키코",
+      "charId": "char_4182_oblvns",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_custom_recruit_oblvns_6_a",
+      "operator": "토가와 사키코",
+      "charId": "char_4182_oblvns",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_custom_recruit_chen3_5_a",
+      "operator": "첸 더 던스트릭",
+      "charId": "char_1050_chen3",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_custom_recruit_chen3_6_a",
+      "operator": "첸 더 던스트릭",
+      "charId": "char_1050_chen3",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_custom_recruit_wisdel_5_a",
+      "operator": "위셔델",
+      "charId": "char_1035_wisdel",
+      "decision": "유지: 해당되는 원본 전용 에셋 우선. 개별 영상 대조는 미완료"
+    },
+    {
+      "id": "chess_custom_recruit_wisdel_6_a",
+      "operator": "위셔델",
+      "charId": "char_1035_wisdel",
+      "decision": "유지: 해당되는 원본 전용 에셋 우선. 개별 영상 대조는 미완료"
+    },
+    {
+      "id": "chess_custom_recruit_narant_5_a",
+      "operator": "나란투야",
+      "charId": "char_4138_narant",
+      "decision": "유지: 해당되는 원본 전용 에셋 우선. 개별 영상 대조는 미완료"
+    },
+    {
+      "id": "chess_custom_recruit_narant_6_a",
+      "operator": "나란투야",
+      "charId": "char_4138_narant",
+      "decision": "유지: 해당되는 원본 전용 에셋 우선. 개별 영상 대조는 미완료"
+    },
+    {
+      "id": "chess_custom_recruit_ascln_5_a",
+      "operator": "아스카론",
+      "charId": "char_4132_ascln",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    },
+    {
+      "id": "chess_custom_recruit_ascln_6_a",
+      "operator": "아스카론",
+      "charId": "char_4132_ascln",
+      "decision": "유지: 무기별 투사체·근접 타격. 근거 없는 상시 환경 입자는 제거"
+    }
+  ]
+}

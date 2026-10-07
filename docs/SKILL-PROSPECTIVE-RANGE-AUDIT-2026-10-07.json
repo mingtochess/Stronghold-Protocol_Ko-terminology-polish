@@ -1,0 +1,5799 @@
+{
+  "checkedLoadouts": 2944,
+  "cases": [
+    {
+      "chessId": "chess_char_1_04_a",
+      "name": "深巡",
+      "skillId": "skchr_udflow_2",
+      "skill": 2,
+      "dir": "RIGHT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        11,
+        8
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_1_04_a",
+      "name": "深巡",
+      "skillId": "skchr_udflow_2",
+      "skill": 2,
+      "dir": "LEFT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        11,
+        2
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_1_04_b",
+      "name": "深巡",
+      "skillId": "skchr_udflow_2",
+      "skill": 2,
+      "dir": "RIGHT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        11,
+        8
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_1_04_b",
+      "name": "深巡",
+      "skillId": "skchr_udflow_2",
+      "skill": 2,
+      "dir": "LEFT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        11,
+        2
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_1_17_a",
+      "name": "深靛",
+      "skillId": "skchr_indigo_1",
+      "skill": 1,
+      "dir": "RIGHT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        11,
+        9
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_1_17_b",
+      "name": "深靛",
+      "skillId": "skchr_indigo_1",
+      "skill": 1,
+      "dir": "RIGHT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        11,
+        9
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_1_19_a",
+      "name": "野鬃",
+      "skillId": "skchr_wildmn_2",
+      "skill": 2,
+      "dir": "RIGHT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        11,
+        7
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_1_19_a",
+      "name": "野鬃",
+      "skillId": "skchr_wildmn_2",
+      "skill": 2,
+      "dir": "LEFT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        11,
+        3
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_1_19_a",
+      "name": "野鬃",
+      "skillId": "skchr_wildmn_2",
+      "skill": 2,
+      "dir": "DOWN",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        9,
+        5
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_1_19_b",
+      "name": "野鬃",
+      "skillId": "skchr_wildmn_2",
+      "skill": 2,
+      "dir": "RIGHT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        11,
+        7
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_1_19_b",
+      "name": "野鬃",
+      "skillId": "skchr_wildmn_2",
+      "skill": 2,
+      "dir": "LEFT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        11,
+        3
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_1_19_b",
+      "name": "野鬃",
+      "skillId": "skchr_wildmn_2",
+      "skill": 2,
+      "dir": "DOWN",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        9,
+        5
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_2_13_a",
+      "name": "蒂比",
+      "skillId": "skchr_tippi_1",
+      "skill": 1,
+      "dir": "RIGHT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        5
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_2_13_a",
+      "name": "蒂比",
+      "skillId": "skchr_tippi_1",
+      "skill": 1,
+      "dir": "UP",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        11,
+        4
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_2_13_a",
+      "name": "蒂比",
+      "skillId": "skchr_tippi_1",
+      "skill": 1,
+      "dir": "LEFT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        10,
+        5
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_2_13_a",
+      "name": "蒂比",
+      "skillId": "skchr_tippi_1",
+      "skill": 1,
+      "dir": "DOWN",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        11,
+        6
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_2_13_b",
+      "name": "蒂比",
+      "skillId": "skchr_tippi_1",
+      "skill": 1,
+      "dir": "RIGHT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        5
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_2_13_b",
+      "name": "蒂比",
+      "skillId": "skchr_tippi_1",
+      "skill": 1,
+      "dir": "UP",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        11,
+        4
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_2_13_b",
+      "name": "蒂比",
+      "skillId": "skchr_tippi_1",
+      "skill": 1,
+      "dir": "LEFT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        10,
+        5
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_2_13_b",
+      "name": "蒂比",
+      "skillId": "skchr_tippi_1",
+      "skill": 1,
+      "dir": "DOWN",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        11,
+        6
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_3_02_a",
+      "name": "断崖",
+      "skillId": "skchr_ayer_2",
+      "skill": 2,
+      "dir": "RIGHT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        7
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_3_02_a",
+      "name": "断崖",
+      "skillId": "skchr_ayer_2",
+      "skill": 2,
+      "dir": "LEFT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        10,
+        3
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_3_02_a",
+      "name": "断崖",
+      "skillId": "skchr_ayer_2",
+      "skill": 2,
+      "dir": "DOWN",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        9,
+        6
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_3_02_b",
+      "name": "断崖",
+      "skillId": "skchr_ayer_2",
+      "skill": 2,
+      "dir": "RIGHT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        7
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_3_02_b",
+      "name": "断崖",
+      "skillId": "skchr_ayer_2",
+      "skill": 2,
+      "dir": "LEFT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        10,
+        3
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_3_02_b",
+      "name": "断崖",
+      "skillId": "skchr_ayer_2",
+      "skill": 2,
+      "dir": "DOWN",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        9,
+        6
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_3_08_a",
+      "name": "薄绿",
+      "skillId": "skchr_mint_1",
+      "skill": 1,
+      "dir": "RIGHT",
+      "kind": "duration",
+      "rule": "SEARCH",
+      "enemy": [
+        12,
+        3
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_3_08_a",
+      "name": "薄绿",
+      "skillId": "skchr_mint_1",
+      "skill": 1,
+      "dir": "UP",
+      "kind": "duration",
+      "rule": "SEARCH",
+      "enemy": [
+        10,
+        3
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_3_08_a",
+      "name": "薄绿",
+      "skillId": "skchr_mint_1",
+      "skill": 1,
+      "dir": "LEFT",
+      "kind": "duration",
+      "rule": "SEARCH",
+      "enemy": [
+        9,
+        6
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_3_08_a",
+      "name": "薄绿",
+      "skillId": "skchr_mint_1",
+      "skill": 1,
+      "dir": "DOWN",
+      "kind": "duration",
+      "rule": "SEARCH",
+      "enemy": [
+        12,
+        7
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_3_08_b",
+      "name": "薄绿",
+      "skillId": "skchr_mint_1",
+      "skill": 1,
+      "dir": "RIGHT",
+      "kind": "duration",
+      "rule": "SEARCH",
+      "enemy": [
+        12,
+        3
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_3_08_b",
+      "name": "薄绿",
+      "skillId": "skchr_mint_1",
+      "skill": 1,
+      "dir": "UP",
+      "kind": "duration",
+      "rule": "SEARCH",
+      "enemy": [
+        10,
+        3
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_3_08_b",
+      "name": "薄绿",
+      "skillId": "skchr_mint_1",
+      "skill": 1,
+      "dir": "LEFT",
+      "kind": "duration",
+      "rule": "SEARCH",
+      "enemy": [
+        9,
+        6
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_3_08_b",
+      "name": "薄绿",
+      "skillId": "skchr_mint_1",
+      "skill": 1,
+      "dir": "DOWN",
+      "kind": "duration",
+      "rule": "SEARCH",
+      "enemy": [
+        12,
+        7
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_3_18_a",
+      "name": "忍冬",
+      "skillId": "skchr_vulpis_3",
+      "skill": 3,
+      "dir": "RIGHT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        11,
+        7
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_3_18_a",
+      "name": "忍冬",
+      "skillId": "skchr_vulpis_3",
+      "skill": 3,
+      "dir": "LEFT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        11,
+        3
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_3_18_a",
+      "name": "忍冬",
+      "skillId": "skchr_vulpis_3",
+      "skill": 3,
+      "dir": "DOWN",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        9,
+        5
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_3_18_b",
+      "name": "忍冬",
+      "skillId": "skchr_vulpis_3",
+      "skill": 3,
+      "dir": "RIGHT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        11,
+        7
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_3_18_b",
+      "name": "忍冬",
+      "skillId": "skchr_vulpis_3",
+      "skill": 3,
+      "dir": "LEFT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        11,
+        3
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_3_18_b",
+      "name": "忍冬",
+      "skillId": "skchr_vulpis_3",
+      "skill": 3,
+      "dir": "DOWN",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        9,
+        5
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_3_21_a",
+      "name": "空弦",
+      "skillId": "skchr_archet_3",
+      "skill": 3,
+      "dir": "RIGHT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        9
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_3_21_b",
+      "name": "空弦",
+      "skillId": "skchr_archet_3",
+      "skill": 3,
+      "dir": "RIGHT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        9
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_4_02_a",
+      "name": "莫斯提马",
+      "skillId": "skchr_mostma_3",
+      "skill": 3,
+      "dir": "RIGHT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        8
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_4_02_a",
+      "name": "莫斯提马",
+      "skillId": "skchr_mostma_3",
+      "skill": 3,
+      "dir": "UP",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        11,
+        3
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_4_02_a",
+      "name": "莫斯提马",
+      "skillId": "skchr_mostma_3",
+      "skill": 3,
+      "dir": "LEFT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        9,
+        5
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_4_02_a",
+      "name": "莫斯提马",
+      "skillId": "skchr_mostma_3",
+      "skill": 3,
+      "dir": "DOWN",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        11,
+        7
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_4_02_b",
+      "name": "莫斯提马",
+      "skillId": "skchr_mostma_3",
+      "skill": 3,
+      "dir": "RIGHT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        8
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_4_02_b",
+      "name": "莫斯提马",
+      "skillId": "skchr_mostma_3",
+      "skill": 3,
+      "dir": "UP",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        11,
+        3
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_4_02_b",
+      "name": "莫斯提马",
+      "skillId": "skchr_mostma_3",
+      "skill": 3,
+      "dir": "LEFT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        9,
+        5
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_4_02_b",
+      "name": "莫斯提马",
+      "skillId": "skchr_mostma_3",
+      "skill": 3,
+      "dir": "DOWN",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        11,
+        7
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_4_04_a",
+      "name": "伊内丝",
+      "skillId": "skchr_ines_2",
+      "skill": 2,
+      "dir": "RIGHT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        6
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_4_04_a",
+      "name": "伊内丝",
+      "skillId": "skchr_ines_2",
+      "skill": 2,
+      "dir": "UP",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        4
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_4_04_a",
+      "name": "伊内丝",
+      "skillId": "skchr_ines_2",
+      "skill": 2,
+      "dir": "LEFT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        10,
+        4
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_4_04_a",
+      "name": "伊内丝",
+      "skillId": "skchr_ines_2",
+      "skill": 2,
+      "dir": "DOWN",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        10,
+        6
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_4_04_b",
+      "name": "伊内丝",
+      "skillId": "skchr_ines_2",
+      "skill": 2,
+      "dir": "RIGHT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        6
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_4_04_b",
+      "name": "伊内丝",
+      "skillId": "skchr_ines_2",
+      "skill": 2,
+      "dir": "UP",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        4
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_4_04_b",
+      "name": "伊内丝",
+      "skillId": "skchr_ines_2",
+      "skill": 2,
+      "dir": "LEFT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        10,
+        4
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_4_04_b",
+      "name": "伊内丝",
+      "skillId": "skchr_ines_2",
+      "skill": 2,
+      "dir": "DOWN",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        10,
+        6
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_4_05_a",
+      "name": "蜜蜡",
+      "skillId": "skchr_beewax_1",
+      "skill": 1,
+      "dir": "RIGHT",
+      "kind": "duration",
+      "rule": "SEARCH",
+      "enemy": [
+        12,
+        3
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_4_05_a",
+      "name": "蜜蜡",
+      "skillId": "skchr_beewax_1",
+      "skill": 1,
+      "dir": "UP",
+      "kind": "duration",
+      "rule": "SEARCH",
+      "enemy": [
+        10,
+        3
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_4_05_a",
+      "name": "蜜蜡",
+      "skillId": "skchr_beewax_1",
+      "skill": 1,
+      "dir": "LEFT",
+      "kind": "duration",
+      "rule": "SEARCH",
+      "enemy": [
+        9,
+        6
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_4_05_a",
+      "name": "蜜蜡",
+      "skillId": "skchr_beewax_1",
+      "skill": 1,
+      "dir": "DOWN",
+      "kind": "duration",
+      "rule": "SEARCH",
+      "enemy": [
+        12,
+        7
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_4_05_b",
+      "name": "蜜蜡",
+      "skillId": "skchr_beewax_1",
+      "skill": 1,
+      "dir": "RIGHT",
+      "kind": "duration",
+      "rule": "SEARCH",
+      "enemy": [
+        12,
+        3
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_4_05_b",
+      "name": "蜜蜡",
+      "skillId": "skchr_beewax_1",
+      "skill": 1,
+      "dir": "UP",
+      "kind": "duration",
+      "rule": "SEARCH",
+      "enemy": [
+        10,
+        3
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_4_05_b",
+      "name": "蜜蜡",
+      "skillId": "skchr_beewax_1",
+      "skill": 1,
+      "dir": "LEFT",
+      "kind": "duration",
+      "rule": "SEARCH",
+      "enemy": [
+        9,
+        6
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_4_05_b",
+      "name": "蜜蜡",
+      "skillId": "skchr_beewax_1",
+      "skill": 1,
+      "dir": "DOWN",
+      "kind": "duration",
+      "rule": "SEARCH",
+      "enemy": [
+        12,
+        7
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_4_09_a",
+      "name": "水月",
+      "skillId": "skchr_mizuki_3",
+      "skill": 3,
+      "dir": "RIGHT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        7
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_4_09_a",
+      "name": "水月",
+      "skillId": "skchr_mizuki_3",
+      "skill": 3,
+      "dir": "UP",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        10,
+        3
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_4_09_a",
+      "name": "水月",
+      "skillId": "skchr_mizuki_3",
+      "skill": 3,
+      "dir": "LEFT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        9,
+        6
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_4_09_a",
+      "name": "水月",
+      "skillId": "skchr_mizuki_3",
+      "skill": 3,
+      "dir": "DOWN",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        7
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_4_09_b",
+      "name": "水月",
+      "skillId": "skchr_mizuki_3",
+      "skill": 3,
+      "dir": "RIGHT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        7
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_4_09_b",
+      "name": "水月",
+      "skillId": "skchr_mizuki_3",
+      "skill": 3,
+      "dir": "UP",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        10,
+        3
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_4_09_b",
+      "name": "水月",
+      "skillId": "skchr_mizuki_3",
+      "skill": 3,
+      "dir": "LEFT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        9,
+        6
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_4_09_b",
+      "name": "水月",
+      "skillId": "skchr_mizuki_3",
+      "skill": 3,
+      "dir": "DOWN",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        7
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_4_12_a",
+      "name": "歌蕾蒂娅",
+      "skillId": "skchr_glady_2",
+      "skill": 2,
+      "dir": "RIGHT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        6
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_4_12_a",
+      "name": "歌蕾蒂娅",
+      "skillId": "skchr_glady_2",
+      "skill": 2,
+      "dir": "UP",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        4
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_4_12_a",
+      "name": "歌蕾蒂娅",
+      "skillId": "skchr_glady_2",
+      "skill": 2,
+      "dir": "LEFT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        10,
+        4
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_4_12_a",
+      "name": "歌蕾蒂娅",
+      "skillId": "skchr_glady_2",
+      "skill": 2,
+      "dir": "DOWN",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        10,
+        6
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_4_12_b",
+      "name": "歌蕾蒂娅",
+      "skillId": "skchr_glady_2",
+      "skill": 2,
+      "dir": "RIGHT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        6
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_4_12_b",
+      "name": "歌蕾蒂娅",
+      "skillId": "skchr_glady_2",
+      "skill": 2,
+      "dir": "UP",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        4
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_4_12_b",
+      "name": "歌蕾蒂娅",
+      "skillId": "skchr_glady_2",
+      "skill": 2,
+      "dir": "LEFT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        10,
+        4
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_4_12_b",
+      "name": "歌蕾蒂娅",
+      "skillId": "skchr_glady_2",
+      "skill": 2,
+      "dir": "DOWN",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        10,
+        6
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_4_14_a",
+      "name": "莱恩哈特",
+      "skillId": "skchr_lionhd_2",
+      "skill": 2,
+      "dir": "RIGHT",
+      "kind": "charges",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        8
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_4_14_a",
+      "name": "莱恩哈特",
+      "skillId": "skchr_lionhd_2",
+      "skill": 2,
+      "dir": "LEFT",
+      "kind": "charges",
+      "rule": "DEFAULT",
+      "enemy": [
+        10,
+        2
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_4_14_b",
+      "name": "莱恩哈特",
+      "skillId": "skchr_lionhd_2",
+      "skill": 2,
+      "dir": "RIGHT",
+      "kind": "charges",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        8
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_4_14_b",
+      "name": "莱恩哈特",
+      "skillId": "skchr_lionhd_2",
+      "skill": 2,
+      "dir": "LEFT",
+      "kind": "charges",
+      "rule": "DEFAULT",
+      "enemy": [
+        10,
+        2
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_4_22_a",
+      "name": "银灰",
+      "skillId": "skchr_svrash_3",
+      "skill": 3,
+      "dir": "RIGHT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        7
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_4_22_a",
+      "name": "银灰",
+      "skillId": "skchr_svrash_3",
+      "skill": 3,
+      "dir": "UP",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        11,
+        2
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_4_22_a",
+      "name": "银灰",
+      "skillId": "skchr_svrash_3",
+      "skill": 3,
+      "dir": "LEFT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        9,
+        5
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_4_22_a",
+      "name": "银灰",
+      "skillId": "skchr_svrash_3",
+      "skill": 3,
+      "dir": "DOWN",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        11,
+        8
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_4_22_b",
+      "name": "银灰",
+      "skillId": "skchr_svrash_3",
+      "skill": 3,
+      "dir": "RIGHT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        7
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_4_22_b",
+      "name": "银灰",
+      "skillId": "skchr_svrash_3",
+      "skill": 3,
+      "dir": "UP",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        11,
+        2
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_4_22_b",
+      "name": "银灰",
+      "skillId": "skchr_svrash_3",
+      "skill": 3,
+      "dir": "LEFT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        9,
+        5
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_4_22_b",
+      "name": "银灰",
+      "skillId": "skchr_svrash_3",
+      "skill": 3,
+      "dir": "DOWN",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        11,
+        8
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_4_23_a",
+      "name": "百炼嘉维尔",
+      "skillId": "skchr_gvial2_2",
+      "skill": 2,
+      "dir": "RIGHT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        6
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_4_23_a",
+      "name": "百炼嘉维尔",
+      "skillId": "skchr_gvial2_2",
+      "skill": 2,
+      "dir": "UP",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        4
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_4_23_a",
+      "name": "百炼嘉维尔",
+      "skillId": "skchr_gvial2_2",
+      "skill": 2,
+      "dir": "LEFT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        10,
+        4
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_4_23_a",
+      "name": "百炼嘉维尔",
+      "skillId": "skchr_gvial2_2",
+      "skill": 2,
+      "dir": "DOWN",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        10,
+        6
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_4_23_b",
+      "name": "百炼嘉维尔",
+      "skillId": "skchr_gvial2_2",
+      "skill": 2,
+      "dir": "RIGHT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        6
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_4_23_b",
+      "name": "百炼嘉维尔",
+      "skillId": "skchr_gvial2_2",
+      "skill": 2,
+      "dir": "UP",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        4
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_4_23_b",
+      "name": "百炼嘉维尔",
+      "skillId": "skchr_gvial2_2",
+      "skill": 2,
+      "dir": "LEFT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        10,
+        4
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_4_23_b",
+      "name": "百炼嘉维尔",
+      "skillId": "skchr_gvial2_2",
+      "skill": 2,
+      "dir": "DOWN",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        10,
+        6
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_4_24_a",
+      "name": "卡涅利安",
+      "skillId": "skchr_billro_3",
+      "skill": 3,
+      "dir": "RIGHT",
+      "kind": "duration",
+      "rule": "SEARCH",
+      "enemy": [
+        12,
+        3
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_4_24_a",
+      "name": "卡涅利安",
+      "skillId": "skchr_billro_3",
+      "skill": 3,
+      "dir": "UP",
+      "kind": "duration",
+      "rule": "SEARCH",
+      "enemy": [
+        10,
+        3
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_4_24_a",
+      "name": "卡涅利安",
+      "skillId": "skchr_billro_3",
+      "skill": 3,
+      "dir": "LEFT",
+      "kind": "duration",
+      "rule": "SEARCH",
+      "enemy": [
+        9,
+        6
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_4_24_a",
+      "name": "卡涅利安",
+      "skillId": "skchr_billro_3",
+      "skill": 3,
+      "dir": "DOWN",
+      "kind": "duration",
+      "rule": "SEARCH",
+      "enemy": [
+        12,
+        7
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_4_24_b",
+      "name": "卡涅利安",
+      "skillId": "skchr_billro_3",
+      "skill": 3,
+      "dir": "RIGHT",
+      "kind": "duration",
+      "rule": "SEARCH",
+      "enemy": [
+        12,
+        3
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_4_24_b",
+      "name": "卡涅利安",
+      "skillId": "skchr_billro_3",
+      "skill": 3,
+      "dir": "UP",
+      "kind": "duration",
+      "rule": "SEARCH",
+      "enemy": [
+        10,
+        3
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_4_24_b",
+      "name": "卡涅利安",
+      "skillId": "skchr_billro_3",
+      "skill": 3,
+      "dir": "LEFT",
+      "kind": "duration",
+      "rule": "SEARCH",
+      "enemy": [
+        9,
+        6
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_4_24_b",
+      "name": "卡涅利安",
+      "skillId": "skchr_billro_3",
+      "skill": 3,
+      "dir": "DOWN",
+      "kind": "duration",
+      "rule": "SEARCH",
+      "enemy": [
+        12,
+        7
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_01_a",
+      "name": "圣约送葬人",
+      "skillId": "skchr_excu2_1",
+      "skill": 1,
+      "dir": "RIGHT",
+      "kind": "ammo",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        7
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_01_a",
+      "name": "圣约送葬人",
+      "skillId": "skchr_excu2_1",
+      "skill": 1,
+      "dir": "LEFT",
+      "kind": "ammo",
+      "rule": "DEFAULT",
+      "enemy": [
+        10,
+        3
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_01_a",
+      "name": "圣约送葬人",
+      "skillId": "skchr_excu2_1",
+      "skill": 1,
+      "dir": "DOWN",
+      "kind": "ammo",
+      "rule": "DEFAULT",
+      "enemy": [
+        9,
+        6
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_01_a",
+      "name": "圣约送葬人",
+      "skillId": "skchr_excu2_3",
+      "skill": 3,
+      "dir": "RIGHT",
+      "kind": "ammo",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        7
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_01_a",
+      "name": "圣约送葬人",
+      "skillId": "skchr_excu2_3",
+      "skill": 3,
+      "dir": "LEFT",
+      "kind": "ammo",
+      "rule": "DEFAULT",
+      "enemy": [
+        10,
+        3
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_01_a",
+      "name": "圣约送葬人",
+      "skillId": "skchr_excu2_3",
+      "skill": 3,
+      "dir": "DOWN",
+      "kind": "ammo",
+      "rule": "DEFAULT",
+      "enemy": [
+        9,
+        6
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_01_b",
+      "name": "圣约送葬人",
+      "skillId": "skchr_excu2_1",
+      "skill": 1,
+      "dir": "RIGHT",
+      "kind": "ammo",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        7
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_01_b",
+      "name": "圣约送葬人",
+      "skillId": "skchr_excu2_1",
+      "skill": 1,
+      "dir": "LEFT",
+      "kind": "ammo",
+      "rule": "DEFAULT",
+      "enemy": [
+        10,
+        3
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_01_b",
+      "name": "圣约送葬人",
+      "skillId": "skchr_excu2_1",
+      "skill": 1,
+      "dir": "DOWN",
+      "kind": "ammo",
+      "rule": "DEFAULT",
+      "enemy": [
+        9,
+        6
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_01_b",
+      "name": "圣约送葬人",
+      "skillId": "skchr_excu2_3",
+      "skill": 3,
+      "dir": "RIGHT",
+      "kind": "ammo",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        7
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_01_b",
+      "name": "圣约送葬人",
+      "skillId": "skchr_excu2_3",
+      "skill": 3,
+      "dir": "LEFT",
+      "kind": "ammo",
+      "rule": "DEFAULT",
+      "enemy": [
+        10,
+        3
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_01_b",
+      "name": "圣约送葬人",
+      "skillId": "skchr_excu2_3",
+      "skill": 3,
+      "dir": "DOWN",
+      "kind": "ammo",
+      "rule": "DEFAULT",
+      "enemy": [
+        9,
+        6
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_03_a",
+      "name": "烛煌",
+      "skillId": "skchr_blaze2_2",
+      "skill": 2,
+      "dir": "RIGHT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        3
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_03_a",
+      "name": "烛煌",
+      "skillId": "skchr_blaze2_2",
+      "skill": 2,
+      "dir": "UP",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        10,
+        3
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_03_a",
+      "name": "烛煌",
+      "skillId": "skchr_blaze2_2",
+      "skill": 2,
+      "dir": "LEFT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        9,
+        6
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_03_a",
+      "name": "烛煌",
+      "skillId": "skchr_blaze2_2",
+      "skill": 2,
+      "dir": "DOWN",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        7
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_03_a",
+      "name": "烛煌",
+      "skillId": "skchr_blaze2_3",
+      "skill": 3,
+      "dir": "RIGHT",
+      "kind": "ammo",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        8
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_03_a",
+      "name": "烛煌",
+      "skillId": "skchr_blaze2_3",
+      "skill": 3,
+      "dir": "LEFT",
+      "kind": "ammo",
+      "rule": "DEFAULT",
+      "enemy": [
+        9,
+        3
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_03_a",
+      "name": "烛煌",
+      "skillId": "skchr_blaze2_3",
+      "skill": 3,
+      "dir": "DOWN",
+      "kind": "ammo",
+      "rule": "DEFAULT",
+      "enemy": [
+        9,
+        7
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_03_b",
+      "name": "烛煌",
+      "skillId": "skchr_blaze2_2",
+      "skill": 2,
+      "dir": "RIGHT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        3
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_03_b",
+      "name": "烛煌",
+      "skillId": "skchr_blaze2_2",
+      "skill": 2,
+      "dir": "UP",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        10,
+        3
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_03_b",
+      "name": "烛煌",
+      "skillId": "skchr_blaze2_2",
+      "skill": 2,
+      "dir": "LEFT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        9,
+        6
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_03_b",
+      "name": "烛煌",
+      "skillId": "skchr_blaze2_2",
+      "skill": 2,
+      "dir": "DOWN",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        7
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_03_b",
+      "name": "烛煌",
+      "skillId": "skchr_blaze2_3",
+      "skill": 3,
+      "dir": "RIGHT",
+      "kind": "ammo",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        8
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_03_b",
+      "name": "烛煌",
+      "skillId": "skchr_blaze2_3",
+      "skill": 3,
+      "dir": "LEFT",
+      "kind": "ammo",
+      "rule": "DEFAULT",
+      "enemy": [
+        9,
+        3
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_03_b",
+      "name": "烛煌",
+      "skillId": "skchr_blaze2_3",
+      "skill": 3,
+      "dir": "DOWN",
+      "kind": "ammo",
+      "rule": "DEFAULT",
+      "enemy": [
+        9,
+        7
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_05_a",
+      "name": "乌尔比安",
+      "skillId": "skchr_ulpia_1",
+      "skill": 1,
+      "dir": "RIGHT",
+      "kind": "instant",
+      "rule": "DEFAULT",
+      "enemy": [
+        11,
+        5.670800000000004
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_05_a",
+      "name": "乌尔比安",
+      "skillId": "skchr_ulpia_1",
+      "skill": 1,
+      "dir": "LEFT",
+      "kind": "instant",
+      "rule": "DEFAULT",
+      "enemy": [
+        11,
+        4.3292
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_05_a",
+      "name": "乌尔比安",
+      "skillId": "skchr_ulpia_1",
+      "skill": 1,
+      "dir": "DOWN",
+      "kind": "instant",
+      "rule": "DEFAULT",
+      "enemy": [
+        10.329199999999995,
+        5
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_05_b",
+      "name": "乌尔比安",
+      "skillId": "skchr_ulpia_1",
+      "skill": 1,
+      "dir": "RIGHT",
+      "kind": "instant",
+      "rule": "DEFAULT",
+      "enemy": [
+        11,
+        5.670800000000004
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_05_b",
+      "name": "乌尔比安",
+      "skillId": "skchr_ulpia_1",
+      "skill": 1,
+      "dir": "LEFT",
+      "kind": "instant",
+      "rule": "DEFAULT",
+      "enemy": [
+        11,
+        4.3292
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_05_b",
+      "name": "乌尔比安",
+      "skillId": "skchr_ulpia_1",
+      "skill": 1,
+      "dir": "DOWN",
+      "kind": "instant",
+      "rule": "DEFAULT",
+      "enemy": [
+        10.329199999999995,
+        5
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_06_a",
+      "name": "隐德来希",
+      "skillId": "skchr_etlchi_3",
+      "skill": 3,
+      "dir": "RIGHT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        7
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_06_a",
+      "name": "隐德来希",
+      "skillId": "skchr_etlchi_3",
+      "skill": 3,
+      "dir": "LEFT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        10,
+        3
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_06_a",
+      "name": "隐德来希",
+      "skillId": "skchr_etlchi_3",
+      "skill": 3,
+      "dir": "DOWN",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        9,
+        6
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_06_b",
+      "name": "隐德来希",
+      "skillId": "skchr_etlchi_3",
+      "skill": 3,
+      "dir": "RIGHT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        7
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_06_b",
+      "name": "隐德来希",
+      "skillId": "skchr_etlchi_3",
+      "skill": 3,
+      "dir": "LEFT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        10,
+        3
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_06_b",
+      "name": "隐德来希",
+      "skillId": "skchr_etlchi_3",
+      "skill": 3,
+      "dir": "DOWN",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        9,
+        6
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_07_a",
+      "name": "史尔特尔",
+      "skillId": "skchr_surtr_2",
+      "skill": 2,
+      "dir": "RIGHT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        11,
+        7
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_07_a",
+      "name": "史尔特尔",
+      "skillId": "skchr_surtr_2",
+      "skill": 2,
+      "dir": "LEFT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        11,
+        3
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_07_a",
+      "name": "史尔特尔",
+      "skillId": "skchr_surtr_2",
+      "skill": 2,
+      "dir": "DOWN",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        9,
+        5
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_07_a",
+      "name": "史尔特尔",
+      "skillId": "skchr_surtr_3",
+      "skill": 3,
+      "dir": "RIGHT",
+      "kind": "toggle",
+      "rule": "DEFAULT",
+      "enemy": [
+        11,
+        7
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_07_a",
+      "name": "史尔特尔",
+      "skillId": "skchr_surtr_3",
+      "skill": 3,
+      "dir": "LEFT",
+      "kind": "toggle",
+      "rule": "DEFAULT",
+      "enemy": [
+        11,
+        3
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_07_a",
+      "name": "史尔特尔",
+      "skillId": "skchr_surtr_3",
+      "skill": 3,
+      "dir": "DOWN",
+      "kind": "toggle",
+      "rule": "DEFAULT",
+      "enemy": [
+        9,
+        5
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_07_b",
+      "name": "史尔特尔",
+      "skillId": "skchr_surtr_2",
+      "skill": 2,
+      "dir": "RIGHT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        11,
+        7
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_07_b",
+      "name": "史尔特尔",
+      "skillId": "skchr_surtr_2",
+      "skill": 2,
+      "dir": "LEFT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        11,
+        3
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_07_b",
+      "name": "史尔特尔",
+      "skillId": "skchr_surtr_2",
+      "skill": 2,
+      "dir": "DOWN",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        9,
+        5
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_07_b",
+      "name": "史尔特尔",
+      "skillId": "skchr_surtr_3",
+      "skill": 3,
+      "dir": "RIGHT",
+      "kind": "toggle",
+      "rule": "DEFAULT",
+      "enemy": [
+        11,
+        7
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_07_b",
+      "name": "史尔特尔",
+      "skillId": "skchr_surtr_3",
+      "skill": 3,
+      "dir": "LEFT",
+      "kind": "toggle",
+      "rule": "DEFAULT",
+      "enemy": [
+        11,
+        3
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_07_b",
+      "name": "史尔特尔",
+      "skillId": "skchr_surtr_3",
+      "skill": 3,
+      "dir": "DOWN",
+      "kind": "toggle",
+      "rule": "DEFAULT",
+      "enemy": [
+        9,
+        5
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_10_a",
+      "name": "铃兰",
+      "skillId": "skchr_lisa_3",
+      "skill": 3,
+      "dir": "RIGHT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        8
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_10_a",
+      "name": "铃兰",
+      "skillId": "skchr_lisa_3",
+      "skill": 3,
+      "dir": "UP",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        10,
+        3
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_10_a",
+      "name": "铃兰",
+      "skillId": "skchr_lisa_3",
+      "skill": 3,
+      "dir": "LEFT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        9,
+        6
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_10_a",
+      "name": "铃兰",
+      "skillId": "skchr_lisa_3",
+      "skill": 3,
+      "dir": "DOWN",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        7
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_10_b",
+      "name": "铃兰",
+      "skillId": "skchr_lisa_3",
+      "skill": 3,
+      "dir": "RIGHT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        8
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_10_b",
+      "name": "铃兰",
+      "skillId": "skchr_lisa_3",
+      "skill": 3,
+      "dir": "UP",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        10,
+        3
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_10_b",
+      "name": "铃兰",
+      "skillId": "skchr_lisa_3",
+      "skill": 3,
+      "dir": "LEFT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        9,
+        6
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_10_b",
+      "name": "铃兰",
+      "skillId": "skchr_lisa_3",
+      "skill": 3,
+      "dir": "DOWN",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        7
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_12_a",
+      "name": "夕",
+      "skillId": "skchr_dusk_2",
+      "skill": 2,
+      "dir": "RIGHT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        8
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_12_a",
+      "name": "夕",
+      "skillId": "skchr_dusk_2",
+      "skill": 2,
+      "dir": "LEFT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        10,
+        2
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_12_a",
+      "name": "夕",
+      "skillId": "skchr_dusk_3",
+      "skill": 3,
+      "dir": "RIGHT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        8
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_12_a",
+      "name": "夕",
+      "skillId": "skchr_dusk_3",
+      "skill": 3,
+      "dir": "UP",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        11,
+        3
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_12_a",
+      "name": "夕",
+      "skillId": "skchr_dusk_3",
+      "skill": 3,
+      "dir": "LEFT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        9,
+        5
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_12_a",
+      "name": "夕",
+      "skillId": "skchr_dusk_3",
+      "skill": 3,
+      "dir": "DOWN",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        11,
+        7
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_12_b",
+      "name": "夕",
+      "skillId": "skchr_dusk_2",
+      "skill": 2,
+      "dir": "RIGHT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        8
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_12_b",
+      "name": "夕",
+      "skillId": "skchr_dusk_2",
+      "skill": 2,
+      "dir": "LEFT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        10,
+        2
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_12_b",
+      "name": "夕",
+      "skillId": "skchr_dusk_3",
+      "skill": 3,
+      "dir": "RIGHT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        8
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_12_b",
+      "name": "夕",
+      "skillId": "skchr_dusk_3",
+      "skill": 3,
+      "dir": "UP",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        11,
+        3
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_12_b",
+      "name": "夕",
+      "skillId": "skchr_dusk_3",
+      "skill": 3,
+      "dir": "LEFT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        9,
+        5
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_12_b",
+      "name": "夕",
+      "skillId": "skchr_dusk_3",
+      "skill": 3,
+      "dir": "DOWN",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        11,
+        7
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_14_a",
+      "name": "凛御银灰",
+      "skillId": "skchr_svash2_3",
+      "skill": 3,
+      "dir": "RIGHT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        5
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_14_a",
+      "name": "凛御银灰",
+      "skillId": "skchr_svash2_3",
+      "skill": 3,
+      "dir": "UP",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        11,
+        4
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_14_a",
+      "name": "凛御银灰",
+      "skillId": "skchr_svash2_3",
+      "skill": 3,
+      "dir": "LEFT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        10,
+        5
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_14_a",
+      "name": "凛御银灰",
+      "skillId": "skchr_svash2_3",
+      "skill": 3,
+      "dir": "DOWN",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        11,
+        6
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_14_b",
+      "name": "凛御银灰",
+      "skillId": "skchr_svash2_3",
+      "skill": 3,
+      "dir": "RIGHT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        5
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_14_b",
+      "name": "凛御银灰",
+      "skillId": "skchr_svash2_3",
+      "skill": 3,
+      "dir": "UP",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        11,
+        4
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_14_b",
+      "name": "凛御银灰",
+      "skillId": "skchr_svash2_3",
+      "skill": 3,
+      "dir": "LEFT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        10,
+        5
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_14_b",
+      "name": "凛御银灰",
+      "skillId": "skchr_svash2_3",
+      "skill": 3,
+      "dir": "DOWN",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        11,
+        6
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_18_a",
+      "name": "百炼嘉维尔",
+      "skillId": "skchr_gvial2_2",
+      "skill": 2,
+      "dir": "RIGHT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        6
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_18_a",
+      "name": "百炼嘉维尔",
+      "skillId": "skchr_gvial2_2",
+      "skill": 2,
+      "dir": "UP",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        4
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_18_a",
+      "name": "百炼嘉维尔",
+      "skillId": "skchr_gvial2_2",
+      "skill": 2,
+      "dir": "LEFT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        10,
+        4
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_18_a",
+      "name": "百炼嘉维尔",
+      "skillId": "skchr_gvial2_2",
+      "skill": 2,
+      "dir": "DOWN",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        10,
+        6
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_18_b",
+      "name": "百炼嘉维尔",
+      "skillId": "skchr_gvial2_2",
+      "skill": 2,
+      "dir": "RIGHT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        6
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_18_b",
+      "name": "百炼嘉维尔",
+      "skillId": "skchr_gvial2_2",
+      "skill": 2,
+      "dir": "UP",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        4
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_18_b",
+      "name": "百炼嘉维尔",
+      "skillId": "skchr_gvial2_2",
+      "skill": 2,
+      "dir": "LEFT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        10,
+        4
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_18_b",
+      "name": "百炼嘉维尔",
+      "skillId": "skchr_gvial2_2",
+      "skill": 2,
+      "dir": "DOWN",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        10,
+        6
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_19_a",
+      "name": "玛恩纳",
+      "skillId": "skchr_mlynar_2",
+      "skill": 2,
+      "dir": "RIGHT",
+      "kind": "duration",
+      "rule": "SEARCH",
+      "enemy": [
+        12,
+        6
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_19_a",
+      "name": "玛恩纳",
+      "skillId": "skchr_mlynar_2",
+      "skill": 2,
+      "dir": "UP",
+      "kind": "duration",
+      "rule": "SEARCH",
+      "enemy": [
+        12,
+        4
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_19_a",
+      "name": "玛恩纳",
+      "skillId": "skchr_mlynar_2",
+      "skill": 2,
+      "dir": "LEFT",
+      "kind": "duration",
+      "rule": "SEARCH",
+      "enemy": [
+        10,
+        4
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_19_a",
+      "name": "玛恩纳",
+      "skillId": "skchr_mlynar_2",
+      "skill": 2,
+      "dir": "DOWN",
+      "kind": "duration",
+      "rule": "SEARCH",
+      "enemy": [
+        10,
+        6
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_19_b",
+      "name": "玛恩纳",
+      "skillId": "skchr_mlynar_2",
+      "skill": 2,
+      "dir": "RIGHT",
+      "kind": "duration",
+      "rule": "SEARCH",
+      "enemy": [
+        12,
+        6
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_19_b",
+      "name": "玛恩纳",
+      "skillId": "skchr_mlynar_2",
+      "skill": 2,
+      "dir": "UP",
+      "kind": "duration",
+      "rule": "SEARCH",
+      "enemy": [
+        12,
+        4
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_19_b",
+      "name": "玛恩纳",
+      "skillId": "skchr_mlynar_2",
+      "skill": 2,
+      "dir": "LEFT",
+      "kind": "duration",
+      "rule": "SEARCH",
+      "enemy": [
+        10,
+        4
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_19_b",
+      "name": "玛恩纳",
+      "skillId": "skchr_mlynar_2",
+      "skill": 2,
+      "dir": "DOWN",
+      "kind": "duration",
+      "rule": "SEARCH",
+      "enemy": [
+        10,
+        6
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_20_a",
+      "name": "安洁莉娜",
+      "skillId": "skchr_aglina_3",
+      "skill": 3,
+      "dir": "RIGHT",
+      "kind": "duration",
+      "rule": "SEARCH",
+      "enemy": [
+        11,
+        8
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_20_a",
+      "name": "安洁莉娜",
+      "skillId": "skchr_aglina_3",
+      "skill": 3,
+      "dir": "UP",
+      "kind": "duration",
+      "rule": "SEARCH",
+      "enemy": [
+        10,
+        3
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_20_a",
+      "name": "安洁莉娜",
+      "skillId": "skchr_aglina_3",
+      "skill": 3,
+      "dir": "LEFT",
+      "kind": "duration",
+      "rule": "SEARCH",
+      "enemy": [
+        9,
+        6
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_20_a",
+      "name": "安洁莉娜",
+      "skillId": "skchr_aglina_3",
+      "skill": 3,
+      "dir": "DOWN",
+      "kind": "duration",
+      "rule": "SEARCH",
+      "enemy": [
+        12,
+        7
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_20_b",
+      "name": "安洁莉娜",
+      "skillId": "skchr_aglina_3",
+      "skill": 3,
+      "dir": "RIGHT",
+      "kind": "duration",
+      "rule": "SEARCH",
+      "enemy": [
+        11,
+        8
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_20_b",
+      "name": "安洁莉娜",
+      "skillId": "skchr_aglina_3",
+      "skill": 3,
+      "dir": "UP",
+      "kind": "duration",
+      "rule": "SEARCH",
+      "enemy": [
+        10,
+        3
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_20_b",
+      "name": "安洁莉娜",
+      "skillId": "skchr_aglina_3",
+      "skill": 3,
+      "dir": "LEFT",
+      "kind": "duration",
+      "rule": "SEARCH",
+      "enemy": [
+        9,
+        6
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_20_b",
+      "name": "安洁莉娜",
+      "skillId": "skchr_aglina_3",
+      "skill": 3,
+      "dir": "DOWN",
+      "kind": "duration",
+      "rule": "SEARCH",
+      "enemy": [
+        12,
+        7
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_21_a",
+      "name": "寒檀",
+      "skillId": "skchr_sntlla_2",
+      "skill": 2,
+      "dir": "RIGHT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        8
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_21_a",
+      "name": "寒檀",
+      "skillId": "skchr_sntlla_2",
+      "skill": 2,
+      "dir": "LEFT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        10,
+        2
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_21_b",
+      "name": "寒檀",
+      "skillId": "skchr_sntlla_2",
+      "skill": 2,
+      "dir": "RIGHT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        8
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_21_b",
+      "name": "寒檀",
+      "skillId": "skchr_sntlla_2",
+      "skill": 2,
+      "dir": "LEFT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        10,
+        2
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_22_a",
+      "name": "妮芙",
+      "skillId": "skchr_nymph_3",
+      "skill": 3,
+      "dir": "RIGHT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        8
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_22_a",
+      "name": "妮芙",
+      "skillId": "skchr_nymph_3",
+      "skill": 3,
+      "dir": "LEFT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        10,
+        2
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_22_b",
+      "name": "妮芙",
+      "skillId": "skchr_nymph_3",
+      "skill": 3,
+      "dir": "RIGHT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        8
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_5_22_b",
+      "name": "妮芙",
+      "skillId": "skchr_nymph_3",
+      "skill": 3,
+      "dir": "LEFT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        10,
+        2
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_6_05_a",
+      "name": "异客",
+      "skillId": "skchr_pasngr_2",
+      "skill": 2,
+      "dir": "RIGHT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        8
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_6_05_a",
+      "name": "异客",
+      "skillId": "skchr_pasngr_2",
+      "skill": 2,
+      "dir": "LEFT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        10,
+        2
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_6_05_b",
+      "name": "异客",
+      "skillId": "skchr_pasngr_2",
+      "skill": 2,
+      "dir": "RIGHT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        8
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_6_05_b",
+      "name": "异客",
+      "skillId": "skchr_pasngr_2",
+      "skill": 2,
+      "dir": "LEFT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        10,
+        2
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_6_06_a",
+      "name": "佩佩",
+      "skillId": "skchr_pepe_2",
+      "skill": 2,
+      "dir": "RIGHT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        6
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_6_06_a",
+      "name": "佩佩",
+      "skillId": "skchr_pepe_2",
+      "skill": 2,
+      "dir": "UP",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        4
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_6_06_a",
+      "name": "佩佩",
+      "skillId": "skchr_pepe_2",
+      "skill": 2,
+      "dir": "LEFT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        10,
+        4
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_6_06_a",
+      "name": "佩佩",
+      "skillId": "skchr_pepe_2",
+      "skill": 2,
+      "dir": "DOWN",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        10,
+        6
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_6_06_b",
+      "name": "佩佩",
+      "skillId": "skchr_pepe_2",
+      "skill": 2,
+      "dir": "RIGHT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        6
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_6_06_b",
+      "name": "佩佩",
+      "skillId": "skchr_pepe_2",
+      "skill": 2,
+      "dir": "UP",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        4
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_6_06_b",
+      "name": "佩佩",
+      "skillId": "skchr_pepe_2",
+      "skill": 2,
+      "dir": "LEFT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        10,
+        4
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_6_06_b",
+      "name": "佩佩",
+      "skillId": "skchr_pepe_2",
+      "skill": 2,
+      "dir": "DOWN",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        10,
+        6
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_6_07_a",
+      "name": "维娜·维多利亚",
+      "skillId": "skchr_siege2_2",
+      "skill": 2,
+      "dir": "RIGHT",
+      "kind": "toggle",
+      "rule": "DEFAULT",
+      "enemy": [
+        11,
+        7
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_6_07_a",
+      "name": "维娜·维多利亚",
+      "skillId": "skchr_siege2_2",
+      "skill": 2,
+      "dir": "LEFT",
+      "kind": "toggle",
+      "rule": "DEFAULT",
+      "enemy": [
+        11,
+        3
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_6_07_a",
+      "name": "维娜·维多利亚",
+      "skillId": "skchr_siege2_2",
+      "skill": 2,
+      "dir": "DOWN",
+      "kind": "toggle",
+      "rule": "DEFAULT",
+      "enemy": [
+        9,
+        5
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_6_07_b",
+      "name": "维娜·维多利亚",
+      "skillId": "skchr_siege2_2",
+      "skill": 2,
+      "dir": "RIGHT",
+      "kind": "toggle",
+      "rule": "DEFAULT",
+      "enemy": [
+        11,
+        7
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_6_07_b",
+      "name": "维娜·维多利亚",
+      "skillId": "skchr_siege2_2",
+      "skill": 2,
+      "dir": "LEFT",
+      "kind": "toggle",
+      "rule": "DEFAULT",
+      "enemy": [
+        11,
+        3
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_6_07_b",
+      "name": "维娜·维多利亚",
+      "skillId": "skchr_siege2_2",
+      "skill": 2,
+      "dir": "DOWN",
+      "kind": "toggle",
+      "rule": "DEFAULT",
+      "enemy": [
+        9,
+        5
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_6_09_a",
+      "name": "塑心",
+      "skillId": "skchr_cello_3",
+      "skill": 3,
+      "dir": "RIGHT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        8
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_6_09_a",
+      "name": "塑心",
+      "skillId": "skchr_cello_3",
+      "skill": 3,
+      "dir": "UP",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        10,
+        3
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_6_09_a",
+      "name": "塑心",
+      "skillId": "skchr_cello_3",
+      "skill": 3,
+      "dir": "LEFT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        9,
+        6
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_6_09_a",
+      "name": "塑心",
+      "skillId": "skchr_cello_3",
+      "skill": 3,
+      "dir": "DOWN",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        7
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_6_09_b",
+      "name": "塑心",
+      "skillId": "skchr_cello_3",
+      "skill": 3,
+      "dir": "RIGHT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        8
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_6_09_b",
+      "name": "塑心",
+      "skillId": "skchr_cello_3",
+      "skill": 3,
+      "dir": "UP",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        10,
+        3
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_6_09_b",
+      "name": "塑心",
+      "skillId": "skchr_cello_3",
+      "skill": 3,
+      "dir": "LEFT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        9,
+        6
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_6_09_b",
+      "name": "塑心",
+      "skillId": "skchr_cello_3",
+      "skill": 3,
+      "dir": "DOWN",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        7
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_6_10_a",
+      "name": "妮芙",
+      "skillId": "skchr_nymph_3",
+      "skill": 3,
+      "dir": "RIGHT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        8
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_6_10_a",
+      "name": "妮芙",
+      "skillId": "skchr_nymph_3",
+      "skill": 3,
+      "dir": "LEFT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        10,
+        2
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_6_10_b",
+      "name": "妮芙",
+      "skillId": "skchr_nymph_3",
+      "skill": 3,
+      "dir": "RIGHT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        8
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_6_10_b",
+      "name": "妮芙",
+      "skillId": "skchr_nymph_3",
+      "skill": 3,
+      "dir": "LEFT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        10,
+        2
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_6_15_a",
+      "name": "仇白",
+      "skillId": "skchr_qiubai_2",
+      "skill": 2,
+      "dir": "RIGHT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        11,
+        9
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_6_15_a",
+      "name": "仇白",
+      "skillId": "skchr_qiubai_3",
+      "skill": 3,
+      "dir": "RIGHT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        7
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_6_15_a",
+      "name": "仇白",
+      "skillId": "skchr_qiubai_3",
+      "skill": 3,
+      "dir": "LEFT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        10,
+        3
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_6_15_a",
+      "name": "仇白",
+      "skillId": "skchr_qiubai_3",
+      "skill": 3,
+      "dir": "DOWN",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        9,
+        6
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_6_15_b",
+      "name": "仇白",
+      "skillId": "skchr_qiubai_2",
+      "skill": 2,
+      "dir": "RIGHT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        11,
+        9
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_6_15_b",
+      "name": "仇白",
+      "skillId": "skchr_qiubai_3",
+      "skill": 3,
+      "dir": "RIGHT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        7
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_6_15_b",
+      "name": "仇白",
+      "skillId": "skchr_qiubai_3",
+      "skill": 3,
+      "dir": "LEFT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        10,
+        3
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_6_15_b",
+      "name": "仇白",
+      "skillId": "skchr_qiubai_3",
+      "skill": 3,
+      "dir": "DOWN",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        9,
+        6
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_6_16_a",
+      "name": "溯光星源",
+      "skillId": "skchr_halo2_3",
+      "skill": 3,
+      "dir": "RIGHT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        11,
+        8
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_6_16_a",
+      "name": "溯光星源",
+      "skillId": "skchr_halo2_3",
+      "skill": 3,
+      "dir": "UP",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        10,
+        3
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_6_16_a",
+      "name": "溯光星源",
+      "skillId": "skchr_halo2_3",
+      "skill": 3,
+      "dir": "LEFT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        9,
+        6
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_6_16_a",
+      "name": "溯光星源",
+      "skillId": "skchr_halo2_3",
+      "skill": 3,
+      "dir": "DOWN",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        7
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_6_16_b",
+      "name": "溯光星源",
+      "skillId": "skchr_halo2_3",
+      "skill": 3,
+      "dir": "RIGHT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        11,
+        8
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_6_16_b",
+      "name": "溯光星源",
+      "skillId": "skchr_halo2_3",
+      "skill": 3,
+      "dir": "UP",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        10,
+        3
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_6_16_b",
+      "name": "溯光星源",
+      "skillId": "skchr_halo2_3",
+      "skill": 3,
+      "dir": "LEFT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        9,
+        6
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_6_16_b",
+      "name": "溯光星源",
+      "skillId": "skchr_halo2_3",
+      "skill": 3,
+      "dir": "DOWN",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        7
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_6_17_a",
+      "name": "耀骑士临光",
+      "skillId": "skchr_nearl2_1",
+      "skill": 1,
+      "dir": "RIGHT",
+      "kind": "toggle",
+      "rule": "DEFAULT",
+      "enemy": [
+        11,
+        7
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_6_17_a",
+      "name": "耀骑士临光",
+      "skillId": "skchr_nearl2_1",
+      "skill": 1,
+      "dir": "LEFT",
+      "kind": "toggle",
+      "rule": "DEFAULT",
+      "enemy": [
+        11,
+        3
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_6_17_a",
+      "name": "耀骑士临光",
+      "skillId": "skchr_nearl2_1",
+      "skill": 1,
+      "dir": "DOWN",
+      "kind": "toggle",
+      "rule": "DEFAULT",
+      "enemy": [
+        9,
+        5
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_6_17_a",
+      "name": "耀骑士临光",
+      "skillId": "skchr_nearl2_3",
+      "skill": 3,
+      "dir": "RIGHT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        5
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_6_17_a",
+      "name": "耀骑士临光",
+      "skillId": "skchr_nearl2_3",
+      "skill": 3,
+      "dir": "UP",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        11,
+        3
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_6_17_a",
+      "name": "耀骑士临光",
+      "skillId": "skchr_nearl2_3",
+      "skill": 3,
+      "dir": "LEFT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        9,
+        5
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_6_17_a",
+      "name": "耀骑士临光",
+      "skillId": "skchr_nearl2_3",
+      "skill": 3,
+      "dir": "DOWN",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        11,
+        7
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_6_17_b",
+      "name": "耀骑士临光",
+      "skillId": "skchr_nearl2_1",
+      "skill": 1,
+      "dir": "RIGHT",
+      "kind": "toggle",
+      "rule": "DEFAULT",
+      "enemy": [
+        11,
+        7
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_6_17_b",
+      "name": "耀骑士临光",
+      "skillId": "skchr_nearl2_1",
+      "skill": 1,
+      "dir": "LEFT",
+      "kind": "toggle",
+      "rule": "DEFAULT",
+      "enemy": [
+        11,
+        3
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_6_17_b",
+      "name": "耀骑士临光",
+      "skillId": "skchr_nearl2_1",
+      "skill": 1,
+      "dir": "DOWN",
+      "kind": "toggle",
+      "rule": "DEFAULT",
+      "enemy": [
+        9,
+        5
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_6_17_b",
+      "name": "耀骑士临光",
+      "skillId": "skchr_nearl2_3",
+      "skill": 3,
+      "dir": "RIGHT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        5
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_6_17_b",
+      "name": "耀骑士临光",
+      "skillId": "skchr_nearl2_3",
+      "skill": 3,
+      "dir": "UP",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        11,
+        3
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_6_17_b",
+      "name": "耀骑士临光",
+      "skillId": "skchr_nearl2_3",
+      "skill": 3,
+      "dir": "LEFT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        9,
+        5
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_6_17_b",
+      "name": "耀骑士临光",
+      "skillId": "skchr_nearl2_3",
+      "skill": 3,
+      "dir": "DOWN",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        11,
+        7
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_6_18_a",
+      "name": "荒芜拉普兰德",
+      "skillId": "skchr_whitw2_1",
+      "skill": 1,
+      "dir": "RIGHT",
+      "kind": "toggle",
+      "rule": "DEFAULT",
+      "enemy": [
+        9,
+        2
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_6_18_a",
+      "name": "荒芜拉普兰德",
+      "skillId": "skchr_whitw2_1",
+      "skill": 1,
+      "dir": "UP",
+      "kind": "toggle",
+      "rule": "DEFAULT",
+      "enemy": [
+        9,
+        9
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_6_18_a",
+      "name": "荒芜拉普兰德",
+      "skillId": "skchr_whitw2_1",
+      "skill": 1,
+      "dir": "LEFT",
+      "kind": "toggle",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        9
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_6_18_a",
+      "name": "荒芜拉普兰德",
+      "skillId": "skchr_whitw2_1",
+      "skill": 1,
+      "dir": "DOWN",
+      "kind": "toggle",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        2
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_6_18_a",
+      "name": "荒芜拉普兰德",
+      "skillId": "skchr_whitw2_2",
+      "skill": 2,
+      "dir": "RIGHT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        9,
+        5
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_6_18_a",
+      "name": "荒芜拉普兰德",
+      "skillId": "skchr_whitw2_2",
+      "skill": 2,
+      "dir": "UP",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        11,
+        3
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_6_18_a",
+      "name": "荒芜拉普兰德",
+      "skillId": "skchr_whitw2_2",
+      "skill": 2,
+      "dir": "LEFT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        9,
+        5
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_6_18_a",
+      "name": "荒芜拉普兰德",
+      "skillId": "skchr_whitw2_2",
+      "skill": 2,
+      "dir": "DOWN",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        11,
+        7
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_6_18_b",
+      "name": "荒芜拉普兰德",
+      "skillId": "skchr_whitw2_1",
+      "skill": 1,
+      "dir": "RIGHT",
+      "kind": "toggle",
+      "rule": "DEFAULT",
+      "enemy": [
+        9,
+        2
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_6_18_b",
+      "name": "荒芜拉普兰德",
+      "skillId": "skchr_whitw2_1",
+      "skill": 1,
+      "dir": "UP",
+      "kind": "toggle",
+      "rule": "DEFAULT",
+      "enemy": [
+        9,
+        9
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_6_18_b",
+      "name": "荒芜拉普兰德",
+      "skillId": "skchr_whitw2_1",
+      "skill": 1,
+      "dir": "LEFT",
+      "kind": "toggle",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        9
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_6_18_b",
+      "name": "荒芜拉普兰德",
+      "skillId": "skchr_whitw2_1",
+      "skill": 1,
+      "dir": "DOWN",
+      "kind": "toggle",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        2
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_6_18_b",
+      "name": "荒芜拉普兰德",
+      "skillId": "skchr_whitw2_2",
+      "skill": 2,
+      "dir": "RIGHT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        9,
+        5
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_6_18_b",
+      "name": "荒芜拉普兰德",
+      "skillId": "skchr_whitw2_2",
+      "skill": 2,
+      "dir": "UP",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        11,
+        3
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_6_18_b",
+      "name": "荒芜拉普兰德",
+      "skillId": "skchr_whitw2_2",
+      "skill": 2,
+      "dir": "LEFT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        9,
+        5
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_char_6_18_b",
+      "name": "荒芜拉普兰德",
+      "skillId": "skchr_whitw2_2",
+      "skill": 2,
+      "dir": "DOWN",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        11,
+        7
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_custom_ursus_helage_a",
+      "name": "헬라그",
+      "skillId": "skchr_helage_3",
+      "skill": 3,
+      "dir": "RIGHT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        11,
+        7
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_custom_ursus_helage_a",
+      "name": "헬라그",
+      "skillId": "skchr_helage_3",
+      "skill": 3,
+      "dir": "LEFT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        11,
+        3
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_custom_ursus_helage_a",
+      "name": "헬라그",
+      "skillId": "skchr_helage_3",
+      "skill": 3,
+      "dir": "DOWN",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        9,
+        5
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_custom_ursus_helage_b",
+      "name": "헬라그",
+      "skillId": "skchr_helage_3",
+      "skill": 3,
+      "dir": "RIGHT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        11,
+        7
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_custom_ursus_helage_b",
+      "name": "헬라그",
+      "skillId": "skchr_helage_3",
+      "skill": 3,
+      "dir": "LEFT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        11,
+        3
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_custom_ursus_helage_b",
+      "name": "헬라그",
+      "skillId": "skchr_helage_3",
+      "skill": 3,
+      "dir": "DOWN",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        9,
+        5
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_custom_ursus_glassb_a",
+      "name": "이스티나",
+      "skillId": "skchr_glassb_2",
+      "skill": 2,
+      "dir": "RIGHT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        3
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_custom_ursus_glassb_a",
+      "name": "이스티나",
+      "skillId": "skchr_glassb_2",
+      "skill": 2,
+      "dir": "UP",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        10,
+        3
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_custom_ursus_glassb_a",
+      "name": "이스티나",
+      "skillId": "skchr_glassb_2",
+      "skill": 2,
+      "dir": "LEFT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        9,
+        6
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_custom_ursus_glassb_a",
+      "name": "이스티나",
+      "skillId": "skchr_glassb_2",
+      "skill": 2,
+      "dir": "DOWN",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        7
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_custom_ursus_glassb_b",
+      "name": "이스티나",
+      "skillId": "skchr_glassb_2",
+      "skill": 2,
+      "dir": "RIGHT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        3
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_custom_ursus_glassb_b",
+      "name": "이스티나",
+      "skillId": "skchr_glassb_2",
+      "skill": 2,
+      "dir": "UP",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        10,
+        3
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_custom_ursus_glassb_b",
+      "name": "이스티나",
+      "skillId": "skchr_glassb_2",
+      "skill": 2,
+      "dir": "LEFT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        9,
+        6
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_custom_ursus_glassb_b",
+      "name": "이스티나",
+      "skillId": "skchr_glassb_2",
+      "skill": 2,
+      "dir": "DOWN",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        7
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_custom_ursus_botany_a",
+      "name": "보타니",
+      "skillId": "skchr_botany_2",
+      "skill": 2,
+      "dir": "RIGHT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        8
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_custom_ursus_botany_a",
+      "name": "보타니",
+      "skillId": "skchr_botany_2",
+      "skill": 2,
+      "dir": "LEFT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        10,
+        2
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_custom_ursus_botany_b",
+      "name": "보타니",
+      "skillId": "skchr_botany_2",
+      "skill": 2,
+      "dir": "RIGHT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        8
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_custom_ursus_botany_b",
+      "name": "보타니",
+      "skillId": "skchr_botany_2",
+      "skill": 2,
+      "dir": "LEFT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        10,
+        2
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_custom_recruit_oblvns_5_a",
+      "name": "토가와 사키코",
+      "skillId": "skchr_oblvns_3",
+      "skill": 3,
+      "dir": "RIGHT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        7
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_custom_recruit_oblvns_5_a",
+      "name": "토가와 사키코",
+      "skillId": "skchr_oblvns_3",
+      "skill": 3,
+      "dir": "UP",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        11,
+        3
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_custom_recruit_oblvns_5_a",
+      "name": "토가와 사키코",
+      "skillId": "skchr_oblvns_3",
+      "skill": 3,
+      "dir": "LEFT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        9,
+        5
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_custom_recruit_oblvns_5_a",
+      "name": "토가와 사키코",
+      "skillId": "skchr_oblvns_3",
+      "skill": 3,
+      "dir": "DOWN",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        11,
+        7
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_custom_recruit_oblvns_5_b",
+      "name": "토가와 사키코",
+      "skillId": "skchr_oblvns_3",
+      "skill": 3,
+      "dir": "RIGHT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        7
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_custom_recruit_oblvns_5_b",
+      "name": "토가와 사키코",
+      "skillId": "skchr_oblvns_3",
+      "skill": 3,
+      "dir": "UP",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        11,
+        3
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_custom_recruit_oblvns_5_b",
+      "name": "토가와 사키코",
+      "skillId": "skchr_oblvns_3",
+      "skill": 3,
+      "dir": "LEFT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        9,
+        5
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_custom_recruit_oblvns_5_b",
+      "name": "토가와 사키코",
+      "skillId": "skchr_oblvns_3",
+      "skill": 3,
+      "dir": "DOWN",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        11,
+        7
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_custom_recruit_oblvns_6_a",
+      "name": "토가와 사키코",
+      "skillId": "skchr_oblvns_3",
+      "skill": 3,
+      "dir": "RIGHT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        7
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_custom_recruit_oblvns_6_a",
+      "name": "토가와 사키코",
+      "skillId": "skchr_oblvns_3",
+      "skill": 3,
+      "dir": "UP",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        11,
+        3
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_custom_recruit_oblvns_6_a",
+      "name": "토가와 사키코",
+      "skillId": "skchr_oblvns_3",
+      "skill": 3,
+      "dir": "LEFT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        9,
+        5
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_custom_recruit_oblvns_6_a",
+      "name": "토가와 사키코",
+      "skillId": "skchr_oblvns_3",
+      "skill": 3,
+      "dir": "DOWN",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        11,
+        7
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_custom_recruit_oblvns_6_b",
+      "name": "토가와 사키코",
+      "skillId": "skchr_oblvns_3",
+      "skill": 3,
+      "dir": "RIGHT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        7
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_custom_recruit_oblvns_6_b",
+      "name": "토가와 사키코",
+      "skillId": "skchr_oblvns_3",
+      "skill": 3,
+      "dir": "UP",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        11,
+        3
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_custom_recruit_oblvns_6_b",
+      "name": "토가와 사키코",
+      "skillId": "skchr_oblvns_3",
+      "skill": 3,
+      "dir": "LEFT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        9,
+        5
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_custom_recruit_oblvns_6_b",
+      "name": "토가와 사키코",
+      "skillId": "skchr_oblvns_3",
+      "skill": 3,
+      "dir": "DOWN",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        11,
+        7
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_custom_recruit_chen3_5_a",
+      "name": "첸 더 던스트릭",
+      "skillId": "skchr_chen3_3",
+      "skill": 3,
+      "dir": "RIGHT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        5
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_custom_recruit_chen3_5_a",
+      "name": "첸 더 던스트릭",
+      "skillId": "skchr_chen3_3",
+      "skill": 3,
+      "dir": "UP",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        11,
+        4
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_custom_recruit_chen3_5_a",
+      "name": "첸 더 던스트릭",
+      "skillId": "skchr_chen3_3",
+      "skill": 3,
+      "dir": "LEFT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        10,
+        5
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_custom_recruit_chen3_5_a",
+      "name": "첸 더 던스트릭",
+      "skillId": "skchr_chen3_3",
+      "skill": 3,
+      "dir": "DOWN",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        11,
+        6
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_custom_recruit_chen3_5_b",
+      "name": "첸 더 던스트릭",
+      "skillId": "skchr_chen3_3",
+      "skill": 3,
+      "dir": "RIGHT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        5
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_custom_recruit_chen3_5_b",
+      "name": "첸 더 던스트릭",
+      "skillId": "skchr_chen3_3",
+      "skill": 3,
+      "dir": "UP",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        11,
+        4
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_custom_recruit_chen3_5_b",
+      "name": "첸 더 던스트릭",
+      "skillId": "skchr_chen3_3",
+      "skill": 3,
+      "dir": "LEFT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        10,
+        5
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_custom_recruit_chen3_5_b",
+      "name": "첸 더 던스트릭",
+      "skillId": "skchr_chen3_3",
+      "skill": 3,
+      "dir": "DOWN",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        11,
+        6
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_custom_recruit_chen3_6_a",
+      "name": "첸 더 던스트릭",
+      "skillId": "skchr_chen3_3",
+      "skill": 3,
+      "dir": "RIGHT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        5
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_custom_recruit_chen3_6_a",
+      "name": "첸 더 던스트릭",
+      "skillId": "skchr_chen3_3",
+      "skill": 3,
+      "dir": "UP",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        11,
+        4
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_custom_recruit_chen3_6_a",
+      "name": "첸 더 던스트릭",
+      "skillId": "skchr_chen3_3",
+      "skill": 3,
+      "dir": "LEFT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        10,
+        5
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_custom_recruit_chen3_6_a",
+      "name": "첸 더 던스트릭",
+      "skillId": "skchr_chen3_3",
+      "skill": 3,
+      "dir": "DOWN",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        11,
+        6
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_custom_recruit_chen3_6_b",
+      "name": "첸 더 던스트릭",
+      "skillId": "skchr_chen3_3",
+      "skill": 3,
+      "dir": "RIGHT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        5
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_custom_recruit_chen3_6_b",
+      "name": "첸 더 던스트릭",
+      "skillId": "skchr_chen3_3",
+      "skill": 3,
+      "dir": "UP",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        11,
+        4
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_custom_recruit_chen3_6_b",
+      "name": "첸 더 던스트릭",
+      "skillId": "skchr_chen3_3",
+      "skill": 3,
+      "dir": "LEFT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        10,
+        5
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_custom_recruit_chen3_6_b",
+      "name": "첸 더 던스트릭",
+      "skillId": "skchr_chen3_3",
+      "skill": 3,
+      "dir": "DOWN",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        11,
+        6
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_custom_recruit_ascln_5_a",
+      "name": "아스카론",
+      "skillId": "skchr_ascln_3",
+      "skill": 3,
+      "dir": "RIGHT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        7
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_custom_recruit_ascln_5_a",
+      "name": "아스카론",
+      "skillId": "skchr_ascln_3",
+      "skill": 3,
+      "dir": "UP",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        10,
+        3
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_custom_recruit_ascln_5_a",
+      "name": "아스카론",
+      "skillId": "skchr_ascln_3",
+      "skill": 3,
+      "dir": "LEFT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        9,
+        6
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_custom_recruit_ascln_5_a",
+      "name": "아스카론",
+      "skillId": "skchr_ascln_3",
+      "skill": 3,
+      "dir": "DOWN",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        7
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_custom_recruit_ascln_5_b",
+      "name": "아스카론",
+      "skillId": "skchr_ascln_3",
+      "skill": 3,
+      "dir": "RIGHT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        7
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_custom_recruit_ascln_5_b",
+      "name": "아스카론",
+      "skillId": "skchr_ascln_3",
+      "skill": 3,
+      "dir": "UP",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        10,
+        3
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_custom_recruit_ascln_5_b",
+      "name": "아스카론",
+      "skillId": "skchr_ascln_3",
+      "skill": 3,
+      "dir": "LEFT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        9,
+        6
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_custom_recruit_ascln_5_b",
+      "name": "아스카론",
+      "skillId": "skchr_ascln_3",
+      "skill": 3,
+      "dir": "DOWN",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        7
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_custom_recruit_ascln_6_a",
+      "name": "아스카론",
+      "skillId": "skchr_ascln_3",
+      "skill": 3,
+      "dir": "RIGHT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        7
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_custom_recruit_ascln_6_a",
+      "name": "아스카론",
+      "skillId": "skchr_ascln_3",
+      "skill": 3,
+      "dir": "UP",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        10,
+        3
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_custom_recruit_ascln_6_a",
+      "name": "아스카론",
+      "skillId": "skchr_ascln_3",
+      "skill": 3,
+      "dir": "LEFT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        9,
+        6
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_custom_recruit_ascln_6_a",
+      "name": "아스카론",
+      "skillId": "skchr_ascln_3",
+      "skill": 3,
+      "dir": "DOWN",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        7
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_custom_recruit_ascln_6_b",
+      "name": "아스카론",
+      "skillId": "skchr_ascln_3",
+      "skill": 3,
+      "dir": "RIGHT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        7
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_custom_recruit_ascln_6_b",
+      "name": "아스카론",
+      "skillId": "skchr_ascln_3",
+      "skill": 3,
+      "dir": "UP",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        10,
+        3
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_custom_recruit_ascln_6_b",
+      "name": "아스카론",
+      "skillId": "skchr_ascln_3",
+      "skill": 3,
+      "dir": "LEFT",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        9,
+        6
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    },
+    {
+      "chessId": "chess_custom_recruit_ascln_6_b",
+      "name": "아스카론",
+      "skillId": "skchr_ascln_3",
+      "skill": 3,
+      "dir": "DOWN",
+      "kind": "duration",
+      "rule": "DEFAULT",
+      "enemy": [
+        12,
+        7
+      ],
+      "baseHasEnemy": false,
+      "activated": true,
+      "errors": 0
+    }
+  ],
+  "failures": [],
+  "uncovered": []
+}

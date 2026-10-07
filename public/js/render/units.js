@@ -118,9 +118,13 @@ export function skillRangeStyle(info) {
   const id = String(info.charId || info.defId || info.spine || '').replace(/^skin_/, '');
   const match = Object.entries(RANGE_PALETTE).find(([name]) => new RegExp(`_${name}(?:_|$)`).test(id));
   const theme=skillVisualTheme(info,match?.[1] ?? ART_RANGE_COLORS.get(info.charId) ?? 0xc7d4d9);
-  const color = theme.color;
+  const raw=theme.color;
+  const rgb=[raw>>16&255,raw>>8&255,raw&255], high=Math.max(...rgb), low=Math.min(...rgb);
+  // Neutral/near-white artwork cannot produce a readable range. Use vivid cyan.
+  const saturated=high-low<35 ? [0,190,255] : rgb.map(c=>Math.round((c-low)/(high-low)*255));
+  const color=(saturated[0]<<16)|(saturated[1]<<8)|saturated[2];
   const channels=[color>>16&255,color>>8&255,color&255], hi=Math.max(...channels);
-  const vivid=channels.map(c=>Math.round(Math.max(0,hi-(hi-c)*1.45)));
+  const vivid=channels.map(c=>Math.round(Math.max(0,hi-(hi-c)*2.05)));
   const outlineColor=(vivid[0]<<16)|(vivid[1]<<8)|vivid[2];
   return {color,outlineColor,inset:.065,fillAlpha:theme.fillAlpha,glowAlpha:0,pulse:0,accent:theme.accent,source:theme.source};
 }
@@ -1161,7 +1165,7 @@ export class UnitView {
         loadRangeArtColor(this.info,this.ctx.assets);
         const style = skillRangeStyle(this.info);
         style.inset=.065;
-        const edgeWidth = clamp(s*.052, 3.6, 6);
+        const edgeWidth = clamp(s*.043, 3, 5);
         const tiles=(this.skillTiles || this.info.skillZoneGrid || []).map(([dr,dc])=>this.skillTiles ? [dr-this.y,dc-this.x] : this.dir==='UP'?[dc,-dr]:this.dir==='LEFT'?[-dr,-dc]:this.dir==='DOWN'?[-dc,dr]:[dr,dc]);
         const boundary=skillRangeEdges(tiles,style.inset);
         for(const [r,c] of tiles){

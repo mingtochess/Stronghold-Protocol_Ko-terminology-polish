@@ -7,7 +7,7 @@ export function skillIsStance(sp, role) {
 // Keep their timing metadata; only the renderer suppresses per-attack restarts.
 export function skillIsContinuous(sp, role) {
   const key = sp?.skel || '';
-  const channels = {'char_388_mint':[1], 'char_291_aglina':[1], 'char_358_lisa':[2]};
+  const channels = {'char_388_mint':[1], 'char_291_aglina':[1], 'char_358_lisa':[2], 'char_1051_headb2':[2]};
   return skillIsStance(sp, role) || Object.entries(channels).some(([id, indices]) => key.includes(id) && indices.includes(role?.index) && role?.via !== 'attack' && !(role?.idle && role.idle !== role.loop));
 }
 // Explicit skill semantics; durations/names alone are not sufficient to classify a clip.
@@ -41,7 +41,10 @@ export function selectedSkillClip(sp, index) {
 const clipTiming = (sp, role) => {
   const clip = role?.loop, dur = sp?.animations?.[clip];
   if (!(dur > 0) || role?.via === 'idle' || clip === sp?.anims?.idle || skillIsStance(sp, role)) return null;
-  const hit = sp.hits?.[clip]?.[0];
+  const markers=sp.hits?.[clip];
+  // Zima S3 is one five-strike sequence, not a nine-second clip per bullet.
+  if((sp.skel||'').includes('char_1051_headb2') && role.index===2 && markers?.length===5)return null;
+  const hit = markers?.[0];
   return { dur, hit: Number.isFinite(hit) ? Math.min(dur, Math.max(0, hit)) : dur / 2 };
 };
 export function spineAttackTiming(sp) {

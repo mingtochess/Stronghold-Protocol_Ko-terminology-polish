@@ -611,7 +611,7 @@ export default {
         const foes = grid ? enemiesInGrid(battle, unit, grid) : battle.foesInRadius(unit.x, unit.y, RING1).filter((e) => !e.s.flags.untargetable);
         battle.fx('aoe', { x: unit.x, y: unit.y, radius: 2, id: unit.id, skill: 'swordRain' });
         for (const e of foes) {
-          for (let i = 0; i < 2 && e.alive; i++) battle.dealDamage(unit, e, { amount: unit.s.atk * num(bb.atk_scale), type: 'arts', isSkill: true, tags: ['skill'] });
+          for (let i = 0; i < 2 && e.alive; i++) battle.dealDamage(unit, e, { amount: unit.s.atk * num(bb.atk_scale), type: 'arts', isSkill: true, isSplash: true, tags: ['skill'] });
           if (e.alive) battle.applyStatus(e, 'stun', { duration: num(bb.stun), source: unit });
         }
         },{owner:unit});

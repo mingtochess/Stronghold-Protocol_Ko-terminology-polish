@@ -33,3 +33,10 @@ test('native PATROL checkpoints loop before the next tick can advance to the exi
  h.run(5);const e=h.enemy('enemy_patroller');assert.ok(e.alive);assert.ok(e.x>=6.9&&e.x<=8.1,`${e.x}`);
  assert.equal(h.eventsOf('leak').length,0);assert.equal(h.b.errorCount,0);
 });
+
+test('damage events carry their actual source and attack/skill role for sound attribution',()=>{
+ const h=makeBattle({content:'none',autoFinish:false,defs:{enemies:{enemy_dummy:enemyRec({key:'enemy_dummy',hp:10000,speed:0})}},enemies:[{key:'enemy_dummy',pos:[10,4]}]});h.step();const e=h.enemy();
+ h.b.dealDamage(null,e,{amount:100,type:'true',isSkill:true});let ev=h.eventsOf('dmg').at(-1);assert.equal(ev[4].sourceId,null);assert.equal(ev[4].isSkill,true);
+ // No attributed attack means no unit impact bank should be guessed from another attack.
+ h.b.loseHp(e,100);ev=h.eventsOf('dmg').at(-1);assert.equal(ev[4].sourceId,null);assert.equal(ev[4].isAttack,false);assert.equal(ev[4].isSkill,false);
+});

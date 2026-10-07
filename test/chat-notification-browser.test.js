@@ -48,6 +48,7 @@ test('all chat sounds decode; settings persist; live chat sounds in expanded gam
       await page.click('.set-chat-preview');
       await page.waitForFunction(() => window.audio.chatNode);
       const clips = [
+        {id: 'emote', path: '/audio/chat-notification/emote.mp3', durationSeconds: .527},
         ...JSON.parse(await readFile(path.join(publicDir, 'audio/chat-notification/processing.json'), 'utf8')).clips,
         ...JSON.parse(await readFile(path.join(publicDir, 'audio/chat-notification/general-processing.json'), 'utf8')).files,
       ];
@@ -58,10 +59,10 @@ test('all chat sounds decode; settings persist; live chat sounds in expanded gam
       assert.equal(await page.$eval('#chat-faction-notifications', el => el.getAttribute('aria-checked')), 'false');
       await page.click('#chat-faction-notifications');
       await page.select('#chat-notification-sound', 'ceobe-dadada');
-      assert.equal(await page.evaluate(() => window.settingsStore.get().chatSound), 'notification-glass', 'candidate selection does not save');
+      assert.equal(await page.evaluate(() => window.settingsStore.get().chatSound), 'emote', 'candidate selection does not save');
       await page.click('.set-chat-preview');
       await page.waitForFunction(() => window.audio.chatNode);
-      assert.equal(await page.evaluate(() => window.settingsStore.get().chatSound), 'notification-glass', 'preview does not save');
+      assert.equal(await page.evaluate(() => window.settingsStore.get().chatSound), 'emote', 'preview does not save');
       await page.click('.set-chat-apply');
       await page.waitForFunction(() => window.settingsStore.get().chatSound === 'ceobe-dadada');
       assert.equal(await page.evaluate(() => window.settingsStore.get().chatCooldown), 2, 'apply initializes recommended cooldown');

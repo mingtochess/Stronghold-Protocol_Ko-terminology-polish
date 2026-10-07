@@ -2,6 +2,7 @@ import { damageNumberMode, showDamageNumber, roundedDamageNumber } from '../../.
 import { skillRangeStyle, loadRangeArtColor } from './units.js';
 import {DEDICATED_TEXTURES,dedicatedProjectile} from './dedicatedEffects.js';
 import {assets} from '../assets.js';
+import {projectileMaterial} from './effectArt.js';
 import {projectileStyle,meleeStyle} from './projectileStyle.js';
 export function wideAttackEffect(info, active) {
   if ((['spreadshooter','reaperrange'].includes(info?.subProf) || info?.charId === 'char_279_excu' || (info?.omnidirectional && info?.attackType !== 'heal'))) return true;
@@ -18,11 +19,8 @@ export function wideAttackEffect(info, active) {
 //                per kind on arrival; chain lightning (chain / chainHeal) and beams as short-lived jagged lines
 //   hits         glow + sparks by damage type; a melee blow adds a slash crescent swept along the blow (attacker →
 //                victim) in the hit colour; AoE ground rings for splash attackers
-//   numbers      damage numbers (phys orange-white, arts purple, true white, heal green, elements orange) as
-//                pooled BitmapText (per font); rapid same-style hits on a target merge into a running total; big hits
-//                (≥ 18 % max HP) pop larger; ≤ 4 per target; laid out in screen space against every live number (lanes
-//                beside the head, stacked upwards) so numbers of neighbouring units never cover or touch each other;
-//                crowded spots get shorter lives (see number())
+//   numbers      each hit is born at the same head height with a narrow horizontal variation.
+//                Sum mode merges like-type hits; all/basic permit overlap. Each text floats and fades independently.
 //   skill        brief, small activation glint; recurring subtle amber marks beside active units
 //   blasts       explosions (fireball, flash, shockwave + coloured ground ring, sparks, smoke; heavy ones add debris
 //                and a scorch mark) for blast fx kinds and shell impacts
@@ -87,7 +85,6 @@ const NUM_LIFE = 0.9;         // seconds a number lives (a merged running total 
 const NUM_MAX_LIFE = 1.8;
 const NUM_FADE_T = 0.27;      // fade-out at the end of its life
 const NUM_LINE_EM = 0.95;     // vertical room of one line of digits, in em of the 24 px bitmap font
-const NUM_MAX_LINES = 5;      // a number starts at most this many lines above the head
 const NUM_DIGIT_EM = 0.66;    // advance of one digit of the damage font, in em (Bender 700: 0.56–0.66, the widest kept)
 const NUM_POP = 1.35;         // birth / merge pop scale (the layout reserves the popped size)
 const NUM_GAP_PX = 7;         // horizontal gap between two numbers side by side (never read as one number)
@@ -548,12 +545,13 @@ export class FxSystem {
     const g=new this.P.Graphics(); this.ctx.layers.fxNormal.addChild(g);
     const shotgun=['spreadshooter','reaperrange'].includes(src.info.subProf) || src.info.charId==='char_279_excu';
     const circular=['stalker','phalanx'].includes(src.info.subProf);
-    const grid=src.info.skillZoneGrid || src.info.rangeGrid || [], radius=Math.min(4.5,Math.max(shotgun?2:2.4,...grid.map(([r,c])=>Math.hypot(r,c))));
+    const grid=(src.statuses?.has('skill') && src.info.skillZoneGrid?.length ? src.info.skillZoneGrid : src.info.rangeGrid) || [];
+    const radius=grid.length ? Math.max(...grid.map(([r,c])=>Math.hypot(r,c)+.5)) : shotgun?2:2.4;
     // World rows increase upwards. Facing is the stored deployment direction,
     // independent of transient horizontal target flips.
     const angle={RIGHT:0,UP:Math.PI/2,LEFT:Math.PI,DOWN:-Math.PI/2}[src.dir] ?? 0;
     const color=src.statuses?.has('skill')?skillRangeStyle(src.info).color:shotgun?0xf2c580:({'char_4064_mlynar':0xffd65c,'char_172_svrash':0xb6e4f4,'char_213_mostma':0x738bfa}[src.info.charId] || (src.info.attackType==='arts'?0xa7c6f4:0xdfead9));
-    this.sweeps.push({g,x:src.x,y:src.y,angle,radius,t:0,dur:shotgun?.25:.38,color,spread:shotgun?Math.PI*.6:circular?Math.PI*2:Math.PI});
+    this.sweeps.push({g,x:src.x,y:src.y,angle,radius,grid,t:0,dur:shotgun?.25:.38,color,spread:shotgun?Math.PI*.6:circular?Math.PI*2:Math.PI});
   }
 
   _updateSweeps(dt) {
@@ -561,16 +559,21 @@ export class FxSystem {
       a.t+=dt;if(a.t>=a.dur){a.g.destroy();return false;}
       const k=a.t/a.dur,cam=this.ctx.cam(),r=a.radius*(.12+.88*k);
       a.g.clear();
-      for(const [width,opacity,lag] of [[.30,.38,0],[.065,.94,0],[.12,.16,.18]]){
+      for(const [width,opacity,lag] of [[.22,.30,0],[.045,.95,0],[.085,.16,.15]]){
         const outer=Math.max(.04,r-lag),inner=Math.max(.02,outer-width),points=[];
         for(const [edge,reverse] of [[outer,false],[inner,true]])for(let i=0;i<=48;i++){
           const f=(reverse?48-i:i)/48,angle=a.angle-a.spread/2+f*a.spread;
           const taper=a.spread>=Math.PI*1.99?1:Math.pow(Math.sin(Math.PI*f),.45);
-          const radius=reverse?outer-(outer-inner)*taper:edge;
+          let radius=reverse?outer-(outer-inner)*taper:edge;
+          if(a.grid?.length){
+            const local=angle-a.angle,dx=Math.cos(local),dy=Math.sin(local);let limit=0;
+            for(const [dr,dc] of a.grid){let lo=0,hi=Infinity;for(const [v,center]of [[dx,dc],[dy,dr]]){if(Math.abs(v)<1e-6){if(Math.abs(center)>.5){hi=-1;break;}}else{const ends=[(center-.5)/v,(center+.5)/v].sort((a,b)=>a-b);lo=Math.max(lo,ends[0]);hi=Math.min(hi,ends[1]);}}if(hi>=lo)limit=Math.max(limit,hi);}
+            radius=Math.min(radius,Math.max(0,limit-.025));
+          }
           const x=a.x+Math.cos(angle)*radius,y=a.y+Math.sin(angle)*radius,p=cam.project(x,y,this._groundZ(x,y)+.10);
           points.push(p.x,p.y);
         }
-        a.g.lineStyle(0);a.g.beginFill(a.color,opacity);a.g.drawPolygon(points);a.g.endFill();
+        a.g.lineStyle(0);a.g.beginFill(width===.045 ? 0xfff8e9 : a.color,opacity);a.g.drawPolygon(points);a.g.endFill();
       }
       a.g.alpha=Math.pow(1-k,.45);
       return true;
@@ -578,6 +581,7 @@ export class FxSystem {
   }
 
   _attack(src, tgt, kind) {
+    if (src?.info.charId === "char_4182_oblvns") return; // Actual note positions arrive in snapshots.
     if (wideAttackEffect(src?.info, src?.statuses?.has('skill'))) {
       if (src._wideAttackFxTime !== this.time) { src._wideAttackFxTime=this.time; this._wideSweep(src); }
       return;
@@ -658,7 +662,8 @@ export class FxSystem {
     halo.tint = pr.glow;
     halo.visible = true;
     pr.weaponTexture = this.weaponTextures[spec.weaponSprite] || null;
-    core.texture = pr.weaponTexture || this.tex[look === 'boomerang' ? 'boomerang' : thin ? 'projectileDot' : 'projectileOrb'];
+    pr.material = projectileMaterial(spec,pr.src?.info,pr.src?.statuses?.has('skill'));
+    core.texture = pr.weaponTexture || this.tex[pr.material || (look === 'boomerang' ? 'boomerang' : thin ? 'projectileDot' : 'projectileOrb')];
     core.blendMode = this.P.BLEND_MODES.NORMAL;
     core.tint = pr.weaponTexture ? 0xffffff : spec.tint;
     core.rotation = 0;
@@ -745,7 +750,7 @@ export class FxSystem {
     if (pr.weaponTexture) {
       core.rotation=pr.ang;
       const tex=pr.weaponTexture;core.scale.set(s*(spec.weaponSize || .32)/Math.max(1,tex.width));
-    } else if (thin) core.scale.set((hs * 0.5) / 32);
+    } else if (thin) {core.rotation=pr.ang;core.scale.set(hs / Math.max(1,core.texture.width));}
     else if (look === 'shell') { core.rotation = pr.ang; core.scale.set((hs * 0.85) / 64, (hs * 0.55) / 64); }   // a shell along its flight
     else core.scale.set((hs * 0.62) / 64);
     core.alpha = 1 - fk;
@@ -968,7 +973,7 @@ export class FxSystem {
         break;
       case 'heal': {
         this.particle('glow', x, y, { tint: spec.glow, life: 0.3, s0: (s / 128) * 0.6, s1: (s / 128) * 1.1, a0: 0.9, a1: 0 });
-        this.particle('flare', x, y, { tint: 0xc8ffd8, life: 0.22, s0: (s / 128) * 0.9, s1: (s / 128) * 0.3, a0: 1, a1: 0, rot: Math.random() });
+        this.particle('healBody', x, y, { tint: 0xc8ffd8, life: 0.22, s0: (s / 64) * 0.45, s1: (s / 64) * 0.6, a0: 1, a1: 0, rot: Math.random() });
         const n = rich ? 3 : 1;
         for (let i = 0; i < n; i++) {
           this.particle('plus', x + (Math.random() - 0.5) * s * 0.45, y - Math.random() * s * 0.2, { tint: 0x7dffa8, vy: -s * 0.8, life: 0.6, s0: (s / 64) * 0.26, s1: (s / 64) * 0.14, a0: 0.95, a1: 0, fadeIn: 0.05 });
@@ -1311,7 +1316,7 @@ export class FxSystem {
     const tint = HIT_TINT[style] || 0xffffff;
     const big = view.maxHp > 0 && amount >= view.maxHp * 0.18;
     const melee = !!srcView && (this.attackKinds?.get(srcView.id) === 'none' || this._slashAt === srcView.id);
-    if(!melee)this.particle(style === 'phys' ? 'dot' : 'shock', px, py, { tint, life: .12, s0: (s / (style === 'phys' ? 32 : 128)) * .12, s1: style === 'phys' ? 0 : (s / 128) * .35, a0: .6, a1: 0 });
+    if(!melee)this.particle(style === 'phys' ? 'impactBody' : 'energyContact', px, py, { tint, life: .14, s0:s/64*.22,s1:s/64*.32,a0:.85,a1:0,rot:srcView?Math.atan2(view.y-srcView.y,view.x-srcView.x):0 });
     if (melee) { this._slashAt = null; this._slash(view, srcView, px, py, s, style, big); }
     if (srcView && this.ctx.subProfOf && SPLASH_SUBS.has(this.ctx.subProfOf(srcView.info?.defId))) {
       if (!this._lastRing || this.time - this._lastRing > 0.08) {
@@ -1340,10 +1345,21 @@ export class FxSystem {
     g.position.set(px,py);g.rotation=ang;
     g.lineStyle(Math.max(.8,s*.018),tint,.85);
     const reach=s*(big?.3:.22);
-    if(family==='thrust')g.moveTo(-reach,0).lineTo(reach*.3,0);
-    else if(family==='impact'){g.moveTo(-reach*.4,-reach*.45).lineTo(reach*.4,reach*.45);g.moveTo(-reach*.4,reach*.45).lineTo(reach*.4,-reach*.45);}
-    else if(family==='claw'){for(let i=-1;i<=1;i++)g.moveTo(-reach*.6,i*reach*.25-reach*.5).lineTo(reach*.3,i*reach*.25+reach*.5);}
-    else g.moveTo(-reach*.5,-reach*.65).lineTo(0,-reach*.1).lineTo(reach*.5,reach*.65);
+    const polygon=(points,color,alpha)=>{g.lineStyle(0);g.beginFill(color,alpha);g.drawPolygon(points.flat());g.endFill();};
+    if(family==='thrust'){
+      polygon([[-reach*1.1,-reach*.12],[reach*.65,0],[-reach*1.1,reach*.12]],tint,.65);
+      polygon([[-reach*.8,-reach*.025],[reach*.65,0],[-reach*.8,reach*.025]],0xffffff,.92);
+    }else if(family==='impact'){
+      for(let i=0;i<5;i++){const a=i*Math.PI*2/5+.2,ca=Math.cos(a),sa=Math.sin(a);polygon([[ca*reach*.16-sa*reach*.04,sa*reach*.16+ca*reach*.04],[ca*reach*.7,sa*reach*.7],[ca*reach*.16+sa*reach*.04,sa*reach*.16-ca*reach*.04]],tint,.85);}
+      g.lineStyle(1,tint,.5);g.drawEllipse(0,0,reach*.36,reach*.22);
+    }else{
+      const count=family==='claw'?3:1;
+      for(let i=0;i<count;i++){
+        const offset=(i-(count-1)/2)*reach*.25;
+        polygon([[-reach*.65,-reach*.6+offset],[-reach*.12,-reach*.07+offset],[reach*.62,reach*.6+offset],[reach*.2,reach*.1+offset],[-reach*.28,-reach*.08+offset]],tint,.65);
+        g.lineStyle(Math.max(1,s*.012),0xf6f3e9,.9);g.moveTo(-reach*.65,-reach*.6+offset);g.quadraticCurveTo(-reach*.08,offset,reach*.62,reach*.6+offset);
+      }
+    }
     this.ctx.layers.fxNormal.addChild(g);
     this.contacts.push({g,t:0,dur:family==='impact'?.09:.12,x:view.x,y:view.y,z:bodyZ(this.ctx.cam(),view,SHOT_HEIGHT.aim),s});
     if(this.contacts.length>80)this.contacts.shift().g.destroy();
@@ -1362,20 +1378,9 @@ export class FxSystem {
     if (showDamageNumber(this.ctx.settings,null,true)) this.number(view, amount, 'heal', false);
   }
 
-  /**
-   * A damage / heal number over `view` (see the header). Layout in screen space, against EVERY live number (the
-   * '41509' / '201625' overlaps were numbers of neighbouring units standing side by side):
-   *   * merge: a same-style hit on the same unit within NUM_MERGE_GAP of that number's last hit (and while it is still
-   *     young) adds to it — a running total that re-pops and lives a little longer;
-   *   * cap: a unit shows at most NUM_PER_TARGET numbers; past it the hit joins the unit's youngest same-style number,
-   *     else the unit's oldest number fades out at once;
-   *   * lanes: the new number takes the lowest free slot of its unit's lanes (centre, then beside the head, 0 / ±1
-   *     narrow lane widths), stacking upwards at most NUM_MAX_LINES lines; a slot is free when no live number of any unit
-   *     overlaps it now or later (a younger number rises faster: below an older one it must keep that one's rise so
-   *     far as a margin) with a gap wide enough that two numbers never read as one;
-   *   * crowded (> NUM_CROWD numbers near it): it lives shorter; a pair that still ends up overlapping (units walking
-   *     into each other) resolves by fading the older one quickly (_updateNums).
-   */
+  /** All hits start at one head height with a narrow horizontal variation.
+   * Sum mode merges like-type hits; other modes permit overlap and retain each hit.
+   * The existing short upward float and fade operate independently of the birth height. */
   number(view, amount, style, big, allowZero = false) {
     const mode = damageNumberMode(this.ctx.settings), aggregate = mode === 'sum';
     if (mode === 'none') return;
@@ -1412,45 +1417,10 @@ export class FxSystem {
       return;
     }
     if (aggregate && mine >= NUM_PER_TARGET && oldest) this._fadeNum(oldest, 0.1);
-    // 2. a free slot among the unit's lanes
-    const sc = numScale(s, big, style);
-    const w = numChars(n, style) * NUM_DIGIT_EM * 24 * sc * NUM_POP + NUM_GAP_PX;
-    const h = 24 * NUM_LINE_EM * sc * NUM_POP;
-    const lane = s * .035;
-    let best = null;
-    for (const k of NUM_LANES) {
-      const cx = ax + k * lane;
-      const cy = this._numSlotPx(cx, ay, w, h, risePx);
-      const lift = ay - cy;
-      if (!best || lift < best.lift - 0.5) best = { cx, cy, lift, k };
-      if (lift <= h * 1.2) break;              // low enough: keep the nearest lane
-    }
-    const cap = h * NUM_MAX_LINES;
-    let { cx, cy } = best;
-    if (aggregate && ay - cy > cap) {
-      // over capacity (a knot of units under fire): join this unit's latest same-style total when it fits, else take
-      // the capped spot and drop whatever is there (crowded numbers give way at once)
-      let same = null;
-      for (const t of this.nums) if (t.unit === view && t.style === style && !t.fading && (!same || t.born > same.born)) same = t;
-      if (same && this._growFits(same, n, big)) {
-        same.value += n;
-        same.text.text = (style === 'heal' ? '+' : '') + same.value;
-        same.pop = 1;
-        same.big = same.big || big;
-        same.lastHit = now;
-        this._sizeNum(same);
-        return;
-      }
-      // (released at once, not merely ended: they would vanish before the next render anyway, and as obstacles they
-      // made every further hit of the same frame search a crowd that is no longer there — a knot under AoE)
-      cx = ax; cy = ay - cap;
-      let keep = 0;
-      for (const t of this.nums) {
-        if (Math.abs(t._x - cx) < (t._w + w) / 2 && t._y > cy - h && t._y - t._h < cy) { this._releaseNum(t); continue; }
-        this.nums[keep++] = t;
-      }
-      this.nums.length = keep;
-    }
+    // Every hit starts at the same head height. Overlap is intentional;
+    // never lift later hits into an ever-growing column.
+    const sc=numScale(s,big,style),w=numChars(n,style)*NUM_DIGIT_EM*24*sc*NUM_POP+NUM_GAP_PX,h=24*NUM_LINE_EM*sc*NUM_POP;
+    const cx=ax+NUM_LANES[mine%NUM_LANES.length]*s*.035,cy=ay;
     // 3. crowding: numbers around this spot → a shorter life for everyone new here
     let near = 0;
     for (const t of this.nums) if (!t.fading && Math.abs(t._x - cx) < 150 && Math.abs(t._y - cy) < 110) near++;
@@ -1470,37 +1440,7 @@ export class FxSystem {
 
   /** Whether a merged number's grown text still fits among its neighbours (else a new number is made). */
   _growFits(t, add, big) {
-    const sc = numScale(t._s || 100, t.big || big, t.style);
-    const w = numChars(t.value + add, t.style) * NUM_DIGIT_EM * 24 * sc * NUM_POP + NUM_GAP_PX;
-    for (const o of this.nums) {
-      if (o === t || o.fading) continue;
-      if (Math.abs(o._x - t._x) < (o._w + w) / 2 && Math.abs(o._y - t._y) < (o._h + t._h) / 2) return false;
-    }
-    return true;
-  }
-
-  /**
-   * Lowest (largest screen y) bottom for a number of size w×h centred at x, starting at y0, clear of every live number
-   * now and later: above one it must sit on its top; below one it must leave that one's rise so far as a margin
-   * (the new number rises faster and would catch up).
-   */
-  _numSlotPx(x, y0, w, h, risePx) {
-    let y = y0;
-    for (let pass = 0; pass <= this.nums.length; pass++) {
-      let moved = false;
-      for (const t of this.nums) {
-        if (t.fading && t.text.alpha < 0.3) continue;   // almost gone
-        if (Math.abs(t._x - x) >= (t._w + w) / 2) continue;
-        const top = t._y - t._h, bottom = t._y;
-        const risen = t.risePx * easeOut(Math.min(1, t.life / NUM_RISE_T));
-        if (y <= top) continue;                                   // entirely above it (bottom at or over its top)
-        if (y - h >= bottom + risen) continue;                    // below it, for good
-        y = top;
-        moved = true;
-      }
-      if (!moved) break;
-    }
-    return y;
+    return true; // Numbers may overlap, including a growing sum.
   }
 
   /** Screen boxes of the live numbers (their current anchor, rise and size) → t._x, t._y (bottom), t._w, t._h. */
@@ -1579,20 +1519,7 @@ export class FxSystem {
     }
     this.nums.length = w;
     this._layoutNums(cam);
-    // a pair still overlapping (their units walked into each other): the older one gives way
-    const L = this.nums;
-    for (let i = 0; i < L.length; i++) {
-      const a = L[i];
-      if (a.fading) continue;
-      for (let j = i + 1; j < L.length; j++) {
-        const b = L[j];
-        if (b.fading) continue;
-        if (damageNumberMode(this.ctx.settings)==='sum' && Math.abs(a._x - b._x) < (a._w + b._w) / 2 - NUM_GAP_PX * 0.5 && Math.abs((a._y - a._h / 2) - (b._y - b._h / 2)) < (a._h + b._h) / 2 * 0.9) {
-          this._fadeNum(a.born <= b.born ? a : b, 0.06);
-          if (a.fading) break;
-        }
-      }
-    }
+    const L=this.nums;
     for (const t of L) {
       const tx = t.text;
       tx.scale.set(t._sc * (1 + t.pop * (NUM_POP - 1)));
@@ -1654,10 +1581,7 @@ export class FxSystem {
     this.rings.length = w;
   }
 
-  /**
-   * Skill activation (on) / end (off). On: a flash at the body, a gold light pillar with a white-hot core from the
-   * feet, a shockwave and a hex ring on the ground, rising motes — then the active aura (_aura) until it ends.
-   */
+  /** Compact activation contact, then a rotating gold hex and the skill’s semantic material accent. */
   _skill(view, on) {
     if (!view) return;
     if (!on) { this._aura(view, false); return; }
@@ -1666,7 +1590,7 @@ export class FxSystem {
       this.tileFlash(tiles,skillRangeStyle(view.info).color,.45);
     }
     const c = this._chest(view, this._q);
-    this.particle('flare', c.x, c.y, {tint:skillRangeStyle(view.info).color,life:.12,s0:c.s/128*.35,s1:c.s/128*.15,a0:.48,a1:0});
+    this.particle('skillContact', c.x, c.y, {tint:skillRangeStyle(view.info).color,life:.16,s0:c.s/64*.26,s1:c.s/64*.36,a0:.48,a1:0});
     this._aura(view, true);
   }
 
@@ -1689,7 +1613,7 @@ export class FxSystem {
       if(a.sp.alpha<=0&&ending){a.sp.destroy();this.auras.delete(id);continue;}
       if(!v||v.destroyed)continue;
       const theme=skillRangeStyle(v.info);
-      if(!ending&&theme.accent){
+      if(!ending&&theme.accent && /毒云|毒雾|독\s*구름|독안개|눈보라|暴风雪|화염.*지대|불꽃.*지대|poison.*cloud/i.test(String(v.info.skillName||''))){
         a.cloudEmit=(a.cloudEmit||0)+dt*({poison:9,fire:8,ice:5,water:5,wind:6,time:4,shadow:6,light:4}[theme.accent]||3);
         while(a.cloudEmit>=1){
           a.cloudEmit--;const angle=Math.random()*Math.PI*2,r=Math.sqrt(Math.random())*1.1;
@@ -1827,6 +1751,14 @@ export class FxSystem {
       if(pr){pr.aimTarget=ex.target;pr.tx=Number(x);pr.ty=Number(y);pr.tz=this._groundZ(pr.tx,pr.ty);for(const ring of pr.warnRings||[]){ring.x=pr.tx;ring.y=pr.ty;ring.z=pr.tz;}}
       return;
     }
+    if(kind==='aoe' && ex.skill==='swordRain'){
+      const source=this._viewOf(ex.id),grid=source?.info.skillZoneGrid || [[0,0]];
+      const dir=source?.dir || 'RIGHT';
+      for(const [dr,dc] of grid){const [dy,dx]=dir==='UP'?[dc,-dr]:dir==='LEFT'?[-dr,-dc]:dir==='DOWN'?[-dc,dr]:[dr,dc];
+        const wx=Number(x)+dx,wy=Number(y)+dy,z=this._groundZ(wx,wy),q=this.ctx.cam().project(wx,wy,z);
+        this._anchored(wx,wy,z,()=>{this.particle('kazimierzSword',q.x,q.y-q.s*.75,{tint:0xffbd65,life:.23,vy:q.s*2.5,s0:q.s/64*.85,s1:q.s/64*.55,a0:.85,a1:0});this.ring(wx,wy,z+.015,.06,.32,0xe79420,.3);});
+      }return;
+    }
     const spec = fxSpec(kind, ex);
     if (spec.a === 'none') return; // an event the screen does not show (hitCap)
     const at = spec.pt ? this._point(Number(x), Number(y)) : this._where(Number(x), Number(y), ex);
@@ -1843,6 +1775,23 @@ export class FxSystem {
     const chest = (v, out = this._p) => (v ? this._chest(v, out) : cam.project(at.x, at.y, at.z + 0.5, out));
     const p = chest(at.v);
     const s = p.s;
+    // Six Kazimierz: the blocked operator emits a true-damage shockwave.
+    // Keep this distinct from an artillery explosion (no fire or smoke).
+    if (ex.src === 'bond:kazimierzShip' && ex.key === 'pulse') {
+      const z = this._groundZ(at.x, at.y) + .015;
+      const ground = cam.project(at.x, at.y, z, {});
+      this.particle('kazimierzSword', ground.x, ground.y - ground.s * .65, { tint: 0xffed82, life: .3 / ts, vy: ground.s * 1.4 * ts, s0: ground.s / 64 * 1.4, s1: ground.s / 64 * 1.1, a0: 1, a1: 0 });
+      this.ring(at.x, at.y, z, .12, r, 0xffcb43, .42 / ts);
+      this.ring(at.x, at.y, z, .08, r * .98, 0xfff4c5, .34 / ts);
+      this.ring(at.x, at.y, z, .18, r * .78, 0xe7a723, .48 / ts);
+      this.particle('skillContact', p.x, p.y, { tint: 0xffe58a, life: .24 / ts, s0: s / 64 * .8, s1: s / 64 * 1.45, a0: .9, a1: 0 });
+      for (let i = 0; i < 12; i++) {
+        const angle = i * Math.PI / 6;
+        const q = cam.project(at.x + Math.cos(angle) * r * .7, at.y + Math.sin(angle) * r * .7, z + .08, {});
+        this.particle('impactBody', q.x, q.y, { tint: i % 2 ? 0xfff4ca : 0xffce57, life: .32 / ts, s0: s / 64 * .18, s1: s / 64 * .08, a0: .8, a1: 0 });
+      }
+      return;
+    }
     switch (spec.a) {
       case 'blast': {
         if (r >= 12) { this.flashScreen(col, 0.5); break; }
@@ -2089,7 +2038,7 @@ export class FxSystem {
     const gx = g.x, gy = g.y, s = g.s;
     const R = Math.max(0.4, r), heavy = !!o.heavy, small = !!o.small, rich = this.rich;
     this.particle('glow', gx, gy, { tint: col, life: heavy ? 0.5 : small ? 0.3 : 0.4, s0: (s / 128) * (0.7 + R * 0.7), s1: (s / 128) * (1.2 + R * 1.2), a0: 1, a1: 0 });
-    this.particle('flare', gx, gy, { tint: 0xfff4e0, life: heavy ? 0.28 : 0.18, s0: (s / 128) * (0.9 + R * 0.7), s1: (s / 128) * (0.3 + R * 0.2), a0: 1, a1: 0, rot: Math.random() * 3 });
+    this.particle('fireBody', gx, gy, { tint: 0xfff4e0, life: heavy ? 0.28 : 0.18, s0: (s / 64) * (0.6 + R * 0.45), s1: (s / 64) * (0.85 + R * 0.55), a0: 1, a1: 0, rot: Math.random() * 3 });
     this.ring(x, y, z, 0.1, R * 1.1, 0xfff0d8, heavy ? 0.42 : 0.3, 'shock');
     if (!small) this.ring(x, y, z, 0.15, R, col, heavy ? 0.6 : 0.45);
     this.burst(gx, gy, s, Math.round((small ? 4 : 6) + R * (heavy ? 6 : 3)), col, { speed: 1.8 + R, life: heavy ? 0.6 : 0.45, up: 0.5 });
@@ -2344,7 +2293,7 @@ export class FxSystem {
       if(rec){rec.samples.length=0;rec.g.clear();}return;
     }
     if(!slots || !sp.toGlobal || !cam.unproject)return;
-    const weapon=slots.find(slot=>/weapon|sword|blade|spear|hammer|knife|katana|lance|rapier|scythe|axe|mace/i.test(slot.data?.name || '') && (slot.getAttachment?.()?.offset?.length>=8 || slot.getAttachment?.()?.worldVerticesLength>=4));
+    const weapon=slots.find(slot=>/weapon|sword|blade|spear|hammer|knife|katana|lance|rapier|scythe|axe|mace/i.test((slot.data?.name || '')+' '+(slot.getAttachment?.()?.name || '')) && (slot.getAttachment?.()?.offset?.length>=8 || slot.getAttachment?.()?.worldVerticesLength>=4));
     if(!weapon)return;
     const att=weapon.getAttachment(),bone=weapon.bone;
     let vertices;
@@ -2376,10 +2325,12 @@ export class FxSystem {
     rec.g.clear();
     const color=meleeStyle(view.info)==='arts'?0xa7b8dc:0xe6e4d8;
     for(let i=1;i<rec.samples.length;i++){
-      const a=rec.samples[i-1],b=rec.samples[i],pa=cam.project(a.x,a.y,a.z),pb=cam.project(b.x,b.y,b.z);
+      const a=rec.samples[i-1],b=rec.samples[i],pa=cam.project(a.x,a.y,a.z,{}),pb=cam.project(b.x,b.y,b.z,{});
       // No idle shimmer; only moving weapon tips leave a short, tapering tail.
-      rec.g.lineStyle(Math.max(2,pb.s*.045*i/rec.samples.length),color,.48*i/rec.samples.length);
-      rec.g.moveTo(pa.x,pa.y);rec.g.lineTo(pb.x,pb.y);
+      const dx=pb.x-pa.x,dy=pb.y-pa.y,len=Math.hypot(dx,dy);if(len<.1)continue;
+      const nx=-dy/len,ny=dx/len,wa=pa.s*.075*(i-1)/rec.samples.length,wb=pb.s*.075*i/rec.samples.length;
+      rec.g.lineStyle(0);rec.g.beginFill(color,.34*i/rec.samples.length);
+      rec.g.drawPolygon([pa.x+nx*wa,pa.y+ny*wa,pb.x+nx*wb,pb.y+ny*wb,pb.x-nx*wb,pb.y-ny*wb,pa.x-nx*wa,pa.y-ny*wa]);rec.g.endFill();
     }
   }
 
@@ -2392,7 +2343,27 @@ export class FxSystem {
     }
   }
 
+  noteBubbles(notes) {
+    this.noteSprites ||= new Map();
+    const seen=new Set(),cam=this.ctx.cam();
+    for(const [owner,id,x,y,type] of notes){
+      const key=`${owner}:${id}`;seen.add(key);
+      let g=this.noteSprites.get(key);
+      if(!g){g=new this.P.Graphics();g.blendMode=this.P.BLEND_MODES.NORMAL;this.projLayer.addChild(g);this.noteSprites.set(key,g);}
+      const p=cam.project(x,y,.55),base=cam.project(x,y,0),s=Math.max(10,base.s*.19),tint=type==='arts'?0xd5a1ff:0x99eaff;
+      g.clear();g.position.set(p.x,p.y);
+      g.lineStyle(1.6,tint,.94);g.beginFill(tint,.13);g.drawCircle(0,0,s);g.endFill();
+      g.lineStyle(2,0xffffff,.85);g.arc(0,0,s*.82,Math.PI*1.08,Math.PI*1.55);
+      g.lineStyle(1,0xffb8e8,.8);g.arc(0,0,s*.92,.12,.95);
+      g.lineStyle(0);g.beginFill(0xf1faff,.98);g.drawEllipse(-s*.22,s*.24,s*.21,s*.15);g.drawRect(-s*.08,-s*.45,s*.1,s*.7);g.endFill();
+      g.lineStyle(Math.max(1,s*.1),0xf1faff,1);g.moveTo(0,-s*.42);g.bezierCurveTo(s*.5,-s*.34,s*.5,-s*.12,s*.23,-s*.1);
+    }
+    for(const [key,g]of this.noteSprites)if(!seen.has(key)){g.destroy();this.noteSprites.delete(key);}
+  }
+
   clear() {
+    for(const sweep of this.sweeps)sweep.g.destroy();this.sweeps.length=0;
+    for(const g of this.noteSprites?.values()||[])g.destroy();this.noteSprites?.clear();
     for(const rec of this.weaponTrails.values())rec.g.destroy();this.weaponTrails.clear();
     for(const c of this.contacts)c.g.destroy();this.contacts.length=0;
     for (const p of this.parts) this._freeParticle(p);

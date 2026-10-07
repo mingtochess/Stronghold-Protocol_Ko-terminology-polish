@@ -136,3 +136,22 @@ test('#44 prep scout: an empty hand adds no units and never an m.private to a sp
   assert.equal(h.allTo(S, 'm.private').length, 0, 'still no private state to a scout');
   m.dispose();
 });
+
+test('boss scouting maps hand and temporary slots to the boss bench without repeated row shifts',()=>{
+ const h=makeMatch({humans:2,fake:true}),m=h.m;
+ try{
+  m.bossWaves=[{players:['p_0','p_1'],wave:{spawns:[]}}];
+  for(const [pid,right]of [['p_0',false],['p_1',true]]){
+   const ps=h.ps(pid);ps.board.clear();ps.hand.fill(null);ps.temp.fill(null);
+   const hand=ps.newPiece('chess','chess_char_1_01_a'),temp=ps.newPiece('chess','chess_char_1_01_a');
+   ps.hand[3]=hand;ps.temp[1]=temp;
+   for(let i=0;i<5;i++){
+    const units=m.prepFieldMeta(ps).units;
+    const a=units.find(u=>u.uid===hand.uid),b=units.find(u=>u.uid===temp.uid);
+    assert.deepEqual([a.y,a.x],[0,right?17:3]);
+    assert.deepEqual([b.y,b.x],[1,right?15:5]);
+    assert.equal(a.facing,right?-1:1);
+   }
+  }
+ }finally{m.dispose()}
+});

@@ -2,7 +2,7 @@ import {test} from 'node:test';import assert from 'node:assert/strict';import {r
 import {makeBattle,enemyRec} from '../helpers/battleHarness.js';
 import {absoluteRangeKeys} from '../../server/sim/targeting.js';
 const chess=JSON.parse(readFileSync(new URL('../../content/production/data/chess.json',import.meta.url)));
-for(const [charId,index] of [['char_496_wildmn',1],['char_1050_chen3',2],['char_1047_halo2',2]])for(const dir of ['UP','RIGHT','DOWN','LEFT'])test(`${charId} S${index+1} ${dir}: casts for an enemy inside only the skill range`,()=>{
+for(const [charId,index] of [['char_496_wildmn',1],['char_1050_chen3',2],['char_1047_halo2',2],['char_4026_vulpis',2]])for(const dir of ['UP','RIGHT','DOWN','LEFT'])test(`${charId} S${index+1} ${dir}: casts for an enemy inside only the skill range`,()=>{
  const raw=Object.values(chess).find(c=>c.charId===charId&&!c.isGolden);assert.ok(raw);
  const grid=raw.skills[index].rangeGrid;const own=new Set(absoluteRangeKeys(raw.rangeGrid,11,5,dir,0));
  const key=absoluteRangeKeys(grid,11,5,dir,0).find(k=>!own.has(k)&&Math.floor(k/21)>8&&Math.floor(k/21)<14);

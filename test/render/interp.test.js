@@ -262,3 +262,8 @@ test('movement pace travels with snapshots and resets when a debuff ends',()=>{
  assert.equal(b.sample(0).get(1).moveAnimRate,.2);
  b.push(snap(1,[U(1,3,9)]),1);assert.equal(b.sample(1).get(1).moveAnimRate,1);
 });
+
+test('note bubbles interpolate by owner and note identity and disappear on the next empty snapshot',()=>{
+ const b=new SnapshotBuffer();b.push({...snap(0,[]),sakikoNotes:[[1,1,3,10,'phys'],[2,1,7,10,'arts']]},0);b.push({...snap(1,[]),sakikoNotes:[[1,1,5,12,'phys'],[2,1,9,10,'arts']]},1);
+ assert.deepEqual(b.notesAt(.5),[[1,1,4,11,'phys'],[2,1,8,10,'arts']]);b.push({...snap(2,[]),sakikoNotes:[]},2);assert.deepEqual(b.notesAt(2),[]);
+});

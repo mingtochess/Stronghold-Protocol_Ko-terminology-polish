@@ -419,7 +419,7 @@ function LoadoutScreen({ st }) {
   const selId = st.sel && list.some((c) => c.chessId === st.sel) ? st.sel : list[0]?.chessId || roster[0]?.chessId || null;
   const { base, golden } = selId ? recordsOf(selId, getChess) : { base: null, golden: null };
   const nChanged = changedCount(st.entries, getChess);
-  const locked = (inMatch && phase && phase !== PHASE.INFO_CHECK && phase !== PHASE.LOBBY) || st.sync === 'locked';
+  const locked = (inMatch && phase && phase !== PHASE.INFO_CHECK && phase !== PHASE.BAND_DRAFT && phase !== PHASE.LOBBY) || st.sync === 'locked';
   const gridRef = useRef(null);
   const fileRef = useRef(null);                            // hidden <input type=file> of the 导入 dialog
   const [narrowDetail, setNarrowDetail] = useState(false); // phones: the detail slides over the roster
@@ -507,7 +507,7 @@ function LoadoutScreen({ st }) {
   }, [selId]);
 
   const [syncText, syncCls] = SYNC_TEXT[st.sync] || SYNC_TEXT.idle;
-  const fromText = st.from === 'briefing' ? '确认本局信息阶段结束前可调整本局配置' : '开始模拟前可调整干员携带的技能与模组，干员等级不可调整';
+  const fromText = st.from === 'bandDraft' ? '전략 선택이 끝나기 전까지 이번 판의 스킬·모듈·스킨과 선발 구성을 변경할 수 있습니다.' : st.from === 'briefing' ? '确认本局信息阶段结束前可调整本局配置' : '开始模拟前可调整干员携带的技能与模组，干员等级不可调整';
 
   return html`<${Fragment}>
   <div class="lo" role="dialog" aria-modal="true" aria-label="干员调配">
@@ -577,6 +577,7 @@ function LoadoutScreen({ st }) {
  */
 export function shouldAutoClose(st, phase, inMatch, wasInMatch) {
   if (!st || !st.open) return false;
+  if(st.from==='bandDraft')return !!phase && phase!==PHASE.BAND_DRAFT;
   if (st.from === 'briefing') return !!phase && phase !== PHASE.INFO_CHECK;
   return inMatch && !wasInMatch;
 }

@@ -1,5 +1,6 @@
 // Ursus operators: explicit specs for every selectable skill; values come from each loadout's official record.
 import {num,talentBb,traitBb,batMod} from './tier1.js';
+import {performAttack,effectiveProfile,acquireTargets} from '../../ai.js';
 import {sortEnemyTargets} from '../../targeting.js';
 import * as S from '../support/index.js';
 const STUDENTS=new Set(['char_196_sunbr','char_195_glassb','char_197_poca','char_194_leto','char_115_headbr','char_1051_headb2']);
@@ -96,7 +97,16 @@ function buildSkill(raw,sk){
     if(skill.activations>=2){skill.kind='toggle';skill.timeLeft=Infinity;battle.addBuff(unit,{key:skill._buffKey,mods:{atkPct:num(bb['headb2_s_2[second].atk']),defPct:num(bb['headb2_s_2[second].def'])},tags:['skill']});}
    },onEnd({skill}){skill.kind='duration'}});
    // Client tables give five strikes but omit the enlarged splash radius; use a documented 2-tile radius.
-   return{kind:'ammo',ammo:5,mods:{atkPct:num(bb.atk_base)},targeting:{rangeGrid:[[0,1]],canHitFly:false},attack:{atkScale:num(bb.atk_scale),splashRadius:2,allowEmptyAttack:true},onStart({unit}){unit.mem.zimaStrikes=0},onAttack({battle,unit,skill}){
+   return{kind:'ammo',ammo:5,mods:{atkPct:num(bb.atk_base)},targeting:{rangeGrid:[[0,1]],canHitFly:false},attack:{noAttack:true,atkScale:num(bb.atk_scale),splashRadius:2,allowEmptyAttack:true},onStart({unit}){unit.mem.zimaStrikes=0;unit.mem.zimaSkillClock=0},onTick({battle,unit,skill,dt}){
+    if(!unit.canAct || unit.s.flags.disarm)return;
+    unit.mem.zimaSkillClock+=dt;
+    const marks=[1.1,2.8,4.433,6.067,7.767];
+    while(skill.active && unit.mem.zimaStrikes<5 && unit.mem.zimaSkillClock+1e-9>=marks[unit.mem.zimaStrikes]){
+     const profile={...effectiveProfile(unit),noAttack:false};const hits=acquireTargets(battle,unit,profile);
+     if(!hits.length)battle._ev(['atk',unit.id,unit.id,'none',true]);
+     performAttack(battle,unit,profile,hits);
+    }
+   },onAttack({battle,unit,skill}){
     unit.mem.zimaStrikes++;battle.addBuff(unit,{key:skill._buffKey,mods:{atkPct:num(bb.atk_base)+unit.mem.zimaStrikes*num(bb.atk_step)},tags:['skill']});
    }};
  }

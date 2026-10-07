@@ -1,0 +1,3187 @@
+{
+  "skills": 334,
+  "start": 212,
+  "finish": 6,
+  "specialPoint": 23,
+  "materials": [
+    "arrowBody",
+    "bulletBody",
+    "shellBody",
+    "artsBody",
+    "fireBody",
+    "iceBody",
+    "healBody",
+    "waterBody",
+    "impactBody",
+    "energyContact",
+    "cloudBody",
+    "skillContact"
+  ],
+  "projectileFamilies": {
+    "arrow": "bulletBody",
+    "bolt": "artsBody",
+    "orb": "healBody",
+    "bomb": "shellBody",
+    "lob": "shellBody",
+    "drone": "arrowBody",
+    "enemy": "artsBody",
+    "boomerang": null,
+    "droneBomb": "shellBody"
+  },
+  "entries": [
+    {
+      "charId": "char_498_inside",
+      "skillId": "skchr_inside_1",
+      "index": 0,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": [
+        "battle/b_char/b_char_boostclose.mp3"
+      ]
+    },
+    {
+      "charId": "char_498_inside",
+      "skillId": "skchr_inside_2",
+      "index": 1,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": [
+        "battle/b_char/b_char_boostclose.mp3"
+      ]
+    },
+    {
+      "charId": "char_199_yak",
+      "skillId": "skchr_yak_1",
+      "index": 0,
+      "start": [
+        "battle/b_char/b_char_addshield.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_199_yak",
+      "skillId": "skchr_yak_2",
+      "index": 1,
+      "start": [
+        "battle/b_char/b_char_addshield.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_306_leizi",
+      "skillId": "skcom_atk_up[3]",
+      "index": 0,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_306_leizi",
+      "skillId": "skchr_leizi_2",
+      "index": 1,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_4137_udflow",
+      "skillId": "skchr_udflow_1",
+      "index": 0,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_4137_udflow",
+      "skillId": "skchr_udflow_2",
+      "index": 1,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_290_vigna",
+      "skillId": "skchr_vigna_1",
+      "index": 0,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_290_vigna",
+      "skillId": "skchr_vigna_2",
+      "index": 1,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_494_vendla",
+      "skillId": "skcom_magic_rage[3]",
+      "index": 0,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_494_vendla",
+      "skillId": "skchr_vendla_2",
+      "index": 1,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_145_prove",
+      "skillId": "skchr_prove_1",
+      "index": 0,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_145_prove",
+      "skillId": "skchr_prove_2",
+      "index": 1,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_102_texas",
+      "skillId": "skcom_charge_cost[3]",
+      "index": 0,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_102_texas",
+      "skillId": "skchr_texas_2",
+      "index": 1,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_4100_caper",
+      "skillId": "skchr_caper_1",
+      "index": 0,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_4100_caper",
+      "skillId": "skchr_caper_2",
+      "index": 1,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_196_sunbr",
+      "skillId": "skchr_sunbr_1",
+      "index": 0,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_196_sunbr",
+      "skillId": "skchr_sunbr_2",
+      "index": 1,
+      "start": [
+        "battle/b_char/b_char_healboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_183_skgoat",
+      "skillId": "skcom_atk_up[2]",
+      "index": 0,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_183_skgoat",
+      "skillId": "skchr_skgoat_2",
+      "index": 1,
+      "start": [
+        "player/p_skill/p_field_calcinosis.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_127_estell",
+      "skillId": "skcom_atk_up[2]",
+      "index": 0,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_127_estell",
+      "skillId": "skchr_estell_2",
+      "index": 1,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_258_podego",
+      "skillId": "skchr_podego_1",
+      "index": 0,
+      "start": [
+        "battle/b_char/b_char_healboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_258_podego",
+      "skillId": "skchr_podego_2",
+      "index": 1,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_253_greyy",
+      "skillId": "skcom_magic_rage[2]",
+      "index": 0,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_253_greyy",
+      "skillId": "skchr_greyy_2",
+      "index": 1,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_616_pithst",
+      "skillId": "skchr_pithst_1",
+      "index": 0,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_4151_tinman",
+      "skillId": "skchr_tinman_1",
+      "index": 0,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_4151_tinman",
+      "skillId": "skchr_tinman_2",
+      "index": 1,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_469_indigo",
+      "skillId": "skchr_indigo_1",
+      "index": 0,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_469_indigo",
+      "skillId": "skchr_indigo_2",
+      "index": 1,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_337_utage",
+      "skillId": "skchr_utage_1",
+      "index": 0,
+      "start": [
+        "battle/b_char/b_char_healboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_337_utage",
+      "skillId": "skchr_utage_2",
+      "index": 1,
+      "start": [
+        "battle/b_char/b_char_tactboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_496_wildmn",
+      "skillId": "skchr_wildmn_1",
+      "index": 0,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_496_wildmn",
+      "skillId": "skchr_wildmn_2",
+      "index": 1,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_107_liskam",
+      "skillId": "skchr_liskam_1",
+      "index": 0,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_107_liskam",
+      "skillId": "skchr_liskam_2",
+      "index": 1,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_279_excu",
+      "skillId": "skchr_excu_1",
+      "index": 0,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_279_excu",
+      "skillId": "skchr_excu_2",
+      "index": 1,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_108_silent",
+      "skillId": "skcom_heal_up[3]",
+      "index": 0,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_108_silent",
+      "skillId": "skchr_silent_2",
+      "index": 1,
+      "start": [
+        "battle/b_char/b_char_botready.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_173_slchan",
+      "skillId": "skchr_slchan_1",
+      "index": 0,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_173_slchan",
+      "skillId": "skchr_slchan_2",
+      "index": 1,
+      "start": [
+        "player/p_atk/p_atk_cowboy_h.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_4122_grabds",
+      "skillId": "skchr_grabds_1",
+      "index": 0,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_4122_grabds",
+      "skillId": "skchr_grabds_2",
+      "index": 1,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_4114_harold",
+      "skillId": "skcom_heal_up[3]",
+      "index": 0,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_4114_harold",
+      "skillId": "skchr_harold_2",
+      "index": 1,
+      "start": [
+        "battle/b_char/b_char_healboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_4139_papyrs",
+      "skillId": "skchr_papyrs_1",
+      "index": 0,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_4139_papyrs",
+      "skillId": "skchr_papyrs_2",
+      "index": 1,
+      "start": [
+        "battle/b_char/b_char_healboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_143_ghost",
+      "skillId": "skcom_atk_up[3]",
+      "index": 0,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_143_ghost",
+      "skillId": "skchr_ghost_2",
+      "index": 1,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_381_bubble",
+      "skillId": "skcom_def_up[2]",
+      "index": 0,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_381_bubble",
+      "skillId": "skchr_bubble_2",
+      "index": 1,
+      "start": [
+        "battle/b_char/b_char_defboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_491_humus",
+      "skillId": "skchr_humus_1",
+      "index": 0,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_491_humus",
+      "skillId": "skchr_humus_2",
+      "index": 1,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_4040_rockr",
+      "skillId": "skcom_magic_rage[3]",
+      "index": 0,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_4040_rockr",
+      "skillId": "skchr_rockr_2",
+      "index": 1,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": [
+        "battle/b_char/b_char_boostclose.mp3"
+      ]
+    },
+    {
+      "charId": "char_4016_kazema",
+      "skillId": "skchr_kazema_1",
+      "index": 0,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_4016_kazema",
+      "skillId": "skchr_kazema_2",
+      "index": 1,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_237_gravel",
+      "skillId": "skchr_gravel_1",
+      "index": 0,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_237_gravel",
+      "skillId": "skchr_gravel_2",
+      "index": 1,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_4191_tippi",
+      "skillId": "skchr_tippi_1",
+      "index": 0,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_4191_tippi",
+      "skillId": "skchr_tippi_2",
+      "index": 1,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_181_flower",
+      "skillId": "skcom_heal_up[2]",
+      "index": 0,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_181_flower",
+      "skillId": "skchr_flower_2",
+      "index": 1,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_4051_akkord",
+      "skillId": "skchr_akkord_1",
+      "index": 0,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_4051_akkord",
+      "skillId": "skchr_akkord_2",
+      "index": 1,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_140_whitew",
+      "skillId": "skchr_whitew_1",
+      "index": 0,
+      "start": [
+        "player/p_skill/p_skill_soulwolf.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_140_whitew",
+      "skillId": "skchr_whitew_2",
+      "index": 1,
+      "start": [
+        "player/p_skill/p_skill_soulwolf.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_4207_branch",
+      "skillId": "skchr_branch_1",
+      "index": 0,
+      "start": [
+        "battle/b_char/b_char_defboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_4207_branch",
+      "skillId": "skchr_branch_2",
+      "index": 1,
+      "start": [
+        "battle/b_char/b_char_defboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_431_ashlok",
+      "skillId": "skcom_atk_up[3]",
+      "index": 0,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_431_ashlok",
+      "skillId": "skchr_ashlok_2",
+      "index": 1,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_103_angel",
+      "skillId": "skchr_angel_1",
+      "index": 0,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_103_angel",
+      "skillId": "skchr_angel_2",
+      "index": 1,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_103_angel",
+      "skillId": "skchr_angel_3",
+      "index": 2,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_294_ayer",
+      "skillId": "skchr_ayer_1",
+      "index": 0,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_294_ayer",
+      "skillId": "skchr_ayer_2",
+      "index": 1,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_308_swire",
+      "skillId": "skchr_swire_1",
+      "index": 0,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_308_swire",
+      "skillId": "skchr_swire_2",
+      "index": 1,
+      "start": [
+        "battle/b_char/b_char_tactboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_1033_swire2",
+      "skillId": "skchr_swire2_1",
+      "index": 0,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_1033_swire2",
+      "skillId": "skchr_swire2_2",
+      "index": 1,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_1033_swire2",
+      "skillId": "skchr_swire2_3",
+      "index": 2,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": [
+        "battle/b_char/b_char_boostclose.mp3"
+      ]
+    },
+    {
+      "charId": "char_263_skadi",
+      "skillId": "skcom_quickattack[3]",
+      "index": 0,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_263_skadi",
+      "skillId": "skchr_skadi_2",
+      "index": 1,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_263_skadi",
+      "skillId": "skchr_skadi_3",
+      "index": 2,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_4148_philae",
+      "skillId": "skchr_philae_1",
+      "index": 0,
+      "start": [
+        "battle/b_char/b_char_defboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_4148_philae",
+      "skillId": "skchr_philae_2",
+      "index": 1,
+      "start": [
+        "battle/b_char/b_char_defboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_4036_forcer",
+      "skillId": "skchr_forcer_1",
+      "index": 0,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_4036_forcer",
+      "skillId": "skchr_forcer_2",
+      "index": 1,
+      "start": [
+        "battle/b_char/b_char_tactboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_388_mint",
+      "skillId": "skchr_mint_1",
+      "index": 0,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_388_mint",
+      "skillId": "skchr_mint_2",
+      "index": 1,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_4079_haini",
+      "skillId": "skchr_haini_1",
+      "index": 0,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_4079_haini",
+      "skillId": "skchr_haini_2",
+      "index": 1,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_440_pinecn",
+      "skillId": "skchr_pinecn_1",
+      "index": 0,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_440_pinecn",
+      "skillId": "skchr_pinecn_2",
+      "index": 1,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_4211_snhunt",
+      "skillId": "skchr_snhunt_1",
+      "index": 0,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_4211_snhunt",
+      "skillId": "skchr_snhunt_2",
+      "index": 1,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_423_blemsh",
+      "skillId": "skchr_blemsh_1",
+      "index": 0,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_423_blemsh",
+      "skillId": "skchr_blemsh_2",
+      "index": 1,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_423_blemsh",
+      "skillId": "skchr_blemsh_3",
+      "index": 2,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_4054_malist",
+      "skillId": "skcom_quickattack[3]",
+      "index": 0,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_4054_malist",
+      "skillId": "skchr_malist_2",
+      "index": 1,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_174_slbell",
+      "skillId": "skchr_slbell_1",
+      "index": 0,
+      "start": [
+        "player/p_skill/p_field_recallbell.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_174_slbell",
+      "skillId": "skchr_slbell_2",
+      "index": 1,
+      "start": [
+        "player/p_skill/p_field_recallbell.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_254_vodfox",
+      "skillId": "skchr_vodfox_1",
+      "index": 0,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_254_vodfox",
+      "skillId": "skchr_vodfox_2",
+      "index": 1,
+      "start": [
+        "player/p_skill/p_skill_cursedoll.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_150_snakek",
+      "skillId": "skcom_def_up[2]",
+      "index": 0,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_150_snakek",
+      "skillId": "skchr_snakek_2",
+      "index": 1,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_126_shotst",
+      "skillId": "skchr_shotst_1",
+      "index": 0,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_126_shotst",
+      "skillId": "skchr_shotst_2",
+      "index": 1,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_4026_vulpis",
+      "skillId": "skchr_vulpis_1",
+      "index": 0,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_4026_vulpis",
+      "skillId": "skchr_vulpis_2",
+      "index": 1,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_4026_vulpis",
+      "skillId": "skchr_vulpis_3",
+      "index": 2,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_427_vigil",
+      "skillId": "skchr_vigil_1",
+      "index": 0,
+      "start": [
+        "player/p_atk/p_atk_vwgun_d.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_427_vigil",
+      "skillId": "skchr_vigil_2",
+      "index": 1,
+      "start": [
+        "player/p_atk/p_atk_vwgun_d_1.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_427_vigil",
+      "skillId": "skchr_vigil_3",
+      "index": 2,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_4013_kjera",
+      "skillId": "skcom_atk_up[3]",
+      "index": 0,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_4013_kjera",
+      "skillId": "skchr_kjera_2",
+      "index": 1,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_332_archet",
+      "skillId": "skchr_archet_1",
+      "index": 0,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_332_archet",
+      "skillId": "skchr_archet_2",
+      "index": 1,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_332_archet",
+      "skillId": "skchr_archet_3",
+      "index": 2,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_4194_rmixer",
+      "skillId": "skchr_rmixer_1",
+      "index": 0,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_4194_rmixer",
+      "skillId": "skchr_rmixer_2",
+      "index": 1,
+      "start": [
+        "player/p_atk/p_atk_ftmxbrtlm_ski.mp3"
+      ],
+      "finish": [],
+      "specialPoint": [
+        "battle/b_char/b_char_boostclose.mp3"
+      ]
+    },
+    {
+      "charId": "char_4194_rmixer",
+      "skillId": "skchr_rmixer_3",
+      "index": 2,
+      "start": [
+        "player/p_atk/p_atk_ftmxbrtlm_skii.mp3"
+      ],
+      "finish": [],
+      "specialPoint": [
+        "battle/b_char/b_char_boostclose.mp3"
+      ]
+    },
+    {
+      "charId": "char_213_mostma",
+      "skillId": "skcom_atk_up[3]",
+      "index": 0,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_213_mostma",
+      "skillId": "skchr_mostma_2",
+      "index": 1,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_213_mostma",
+      "skillId": "skchr_mostma_3",
+      "index": 2,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_4087_ines",
+      "skillId": "skchr_ines_1",
+      "index": 0,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_4087_ines",
+      "skillId": "skchr_ines_2",
+      "index": 1,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_4087_ines",
+      "skillId": "skchr_ines_3",
+      "index": 2,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_344_beewax",
+      "skillId": "skchr_beewax_1",
+      "index": 0,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_344_beewax",
+      "skillId": "skchr_beewax_2",
+      "index": 1,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_1021_kroos2",
+      "skillId": "skchr_kroos2_1",
+      "index": 0,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_1021_kroos2",
+      "skillId": "skchr_kroos2_2",
+      "index": 1,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_222_bpipe",
+      "skillId": "skcom_quickattack[3]",
+      "index": 0,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_222_bpipe",
+      "skillId": "skchr_bpipe_2",
+      "index": 1,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_222_bpipe",
+      "skillId": "skchr_bpipe_3",
+      "index": 2,
+      "start": [
+        "battle/b_char/b_char_tactboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_4163_rosesa",
+      "skillId": "skchr_rosesa_1",
+      "index": 0,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_4163_rosesa",
+      "skillId": "skchr_rosesa_2",
+      "index": 1,
+      "start": [
+        "battle/b_char/b_char_healboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_437_mizuki",
+      "skillId": "skchr_mizuki_1",
+      "index": 0,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_437_mizuki",
+      "skillId": "skchr_mizuki_2",
+      "index": 1,
+      "start": [
+        "battle/b_char/b_char_tactboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_437_mizuki",
+      "skillId": "skchr_mizuki_3",
+      "index": 2,
+      "start": [
+        "battle/b_char/b_char_tactboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_446_aroma",
+      "skillId": "skchr_aroma_1",
+      "index": 0,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_446_aroma",
+      "skillId": "skchr_aroma_2",
+      "index": 1,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_4162_cathy",
+      "skillId": "skchr_cathy_1",
+      "index": 0,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_4162_cathy",
+      "skillId": "skchr_cathy_2",
+      "index": 1,
+      "start": [
+        "battle/b_char/b_char_tactboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_474_glady",
+      "skillId": "skchr_glady_1",
+      "index": 0,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_474_glady",
+      "skillId": "skchr_glady_2",
+      "index": 1,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_474_glady",
+      "skillId": "skchr_glady_3",
+      "index": 2,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_206_gnosis",
+      "skillId": "skchr_gnosis_1",
+      "index": 0,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_206_gnosis",
+      "skillId": "skchr_gnosis_2",
+      "index": 1,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_206_gnosis",
+      "skillId": "skchr_gnosis_3",
+      "index": 2,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_373_lionhd",
+      "skillId": "skcom_atk_up[3]",
+      "index": 0,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_373_lionhd",
+      "skillId": "skchr_lionhd_2",
+      "index": 1,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_4196_reckpr",
+      "skillId": "skchr_reckpr_1",
+      "index": 0,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_4196_reckpr",
+      "skillId": "skchr_reckpr_2",
+      "index": 1,
+      "start": [
+        "battle/b_char/b_char_healboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_1028_texas2",
+      "skillId": "skchr_texas2_1",
+      "index": 0,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_1028_texas2",
+      "skillId": "skchr_texas2_2",
+      "index": 1,
+      "start": [
+        "player/p_skill/p_skill_reticentsword_h.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_1028_texas2",
+      "skillId": "skchr_texas2_3",
+      "index": 2,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_136_hsguma",
+      "skillId": "skchr_hsguma_1",
+      "index": 0,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_136_hsguma",
+      "skillId": "skchr_hsguma_2",
+      "index": 1,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_136_hsguma",
+      "skillId": "skchr_hsguma_3",
+      "index": 2,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_311_mudrok",
+      "skillId": "skcom_def_up[3]",
+      "index": 0,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_311_mudrok",
+      "skillId": "skchr_mudrok_2",
+      "index": 1,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_311_mudrok",
+      "skillId": "skchr_mudrok_3",
+      "index": 2,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_420_flamtl",
+      "skillId": "skchr_flamtl_1",
+      "index": 0,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_420_flamtl",
+      "skillId": "skchr_flamtl_2",
+      "index": 1,
+      "start": [
+        "battle/b_char/b_char_tactboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_420_flamtl",
+      "skillId": "skchr_flamtl_3",
+      "index": 2,
+      "start": [
+        "battle/b_char/b_char_tactboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_430_fartth",
+      "skillId": "skcom_quickattack[3]",
+      "index": 0,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_430_fartth",
+      "skillId": "skchr_fartth_2",
+      "index": 1,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_430_fartth",
+      "skillId": "skchr_fartth_3",
+      "index": 2,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_128_plosis",
+      "skillId": "skcom_heal_up[3]",
+      "index": 0,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_128_plosis",
+      "skillId": "skchr_plosis_2",
+      "index": 1,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_172_svrash",
+      "skillId": "skchr_svrash_1",
+      "index": 0,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_172_svrash",
+      "skillId": "skchr_svrash_2",
+      "index": 1,
+      "start": [
+        "battle/b_char/b_char_defboost.mp3"
+      ],
+      "finish": [
+        "battle/b_char/b_char_tactboost.mp3"
+      ],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_172_svrash",
+      "skillId": "skchr_svrash_3",
+      "index": 2,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_1026_gvial2",
+      "skillId": "skchr_gvial2_1",
+      "index": 0,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_1026_gvial2",
+      "skillId": "skchr_gvial2_2",
+      "index": 1,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_1026_gvial2",
+      "skillId": "skchr_gvial2_3",
+      "index": 2,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_426_billro",
+      "skillId": "skchr_billro_1",
+      "index": 0,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_426_billro",
+      "skillId": "skchr_billro_2",
+      "index": 1,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_426_billro",
+      "skillId": "skchr_billro_3",
+      "index": 2,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_4134_cetsyr",
+      "skillId": "skchr_cetsyr_1",
+      "index": 0,
+      "start": [
+        "player/p_skill/p_skill_tpartclhel.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_4134_cetsyr",
+      "skillId": "skchr_cetsyr_2",
+      "index": 1,
+      "start": [
+        "player/p_skill/p_skill_tpartclswth.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_4134_cetsyr",
+      "skillId": "skchr_cetsyr_3",
+      "index": 2,
+      "start": [
+        "player/p_skill/p_skill_tpartclotmfld.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_171_bldsk",
+      "skillId": "skchr_bldsk_1",
+      "index": 0,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_171_bldsk",
+      "skillId": "skchr_bldsk_2",
+      "index": 1,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_1032_excu2",
+      "skillId": "skchr_excu2_1",
+      "index": 0,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": [
+        "battle/b_char/b_char_boostclose.mp3"
+      ]
+    },
+    {
+      "charId": "char_1032_excu2",
+      "skillId": "skchr_excu2_2",
+      "index": 1,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": [
+        "battle/b_char/b_char_boostclose.mp3"
+      ]
+    },
+    {
+      "charId": "char_1032_excu2",
+      "skillId": "skchr_excu2_3",
+      "index": 2,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": [
+        "battle/b_char/b_char_boostclose.mp3"
+      ]
+    },
+    {
+      "charId": "char_4056_titi",
+      "skillId": "skchr_titi_1",
+      "index": 0,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_4056_titi",
+      "skillId": "skchr_titi_2",
+      "index": 1,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_4056_titi",
+      "skillId": "skchr_titi_3",
+      "index": 2,
+      "start": [
+        "player/p_skill/p_skill_sdycrtl_s.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_1040_blaze2",
+      "skillId": "skchr_blaze2_1",
+      "index": 0,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_1040_blaze2",
+      "skillId": "skchr_blaze2_2",
+      "index": 1,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_1040_blaze2",
+      "skillId": "skchr_blaze2_3",
+      "index": 2,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": [
+        "battle/b_char/b_char_boostclose.mp3"
+      ]
+    },
+    {
+      "charId": "char_4145_ulpia",
+      "skillId": "skchr_ulpia_1",
+      "index": 0,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_4145_ulpia",
+      "skillId": "skchr_ulpia_2",
+      "index": 1,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_4145_ulpia",
+      "skillId": "skchr_ulpia_3",
+      "index": 2,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": [
+        "battle/b_char/b_char_boostclose.mp3"
+      ]
+    },
+    {
+      "charId": "char_4010_etlchi",
+      "skillId": "skchr_etlchi_1",
+      "index": 0,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_4010_etlchi",
+      "skillId": "skchr_etlchi_2",
+      "index": 1,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_4010_etlchi",
+      "skillId": "skchr_etlchi_3",
+      "index": 2,
+      "start": [
+        "player/p_skill/p_skill_vmprsckl.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_350_surtr",
+      "skillId": "skchr_surtr_1",
+      "index": 0,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_350_surtr",
+      "skillId": "skchr_surtr_2",
+      "index": 1,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_350_surtr",
+      "skillId": "skchr_surtr_3",
+      "index": 2,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_4039_horn",
+      "skillId": "skchr_horn_1",
+      "index": 0,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_4039_horn",
+      "skillId": "skchr_horn_2",
+      "index": 1,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": [
+        "battle/b_char/b_char_boostclose.mp3"
+      ]
+    },
+    {
+      "charId": "char_4039_horn",
+      "skillId": "skchr_horn_3",
+      "index": 2,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": [
+        "battle/b_char/b_char_boostclose.mp3"
+      ]
+    },
+    {
+      "charId": "char_358_lisa",
+      "skillId": "skchr_lisa_1",
+      "index": 0,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_358_lisa",
+      "skillId": "skchr_lisa_2",
+      "index": 1,
+      "start": [
+        "player/p_skill/p_skill_specialboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_358_lisa",
+      "skillId": "skchr_lisa_3",
+      "index": 2,
+      "start": [
+        "player/p_skill/p_skill_specialboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_202_demkni",
+      "skillId": "skchr_demkni_1",
+      "index": 0,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_202_demkni",
+      "skillId": "skchr_demkni_2",
+      "index": 1,
+      "start": [
+        "player/p_atk/p_atk_heal_n.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_202_demkni",
+      "skillId": "skchr_demkni_3",
+      "index": 2,
+      "start": [
+        "battle/b_char/b_char_healboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_2015_dusk",
+      "skillId": "skchr_dusk_1",
+      "index": 0,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_2015_dusk",
+      "skillId": "skchr_dusk_2",
+      "index": 1,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_2015_dusk",
+      "skillId": "skchr_dusk_3",
+      "index": 2,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_1023_ghost2",
+      "skillId": "skchr_ghost2_1",
+      "index": 0,
+      "start": [
+        "battle/b_char/b_char_tactboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_1023_ghost2",
+      "skillId": "skchr_ghost2_2",
+      "index": 1,
+      "start": [
+        "battle/b_char/b_char_tactboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_1023_ghost2",
+      "skillId": "skchr_ghost2_3",
+      "index": 2,
+      "start": [
+        "battle/b_char/b_char_tactboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_1045_svash2",
+      "skillId": "skchr_svash2_1",
+      "index": 0,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_1045_svash2",
+      "skillId": "skchr_svash2_2",
+      "index": 1,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_1045_svash2",
+      "skillId": "skchr_svash2_3",
+      "index": 2,
+      "start": [
+        "player/p_skill/p_skill_snwlprdg_s.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_1039_thorn2",
+      "skillId": "skchr_thorn2_1",
+      "index": 0,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_1039_thorn2",
+      "skillId": "skchr_thorn2_2",
+      "index": 1,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_1039_thorn2",
+      "skillId": "skchr_thorn2_3",
+      "index": 2,
+      "start": [
+        "player/p_skill/p_skill_trshldacyb.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_264_f12yin",
+      "skillId": "skchr_f12yin_1",
+      "index": 0,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_264_f12yin",
+      "skillId": "skchr_f12yin_2",
+      "index": 1,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_264_f12yin",
+      "skillId": "skchr_f12yin_3",
+      "index": 2,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_4064_mlynar",
+      "skillId": "skchr_mlynar_1",
+      "index": 0,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_4064_mlynar",
+      "skillId": "skchr_mlynar_2",
+      "index": 1,
+      "start": [],
+      "finish": [
+        "battle/b_char/b_char_boostclose.mp3"
+      ],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_4064_mlynar",
+      "skillId": "skchr_mlynar_3",
+      "index": 2,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_291_aglina",
+      "skillId": "skchr_aglina_1",
+      "index": 0,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_291_aglina",
+      "skillId": "skchr_aglina_2",
+      "index": 1,
+      "start": [
+        "player/p_skill/p_skill_particulateboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_291_aglina",
+      "skillId": "skchr_aglina_3",
+      "index": 2,
+      "start": [
+        "player/p_skill/p_skill_particulateboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_341_sntlla",
+      "skillId": "skcom_quickattack[3]",
+      "index": 0,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_341_sntlla",
+      "skillId": "skchr_sntlla_2",
+      "index": 1,
+      "start": [
+        "player/p_skill/p_skill_icnrgystaff.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_4146_nymph",
+      "skillId": "skchr_nymph_1",
+      "index": 0,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_4146_nymph",
+      "skillId": "skchr_nymph_2",
+      "index": 1,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_4146_nymph",
+      "skillId": "skchr_nymph_3",
+      "index": 2,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_4193_lemuen",
+      "skillId": "skchr_lemuen_1",
+      "index": 0,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": [
+        "battle/b_char/b_char_boostclose.mp3"
+      ]
+    },
+    {
+      "charId": "char_4193_lemuen",
+      "skillId": "skchr_lemuen_2",
+      "index": 1,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": [
+        "battle/b_char/b_char_boostclose.mp3"
+      ]
+    },
+    {
+      "charId": "char_4193_lemuen",
+      "skillId": "skchr_lemuen_3",
+      "index": 2,
+      "start": [
+        "player/p_atk/p_atk_lmwlcrstskst.mp3"
+      ],
+      "finish": [],
+      "specialPoint": [
+        "battle/b_char/b_char_boostclose.mp3"
+      ]
+    },
+    {
+      "charId": "char_1046_sbell2",
+      "skillId": "skchr_sbell2_1",
+      "index": 0,
+      "start": [
+        "player/p_skill/p_skill_swlprdbl_d.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_1046_sbell2",
+      "skillId": "skchr_sbell2_2",
+      "index": 1,
+      "start": [],
+      "finish": [],
+      "specialPoint": [
+        "battle/b_char/b_char_boostclose.mp3"
+      ]
+    },
+    {
+      "charId": "char_1046_sbell2",
+      "skillId": "skchr_sbell2_3",
+      "index": 2,
+      "start": [
+        "player/p_skill/p_skill_swlprdbl_s.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_2026_yu",
+      "skillId": "skchr_yu_1",
+      "index": 0,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_2026_yu",
+      "skillId": "skchr_yu_2",
+      "index": 1,
+      "start": [
+        "player/p_skill/p_skill_frbytrtn_s2.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_2026_yu",
+      "skillId": "skchr_yu_3",
+      "index": 2,
+      "start": [
+        "player/p_skill/p_skill_frbytrtn_s3.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_1012_skadi2",
+      "skillId": "skchr_skadi2_1",
+      "index": 0,
+      "start": [
+        "player/p_skill/p_skill_samegoaldiffways.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_1012_skadi2",
+      "skillId": "skchr_skadi2_2",
+      "index": 1,
+      "start": [
+        "player/p_skill/p_skill_burningdarkness.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_1012_skadi2",
+      "skillId": "skchr_skadi2_3",
+      "index": 2,
+      "start": [
+        "player/p_skill/p_skill_tidesurging.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_472_pasngr",
+      "skillId": "skchr_pasngr_1",
+      "index": 0,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_472_pasngr",
+      "skillId": "skchr_pasngr_2",
+      "index": 1,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_472_pasngr",
+      "skillId": "skchr_pasngr_3",
+      "index": 2,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_4058_pepe",
+      "skillId": "skchr_pepe_1",
+      "index": 0,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_4058_pepe",
+      "skillId": "skchr_pepe_2",
+      "index": 1,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_4058_pepe",
+      "skillId": "skchr_pepe_3",
+      "index": 2,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_1019_siege2",
+      "skillId": "skchr_siege2_1",
+      "index": 0,
+      "start": [
+        "player/p_atk/p_atk_sphkgjmphmr.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_1019_siege2",
+      "skillId": "skchr_siege2_2",
+      "index": 1,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_1019_siege2",
+      "skillId": "skchr_siege2_3",
+      "index": 2,
+      "start": [
+        "player/p_skill/p_skill_sphkgsklbst.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_1020_reed2",
+      "skillId": "skcom_quickattack[3]",
+      "index": 0,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_1020_reed2",
+      "skillId": "skchr_reed2_2",
+      "index": 1,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_1020_reed2",
+      "skillId": "skchr_reed2_3",
+      "index": 2,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_245_cello",
+      "skillId": "skchr_cello_1",
+      "index": 0,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_245_cello",
+      "skillId": "skchr_cello_2",
+      "index": 1,
+      "start": [
+        "player/p_skill/p_skill_shphrtclspicc.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_245_cello",
+      "skillId": "skchr_cello_3",
+      "index": 2,
+      "start": [
+        "player/p_skill/p_skill_thrill_loop.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_249_mlyss",
+      "skillId": "skchr_mlyss_1",
+      "index": 0,
+      "start": [
+        "battle/b_char/b_char_tactboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_249_mlyss",
+      "skillId": "skchr_mlyss_2",
+      "index": 1,
+      "start": [
+        "battle/b_char/b_char_tactboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_249_mlyss",
+      "skillId": "skchr_mlyss_3",
+      "index": 2,
+      "start": [
+        "battle/b_char/b_char_tactboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_391_rosmon",
+      "skillId": "skchr_rosmon_1",
+      "index": 0,
+      "start": [
+        "player/p_atk/p_atk_shi4ord_h.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_391_rosmon",
+      "skillId": "skchr_rosmon_2",
+      "index": 1,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_391_rosmon",
+      "skillId": "skchr_rosmon_3",
+      "index": 2,
+      "start": [
+        "player/p_skill/p_skill_asyouwish.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_1041_angel2",
+      "skillId": "skchr_angel2_1",
+      "index": 0,
+      "start": [],
+      "finish": [],
+      "specialPoint": [
+        "battle/b_char/b_char_boostclose.mp3"
+      ]
+    },
+    {
+      "charId": "char_1041_angel2",
+      "skillId": "skchr_angel2_2",
+      "index": 1,
+      "start": [
+        "player/p_atk/p_atk_tlsrhgn_h.mp3"
+      ],
+      "finish": [],
+      "specialPoint": [
+        "battle/b_char/b_char_boostclose.mp3"
+      ]
+    },
+    {
+      "charId": "char_1041_angel2",
+      "skillId": "skchr_angel2_3",
+      "index": 2,
+      "start": [],
+      "finish": [],
+      "specialPoint": [
+        "battle/b_char/b_char_boostclose.mp3"
+      ]
+    },
+    {
+      "charId": "char_4042_lumen",
+      "skillId": "skchr_lumen_1",
+      "index": 0,
+      "start": [
+        "player/p_atk/p_atk_fishheal_g.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_4042_lumen",
+      "skillId": "skchr_lumen_2",
+      "index": 1,
+      "start": [
+        "battle/b_char/b_char_healboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_4042_lumen",
+      "skillId": "skchr_lumen_3",
+      "index": 2,
+      "start": [
+        "battle/b_char/b_char_healboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": [
+        "battle/b_char/b_char_boostclose.mp3"
+      ]
+    },
+    {
+      "charId": "char_4082_qiubai",
+      "skillId": "skchr_qiubai_1",
+      "index": 0,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_4082_qiubai",
+      "skillId": "skchr_qiubai_2",
+      "index": 1,
+      "start": [],
+      "finish": [
+        "player/p_imp/p_imp_swordcutexplode.mp3"
+      ],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_4082_qiubai",
+      "skillId": "skchr_qiubai_3",
+      "index": 2,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_1047_halo2",
+      "skillId": "skchr_halo2_1",
+      "index": 0,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_1047_halo2",
+      "skillId": "skchr_halo2_2",
+      "index": 1,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_1047_halo2",
+      "skillId": "skchr_halo2_3",
+      "index": 2,
+      "start": [
+        "player/p_skill/p_skill_strbsvr_s.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_1014_nearl2",
+      "skillId": "skchr_nearl2_1",
+      "index": 0,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_1014_nearl2",
+      "skillId": "skchr_nearl2_2",
+      "index": 1,
+      "start": [
+        "battle/b_char/b_char_tactboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_1014_nearl2",
+      "skillId": "skchr_nearl2_3",
+      "index": 2,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_1038_whitw2",
+      "skillId": "skchr_whitw2_1",
+      "index": 0,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [
+        "battle/b_char/b_char_boostclose.mp3"
+      ],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_1038_whitw2",
+      "skillId": "skchr_whitw2_2",
+      "index": 1,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_1038_whitw2",
+      "skillId": "skchr_whitw2_3",
+      "index": 2,
+      "start": [
+        "player/p_skill/p_skill_whtolfdrksltr.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_4116_blkkgt",
+      "skillId": "skchr_blkkgt_1",
+      "index": 0,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_4116_blkkgt",
+      "skillId": "skchr_blkkgt_2",
+      "index": 1,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_4116_blkkgt",
+      "skillId": "skchr_blkkgt_3",
+      "index": 2,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_1016_agoat2",
+      "skillId": "skchr_agoat2_1",
+      "index": 0,
+      "start": [
+        "player/p_skill/p_skill_gtshpbrnch_d.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_1016_agoat2",
+      "skillId": "skchr_agoat2_2",
+      "index": 1,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_1016_agoat2",
+      "skillId": "skchr_agoat2_3",
+      "index": 2,
+      "start": [
+        "player/p_skill/p_skill_gtshpbrnch_s.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_4224_turdus",
+      "skillId": "skchr_turdus_1",
+      "index": 0,
+      "start": [
+        "battle/b_char/b_char_healboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_4224_turdus",
+      "skillId": "skchr_turdus_2",
+      "index": 1,
+      "start": [
+        "battle/b_char/b_char_healboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_188_helage",
+      "skillId": "skchr_helage_1",
+      "index": 0,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_188_helage",
+      "skillId": "skchr_helage_2",
+      "index": 1,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_188_helage",
+      "skillId": "skchr_helage_3",
+      "index": 2,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_1051_headb2",
+      "skillId": "skchr_headb2_1",
+      "index": 0,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_1051_headb2",
+      "skillId": "skchr_headb2_2",
+      "index": 1,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_1051_headb2",
+      "skillId": "skchr_headb2_3",
+      "index": 2,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_195_glassb",
+      "skillId": "skchr_glassb_1",
+      "index": 0,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_195_glassb",
+      "skillId": "skchr_glassb_2",
+      "index": 1,
+      "start": [
+        "player/p_skill/p_field_elefield_loop.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_197_poca",
+      "skillId": "skcom_atk_up[3]",
+      "index": 0,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_197_poca",
+      "skillId": "skchr_poca_2",
+      "index": 1,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_197_poca",
+      "skillId": "skchr_poca_3",
+      "index": 2,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_194_leto",
+      "skillId": "skcom_quickattack[3]",
+      "index": 0,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_194_leto",
+      "skillId": "skchr_leto_2",
+      "index": 1,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_137_brownb",
+      "skillId": "skchr_brownb_1",
+      "index": 0,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_137_brownb",
+      "skillId": "skchr_brownb_2",
+      "index": 1,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_4223_botany",
+      "skillId": "skchr_botany_1",
+      "index": 0,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_4223_botany",
+      "skillId": "skchr_botany_2",
+      "index": 1,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_4182_oblvns",
+      "skillId": "skchr_oblvns_1",
+      "index": 0,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_4182_oblvns",
+      "skillId": "skchr_oblvns_2",
+      "index": 1,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_4182_oblvns",
+      "skillId": "skchr_oblvns_3",
+      "index": 2,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_1050_chen3",
+      "skillId": "skchr_chen3_1",
+      "index": 0,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_1050_chen3",
+      "skillId": "skchr_chen3_2",
+      "index": 1,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_1050_chen3",
+      "skillId": "skchr_chen3_3",
+      "index": 2,
+      "start": [
+        "player/p_skill/p_skill_hljdfswd_s.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_1035_wisdel",
+      "skillId": "skchr_wisdel_1",
+      "index": 0,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_1035_wisdel",
+      "skillId": "skchr_wisdel_2",
+      "index": 1,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": [
+        "battle/b_char/b_char_boostclose.mp3"
+      ]
+    },
+    {
+      "charId": "char_1035_wisdel",
+      "skillId": "skchr_wisdel_3",
+      "index": 2,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": [
+        "battle/b_char/b_char_boostclose.mp3"
+      ]
+    },
+    {
+      "charId": "char_4138_narant",
+      "skillId": "skchr_narant_1",
+      "index": 0,
+      "start": [
+        "battle/b_char/b_char_tactboost.mp3"
+      ],
+      "finish": [
+        "battle/b_char/b_char_boostclose.mp3"
+      ],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_4138_narant",
+      "skillId": "skchr_narant_2",
+      "index": 1,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_4138_narant",
+      "skillId": "skchr_narant_3",
+      "index": 2,
+      "start": [
+        "battle/b_char/b_char_atkboost.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_4132_ascln",
+      "skillId": "skchr_ascln_1",
+      "index": 0,
+      "start": [],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_4132_ascln",
+      "skillId": "skchr_ascln_2",
+      "index": 1,
+      "start": [
+        "player/p_skill/p_skill_smksnpo.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    },
+    {
+      "charId": "char_4132_ascln",
+      "skillId": "skchr_ascln_3",
+      "index": 2,
+      "start": [
+        "player/p_skill/p_skill_smksndrk.mp3"
+      ],
+      "finish": [],
+      "specialPoint": []
+    }
+  ]
+}

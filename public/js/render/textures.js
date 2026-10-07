@@ -11,6 +11,8 @@
 // Everything procedural is deterministic (seeded noise) and generated lazily on first use. Requires
 // globalThis.PIXI and a DOM canvas at call time (never at import time).
 
+import { EFFECT_MATERIALS, drawEffectMaterial } from './effectArt.js';
+
 import { statusIconKey, ORIGINIUM, linearToSrgb255 } from './style.js';
 
 const PIXI = () => globalThis.PIXI;
@@ -700,6 +702,7 @@ let _fx = null;
  * bottom).
  */
 const FX_DRAW = {
+  ...Object.fromEntries(EFFECT_MATERIALS.map((name,i)=>[name,[64+i*64,384,64,64,(c,x,y,w,h)=>drawEffectMaterial(c,name,x,y,w,h)]])),
   // Opaque projectile bodies; glow and trailing particles use separate soft frames.
   projectileOrb: [128, 320, 64, 64, (c, x, y, w) => {
     c.fillStyle = '#777'; c.beginPath(); c.arc(x+w/2,y+w/2,w*.46,0,Math.PI*2); c.fill();
@@ -751,25 +754,9 @@ const FX_DRAW = {
     }
     c.fillStyle = '#fff'; c.beginPath(); c.arc(cx, cy, 4, 0, Math.PI * 2); c.fill();
   }],
-  smoke: [768, 0, 128, 128, (c, x, y) => {
-    const r = rng(77);
-    for (let i = 0; i < 14; i++) radial(c, x + 30 + r() * 68, y + 30 + r() * 68, 18 + r() * 22, [[0, 'rgba(255,255,255,0.22)'], [1, 'rgba(255,255,255,0)']]);
-  }],
-  // star flare: hot centre, four long and four short rays (skill flash, explosion core, impacts)
-  flare: [896, 0, 128, 128, (c, x, y, w) => {
-    const cx = x + w / 2, cy = y + w / 2;
-    radial(c, cx, cy, w / 2 - 1, [[0, 'rgba(255,255,255,0.95)'], [0.08, 'rgba(255,255,255,0.35)'], [0.3, 'rgba(255,255,255,0.04)'], [1, 'rgba(255,255,255,0)']]);
-    const ray = (a, len, half) => {
-      c.save(); c.translate(cx, cy); c.rotate(a);
-      const g = c.createLinearGradient(0, 0, len, 0);
-      g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(1, 'rgba(255,255,255,0)');
-      c.fillStyle = g;
-      c.beginPath(); c.moveTo(0, -half); c.lineTo(len, 0); c.lineTo(0, half); c.closePath(); c.fill();
-      c.restore();
-    };
-    for (let k = 0; k < 4; k++) ray((k * Math.PI) / 2, 60, 5);
-    for (let k = 0; k < 4; k++) ray(Math.PI / 4 + (k * Math.PI) / 2, 30, 3);
-  }],
+  smoke: [768, 0, 128, 128, (c,x,y,w,h)=>drawEffectMaterial(c,'cloudBody',x,y,w,h)],
+  // A compact pressure/energy contact rather than a large four-point star.
+  flare: [896,0,128,128,(c,x,y,w,h)=>drawEffectMaterial(c,'energyContact',x,y,w,h)],
   pillar: [0, 128, 64, 256, (c, x, y, w, h) => {
     const g = c.createLinearGradient(x, 0, x + w, 0);
     g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(0.5, 'rgba(255,255,255,1)'); g.addColorStop(1, 'rgba(255,255,255,0)');
@@ -778,13 +765,7 @@ const FX_DRAW = {
     v.addColorStop(0, 'rgba(0,0,0,1)'); v.addColorStop(0.35, 'rgba(0,0,0,0)'); v.addColorStop(1, 'rgba(0,0,0,0)');
     c.globalCompositeOperation = 'destination-out'; c.fillStyle = v; c.fillRect(x, y, w, h); c.globalCompositeOperation = 'source-over';
   }],
-  spark: [64, 128, 64, 64, (c, x, y, w) => {
-    const cx = x + w / 2, cy = y + w / 2;
-    radial(c, cx, cy, w / 2, [[0, 'rgba(255,255,255,0.9)'], [0.2, 'rgba(255,255,255,0.35)'], [1, 'rgba(255,255,255,0)']]);
-    c.fillStyle = 'rgba(255,255,255,1)';
-    c.beginPath(); c.moveTo(cx, y + 2); c.lineTo(cx + 3, cy - 3); c.lineTo(x + w - 2, cy); c.lineTo(cx + 3, cy + 3); c.lineTo(cx, y + w - 2);
-    c.lineTo(cx - 3, cy + 3); c.lineTo(x + 2, cy); c.lineTo(cx - 3, cy - 3); c.closePath(); c.fill();
-  }],
+  spark: [64,128,64,64,(c,x,y,w,h)=>drawEffectMaterial(c,'impactBody',x,y,w,h)],
   plus: [128, 128, 64, 64, (c, x, y, w) => {
     const cx = x + w / 2, cy = y + w / 2;
     radial(c, cx, cy, w / 2, [[0, 'rgba(255,255,255,0.5)'], [1, 'rgba(255,255,255,0)']]);

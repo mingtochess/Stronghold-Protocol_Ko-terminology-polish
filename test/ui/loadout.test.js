@@ -353,6 +353,8 @@ test('sync: closing the overlay sends a pending edit at once (the next click —
 
 test('overlay auto-close: briefing entry closes when INFO_CHECK ends; lobby / room entry closes when a match starts', () => {
   const open = (from) => ({ open: true, from });
+  assert.equal(shouldAutoClose(open('bandDraft'), PHASE.BAND_DRAFT, true, true), false);
+  assert.equal(shouldAutoClose(open('bandDraft'), PHASE.PREP, true, true), true);
   assert.equal(shouldAutoClose(open('briefing'), PHASE.INFO_CHECK, true, true), false);
   assert.equal(shouldAutoClose(open('briefing'), PHASE.BAND_DRAFT, true, true), true);
   assert.equal(shouldAutoClose(open('room'), null, false, false), false);

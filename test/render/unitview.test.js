@@ -314,7 +314,7 @@ test('operator range style is stable across copies and skins with representative
  assert.deepEqual(a,skillRangeStyle({charId:'char_358_lisa',id:2,spine:'skin_b'}));
  const b=skillRangeStyle({charId:'char_1020_reed2'});assert.notDeepEqual(a,b);
  assert.equal(a.pattern,undefined);
- assert.equal(skillRangeStyle({charId:'char_4064_mlynar'}).color,0xf1c64f);
+ assert.equal(skillRangeStyle({charId:'char_4064_mlynar'}).color,0xffbb00);
  const {skillRangeInset}=await import('../../public/js/render/units.js');
  assert.deepEqual(skillRangeInset([-.5,-.5,.5,-.5],.1),[-.5,-.4,.5,-.4]);
 });
@@ -417,7 +417,7 @@ test('all skills use the same operator palette with a more saturated boundary an
   const rgb=c=>[c>>16&255,c>>8&255,c&255],spread=c=>Math.max(...rgb(c))-Math.min(...rgb(c));
   assert.ok(spread(a.outlineColor)>=spread(a.color));assert.equal(a.pattern,undefined);
  }
- assert.equal(skillRangeStyle({charId:'char_4064_mlynar'}).color,0xf1c64f);
+ assert.equal(skillRangeStyle({charId:'char_4064_mlynar'}).color,0xffbb00);
 });
 
 test('status effects are not dropped when the four HUD icon slots are full; shield flag produces a barrier',async()=>{

@@ -49,8 +49,6 @@ import { AUTO_OP_COOLDOWN, COLS, ROWS } from './constants.js';
 const TICK_RULES = new Set(['SP_FULL', 'SEARCH', 'CUSTOM_RANGE', 'SKILL_RANGE', 'GDGLOW_SKILL_2']);
 /** True when a SkillSpec `targeting` changes the unit's range while the skill runs (Battle._refreshRange). */
 const changesRange = (tg) => !!(tg && (tg.rangeGrid || tg.rangeExtend || tg.noRangeExtend));
-// These attack replacements must be usable before enemies enter the base attack grid.
-const SKILL_TARGET_RANGE_TRIGGERS = new Set(['skchr_wildmn_2', 'skchr_chen3_3', 'skchr_halo2_3']);
 /** Enemies that satisfy a content trigger range (any targetable enemy, flyers included). */
 const TRIGGER_PROFILE = Object.freeze({ canHitFly: true });
 /** Every tile of the stage (GDGLOW_SKILL_2: the whole field). */
@@ -343,7 +341,7 @@ export class SkillRuntime {
       // DEFAULT (and unknown rules): also check independently when a timed skill changes the attack range;
       // content trigger ranges are checked every tick for everyone (nothing may be in the unit's own range)
       const prof = u.profile;
-      if (prof && (prof.noAttack || (prof.noAttackUnlessSkill && !this.active) || (this.isTimed && (this.spec.triggerProfile || this.spec.targeting?.canHitFly || SKILL_TARGET_RANGE_TRIGGERS.has(this.id))))) {
+      if (prof && (prof.noAttack || (prof.noAttackUnlessSkill && !this.active) || (this._prospectiveRangeKeys() || typeof this.spec.hasTargets === 'function' || this.spec.triggerProfile || this.spec.targeting?.canHitFly))) {
         if (this._defaultCondition()) this.activate('DEFAULT');
       } else if (this.triggerRanges.length && !this.healSkill && this._extraTriggerSatisfied()) this.activate('DEFAULT');
     }
@@ -402,6 +400,20 @@ export class SkillRuntime {
     return false;
   }
 
+  _prospectiveRangeKeys() {
+    // Sustained range changes and non-attack casts are evaluated without first
+    // requiring an ordinary attack. Queued next-attack skills keep that requirement.
+    if (this.healSkill || (!this.isTimed && this.spec.attack) || this.kind === 'passive') return null;
+    const u = this.unit, tg = this.spec.targeting;
+    const grid = tg?.rangeGrid || (!this.isTimed ? u.def?.skill?.rangeGrid : null);
+    const extra = (tg?.rangeExtend || 0) + (this.spec.mods?.rangeExtend || 0);
+    if (!grid && !extra) return null;
+    const keys = absoluteRangeKeys(grid || u.rangeGrid || [[0,0]], u.tileR, u.tileC, u.dir,
+      (tg?.noRangeExtend ? 0 : u.s.rangeExtend) + extra);
+    const base = new Set(u.baseRangeKeys || u.rangeKeys || []);
+    return keys.some(k => !base.has(k)) ? keys : null;
+  }
+
   /**
    * DEFAULT rule condition: an enemy (or injured ally for heal skills) inside the initial range (baseRangeKeys: own
    * grid + permanent rangeExtend), or a timed attack skill's prospective range before activation.
@@ -412,12 +424,7 @@ export class SkillRuntime {
     const u = this.unit;
     if (b.rangeChanged(u)) b._refreshRange(u);
     if (typeof this.spec.hasTargets === 'function') return !!this.spec.hasTargets({ battle: b, unit: u });
-    const tg = this.spec.targeting;
-    const skillRange = this.isTimed && !this.healSkill && SKILL_TARGET_RANGE_TRIGGERS.has(this.id);
-    const keys = skillRange
-      ? absoluteRangeKeys(tg?.rangeGrid || u.rangeGrid || [[0,0]], u.tileR, u.tileC, u.dir,
-          (tg?.noRangeExtend ? 0 : u.s.rangeExtend) + (tg?.rangeExtend || 0) + (this.spec.mods?.rangeExtend || 0))
-      : u.baseRangeKeys || u.rangeKeys;
+    const keys = this._prospectiveRangeKeys() || u.baseRangeKeys || u.rangeKeys;
     if (keys) {
       if (this.healSkill) return b.injuredAlliesInKeys(keys, u).length > 0;
       const air = this.spec.targeting?.canHitFly;

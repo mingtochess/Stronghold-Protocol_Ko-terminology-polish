@@ -846,3 +846,24 @@ describe('漏怪 sound', () => {
     } finally { restore(); }
   });
 });
+
+test('impact sound follows actual damage source, not another attacker aimed at the same target',()=>{
+ const a=new AudioManager({getManifest:()=>manifest});a.ctx={};a.setFieldUnits([{id:1,side:'ally',charId:'char_a'},{id:2,side:'ally',charId:'char_b'},{id:3,side:'enemy',spine:'enemy_c'}]);const calls=[];a.unit=(...args)=>{calls.push(args);return true;};a.battle=()=>{};
+ a.handleBattleEvents([['atk',1,3,'bolt'],['atk',2,3,'bolt'],['dmg',3,100,'arts',{sourceId:1,isAttack:true}],['dmg',3,100,'arts',{sourceId:2,isSkill:true}],['dmg',3,100,'arts',{sourceId:1,isAttack:false,isSkill:false}]]);
+ assert.deepEqual(calls.filter(c=>c[1]==='hit').map(c=>[c[0],c[4]]),[['char_a',false],['char_b',true]]);
+});
+
+test('attack sounds start at windup, once; impacts stay at damage and skill finishes use finish banks',()=>{
+ const a=new AudioManager({getManifest:()=>manifest});a.ctx={};a.setFieldUnits([{id:1,side:'ally',charId:'char_a',skillIndex:2},{id:3,side:'enemy',spine:'enemy_c'}]);const calls=[];a.unit=(...args)=>{calls.push(args);return true;};a.battle=()=>{};a.voice=()=>{};
+ a.handleBattleEvents([['atkStart',1,3,.5,1.5],['atk',1,3,'bolt'],['dmg',3,100,'arts',{sourceId:1,isAttack:true}],['skill',1,false]]);
+ assert.deepEqual(calls.map(c=>c[1]),['attack','hit','skillFinish']);assert.equal(calls[2][3],2);
+ a.handleBattleEvents([['atkStart',1,3,.5,1.5],['atkCancel',1],['atk',1,3,'bolt']]);assert.equal(calls.filter(c=>c[1]==='attack').length,3);
+});
+
+test('partial volume updates preserve Japanese and Korean voice settings',()=>{
+ const a=new AudioManager({getManifest:()=>({})});for(const lang of ['jp','kr']){a.setVolumes({voiceLanguage:lang});for(const patch of [{sfx:.2},{bgm:.4},{voice:.5},{muted:false},{chatVolume:.3},{voiceLanguage:'invalid'}]){a.setVolumes(patch);assert.equal(a.volumes.voiceLanguage,lang);}}
+});
+test('language change immediately stops the old line and cancels a still-decoding line',async()=>{
+ const a=new AudioManager({getManifest:()=>({})});let stopped=0;const before=a.voiceToken;a.voiceNode={src:{stop(){stopped++}},gain:{gain:{value:1,cancelScheduledValues(){},setValueAtTime(){}}}};a.ctx={currentTime:0};a.setVolumes({voiceLanguage:'jp'});assert.equal(stopped,1);assert.equal(a.voiceNode,null);assert.ok(a.voiceToken>before);
+ let release;const buffer=new Promise(r=>release=r);a._buffer=()=>buffer;let played=0;a.ctx={currentTime:0,createBufferSource(){played++;return{};}};a.voiceGain={};a._playVoice('/jp.mp3',a.voiceToken);a.setVolumes({voiceLanguage:'kr'});release({duration:1});await new Promise(r=>setTimeout(r,0));assert.equal(played,0);
+});

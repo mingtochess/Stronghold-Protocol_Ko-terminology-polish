@@ -70,7 +70,7 @@ function skill(raw,s){
 function note(b,u,scale=1,type='phys',high=false){
  const list=foes(b,u);if(high)list.sort((a,b)=>type==='phys'?b.s.res-a.s.res:b.s.def-a.s.def);
  const target=list[0];if(target&&u.skill.active&&u.def.raw.skill.index===2)b._ev(['atk',u.id,target.id,type==='arts'?'arts':'bolt']);const angle={UP:-Math.PI/2,RIGHT:0,DOWN:Math.PI/2,LEFT:Math.PI}[u.dir]??0;
- (u.mem.sakikoNotes||=[]).push({x:u.x,y:u.y,angle:angle+(b.rng()-.5)*Math.PI*40/180,target,type,amount:u.s.atk*scale,age:0,outside:0,seek:0,hit:false,tail:0,seen:new Set(),seq:u.deploySeq,high});
+ (u.mem.sakikoNotes||=[]).push({id:(u.mem.sakikoNoteSeq=(u.mem.sakikoNoteSeq||0)+1),x:u.x,y:u.y,angle:angle+(b.rng()-.5)*Math.PI*40/180,target,type,amount:u.s.atk*scale,age:0,outside:0,seek:0,hit:false,tail:0,seen:new Set(),seq:u.deploySeq,high});
 }
 function advanceNotes(b,u,dt){
  const kept=[];for(const n of u.mem.sakikoNotes){

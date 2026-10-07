@@ -1,0 +1,5 @@
+import {test} from 'node:test';import assert from 'node:assert/strict';import {voiceLanguageFor} from '../tools/assets/voiceAvailability.mjs';
+test('uploaded KR files take precedence over outdated language metadata',()=>{const krFiles=new Set(['char_test/cn_019.mp3']);assert.equal(voiceLanguageFor('kr','CHAR_TEST/CN_019',{krFiles,metadataKR:false}),'kr');});
+test('unuploaded lines fall back individually even when official metadata advertises Korean',()=>{const krFiles=new Set(['char_test/cn_019.mp3']);assert.equal(voiceLanguageFor('kr','char_test/cn_020',{krFiles,metadataKR:true}),'jp');assert.equal(voiceLanguageFor('kr','char_test/cn_019',{krFiles,metadataKR:true}),'kr');});
+test('Japanese choice never switches to a Korean file',()=>{assert.equal(voiceLanguageFor('jp','char_test/cn_019',{krFiles:new Set(['char_test/cn_019.mp3']),metadataKR:true}),'jp');});
+test('offline metadata is used only without a verified resource inventory',()=>{assert.equal(voiceLanguageFor('kr','char_test/cn_019',{metadataKR:true}),'kr');assert.equal(voiceLanguageFor('kr','char_test/cn_019',{metadataKR:false}),'jp');});

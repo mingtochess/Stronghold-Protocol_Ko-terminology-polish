@@ -14,14 +14,16 @@ export async function buildSkillSounds(root,dir){
  for(const [id,records]of Map.groupBy(Object.values(chess),c=>c.charId)){
   if(!id)continue;
   const skills=new Map(records.flatMap(c=>c.skills||[c.skill]).filter(Boolean).map(s=>[s.index,s]));
-  const mapping={};
+  const mapping={},finishes={};
   for(const [i,s]of skills){
    const paths=audio.bank(`battle.ON_SKILL_START.${s.skillId}`);
    const sound=paths[0];mapping[i]=null;
    if(sound){const path=`/assets/audio/sfx/${sound}`;mapping[i]=path;files.push({path,sources:[RAW.aa2voice+sound]});}
-   audit.push({charId:id,skillId:s.skillId,index:i,sound:sound||null});
+   const finish=audio.bank(`battle.ON_SKILL_FINISH.${s.skillId}`)[0];finishes[i]=null;
+   if(finish){const path=`/assets/audio/sfx/${finish}`;finishes[i]=path;files.push({path,sources:[RAW.aa2voice+finish]});}
+   audit.push({charId:id,skillId:s.skillId,index:i,sound:sound||null,finish:finish||null});
   }
-  units[id]={...(units[id]||{}),skills:mapping};
+  units[id]={...(units[id]||{}),skills:mapping,skillFinishes:finishes};
  }
  await writeFile(join(dir,'assets.json'),JSON.stringify(assets));
  await writeFile(join(root,'.cache/skill-sound-resources.json'),JSON.stringify({files:[...new Map(files.map(f=>[f.path,f])).values()]}));

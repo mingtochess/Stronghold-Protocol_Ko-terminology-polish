@@ -288,7 +288,7 @@ export function dealDamage(battle, source, target, dmgIn) {
   if (beforeShield > 0 && final === 0 && dmg.displayCritical) {
     const barrier = ts.shield > 0;
     battle._ev(['dmg', target.id, roundedDamageNumber(beforeShield), type,
-      {critical: true, expected: dmg.expectedDamage, blocked: barrier ? 'barrier' : 'shield'}]);
+      {critical: true, expected: dmg.expectedDamage, blocked: barrier ? 'barrier' : 'shield',sourceId:source?.id ?? null,isAttack:!!dmg.isAttack,isSkill:!!dmg.isSkill}]);
   }
   return applyHpLoss(battle, source, target, final, dmg);
 }
@@ -338,6 +338,7 @@ export function applyHpLoss(battle, source, target, amount, dmg) {
       critical: !!dmg.displayCritical || criticalDamage(amount, dmg.expectedDamage, dmg.forceCritical),
       expected: Number.isFinite(dmg.expectedDamage) ? dmg.expectedDamage : undefined,
       value: roundedDamageNumber(amount),
+      sourceId: hs?.id ?? null, isAttack: !!dmg?.isAttack, isSkill: !!dmg?.isSkill,
     }]);
   }
   if (battle._hooks.damaged) battle.emit('damaged', { source: hs, target, amount, type: dmg ? dmg.type : 'true', dmg, credit: source });

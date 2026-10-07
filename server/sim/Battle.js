@@ -2420,13 +2420,15 @@ export class Battle {
     const ammo = this.units.filter(u => u.alive && u.deployed && !u.hidden && u.skill?.active && u.skill.kind === 'ammo')
       .map(u => [u.id, Math.max(0, u.skill.ammoLeft), Math.max(1, u.skill.ammoMax || u.skill.ammo || 0, u.skill.ammoLeft)]);
     if (ammo.length) snap.ammo = ammo;
-    // Cosmetic pace relative to each enemy's unmodified movement speed.
+    // Cosmetic pace: Lancer's authored run uses a 1 tile/s reference.
+    // Dividing by its .25 tile/s initial crawl made full charge play at 13.5x.
     const moveRates = this.units.filter(u=>u.side==='enemy' && u.alive && u.deployed && !u.hidden && u.base.moveSpeed>0)
-      .map(u=>[u.id,Math.max(0,u.s.moveSpeed/u.base.moveSpeed)]).filter(([,rate])=>Math.abs(rate-1)>1e-6);
+      .map(u=>[u.id,Math.max(0,u.s.moveSpeed/(u.defId==='enemy_1072_dlancer'?1:u.base.moveSpeed))]).filter(([,rate])=>Math.abs(rate-1)>1e-6);
     if(moveRates.length) snap.moveRates=moveRates;
     const shifts = this.units.filter(u=>u.alive && u.mem.visualShift && this.time-u.mem.visualShift[4]<u.mem.visualShift[5]+.2)
       .map(u=>[u.id,...u.mem.visualShift]);
     if(shifts.length) snap.shifts=shifts;
+    snap.sakikoNotes = this.allyUnits.filter(u=>u.alive&&u.deployed&&!u.hidden).flatMap(u=>(u.mem.sakikoNotes||[]).map(n=>[u.id,n.id,r2(n.x),r2(n.y),n.type]));
     snap.skillRanges = this.allyUnits.flatMap(u=>{const keys=visibleSkillAreaKeys(u,this.time);return keys ? [[u.id,keys.map(k=>[Math.floor(k/COLS),k%COLS])]] : [];});
     snap.snow = this.allyUnits.filter(u=>u.alive&&u.deployed&&u.mem.snow instanceof Map).map(u=>[u.id,[...u.mem.snow].map(([k,n])=>[Math.floor(k/COLS),k%COLS,n])]);
     snap.states = this.units.filter(u => u.alive && u.deployed && !u.hidden).map(u => [u.id,

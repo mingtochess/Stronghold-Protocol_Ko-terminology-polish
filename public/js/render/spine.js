@@ -327,7 +327,7 @@ export class SpineActor {
 
   /** Explicit sim wind-up: retain the entire clip before its OnAttack frame. */
   beginAttack(interval, lead) {
-    if (this._continuousSkillLoop()) return false;
+    if (this._continuousSkillLoop()) {this.interval=clampN(interval,.08,8);return false;}
     if (this.dead || this.mode === 'stun' || this.mode === 'die' || this.mode === 'change' || this.mode === 'skillCast' || (this.mode === 'skillBegin' && this.skillBeginBlocking !== false)) return false;
     const clip = this._attackClip(); if (!clip) return false;
     const dur = this.dur(clip.loop), hit = this._hitTime(clip.loop, dur);
@@ -351,7 +351,15 @@ export class SpineActor {
    * cast (no rhythm): the clip plays once at its own speed from its strike frame, then the resting state.
    */
   attack(interval, once = false) {
-    if (this._continuousSkillLoop()) return;
+    if (this._continuousSkillLoop()) {
+      if((this.entry.skel||'').includes('char_1051_headb2') && this.roles.skill.index===2){
+        const marks=this.entry.hits?.[this.roles.skill.loop] || [];
+        const index=Math.min(this.zimaStrike||0,marks.length-1),track=this.spine.state.tracks[0];
+        if(track && index>=0){track.trackTime=marks[index];track.timeScale=1;}
+        this.zimaStrike=index+1;
+      }
+      return;
+    }
     if (this.dead || this.mode === 'stun' || this.mode === 'die' || this.mode === 'change' || this.mode === 'skillCast' || (this.mode === 'skillBegin' && this.skillBeginBlocking !== false)) return;   // a form change plays out
     if (!once) this.interval = clampN(Number.isFinite(interval) && interval > 0 ? interval : this.interval, 0.08, 8);
     const clip = this._attackClip();
@@ -448,6 +456,13 @@ export class SpineActor {
     if (!on && this.mode === 'skillCast') return;
     if (!on && this.mode === 'attack' && !this.wound && this.current === sk?.loop && this.clock < this.attackUntil) {
       this.pendingSkillEnd = true;
+      return;
+    }
+    if(on && (this.entry.skel||'').includes('char_1051_headb2') && sk?.index===2){this.zimaStrike=0;this.mode='base';this._play(sk.loop,false,{mix:.08});return;}
+    if(!on && (this.entry.skel||'').includes('char_1051_headb2') && sk?.index===2 && this.current===sk.loop){
+      const track=this.spine.state.tracks[0];this.mode='skillCast';
+      this.skillCastUntil=this.clock+Math.max(0,this.dur(sk.loop)-(track?.trackTime||0))/Math.max(.01,track?.timeScale||1);
+      if(track)track.loop=false;
       return;
     }
     if (on && instant && sk && (!sk.via || sk.via==='attack') && this.has(sk.loop)) {

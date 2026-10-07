@@ -449,7 +449,7 @@ export class AudioManager {
     this.chatNextAt = 0;
     this.chatLastStartedAt = null;
     this.chatLastDurationMs = 0;
-    this.chatCooldown = defaultChatCooldown('notification-glass');
+    this.chatCooldown = defaultChatCooldown('emote');
     this.volumes = { bgm: 0.6, sfx: 0.8, voice: 0.6, voiceLanguage:'kr', chatVolume: 0.5, muted: false };
     this.buffers = new Map(); // url → Promise<AudioBuffer|null> (insertion order = LRU)
     this.bufBytes = new Map(); // url → decoded PCM bytes (the byte budget of the LRU, see _buffer)
@@ -465,6 +465,7 @@ export class AudioManager {
     this.bgmToken = 0;
     this.pendingBgm = null;
     this.units = new Map();   // battle unit id → defId
+    this.startedAttacks = new Set();
     this.lastAttacker = new Map(); // target id → { def, at } of the hostile attack last aimed at it (its impact sound)
     this.consumed = new Set();     // summons used up by their own effect (香槟炸弹 exploded): no death sound
     this.installed = false;
@@ -592,6 +593,7 @@ export class AudioManager {
    * @param {{ bgm?: number, sfx?: number, voice?: number, muted?: boolean }} v
    */
   setVolumes(v) {
+    const previousLanguage=this.volumes.voiceLanguage;
     const n = (x, d) => (Number.isFinite(x) ? Math.max(0, Math.min(1, x)) : d);
     if (Number.isFinite(v?.chatCooldown)) {
       this.chatCooldown = Math.max(1, Math.min(5, Math.round(v.chatCooldown)));
@@ -602,12 +604,12 @@ export class AudioManager {
       sfx: n(v?.sfx, this.volumes.sfx),
       voice: n(v?.voice, this.volumes.voice),
       chatVolume: n(v?.chatVolume, this.volumes.chatVolume),
-      voiceLanguage: v?.voiceLanguage === 'jp' ? 'jp' : 'kr',
+      voiceLanguage: ['jp','kr'].includes(v?.voiceLanguage) ? v.voiceLanguage : this.volumes.voiceLanguage,
       muted: typeof v?.muted === 'boolean' ? v.muted : this.volumes.muted,
     };
-    if (v?.muted || v?.voice === 0) this._stopVoice();
+    if (previousLanguage !== this.volumes.voiceLanguage || v?.muted || v?.voice === 0) this._stopVoice();
     if (v?.muted || v?.chatVolume === 0 || v?.chatSound === 'off') this.stopChatNotification();
-    this.chatSound = v?.chatSound ?? this.chatSound ?? 'notification-glass';
+    this.chatSound = v?.chatSound ?? this.chatSound ?? 'emote';
     this.warmChatNotification();
     this._applyVolumes();
     this.warmVoices([...this.units.values()].filter(u=>u.kind==='op').map(u=>u.def));
@@ -919,15 +921,16 @@ export class AudioManager {
    * @param {number|string} unitId battle unit id (cooldown key)
    * @returns {boolean} whether a unit-specific sound exists
    */
-  unit(defId, kind, unitId, skillIndex) {
+  unit(defId, kind, unitId, skillIndex, skillMode = false) {
     try {
       const u = this.getManifest()?.audio?.sfx?.units?.[defId];
       // DESIGN §16: the equipped skill's own ON_SKILL_START sound (`skills[index]`) when the manifest has it
-      const own = kind === 'skill' && Number.isInteger(skillIndex) && u?.skills ? u.skills[skillIndex] : null;
-      const indexedSkill = kind === 'skill' && Number.isInteger(skillIndex) && u?.skills && Object.hasOwn(u.skills,skillIndex);
+      const skillMap=kind==='skillFinish'?u?.skillFinishes:kind==='skill'?u?.skills:null;
+      const own=Number.isInteger(skillIndex)?skillMap?.[skillIndex]:null;
+      const indexedSkill=Number.isInteger(skillIndex)&&skillMap&&Object.hasOwn(skillMap,skillIndex);
       const url = indexedSkill ? own : typeof own === 'string' ? own : u?.[kind];
       if (typeof url !== 'string') return false;
-      if ((kind === 'attack' || kind === 'hit') && !normalAttackSfx(defId, url)) return false;
+      if (!skillMode && (kind === 'attack' || kind === 'hit') && !normalAttackSfx(defId, url)) return false;
       // the official bank's mix (header): a silent roll still counts as the unit's own sound (no generic fallback)
       const mix = kind === 'skill' ? null : u?.mix?.[kind];
       if (!unitSoundPlays(mix, this.random())) return true;
@@ -1047,6 +1050,7 @@ export class AudioManager {
   setFieldUnits(units) {
     this.units.clear();
     this.lastAttacker.clear();
+    this.startedAttacks.clear();
     this.consumed.clear();
     // A new battle draws its start speaker from the field lineup, never enemies or the bench.
     this.startVoiceDone = false;
@@ -1082,7 +1086,12 @@ export class AudioManager {
         if (!Array.isArray(e)) continue;
         const kind = e[0];
         if (kind === 'spawn') { this._track(e[1]); continue; }
-        if (kind === 'atk') {
+        if (kind === 'atkStart') {
+          const src=this.units.get(e[1]);if(!src)continue;
+          this.startedAttacks.add(e[1]);
+          if(!this.unit(src.def,'attack',e[1],undefined,src.skillActive)&&src.side==='enemy')this.battle('enemyHit',{unitKey:`${e[1]}:atk`,volume:.35});
+        } else if(kind==='atkCancel') {this.startedAttacks.delete(e[1]);
+        } else if (kind === 'atk') {
           // a chain bounce: its first id is the previous target, whose attack sound this is not (see header)
           if (CHAIN_KINDS.has(e[3])) { this.lastAttacker.delete(e[2]); continue; }
           const src = this.units.get(e[1]);
@@ -1090,15 +1099,24 @@ export class AudioManager {
           // only a hostile attack authors the target's next impact (a heal — an ally aiming at an ally — never does)
           const tgt = this.units.get(e[2]);
           if (tgt && tgt.side !== src.side) this.lastAttacker.set(e[2], { def: src.def, at: now });
-          if (!this.unit(src.def, 'attack', e[1]) && src.side === 'enemy') this.battle('enemyHit', { unitKey: `${e[1]}:atk`, volume: 0.35 });
+          if (!this.startedAttacks.delete(e[1]) && !this.unit(src.def, 'attack', e[1],undefined,src.skillActive) && src.side === 'enemy') this.battle('enemyHit', { unitKey: `${e[1]}:atk`, volume: 0.35 });
         } else if (kind === 'dmg') {
-          const by = this.lastAttacker.get(e[1]);
-          if (!by || !IMPACT_TYPES.has(e[3])) continue;
-          this.lastAttacker.delete(e[1]); // one impact per attack
-          if (now - by.at <= IMPACT_WINDOW_MS) this.unit(by.def, 'hit', `h${e[1]}`);
+          if (!IMPACT_TYPES.has(e[3])) continue;
+          const meta=e[4];
+          if(meta && Object.hasOwn(meta,'sourceId')){
+            const src=this.units.get(meta.sourceId),tgt=this.units.get(e[1]);
+            if(src&&tgt&&src.side!==tgt.side&&(meta.isAttack||meta.isSkill))this.unit(src.def,'hit',`h${e[1]}:${meta.sourceId}`,undefined,!!meta.isSkill);
+            continue;
+          }
+          // Older servers do not provide the actual damage source.
+          const by=this.lastAttacker.get(e[1]);if(!by)continue;
+          this.lastAttacker.delete(e[1]);
+          if(now-by.at<=IMPACT_WINDOW_MS)this.unit(by.def,'hit',`h${e[1]}`);
         } else if (kind === 'heal') {
           this.battle('heal', { unitKey: `heal:${e[1]}`, volume: 0.35 });
-        } else if (kind === 'skill' && e[2]) {
+        } else if (kind === 'skill') {
+          const tracked=this.units.get(e[1]);if(tracked)tracked.skillActive=!!e[2];
+          if(!e[2]){if(tracked)this.unit(tracked.def,'skillFinish',e[1],tracked.skillIndex);continue;}
           const u = this.units.get(e[1]);
           if (u) {
             this.unit(u.def, 'skill', e[1], u.skillIndex ?? undefined);

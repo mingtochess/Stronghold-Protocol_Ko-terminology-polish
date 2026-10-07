@@ -152,3 +152,36 @@ test('game.js: a teammate unit\'s detail card uses the unit\'s own loadout (neve
   assert.match(block, /unitLoadout\(resolved\.chess, u\)/, 'teammate units → unitLoadout');
   assert.match(block, /owner === myId\)\) return priv\?\.loadout/, 'own units → m.private.loadout');
 });
+
+test('observed hand and temporary bench use their owner skin in scout and shared-field packets',REAL,()=>{
+ const skin={id:'review_skin',assets:{spine:'review_skin',avatar:'review_skin',portrait:'review_skin'}};
+ const data={...DATA,chess:{...DATA.chess}};
+ for(const id of [INSIDE,chess(INSIDE).goldenId])data.chess[id]={...chess(id),skins:[skin]};
+ const h=makeMatch({data,mode:'coop',humans:2,fake:true,spectators:['spectator']}).start();h.toPrep(1);
+ const ps=h.ps('p_1');assert.equal(ps.setLoadout({[INSIDE]:{skin:skin.id}}),true);
+ ps.board.clear();ps.hand.fill(null);ps.temp.fill(null);
+ const normal=ps.newPiece('chess',INSIDE),elite=ps.newPiece('chess',chess(INSIDE).goldenId);
+ ps.hand[3]=normal;ps.temp[1]=elite;
+ for(const viewer of ['p_0','spectator']){
+  assert.deepEqual(h.m.handle(viewer,{t:'g.watch',fieldId:'n:p_1'}),{ok:true});
+  const meta=wire(h.lastTo(viewer,'m.field'));
+  for(const piece of [normal,elite]){
+   const u=meta.units.find(u=>u.uid===piece.uid);
+   assert.equal(u.spine,skin.id);assert.equal(u.avatar,skin.id);assert.equal(u.skinId,skin.id);
+  }
+  const bench=wire(h.lastTo(viewer,'m.bench')).benches.find(b=>b.playerId===ps.playerId);
+  assert.equal(bench.pieces[3].assets.spine,skin.id);assert.equal(bench.tempPieces[1].assets.avatar,skin.id);
+  assert.equal(bench.pieces[3].skinId,skin.id);
+ }
+ const previousFields=h.m.fields;
+ h.m.fields=[{fieldId:'skin-shared-review',players:['p_0','p_1']}];
+ h.m.watchers.set('spectator','skin-shared-review');h.m._sendSpectatorBench('spectator',true);
+ const shared=wire(h.lastTo('spectator','m.bench')).benches.find(b=>b.playerId===ps.playerId);
+ assert.equal(shared.pieces[3].assets.spine,skin.id);assert.equal(shared.tempPieces[1].skinId,skin.id);
+ h.m.fields=previousFields;h.m.watchers.set('spectator','n:p_1');
+ ps.setLoadout({});h.m._sendSpectatorBench('spectator',true);
+ const reset=wire(h.lastTo('spectator','m.bench')).benches[0];
+ assert.notEqual(reset.pieces[3].assets.spine,skin.id);
+ assert.equal(h.m.prepFieldMeta(ps).units.find(u=>u.uid===normal.uid).skinId,undefined);
+ h.m.dispose();
+});
