@@ -8,7 +8,7 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
-  phaseMode, phaseBanner, isCombatPhase, isBossPhase, countdownState, phaseTotalSeconds, sortBonds, bondTier, nextThreshold,
+  migrateSavedSettings, phaseMode, phaseBanner, isCombatPhase, isBossPhase, countdownState, phaseTotalSeconds, sortBonds, bondTier, nextThreshold,
   battleOverSfx,
   bondMembers, memberHeadCount, bannedPerBond, priceTone, mergeProgress, shopBlockReason, deploySets, indexPieces, placementContext, canPlace,
   boardTargets, dropIntent, normalizeDraft, normalizeSp, groupEnemies, factionTypes, snapHud, bossFrac, attackInterval, fmtNum,
@@ -532,6 +532,9 @@ describe('keyboard & settings', () => {
     assert.equal(sanitizeSettings({ quality: 'low' }).quality, 'low');
     assert.equal(sanitizeSettings({chatVolume: 3}).chatVolume, 1);
     assert.equal(sanitizeSettings({chatVolume: -1}).chatVolume, 0);
+    assert.equal(DEFAULT_SETTINGS.chatSound, 'emote');
+    assert.equal(sanitizeSettings({chatSound: 'emote'}).chatSound, 'emote');
+    assert.equal(sanitizeSettings({chatSound: 'notification-glass'}).chatSound, 'notification-glass');
     assert.equal(sanitizeSettings({chatSound: 'off'}).chatSound, 'off');
     assert.equal(sanitizeSettings({chatSound: 'unknown'}).chatSound, DEFAULT_SETTINGS.chatSound);
     assert.equal(sanitizeSettings({chatSound: 'melantha-etto'}).chatCooldown, 2);
@@ -723,4 +726,19 @@ describe('special terrain tip', () => {
   assert.deepEqual(rows({loadout:{recruit:{selected:true}}}),['normal','recruit']);
   assert.deepEqual(rows({selectedRecruits:['recruit']}),['normal','recruit']);
   assert.deepEqual(rows({board:[{kind:'chess',id:'recruit'}]}),['normal','recruit']);
+ });
+
+ test('saved default chat sound migrates while custom choices and cooldowns survive', () => {
+  assert.equal(migrateSavedSettings(null).chatSound, 'emote');
+  const migrated = migrateSavedSettings({chatSound: 'notification-glass', chatCooldown: 1, chatVolume: .3});
+  assert.equal(migrated.chatSound, 'emote');
+  assert.equal(migrated.chatCooldown, DEFAULT_SETTINGS.chatCooldown);
+  assert.equal(migrated.chatVolume, .3);
+  assert.equal(migrateSavedSettings({chatSound: 'notification-glass', chatCooldown: 4}).chatCooldown, 4);
+  for (const chatSound of ['off', 'ceobe-dadada', 'notification-pluck'])
+    assert.equal(migrateSavedSettings({chatSound}).chatSound, chatSound);
+  const custom = {chatSound: 'notification-glass', chatSoundCustomized: true};
+  assert.equal(migrateSavedSettings(custom).chatSound, custom.chatSound);
+  assert.equal(migrateSavedSettings(sanitizeSettings(custom)).chatSound, custom.chatSound);
+  assert.deepEqual(migrateSavedSettings(migrated), migrated);
  });

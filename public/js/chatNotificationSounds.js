@@ -1,5 +1,6 @@
 // Per-sound recommendations initialize the single user-controlled cooldown setting.
 export const CHAT_NOTIFICATION_SOUNDS = Object.freeze([
+  { id: 'emote', label: '일반 — 이모티콘 효과음', durationMs: 527 },
   { id: 'notification-glass', label: '일반 — 맑은 유리음', durationMs: 292 },
   { id: 'notification-pluck', label: '일반 — 짧은 현 소리', durationMs: 112 },
   { id: 'notification-confirmation', label: '일반 — 확인음', durationMs: 295 },

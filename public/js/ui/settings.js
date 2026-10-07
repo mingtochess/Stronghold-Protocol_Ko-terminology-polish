@@ -6,7 +6,7 @@ import { GIcon } from './gameComponents.js';
 import { useLayoutEffect, useState } from '../../vendor/hooks.module.js';
 import { html, Modal, Button, Icon, MicroLabel } from './components.js';
 import { createStore, useStore, loadPref, savePref } from '../store.js';
-import { sanitizeSettings } from './gameLogic.js';
+import { sanitizeSettings, migrateSavedSettings } from './gameLogic.js';
 import { audio } from '../audio.js';
 import { CHAT_NOTIFICATION_SOUNDS, defaultChatCooldown } from '../chatNotificationSounds.js';
 import { openGuide } from './guide.js';
@@ -14,17 +14,19 @@ import { detectFeatures } from './device.js';
 import { lang, setLang } from '../i18n/i18n.js';
 
 /** Settings store: { bgm, sfx, voice, muted, damageNumbers, quality }. */
-export const settingsStore = createStore(sanitizeSettings(loadPref('settings', null)));
+export const settingsStore = createStore(migrateSavedSettings(loadPref('settings', null)));
 
 settingsStore.subscribe((s) => {
   savePref('settings', sanitizeSettings(s));
   audio.setVolumes(s);
 });
+savePref('settings', settingsStore.get());
 audio.setVolumes(settingsStore.get());
 
 /** @param {Partial<ReturnType<typeof sanitizeSettings>>} patch */
 export function updateSettings(patch) {
   const current = settingsStore.get();
+  if (patch.chatSound !== undefined) patch = {...patch, chatSoundCustomized: true};
   if (typeof patch.damageNumbers === 'boolean' && patch.damageNumberMode === undefined) patch = {...patch,damageNumberMode:patch.damageNumbers?'sum':'none'};
   const soundChanged = patch.chatSound !== undefined && patch.chatSound !== current.chatSound && patch.chatSound !== 'off';
   settingsStore.set(sanitizeSettings({ ...current, ...patch,

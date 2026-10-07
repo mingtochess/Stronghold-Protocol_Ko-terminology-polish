@@ -449,7 +449,7 @@ export class AudioManager {
     this.chatNextAt = 0;
     this.chatLastStartedAt = null;
     this.chatLastDurationMs = 0;
-    this.chatCooldown = defaultChatCooldown('notification-glass');
+    this.chatCooldown = defaultChatCooldown('emote');
     this.volumes = { bgm: 0.6, sfx: 0.8, voice: 0.6, voiceLanguage:'kr', chatVolume: 0.5, muted: false };
     this.buffers = new Map(); // url → Promise<AudioBuffer|null> (insertion order = LRU)
     this.bufBytes = new Map(); // url → decoded PCM bytes (the byte budget of the LRU, see _buffer)
@@ -607,7 +607,7 @@ export class AudioManager {
     };
     if (v?.muted || v?.voice === 0) this._stopVoice();
     if (v?.muted || v?.chatVolume === 0 || v?.chatSound === 'off') this.stopChatNotification();
-    this.chatSound = v?.chatSound ?? this.chatSound ?? 'notification-glass';
+    this.chatSound = v?.chatSound ?? this.chatSound ?? 'emote';
     this.warmChatNotification();
     this._applyVolumes();
     this.warmVoices([...this.units.values()].filter(u=>u.kind==='op').map(u=>u.def));
