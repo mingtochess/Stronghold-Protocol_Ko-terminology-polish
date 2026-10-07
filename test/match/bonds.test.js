@@ -103,3 +103,11 @@ test('layers persist on every bond; Σ activated layers only counts active bonds
   const f = computeBonds(funny, state({ board: [piece(a)] }));
   for (const off of DATA.config.modes.mode_multi_funny.inactiveBondIds) assert.ok(!(off in f), `${off} omitted in FUNNY`);
 });
+
+
+test('display membership excludes virtual bonuses without changing activation',()=>{
+ const ps=state();ps.bondCountBonus={yanShip:3};
+ let b=computeBonds(gd,ps);assert.equal(b.yanShip.count,3);assert.equal(b.yanShip.active,true);assert.equal(b.yanShip.memberCount,0);
+ assert.equal(bondList(gd,b,{full:true}).find(x=>x.bondId==='yanShip').memberCount,0);
+ ps.board.set('9,2',piece(members('yanShip',1)[0]));b=computeBonds(gd,ps);assert.equal(b.yanShip.memberCount,1);
+});

@@ -49,6 +49,8 @@ import { AUTO_OP_COOLDOWN, COLS, ROWS } from './constants.js';
 const TICK_RULES = new Set(['SP_FULL', 'SEARCH', 'CUSTOM_RANGE', 'SKILL_RANGE', 'GDGLOW_SKILL_2']);
 /** True when a SkillSpec `targeting` changes the unit's range while the skill runs (Battle._refreshRange). */
 const changesRange = (tg) => !!(tg && (tg.rangeGrid || tg.rangeExtend || tg.noRangeExtend));
+// These attack replacements must be usable before enemies enter the base attack grid.
+const SKILL_TARGET_RANGE_TRIGGERS = new Set(['skchr_wildmn_2', 'skchr_chen3_3', 'skchr_halo2_3']);
 /** Enemies that satisfy a content trigger range (any targetable enemy, flyers included). */
 const TRIGGER_PROFILE = Object.freeze({ canHitFly: true });
 /** Every tile of the stage (GDGLOW_SKILL_2: the whole field). */
@@ -320,7 +322,7 @@ export class SkillRuntime {
     // natural SP recovery stops only under 阻回 (noSp; a running timed skill holds it too) — not while 晕眩 / 冻结 / 浮空
     // keep the unit from acting: PRTS 技能 "在阻回状态或技力条已满时，保留剩余冷却时间，计时暂停"; PRTS 异常效果 STUNNED
     // "无法攻击、释放技能、阻挡敌人类单位" says nothing of SP (community report #18: 洛洛's S2 self-stun froze her SP)
-    if (this.spType === 'time' && !(this.active && this.isTimed) && this.battle.time >= (u.mem.skillCastUntil || 0) && !u.s.flags.noSp && u.alive && u.deployed && !u.hidden) {
+    if (this.spType === 'time' && !(this.active && this.isTimed) && (this.maxCharges > 1 || this.battle.time >= (u.mem.skillCastUntil || 0)) && !u.s.flags.noSp && u.alive && u.deployed && !u.hidden) {
       const rate = u.s.spRecovery;
       if (rate > 0) this.gainSp(rate * dt, 'time');
     }
@@ -338,10 +340,10 @@ export class SkillRuntime {
     if (TICK_RULES.has(this.rule)) {
       if (this._tickRuleSatisfied()) this.activate(this.rule);
     } else if (this.rule !== 'TAKE_DAMAGE' && this.rule !== 'NEVER') {
-      // DEFAULT (and unknown rules) for units that cannot attack right now: check the initial range every tick;
+      // DEFAULT (and unknown rules): also check independently when a timed skill changes the attack range;
       // content trigger ranges are checked every tick for everyone (nothing may be in the unit's own range)
       const prof = u.profile;
-      if (prof && (prof.noAttack || (prof.noAttackUnlessSkill && !this.active) || (this.isTimed && (this.spec.triggerProfile || this.spec.targeting?.canHitFly)))) {
+      if (prof && (prof.noAttack || (prof.noAttackUnlessSkill && !this.active) || (this.isTimed && (this.spec.triggerProfile || this.spec.targeting?.canHitFly || SKILL_TARGET_RANGE_TRIGGERS.has(this.id))))) {
         if (this._defaultCondition()) this.activate('DEFAULT');
       } else if (this.triggerRanges.length && !this.healSkill && this._extraTriggerSatisfied()) this.activate('DEFAULT');
     }
@@ -402,14 +404,20 @@ export class SkillRuntime {
 
   /**
    * DEFAULT rule condition: an enemy (or injured ally for heal skills) inside the initial range (baseRangeKeys: own
-   * grid + permanent rangeExtend), or an enemy inside a content trigger range (addTriggerRange; not for heal skills).
+   * grid + permanent rangeExtend), or a timed attack skill's prospective range before activation.
+   * Content trigger ranges (addTriggerRange) also qualify; next-attack and healing skills retain their own rules.
    */
   _defaultCondition() {
     const b = this.battle;
     const u = this.unit;
     if (b.rangeChanged(u)) b._refreshRange(u);
     if (typeof this.spec.hasTargets === 'function') return !!this.spec.hasTargets({ battle: b, unit: u });
-    const keys = u.baseRangeKeys || u.rangeKeys;
+    const tg = this.spec.targeting;
+    const skillRange = this.isTimed && !this.healSkill && SKILL_TARGET_RANGE_TRIGGERS.has(this.id);
+    const keys = skillRange
+      ? absoluteRangeKeys(tg?.rangeGrid || u.rangeGrid || [[0,0]], u.tileR, u.tileC, u.dir,
+          (tg?.noRangeExtend ? 0 : u.s.rangeExtend) + (tg?.rangeExtend || 0) + (this.spec.mods?.rangeExtend || 0))
+      : u.baseRangeKeys || u.rangeKeys;
     if (keys) {
       if (this.healSkill) return b.injuredAlliesInKeys(keys, u).length > 0;
       const air = this.spec.targeting?.canHitFly;
@@ -487,6 +495,7 @@ export class SkillRuntime {
     if (cast) {
       const seq=u.deploySeq, activation=this.activations;
       u.mem.skillCastUntil=b.time+cast.dur;
+      u.mem.skillCastDuration=cast.dur;
       if(u.mem.attackWindup){delete u.mem.attackWindup;b._ev(['atkCancel',u.id]);}
       u.skillAnimUntil=b.time+cast.dur;
       b.after(cast.hit,()=>{

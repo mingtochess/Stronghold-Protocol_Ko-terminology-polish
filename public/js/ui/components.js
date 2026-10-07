@@ -211,7 +211,7 @@ export function TierChip({ tier, golden = false, size = 'md', class: cls }) {
  */
 export function BondDisc({
   name = '', icon, count, layers, tier = 0, maxTier = 3, active = false, disabled = false, layersDisabled = false,
-  size = 'md', showName = true, onClick, class: cls, title,
+  size = 'md', showName = true, onClick, class: cls, title, ringGap = 5,
 }) {
   // Remember which URL failed (a per-URL flag can't race a reset effect).
   const [badSrc, setBadSrc] = useState(null);
@@ -220,7 +220,7 @@ export function BondDisc({
   const filled = Math.max(0, Math.min(n, tier | 0));
   const R = 46;
   const C = 2 * Math.PI * R;
-  const gap = n > 1 ? 5 : 0;
+  const gap = n > 1 ? Math.max(0, Math.min(20, ringGap)) : 0;
   const seg = C / n - gap;
   const stack = layers ?? count;
   const glyph = (name || '?').trim().charAt(0) || '?';

@@ -109,6 +109,7 @@ import {loadoutRecord,resolveRecordLoadout} from '../../../shared/loadoutRecord.
 // `assets` may be the store from public/js/assets.js or the raw /data/assets.json manifest (it is wrapped);
 // `data` is the client data store (public/js/data.js: lookup(file, id)) or plain { chess, tokens, items, enemies } maps.
 
+import { observedBenchExtras } from '../battle/observedBench.js';
 import { GEO, ANIM, UF } from '../../../shared/constants.js';
 import { fxForm } from '../../../shared/protocol.js';
 import { Camera, presetCamera, lerpCamera, easeInOutCubic, pickTile, normRect } from './projection.js';
@@ -582,6 +583,7 @@ export async function createFieldView(host, options = {}) {
   ctx.createBox = () => switchableBox({ board: () => board3d, pixi: () => tiles.createBox() });
   const impostors = new ImpostorAtlas(app.renderer, { isolated: !!P.utils?.isMobile?.any });
   ctx.impostors = impostors;
+  tiles.setArea(boardArea('prep'));
   tiles.setView(bandFor('prep'), camRect(), fieldRows('prep'));
   // the real board art of the local client (optional): wait briefly so the first frame already uses it; a late
   // arrival swaps the atlas in place
@@ -776,6 +778,7 @@ export async function createFieldView(host, options = {}) {
     const band = bandFor(vk);
     const field = fieldRows(vk);
     const focus = camRect();
+    tiles.setArea(viewBoardArea(vk));
     board3d?.setFocus(focus);
     camMs = Number.isFinite(o.ms) && o.ms >= 0 ? o.ms : (vk === 'pen' || prevView === 'pen' ? PEN_CAMERA_MS : CAMERA_MS);
     if (o.instant || camMs === 0 || mode === 'idle' && !camTo) {
@@ -924,7 +927,7 @@ export async function createFieldView(host, options = {}) {
   }
   /** The tile under a canvas point in BOARD space (null off-grid; an impossible tile off the player's half). */
   function pickBoardTile(x, y) {
-    const t = pickTile(cam, x, y, heightAt, tiles.levels);
+    const t = visibleTileAt(x, y);
     if (!t || prepXf === IDENTITY) return t;
     const b = prepXf.toBoard(t.row, t.col);
     return b ? { ...t, row: b.row, col: b.col } : { row: -1, col: -1, x: t.x, y: t.y };
@@ -940,7 +943,9 @@ export async function createFieldView(host, options = {}) {
 
   function setObservedBench(bench, options = {}) {
     for (const key of [...views.keys()]) if (String(key).startsWith('wb:')) dropView(key);
-    if (!bench || destroyed || (mode === 'battle' && !battleMeta?.prep)) return;
+    // Own prep already renders the complete private bench (p: views). A stale observed packet must not add a second one.
+    if (!bench || destroyed || mode !== 'battle' || !battleMeta?.prep) return;
+    bench = observedBenchExtras(bench, infos.values());
     for (const [area, arr] of [['hand', bench.pieces], ['temp', bench.tempPieces]]) {
       (arr || []).forEach((piece, idx) => {
         if (!piece) return;
@@ -949,8 +954,8 @@ export async function createFieldView(host, options = {}) {
         const d = tile && xf.toDisp(tile.row, tile.col);
         const w = d ? { x: d.col + (options.unite && options.side === 'R' ? 8 : 0), y: d.row, z: TILE_H.bench } : null;
         if (!w) return;
-        const key = 'wb:' + piece.uid;
-        const info = { ...pieceInfo(piece, area), id: key, uid: piece.uid, x: w.x, y: w.y, maxHp: 1 };
+        const key = `wb:${bench.playerId}:${piece.uid}`;
+        const info = { ...pieceInfo(piece, area), id: key, uid: piece.uid, ownerId: bench.playerId, x: w.x, y: w.y, maxHp: 1 };
         const v = info.kind === 'item' ? new ItemView(ctx, info) : new UnitView(ctx, info, { prep: true });
         v.setWorld(w.x, w.y, w.z);
         views.set(key, v);
@@ -963,6 +968,7 @@ export async function createFieldView(host, options = {}) {
     const o = options && typeof options === 'object' ? options : {};
     const hadPrep = mode === 'prep' && !!lastPrep;
     if (mode !== 'prep') enterPrepMode();
+    for (const key of [...views.keys()]) if (String(key).startsWith('wb:')) dropView(key);
     lastPrep = { ps, o };
     editable = !!o.editable;
     canPlaceFn = typeof o.canPlace === 'function' ? o.canPlace : null;
@@ -1212,8 +1218,13 @@ export async function createFieldView(host, options = {}) {
 
   /** The display tile under a canvas point (raised tops first) and the point on its top (world x, y), or null. */
   function groundTile(x, y) {
-    const t = pickTile(cam, x, y, heightAt, tiles.levels);
+    const t = visibleTileAt(x, y);
     return t ? { row: t.row, col: t.col, x: t.x, y: t.y } : null;
+  }
+
+  function visibleTileAt(x, y) {
+    const t = pickTile(cam, x, y, heightAt, tiles.levels);
+    return t && tiles.tile(t.row,t.col).drawn && viewBoardArea(viewKind(camKind,camOpts)).some(a=>t.row>=a.r0 && t.row<=a.r1 && t.col>=a.c0 && t.col<=a.c1) ? t : null;
   }
 
   /** The prep piece under a canvas point: the one on the tile under it (render/pick.js; board, bench and temp rows). */
@@ -1318,7 +1329,7 @@ export async function createFieldView(host, options = {}) {
     const g = cam.unproject(p.x, p.y, 0);
     const hold = item ? 0 : DRAG_HOLD_TILES;
     const s0 = g ? cam.scaleAt(g.x, g.y, 0) : cam.scale;
-    const t = pickTile(cam, p.x, p.y + hold * s0, heightAt, tiles.levels);
+    const t = visibleTileAt(p.x, p.y + hold * s0);
     const z = t ? heightAt(t.row, t.col) : 0;
     const up = item ? z : z + (v.lift || 0) + (v.hover || 0);
     let w = cam.unproject(p.x, p.y + hold * s0, up);

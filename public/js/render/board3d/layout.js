@@ -510,6 +510,14 @@ export function stageDevices(stage, grid) {
   return out;
 }
 
+/** Runtime slabs are separate from the baked scene, so original maps also show installed devices. */
+export function buildDeviceSlabs(devices, grid, uvTable) {
+  const board = new Geom(), decal = new Geom();
+  const uv = uvTable || SURFACES;
+  for (const d of devices) if (['platform', 'sealedFloor', 'waterPlatform'].includes(d.kind)) slabDevice(board, decal, uv, d, grid);
+  return { board: board.finish(), decal: decal.finish() };
+}
+
 /** Device heights on their tile (platform tops are standing surfaces: tiles.js heightAt adds them). */
 export const DEVICE_H = Object.freeze({ platform: TILE_H.platform, sealedFloor: 0.05, waterPlatform: 0.2 });
 

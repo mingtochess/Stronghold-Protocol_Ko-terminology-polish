@@ -224,3 +224,12 @@ test('in-place Ukusik promotion uses the upgraded prep trait on the same piece',
  assert.ok(ps.promote(p));assert.equal(p.id,id('turdus',true));
  h.m.dispatch(ps,'onRoundStart',{});assert.equal(ps.layers.ursusShip,12,'elite contributes eight, not four');h.m.dispose();
 });
+
+test('Zima S3 fires all five rounds at its fixed front tile without enemies',{skip:!ready},()=>{
+ setGameData(data);try{
+  const h=combat('headb2',2,false,{enemies:[]}),u=h.unit(id('headb2'));
+  u.skill.gainSp(1000);assert.ok(u.skill.activate());
+  h.run(20);assert.equal(u.mem.zimaStrikes,5);assert.equal(u.skill.active,false);
+  assert.equal(u.stats.attacks,5);assert.equal(h.b.errorCount,0);
+ }finally{setGameData(null)}
+});

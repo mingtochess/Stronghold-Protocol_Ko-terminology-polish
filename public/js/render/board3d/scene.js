@@ -19,7 +19,7 @@
 // material), cyan field edges, terrain overlays (≤ 4), background plane + its shadow catcher — ~12–16 in total.
 // The key light's shadow map is rendered only when the geometry changes (autoUpdate off).
 
-import { buildBoard, objToBoard, boxProjectUV, ROWS, COLS, DEVICE_H, AREAS } from './layout.js';
+import { buildBoard, buildDeviceSlabs, objToBoard, boxProjectUV, ROWS, COLS, DEVICE_H, AREAS } from './layout.js';
 import { surfaceUV } from './atlas.js';
 import {
   focusUniforms, addFocus, makeTexture, boardMaterial, glassMaterial, decalMaterial, pipeMaterial, unlitMaterial, gateMaterial, glowMaterial,
@@ -68,6 +68,41 @@ export function geometryForArea(src, areas) {
     if (background || areas.some(a => x >= a.c0 - 0.5 && x <= a.c1 + 0.5 && y >= a.r0 - 0.5 && y <= a.r1 + 0.5)) index.push(...ids);
   }
   return { ...src, index };
+}
+
+// Water surfaces may be one connected mesh across both fields. Clip their
+// triangles, preserving UVs, rather than treating the whole sheet as decoration.
+export function surfaceForArea(src, areas) {
+  const attrs = Object.entries({position:3,normal:3,uv:2,uv1:2,color:3}).filter(([key,size])=>src[key]?.length === src.position.length/3*size);
+  const output = Object.fromEntries(attrs.map(([key])=>[key,[]]));
+  const index=[];
+  const vertex=id=>Object.fromEntries(attrs.map(([key,size])=>[key,Array.from(src[key].slice(id*size,(id+1)*size))]));
+  const mix=(a,b,t)=>Object.fromEntries(attrs.map(([key])=>[key,a[key].map((v,i)=>v+(b[key][i]-v)*t)]));
+  for(let i=0;i<src.index.length;i+=3) {
+    const triangle=src.index.slice(i,i+3).map(vertex);
+    for(const area of areas) {
+      let poly=triangle;
+      for(const [axis,limit,sign] of [[0,area.c0-.5,1],[0,area.c1+.5,-1],[1,area.r0-.5,1],[1,area.r1+.5,-1]]) {
+        const next=[];
+        for(let j=0;j<poly.length;j++) {
+          const a=poly[j],b=poly[(j+1)%poly.length];
+          const insideA=sign*(a.position[axis]-limit)>=0,insideB=sign*(b.position[axis]-limit)>=0;
+          if(insideA)next.push(a);
+          if(insideA!==insideB)next.push(mix(a,b,(limit-a.position[axis])/(b.position[axis]-a.position[axis])));
+        }
+        poly=next;
+      }
+      for(let j=1;j+1<poly.length;j++) {
+        const ids=[];
+        for(const v of [poly[0],poly[j],poly[j+1]]) {
+          ids.push(output.position.length/3);
+          for(const [key] of attrs)output[key].push(...v[key]);
+        }
+        index.push(...ids);
+      }
+    }
+  }
+  return {...src,...output,index};
 }
 
 /** Keep decorative mesh components whole. Only hide components wholly inside an
@@ -422,13 +457,20 @@ export class BoardScene {
           runtimeMaterial.customProgramCacheKey = () => nativeGamma ? 'sp-focus-native-gamma-rgbm5' : 'sp-focus-unity-rgbm5';
           this.lightmapMaterials.push(runtimeMaterial);
         }
-        M[`original:${material}`] = this._mesh(geometry.platform ? geometryForArea(geometry, this.area) : sceneryForArea(geometry, this.area), runtimeMaterial, { cast: sourceName !== 'MT_Dosshore_UI' });
+        const waterSurface = /Dosshore_UI|shuidi/i.test(sourceName);
+        const visibleGeometry = waterSurface ? surfaceForArea(geometry, this.area) : geometry.platform ? geometryForArea(geometry, this.area) : sceneryForArea(geometry, this.area);
+        M[`original:${material}`] = this._mesh(visibleGeometry, runtimeMaterial, { cast: sourceName !== 'MT_Dosshore_UI' });
       }
     } else {
       M.board = this._mesh(board.buckets.board, this.mat.board);
       M.glass = this._mesh(board.buckets.glass, this.mat.glass);
       M.decal = this._mesh(board.buckets.decal, this.mat.decal, { cast: false });
       M.pipe = this._mesh(board.buckets.pipe, this.mat.pipe);
+    }
+    if (original) {
+      const slabs = buildDeviceSlabs(board.devices, board.grid, this.pack?.uv);
+      M.deviceSlabs = this._mesh(slabs.board, this.mat.board);
+      M.deviceDecals = this._mesh(slabs.decal, this.mat.decal, { cast: false });
     }
     this._buildDevices(board);
     this._buildGates(board);

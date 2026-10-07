@@ -16,6 +16,7 @@ import {
   html, Button, Icon, MicroLabel, PingPill, AvatarFrame, DifficultyTag, DifficultyIcon, Tooltip, confirmDialog, doctorNo,
 } from '../ui/components.js';
 import { toast, toastError } from '../ui/toasts.js';
+import {tr} from '../i18n/i18n.js';
 import { copyText } from '../ui/clipboard.js';
 import { FactionBadge } from '../ui/chatFaction.js';
 import { SettingsButton } from '../ui/settings.js';
@@ -23,6 +24,7 @@ import { PatchNotesButton } from '../ui/patchNotes.js';
 import { GuideButton } from '../ui/guide.js';
 import { LoadoutButton } from './loadout.js';
 import { CustomExtensionsDialog } from '../ui/customExtensions.js';
+import { saveCustomExtensionPrefs } from '../ui/customExtensionPrefs.js';
 import { net } from '../net.js';
 import { store, useStore, shallowEqual, emptyMatch, isSpectating } from '../store.js';
 import { difficultyInfo } from './lobby.js';
@@ -162,7 +164,7 @@ function SpectatorBar({ facts, myId, busy, onRemove, onSit }) {
 
 function InviteBox({ code, name, difficulty }) {
   const copy = async (what) => {
-    const ok = await copyText(what === 'code' ? code : `${inviteLink(code)} ${name}邀请你加入卫戍协议：盟约【${DIFFICULTY_NAMES[difficulty]}】`);
+    const ok = await copyText(what === 'code' ? code : `${inviteLink(code)} ${tr('{0}邀请你加入卫戍协议：盟约【{1}】').replace('{0}',name).replace('{1}',tr(DIFFICULTY_NAMES[difficulty]))}`);
     if (ok) toast(what === 'code' ? `已复制同盟密钥 ${code}` : '已复制邀请链接', 'success');
     else toast('复制失败，请手动复制', 'warn');
   };
@@ -200,8 +202,20 @@ export function RoomScreen() {
   const conn = useStore((s) => s.connection, shallowEqual);
   const [busy, setBusy] = useState(null);
   const alive = useRef(true);
+  const footerRef = useRef(null);
   const inFlight = useRef(false); // synchronous guard against double clicks (state updates are async)
   useEffect(() => () => { alive.current = false; }, []);
+
+  useEffect(() => {
+    const footer=footerRef.current;
+    if(!footer)return;
+    const root=document.documentElement;
+    const measure=()=>root.style.setProperty('--room-bar-height',`${footer.getBoundingClientRect().height}px`);
+    measure();
+    const observer=typeof ResizeObserver==='function'?new ResizeObserver(measure):null;
+    observer?.observe(footer);window.addEventListener('resize',measure);
+    return()=>{observer?.disconnect();window.removeEventListener('resize',measure);root.style.removeProperty('--room-bar-height');};
+  },[room?.code]);
 
   if (!room) return null;
   const online = conn.status === 'online';
@@ -310,14 +324,15 @@ export function RoomScreen() {
     <${SpectatorBar} facts=${facts} myId=${me.playerId} busy=${busy} onRemove=${removeSpectator} onSit=${sit} />
 
     <${CustomExtensionsDialog} open=${extensionsOpen} room=${room} isHost=${facts.isHost} disabled=${!!busy || !online} onClose=${()=>setExtensionsOpen(false)}
-      onSave=${selection=>run('extensions',async()=>{await net.request('room.setCustomExtensions',{selection});setExtensionsOpen(false);})} />
-    <footer class="room-bar">
+      onSave=${selection=>run('extensions',async()=>{await net.request('room.setCustomExtensions',{selection});saveCustomExtensionPrefs(selection);setExtensionsOpen(false);})} />
+    <footer class="room-bar" ref=${footerRef}>
       <div class="room-bar__left">
-        <span class="room-bar__label">模拟难度<${MicroLabel}>DIFFICULTY<//></span>
-        <${DifficultyPicker} room=${room} isHost=${facts.isHost} busy=${busy} onPick=${setDifficulty} />
+        <div class="room-bar__difficulty">
+          <span class="room-bar__label">模拟难度<${MicroLabel}>DIFFICULTY<//></span>
+          <${DifficultyPicker} room=${room} isHost=${facts.isHost} busy=${busy} onPick=${setDifficulty} />
+        </div>
       </div>
       <div class="room-bar__center">
-        <${Button} variant="secondary" size="md" icon="settings" class="room-custom-extensions" disabled=${!!busy || !online} onClick=${()=>setExtensionsOpen(true)}>커스텀 확장 설정 <span class="lo-entry__n num">${Object.values(room.customExtensions || {bonds:room.customFactions?['ursus']:[]}).reduce((n,ids)=>n+(Array.isArray(ids)?ids.length:0),0)}</span><//>
         <div class="ready-count" hidden=${!coop}>
           <span class="t-lo">已就绪</span>
           <b class="num">${facts.readyHumans}</b><span class="num t-dim">/${facts.humans.length}</span>
@@ -328,7 +343,10 @@ export function RoomScreen() {
         <div class="room-bar__status">${statusLine}</div>
       </div>
       <div class="room-bar__right">
-        <${LoadoutButton} from="room" size="lg" class="room-loadout" />
+        <div class="room-bar__settings">
+          <${LoadoutButton} from="room" size="lg" class="room-loadout" />
+          <${Button} variant="secondary" size="lg" icon="settings" class="room-custom-extensions" disabled=${!!busy || !online} onClick=${()=>setExtensionsOpen(true)}>커스텀 확장 설정 <span class="lo-entry__n num">${Object.values(room.customExtensions || {bonds:room.customFactions?['ursus']:[]}).reduce((n,ids)=>n+(Array.isArray(ids)?ids.length:0),0)}</span><//>
+        </div>
         ${facts.isHost
           ? html`<${Tooltip} text=${facts.canStart ? null : '仍有博士未准备就绪'}>
               <${Button} variant="primary" size="xl" icon="play" loading=${busy === 'start'} disabled=${!facts.canStart || !online} onClick=${start}>开始模拟<//>

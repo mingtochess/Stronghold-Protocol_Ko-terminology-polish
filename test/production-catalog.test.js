@@ -16,7 +16,7 @@ test('prepared production catalogue includes every referenced asset and current 
  assert.match(bands.band_custom_ursus_kaschey.desc,/^\[영광과 번영\]<우르수스>/);
  assert.equal(bands.band_custom_ursus_kaschey.totalHp,22);
  assert.match(bands.band_custom_ursus_kaschey.desc,/라운드당 최대 1회/);
- for(const [key,skill] of Object.entries({absin:0,turdus:0,botany:0,glassb:1,leto:1,poca:1,helage:1,headb2:2}))for(const suffix of ['a','b'])assert.equal(chess[`chess_custom_ursus_${key}_${suffix}`].skill.index,skill);
+ for(const [key,skill] of Object.entries({brownb:1,turdus:0,botany:0,glassb:1,leto:1,poca:1,helage:1,headb2:2}))for(const suffix of ['a','b'])assert.equal(chess[`chess_custom_ursus_${key}_${suffix}`].skill.index,skill);
  assert.ok(Object.keys(assets.audio.voice.kr).length>100);assert.ok(Object.keys(assets.audio.voice.jp).length>100);
 });
 
@@ -47,4 +47,19 @@ test('production attack timings agree with ordinary-attack buff roles',()=>{
    assert.ok(timing.attack.hit>=0&&timing.attack.dur>0);
   }
  }
+});
+
+test('Beehunter replaces Absinthe with complete resources and two independent trait effects',()=>{
+ const chess=read('data/chess.json'),g=read('data/garrisons.json'),assets=read('data/assets.json');
+ assert.ok(!Object.values(chess).some(c=>c.charId==='char_405_absin'));
+ for(const suffix of ['a','b']){
+  const c=chess[`chess_custom_ursus_brownb_${suffix}`];
+  assert.deepEqual(c.bonds,['ursusShip','raidShip']);assert.equal(c.skill.index,1);
+  if(suffix==='b')assert.ok(c.modules.some(m=>m.uniEquipId==='uniequip_002_brownb'));assert.ok(c.skins.length>0);
+  assert.equal(c.garrisonIds.length,2);
+  assert.match(g[c.garrisonIds[0]].description ?? JSON.stringify(g[c.garrisonIds[0]]),/맹약 활성화 불필요/);
+  assert.match(JSON.stringify(g[c.garrisonIds[1]]),/act1autochess_gar_eff_chaos/);
+  assert.ok(chess[`chess_custom_ursus_helage_${suffix}`].bonds.includes('indomShip'));
+ }
+ for(const lang of ['kr','jp'])assert.ok(assets.audio.voice[lang].char_137_brownb.place.length);
 });

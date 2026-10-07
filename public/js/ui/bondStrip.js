@@ -32,8 +32,8 @@ const cx = (...p) => p.flat().filter(Boolean).join(' ');
  * @param {{ bonds: any[], layersDisabled?: boolean, onOpen:(bondId:string)=>void, openId?: string|null, max?: number,
  *   owner?: string|null }} props — owner: the watched teammate's name (null = your own bonds)
  */
-export function BondStrip({ bonds, layersDisabled = false, onOpen, openId = null, max = 14, owner = null }) {
-  const sorted = sortBonds(bonds, (id) => data.lookup('bonds', id));
+export function BondStrip({ bonds, layersDisabled = false, onOpen, openId = null, max = Infinity, owner = null }) {
+  const sorted = sortBonds((bonds || []).filter(b => (b?.memberCount ?? b?.count ?? 0) > 0), (id) => data.lookup('bonds', id));
   if (!sorted.length) {
     return html`<div class=${cx('bstrip', 'bstrip--empty', owner && 'is-other')} data-owner=${owner || null}>
       <${MicroLabel}>BONDS</${MicroLabel}><span>${owner ? `${owner} 尚未激活盟约` : '部署干员以激活盟约'}</span></div>`;
@@ -51,7 +51,7 @@ export function BondStrip({ bonds, layersDisabled = false, onOpen, openId = null
         return html`<div key=${b.bondId} role="listitem" data-bond=${b.bondId} data-off="1"
             class=${cx('bslot', 'is-off', openId === b.bondId && 'is-open')}>
           <${BondDisc} name=${name} icon=${bondIconUrl(m, b.bondId)} tier=${0} maxTier=${Math.max(1, th.length)} active=${false}
-            disabled=${true} size="sm" showName=${true} layersDisabled=${layersDisabled} onClick=${() => onOpen(b.bondId)}
+            disabled=${true} ringGap=${12} size="sm" showName=${true} layersDisabled=${layersDisabled} onClick=${() => onOpen(b.bondId)}
             title=${`${briefingBondTip(name, 'off')} · ${b.count ?? 0} 名成员`} />
           <span class="bslot__count bslot__off">本局禁用</span>
         </div>`;
@@ -60,7 +60,7 @@ export function BondStrip({ bonds, layersDisabled = false, onOpen, openId = null
       return html`<div key=${b.bondId} role="listitem" data-bond=${b.bondId} data-harmony=${b.harmony > 0 ? b.harmony : null}
           class=${cx('bslot', b.active && 'is-active', openId === b.bondId && 'is-open')}>
         <${BondDisc} name=${rec?.name || b.bondId} icon=${bondIconUrl(m, b.bondId)} layers=${rec?.noStack ? undefined : b.layers ?? 0}
-          tier=${b.tier ?? 0} maxTier=${Math.max(1, th.length)} active=${!!b.active} size="sm" showName=${true}
+          tier=${b.tier ?? 0} maxTier=${Math.max(1, th.length)} active=${!!b.active} ringGap=${12} size="sm" showName=${true}
           layersDisabled=${layersDisabled} onClick=${() => onOpen(b.bondId)}
           title=${`${rec?.name || b.bondId} ${b.count ?? 0}/${next ?? th[th.length - 1] ?? '-'}${b.harmony > 0 ? `（含调和 +${b.harmony}）` : ''}`} />
         <span class=${cx('bslot__count', 'num', next == null && 'is-max')}>${b.count ?? 0}<small>/${next ?? th[th.length - 1] ?? '-'}</small></span>

@@ -168,3 +168,12 @@ test('multi-target strikes preserve facing and freeze pauses the entire actor cl
  assert.equal(v.actor.clock,before);assert.equal(v.actor.current,current);
  v.sync({x:8,y:9,hp:1000,maxHp:1000,sp:0,spMax:0,flags:0,anim:ANIM.IDLE},2.4);v.update(.1,cam(),2.5);assert.ok(v.actor.clock>before);v.destroy();
 });
+
+
+test('movement pace follows speed modifiers without retiming attack or idle',()=>{
+ const a=actor(JSHOOT,true);a.moveRate=.2;a.update(.01);assert.equal(track(a).timeScale,.2);
+ const moving=track(a);a.moveRate=1.7;a.update(.01);assert.equal(track(a),moving);assert.equal(track(a).timeScale,1.7);
+ a.attack(2.7);const attackRate=track(a).timeScale;a.moveRate=.1;a.update(.01);assert.equal(track(a).timeScale,attackRate);
+ a.mode='base';a.setBase('idle');a.update(.01);assert.equal(track(a).timeScale,1);
+ a.setBase('move');a.moveRate=0;a.update(.01);assert.equal(track(a).timeScale,0);a.destroy();
+});

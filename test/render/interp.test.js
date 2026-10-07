@@ -10,6 +10,16 @@ const near = (a, b, eps = 1e-6) => Math.abs(a - b) <= eps;
 const snap = (t, units) => ({ fieldId: 'n:1', t, units, dp: 10, killed: 0, total: 5 });
 const U = (id, x, y, hp = 100, anim = 0, flags = 0) => [id, x, y, hp, 100, 5, 10, flags, anim];
 
+test('skill and overheat gauge transitions do not blend the previous segment into the next', () => {
+  for (const [before, after] of [[16|1024,16|1024|2048], [0,16], [16,0]]) {
+    const b = new SnapshotBuffer();
+    b.push(snap(0, [[1,4,10,100,100,0,20,before,0]]), 0);
+    b.push(snap(.1, [[1,4,10,100,100,20,20,after,0]]), .1);
+    assert.equal(b.sample(.05).get(1).sp, 0);
+    assert.equal(b.sample(.1).get(1).sp, 20);
+  }
+});
+
 /** Feed snapshots every 0.1 game s at 2× (every 50 ms real) starting at real time 0. */
 function feed(buf, frames, t0 = 0, realStep = 0.05, gameStep = 0.1) {
   frames.forEach((units, i) => buf.push(snap(t0 + i * gameStep, units), i * realStep));
@@ -244,4 +254,11 @@ test('boss elemental snapshots preserve the exact accumulated value alongside th
  assert.equal(s.units.get(1)[19],273.75);
  const legacy=normalizeSnapshot({gt:2,units:[U(1,2,3)],elem:[[1,'burn',.137,0,0]]});
  assert.equal(legacy.units.get(1)[19],undefined);
+});
+
+
+test('movement pace travels with snapshots and resets when a debuff ends',()=>{
+ const b=new SnapshotBuffer();b.push({...snap(0,[U(1,2,9)]),moveRates:[[1,.2]]},0);
+ assert.equal(b.sample(0).get(1).moveAnimRate,.2);
+ b.push(snap(1,[U(1,3,9)]),1);assert.equal(b.sample(1).get(1).moveAnimRate,1);
 });

@@ -247,8 +247,9 @@
   grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
   gap: .3rem;
-  height: 1.5rem;
-  padding: 0 .6rem;
+  min-height: 1.5rem;
+  height: auto;
+  padding: .18rem .6rem;
   background: linear-gradient(0deg, rgba(7, 9, 8, .96), rgba(10, 13, 12, .7));
   border-top: 1px solid var(--line);
 }
@@ -261,10 +262,15 @@
   height: 1px;
   background: linear-gradient(90deg, var(--mint-700), transparent 30%, transparent 70%, var(--mint-700));
 }
-.room-bar__left { display: flex; align-items: center; gap: .22rem; min-width: 0; }
+.room-bar__left { display: flex; flex-direction: column; align-items: flex-start; gap: .12rem; min-width: 0; }
+.room-bar__difficulty { display: flex; align-items: center; gap: .22rem; min-width: 0; }
 .room-bar__label { display: flex; flex-direction: column; font-size: .17rem; font-weight: 700; color: var(--text-md); line-height: 1.35; }
 .room-bar__center { display: flex; flex-direction: column; align-items: center; gap: .06rem; }
-.room-bar__right { justify-self: end; display: flex; align-items: center; gap: .16rem; }
+.room-bar__right { justify-self: end; display: flex; align-items: stretch; gap: .12rem; }
+.room-bar__settings { display: flex; flex-direction: column; align-items: stretch; gap: .08rem; }
+.room-bar__settings > .btn { width: 100%; }
+.room-bar__right > .tt-anchor { display: flex; align-items: stretch; }
+.room-bar__right > .btn, .room-bar__right > .tt-anchor > .btn { height: auto; min-height: 1.36rem; }
 .room-bar__status { font-size: .15rem; }
 .room-bar__status .icon { width: .18rem; height: .18rem; margin-right: .05rem; vertical-align: -.03rem; }
 

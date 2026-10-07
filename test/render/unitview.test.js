@@ -484,3 +484,31 @@ test('frozen allies and enemies still play their death clip while the last snaps
   assert.equal(v.actor.frozen,false);v.destroy();
  }
 });
+
+test('skill outlines share their inset and animate dashes without leaving the edge',async()=>{
+ const {skillRangeStyle,skillRangeDashes}=await import('../../public/js/render/units.js');
+ assert.equal(skillRangeStyle({charId:'char_358_lisa'}).inset,skillRangeStyle({charId:'char_4064_mlynar'}).inset);
+ const edge=[0,0,1,0],first=skillRangeDashes(edge,false,0),next=skillRangeDashes(edge,false,.16);
+ assert.notDeepEqual(first,next);
+ for(const phase of [0,.16,.32,.64])for(const [x0,y0,x1,y1] of skillRangeDashes(edge,false,phase)){
+  assert.ok(x0>=0&&x1<=1&&x1>x0);assert.equal(y0,0);assert.equal(y1,0);
+ }
+});
+
+
+test('airborne movers enter union fields aloft and never ease through raised surfaces',async()=>{
+ const {FLY_HOVER}=await import('../../public/js/render/units.js');
+ const {UF,ANIM}=await import('../../shared/constants.js');
+ const camera=presetCamera('unite',{width:1600,height:900});
+ const native=view({side:'enemy',motion:'FLY',kind:'enemy'});
+ assert.equal(native.hover,FLY_HOVER,'native flight is already elevated on the first frame');
+ const late=view({side:'enemy',kind:'enemy'});late.ctx.heightAt=(r,c)=>c>=12?.55:0;
+ const sample=(x,flags)=>({id:1,x,y:10,hp:1000,maxHp:1000,sp:0,spMax:0,anim:ANIM.MOVE,flags});
+ late.sync(sample(11,UF.FLYING),0);late.update(1/60,camera,0);assert.equal(late.hover,FLY_HOVER,'first airborne snapshot also enters elevated');
+ late.sync(sample(12,UF.FLYING),.05);late.update(1/60,camera,.05);
+ assert.ok(late.z+late.hover>=.55+FLY_HOVER-1e-6,'crossing a raised union tile cannot put the body inside its surface');
+ late.sync(sample(11,UF.FLYING),.1);late.update(1/60,camera,.1);assert.ok(late.z+late.hover>=FLY_HOVER);
+ late.sync(sample(11,0),.2);for(let i=0;i<90;i++)late.update(1/60,camera,.2+i/60);assert.equal(late.flying,false);assert.equal(late.hover,0,'temporary flight still expires and lands');
+ const ground=view({side:'enemy',kind:'enemy'});ground.ctx.heightAt=()=>.55;ground.sync(sample(12,0),0);ground.update(1/60,camera,0);assert.equal(ground.z,0,'ground enemy movement is unchanged');
+ native.destroy();late.destroy();ground.destroy();
+});

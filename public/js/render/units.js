@@ -119,14 +119,13 @@ export function skillRangeStyle(info) {
   const match = Object.entries(RANGE_PALETTE).find(([name]) => new RegExp(`_${name}(?:_|$)`).test(id));
   const theme=skillVisualTheme(info,match?.[1] ?? ART_RANGE_COLORS.get(info.charId) ?? 0xc7d4d9);
   const color = theme.color;
-  const lane = Math.max(0,Object.keys(RANGE_PALETTE).indexOf(match?.[0]));
   const channels=[color>>16&255,color>>8&255,color&255], hi=Math.max(...channels);
   const vivid=channels.map(c=>Math.round(Math.max(0,hi-(hi-c)*1.45)));
   const outlineColor=(vivid[0]<<16)|(vivid[1]<<8)|vivid[2];
-  return {color,outlineColor,inset:.055+(lane%4)*.065,fillAlpha:theme.fillAlpha,glowAlpha:0,pulse:0,accent:theme.accent,source:theme.source};
+  return {color,outlineColor,inset:.065,fillAlpha:theme.fillAlpha,glowAlpha:0,pulse:0,accent:theme.accent,source:theme.source};
 }
 // Offset each clockwise union edge towards its interior. The stroke never
-// straddles the boundary; staggered inner lanes preserve overlapping colours.
+// straddles the boundary; all operators share the same boundary inset.
 export function skillRangeInset([x0,y0,x1,y1], inset) {
   const len=Math.hypot(x1-x0,y1-y0);if(!len)return [x0,y0,x1,y1];
   const dx=-(y1-y0)/len*inset,dy=(x1-x0)/len*inset;
@@ -170,11 +169,13 @@ export function skillRangeEdges(tiles, inset=0) {
 }
 
 /** Fixed world-space dash lengths keep the border steady while the camera moves. */
-export function skillRangeDashes([x0,y0,x1,y1], closeCorner=false) {
+export function skillRangeDashes([x0,y0,x1,y1], closeCorner=false, offset=0) {
   const length=Math.hypot(x1-x0,y1-y0),segments=[];
   if(!length)return segments;
-  for(let distance=0;distance<length;distance+=1/3){
-    const a=distance/length,b=Math.min(length,distance+.22)/length;
+  const phase=((offset%(1/3))+(1/3))%(1/3);
+  for(let distance=-phase;distance<length;distance+=1/3){
+    if(distance+.22<=0)continue;
+    const a=Math.max(0,distance)/length,b=Math.min(length,distance+.22)/length;
     segments.push([x0+(x1-x0)*a,y0+(y1-y0)*a,x0+(x1-x0)*b,y0+(y1-y0)*b]);
   }
   if(closeCorner && segments.length){
@@ -379,7 +380,7 @@ export class UnitView {
     this.x = Number(info.x) || 0; this.y = Number(info.y) || 0; this.z = 0;
     this.zTarget = null;          // battle: standing height the feet ease towards (tile top under the unit)
     this.flying = !!info.flying || info.motion === 'FLY';
-    this.hover = 0;               // flying: body height above the ground under it
+    this.hover = this.flying ? FLY_HOVER : 0; // native flyers enter at flight height, including field switches
     this.dir = this.isEnemy ? null : unitDir(info);
     // whether the direction is known (UnitInfo / piece `dir`), not just the legacy ±1: battle and scouting views show
     // the ground wedge only then (a derived RIGHT would mislabel an UP / DOWN operator)
@@ -727,9 +728,13 @@ export class UnitView {
     this.x = s.x; this.y = s.y;
     // Snapshots carry the current airborne state, including temporary flight and landing.
     this.flying = !!(s.flags & UF.FLYING);
+    if (!this._airStateSeen) {
+      this._airStateSeen = true;
+      if (this.flying) this.hover = FLY_HOVER;
+    }
     // ground enemies only ever walk low tiles (a rounding step onto a block edge must not pop them up)
     const gz = this.isEnemy && !this.flying ? 0 : groundZ(this.ctx, s.x, s.y);
-    if (this.zTarget == null) this.z = gz;
+    if (this.zTarget == null || (this.flying && gz > this.z)) this.z = gz;
     this.zTarget = gz;
     if (s.maxHp > 0) this.maxHp = s.maxHp;
     const hp = clamp(s.hp, 0, this.maxHp);
@@ -743,6 +748,7 @@ export class UnitView {
     const prevFlags = this.flags;
     this.flags = s.flags | 0;
     this.anim = s.anim | 0;
+    this.moveAnimRate = this.isEnemy && Number.isFinite(s.moveAnimRate) ? Math.max(0,s.moveAnimRate) : 1;
     if (this.isEnemy && this.anim===ANIM.MOVE && !['attack','skillCast'].includes(this.actor?.mode) && Math.abs(s.vx) > 0.08) this.visFacing = s.vx < 0 ? -1 : 1;
     if ((prevFlags ^ this.flags) & UF.SKILL) this.setSkill(!!(this.flags & UF.SKILL));
     if (this.anim === ANIM.DIE && this.alive) this.die();
@@ -1154,10 +1160,7 @@ export class UnitView {
         placeOnGround(this.ctx,g,this.ctx.layers.groundFx,this.y,0);
         loadRangeArtColor(this.info,this.ctx.assets);
         const style = skillRangeStyle(this.info);
-        const active=[...(this.ctx._rangeViews || [])].filter(v=>v.alive&&!v.down&&(v.statuses.has('skill') || v.skillTiles?.length)&&(v.info.skillZoneGrid?.length || v.skillTiles?.length));
-        const ids=[...new Set(active.map(v=>v.info.charId || v.info.spine || String(v.id)))].sort();
-        const lane=Math.max(0,ids.indexOf(this.info.charId || this.info.spine || String(this.id)));
-        style.inset=.065+Math.min(5,lane)*.045;
+        style.inset=.065;
         const edgeWidth = clamp(s*.052, 3.6, 6);
         const tiles=(this.skillTiles || this.info.skillZoneGrid || []).map(([dr,dc])=>this.skillTiles ? [dr-this.y,dc-this.x] : this.dir==='UP'?[dc,-dr]:this.dir==='LEFT'?[-dr,-dc]:this.dir==='DOWN'?[-dc,dr]:[dr,dc]);
         const boundary=skillRangeEdges(tiles,style.inset);
@@ -1183,8 +1186,8 @@ export class UnitView {
           }
           // A dark under-stroke follows the same dashes, leaving gaps and fill
           // intact while keeping pale outlines readable against bright terrain.
-          const dashes = (boundary.get(`${r},${c}`) || []).flatMap(edge=>skillRangeDashes(edge,true));
-          tileGraphics.lineStyle(edgeWidth + 3,0x080b10,.28*alpha);
+          const dashes = (boundary.get(`${r},${c}`) || []).flatMap(edge=>skillRangeDashes(edge,false,t*.16));
+          tileGraphics.lineStyle(edgeWidth + 3,0x080b10,.6*alpha);
           for(const [x0,y0,x1,y1] of dashes){
             const a=cam.project(tileX+x0,tileY+y0,z+.02),b=cam.project(tileX+x1,tileY+y1,z+.02);
             tileGraphics.moveTo(a.x,a.y+1);tileGraphics.lineTo(b.x,b.y+1);
@@ -1224,8 +1227,9 @@ export class UnitView {
       if (this.down) tint = DOWN_LOOK.tint;
       else if (this.alive && (this.flags & UF.FROZEN)) tint = 0x9fd4ff;
       else if (this.flags & UF.COLD) tint = 0xcfe6ff;
-      if (this.flags & UF.STEALTH) tint = mixTint(tint,0x55636e,.27);
+      if (this.flags & UF.STEALTH) tint = mixTint(tint,0x26333f,.6);
       if (flashK > 0) tint = mixTint(tint, 0xff8a80, flashK * 0.8);
+      this.actor.moveRate = this.moveAnimRate ?? 1;
       let animDt = dt * (this.ctx.animRate?.() || 1);
       if (this._offDt > 0) { animDt += Math.min(0.5, this._offDt); this._offDt = 0; }
       if (this.alive && (this.flags & UF.FROZEN)) animDt = 0;
@@ -1370,16 +1374,17 @@ export class UnitView {
     let ready = false;
     if (showSp) {
       const active = !!(this.flags & UF.SKILL);
-      const k = clamp(this.ammoMax > 0 ? this.ammoLeft / this.ammoMax : this.sp / this.spMax, 0, 1);
+      const k = clamp(this.sp / this.spMax, 0, 1);
       ready = !active && k >= 0.999;
       const sy = cy + bh / 2 + spH / 2 + 1.5;
       this.spBg.position.set(x0 - 1, sy); this.spBg.width = bw + 2; this.spBg.height = spH + 2;
       this.spFill.position.set(x0, sy); this.spFill.width = bw * k; this.spFill.height = spH;
-      this.spFill.tint = active ? COLORS.spActive : ready ? COLORS.spReady : COLORS.sp;
-      if (this.ammoMax > 1) {
-        this.ammoDividers.lineStyle(Math.min(.7, bw / this.ammoMax * .3), COLORS.hpBack, .9);
-        for (let i = 1; i < this.ammoMax; i++) {
-          const bx = x0 + bw * i / this.ammoMax;
+      this.spFill.tint = (this.flags & UF.OVERHEATED) ? 0xf04444 : active ? COLORS.spActive : ready ? COLORS.spReady : COLORS.sp;
+      const shownAmmo = this.flags & UF.OVERDRIVE ? this.ammoMax / 2 : this.ammoMax;
+      if (shownAmmo > 1) {
+        this.ammoDividers.lineStyle(Math.min(.7, bw / shownAmmo * .3), COLORS.hpBack, .9);
+        for (let i = 1; i < shownAmmo; i++) {
+          const bx = x0 + bw * i / shownAmmo;
           this.ammoDividers.moveTo(bx, sy - spH / 2).lineTo(bx, sy + spH / 2);
         }
       }

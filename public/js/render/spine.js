@@ -571,6 +571,10 @@ export class SpineActor {
       const e = this.spine.state.tracks[0];
       if (e && this.mode === 'attack') e.timeScale = this.windTs;
     }
+    if (this.mode==='base' && this.base==='move' && this.current===this.roles.move?.loop) {
+      const track=this.spine.state.tracks[0];
+      if(track) track.timeScale=Number.isFinite(this.moveRate)?Math.max(0,this.moveRate):1;
+    }
     if (!this.frozen) {
       try { this.spine.update(dt); } catch { /* a broken skeleton must not stop the frame */ }
     }

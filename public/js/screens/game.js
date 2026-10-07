@@ -1359,7 +1359,7 @@ function MatchScreen() {
         onRemoveSpectator=${(playerId) => actions.removeSpectator(playerId)} />
 
       <div class="gm__bonds">
-        <div id="match-bond-strip" class="gm__bond-list">
+        <div id="match-bond-strip" class="gm__bond-list" tabIndex=${0} aria-label="맹약 목록" onWheel=${e => { const el=e.currentTarget; if(el.scrollWidth>el.clientWidth){el.scrollLeft+=e.deltaX || e.deltaY;e.preventDefault();} }}>
           <${BondStrip} bonds=${stripBonds} layersDisabled=${layersDisabled} openId=${bondPop && bondPop.ownerId === strip.ownerId ? bondPop.bondId : null}
             owner=${strip.name} onOpen=${(id) => openBond(id, strip.ownerId, 'strip')} />
         </div>

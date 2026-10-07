@@ -1195,7 +1195,7 @@ const KITS = {
   // S1 照明榴弹 (instant / 2 charges elite, 自动触发 ⇒ DEFAULT): next attack atk_scale × ATK; a ranged (unblocked) one also
   // splashes projectile_range and lights the impact for projectile_delay_time s (enemies within projectile_range lose
   // 隐匿). S2 暴风号令 (ammo 10): every attack attack@s2.atk_scale × ATK phys splash; 过载 for the second half of the
-  // ammo [ASSUMED like S3]: + attack@s2.magic_atk_scale × ATK arts to every enemy hit (manual close never happens in the
+  // ammo (PRTS 技能 §过载): + attack@s2.magic_atk_scale × ATK arts to every enemy hit (manual close never happens in the
   // auto battle). Module FOR-Y (elite): ASPD +10 while not blocking.
   // S2 and S3 cast with an enemy in range (data DEFAULT, rawRule TAKE_DAMAGE): the owner's deliberate deviation from the
   // official 重装 TAKE_DAMAGE row (DESIGN §21.29, tools/build-data.mjs TRIGGER_DEVIATIONS).
@@ -1299,8 +1299,8 @@ const KITS = {
           const magic = num(bb['attack@s2.magic_atk_scale']);
           battle.on('beforeAttack', (c) => { // 过载: the second half of the ammo
             if (c.attacker !== unit || !unit.skill?.active || !c.profile) return;
-            const shot = s2Ammo - num(unit.skill.ammoLeft) + 1;
-            const over = shot > s2Ammo * HORN_S2_OVERLOAD_AT + 1e-9;
+            const initialAmmo = Math.max(1, unit.skill.ammoMax || s2Ammo);
+            const over = unit.skill.ammoLeft <= initialAmmo * HORN_S2_OVERLOAD_AT + 1e-9;
             if (over && !unit.mem.hornS2Over) battle.fx('overload', { x: unit.x, y: unit.y, id: unit.id });
             unit.mem.hornS2Over = over;
             if (!over || !(magic > 0)) return;

@@ -1,3 +1,5 @@
+import { UF } from '../../../shared/constants.js';
+import { DamageEventGate } from '../../../shared/damageDisplay.js';
 // render/interp.js — snapshot interpolation buffer for battle rendering (pure logic, no PIXI / DOM).
 //
 // The server streams `b.snap` at ~20 Hz real time; snapshot time `t` is GAME seconds and combat runs at 2×
@@ -91,6 +93,9 @@ export function normalizeSnapshot(snap) {
       if(tu && Number.isFinite(e[5]))tu[19]=e[5];
     }
   }
+  if(Array.isArray(snap.moveRates)) for(const e of snap.moveRates){
+    const tu=units.get(e?.[0]);if(tu && Number.isFinite(e[1]) && e[1]>=0)tu[20]=e[1];
+  }
   if (Array.isArray(snap.ammo)) for (const e of snap.ammo) {
     const tu = units.get(e?.[0]);
     if (tu && Number.isInteger(e[1]) && Number.isInteger(e[2]) && e[2] > 0) {
@@ -149,6 +154,7 @@ export class SnapshotBuffer {
     this.interval = 0.1 * this.defaultRate / 2; // game s between snapshots (estimated)
     /** @type {{t:number, ev:any}[]} */
     this.events = [];
+    this.damageEvents = new DamageEventGate();
     this.meta = null; // latest snapshot's extra fields (dp, killed, total, boss…)
     return this;
   }
@@ -209,7 +215,7 @@ export class SnapshotBuffer {
     }
     let added = 0;
     for (const ev of evs) {
-      if (!Array.isArray(ev) || typeof ev[0] !== 'string') continue;
+      if (!Array.isArray(ev) || typeof ev[0] !== 'string' || !this.damageEvents.accept(ev)) continue;
       this.events.push({ t: stamp, ev });
       added++;
     }
@@ -315,7 +321,7 @@ export class SnapshotBuffer {
         o.vy = !tele && span > 0 ? dy / span : 0;
         o.hp = a[3] + (b[3] - a[3]) * alpha;
         o.maxHp = b[4] || a[4];
-        o.sp = a[5] + (b[5] - a[5]) * alpha;
+        o.sp = ((a[7] ^ b[7]) & (UF.SKILL | UF.OVERHEATED)) ? a[5] : a[5] + (b[5] - a[5]) * alpha;
         o.spMax = b[6] || a[6];
       } else {
         let vx = 0, vy = 0;
@@ -348,6 +354,7 @@ export class SnapshotBuffer {
       else if (!(o.hp > 0)) o.hp = 0;
       o.flags = a[7];
       o.anim = a[8];
+      o.moveAnimRate = a[20] ?? 1;
       if (a.length > 9) { o.elValue=Number.isFinite(a[19])?a[19]:null; o.el = a[9] ?? null; o.elFill = a[10] || 0; o.elUntil = a[11] || 0; o.elDur = a[12] || 0; } else if (o.el !== null) { o.elValue=null; o.el = null; o.elFill = 0; o.elUntil = 0; o.elDur = 0; }
       o.seen = stamp;
     }

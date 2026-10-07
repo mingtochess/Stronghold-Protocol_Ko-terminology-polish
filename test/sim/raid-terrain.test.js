@@ -63,3 +63,18 @@ for (const ready of [false, true]) {
     checkInvariants(h.b);
   });
 }
+
+test('death-style redeployment raids immediately without waiting the idle interval',()=>{
+ const h=scenario(false),u=h.unit('raider');
+ h.b.retreat(u,{reason:'death'});assert.ok(h.b.redeploy(u,{free:true}));
+ h.run(.6);assert.deepEqual([u.tileR,u.tileC],[9,8]);
+ assert.equal(h.hooksOf('deploy').filter(c=>c.unit===u&&!c.initial).length,2,'one return followed by one raid');
+ h.run(1);assert.equal(h.hooksOf('deploy').filter(c=>c.unit===u&&!c.initial).length,2,'raid does not recursively retrigger');
+});
+
+test('raid deployment increases ATK and max HP until that deployment ends',()=>{
+ const h=scenario(true),u=h.unit('raider'),atk=u.s.atk,hp=u.s.maxHp;
+ h.run(.6);assert.equal(u.s.atk,atk*1.25);assert.equal(u.s.maxHp,hp*1.25);
+ h.b.retreat(u,{reason:'retreat'});assert.equal(u.findBuff('bond:raidShip'),null);
+ assert.equal(u.s.atk,atk);assert.equal(u.s.maxHp,hp);
+});

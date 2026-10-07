@@ -700,6 +700,15 @@ let _fx = null;
  * bottom).
  */
 const FX_DRAW = {
+  // Opaque projectile bodies; glow and trailing particles use separate soft frames.
+  projectileOrb: [128, 320, 64, 64, (c, x, y, w) => {
+    c.fillStyle = '#777'; c.beginPath(); c.arc(x+w/2,y+w/2,w*.46,0,Math.PI*2); c.fill();
+    c.fillStyle = '#fff'; c.beginPath(); c.arc(x+w/2,y+w/2,w*.41,0,Math.PI*2); c.fill();
+  }],
+  projectileDot: [192, 320, 32, 32, (c, x, y, w) => {
+    c.fillStyle = '#777'; c.beginPath(); c.arc(x+w/2,y+w/2,w*.46,0,Math.PI*2); c.fill();
+    c.fillStyle = '#fff'; c.beginPath(); c.arc(x+w/2,y+w/2,w*.39,0,Math.PI*2); c.fill();
+  }],
   glow: [0, 0, 128, 128, (c, x, y, w) => { radial(c, x + w / 2, y + w / 2, w / 2, [[0, 'rgba(255,255,255,1)'], [0.18, 'rgba(255,255,255,0.3)'], [0.55, 'rgba(255,255,255,0.06)'], [1, 'rgba(255,255,255,0)']]); }],
   soft: [128, 0, 128, 128, (c, x, y, w) => { radial(c, x + w / 2, y + w / 2, w / 2, [[0, 'rgba(255,255,255,0.35)'], [0.45, 'rgba(255,255,255,0.08)'], [1, 'rgba(255,255,255,0)']]); }],
   ring: [256, 0, 128, 128, (c, x, y, w) => {
@@ -797,7 +806,7 @@ const FX_DRAW = {
     c.quadraticCurveTo(19, -17, 27, 14); c.quadraticCurveTo(21, 18, 14, 11); c.quadraticCurveTo(8, -5, 0, -8);
     c.quadraticCurveTo(-8, -5, -14, 11); c.quadraticCurveTo(-21, 18, -27, 14); c.quadraticCurveTo(-19, -17, 0, -21);
     c.closePath();
-    c.fillStyle = 'rgba(255,255,255,0.9)'; c.fill();
+    c.fillStyle = '#fff'; c.fill();
     c.lineWidth = 1.5; c.lineJoin = 'round'; c.strokeStyle = '#fff'; c.stroke();
     c.restore();
   }],

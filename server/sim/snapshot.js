@@ -73,7 +73,7 @@ export function visuallyAirborne(u) {
   return !!(u.isFlying || f.levitate || f.float || f.liftoff);
 }
 
-export function flagsOf(u) {
+export function flagsOf(u, t = u.skill?.battle?.time || 0) {
   const f = u.s.flags;
   let bits = 0;
   if (u.side === 'enemy' ? !!u.blockedBy : u.blocking.length > 0) bits |= UF.BLOCKED;
@@ -84,7 +84,11 @@ export function flagsOf(u) {
   // 作战机制 §隐匿 "在被阻挡时开关会被关掉从而失去隐匿，阻挡状态解除后3s开关重新被开启"; targeting.js enemyStealthed): a
   // blocked 逐火 余烬 is drawn solid while the team beats it, and for 3 s after it slips away
   if (u.side === 'enemy' ? (f.stealth && enemyStealthed(u)) || f.camou : f.stealth || f.camou) bits |= UF.STEALTH;
-  if (u.skill && u.skill.active && u.skill.kind !== 'passive') bits |= UF.SKILL;
+  if (u.skill && ((u.skill.active && u.skill.kind !== 'passive') || t < (u.mem.skillCastUntil || 0))) bits |= UF.SKILL;
+  if (overdriveSkill(u.skill) && u.skill.active) {
+    bits |= UF.OVERDRIVE;
+    if (overdriveLeft(u.skill) <= .5 + 1e-9) bits |= UF.OVERHEATED;
+  }
   if (u.s.shield > 0 || u.buffs.some((b) => b.shieldHits > 0) || u.mem?.ab?.hitShield > 0 || u.mem?.ab?.list?.some(a => a.visualBarrier && a.left > 0)) bits |= UF.SHIELD;
   if (f.invulnerable) bits |= UF.INVULN;
   if (f.cold) bits |= UF.COLD;
@@ -104,6 +108,10 @@ export function animOf(u, t) {
   return ANIM.IDLE;
 }
 
+// PRTS 技能 §过载: each half has its own gauge; the second half is red.
+export function overdriveSkill(sk) { return !!sk && ['skchr_horn_2', 'skchr_horn_3', 'skchr_rockr_2'].includes(sk.id); }
+function overdriveLeft(sk) { return sk.kind === 'ammo' ? sk.ammoLeft / Math.max(1, sk.ammoMax) : sk.timeLeft / Math.max(.01, sk.duration); }
+
 /** Snapshot tuple for one unit. */
 export function unitTuple(u, t) {
   const sk = u.skill;
@@ -118,10 +126,17 @@ export function unitTuple(u, t) {
       sp = spMax * (sk.timeLeft / sk.duration);
     }
   }
+  if (sk?.active && overdriveSkill(sk)) {
+    const left = overdriveLeft(sk);
+    sp = spMax * Math.max(0, Math.min(1, left > .5 + 1e-9 ? (left - .5) * 2 : left * 2));
+  } else if (sk && !sk.isTimed && t < (u.mem.skillCastUntil || 0) && u.mem.skillCastDuration > 0) {
+    if (!spMax) spMax = u.mem.skillCastDuration;
+    sp = spMax * Math.max(0, Math.min(1, (u.mem.skillCastUntil - t) / u.mem.skillCastDuration));
+  }
   // hp is rounded up (a living unit never shows 0) but never above the rounded max HP
   const maxHp = Math.max(1, Math.round(u.s.maxHp));
   const hp = u.alive ? Math.min(Math.max(1, Math.ceil(u.hp)), maxHp) : 0;
-  return [u.id, r2(u.x), r2(u.y), hp, maxHp, r1(sp), spMax, flagsOf(u), animOf(u, t)];
+  return [u.id, r2(u.x), r2(u.y), hp, maxHp, r1(sp), spMax, flagsOf(u, t), animOf(u, t)];
 }
 
 /** Units included in a snapshot: deployed & visible, plus recently dead ones (DIE animation). */

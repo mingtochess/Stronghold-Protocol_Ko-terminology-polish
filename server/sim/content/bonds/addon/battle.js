@@ -318,8 +318,8 @@ function raidPoll(battle, st) {
     const since = Math.max(u.lastAttackAt ?? -Infinity, u.deployedAt ?? -Infinity, u.mem[KEY.raid] ?? -Infinity);
     const ready = !!(u.skill && u.skill.ready && !(u.skill.active && u.skill.isTimed));
     const idleOk = battle.time - since >= idle - 1e-9;
-    if (!(ready || idleOk)) continue;
-    if (battle.enemiesInKeys(u.rangeKeys || [], u, u.profile).length) continue;
+    if (!(ready || idleOk || u.mem.raidEntryPending)) continue;
+    if (battle.enemiesInKeys(u.rangeKeys || [], u, u.profile).length) { u.mem.raidEntryPending=false; continue; }
     const list = (targets ??= raidTargets(battle, u, st.pid));
     if (!list.length) continue;
     // either trigger: raidTile only offers tiles with the target in range (without that a ready skill that finds no
@@ -332,6 +332,7 @@ function raidPoll(battle, st) {
       targets = null; // the retreat / redeploy handlers (部署时 effects) may change the enemies: the next member re-sorts
       const res = raidRedeploy(battle, u, tile[0], tile[1]);
       if (!res) continue;
+      u.mem.raidEntryPending=false;
       u.mem[KEY.raid] = battle.time; // with deployedAt: the idle time starts again from the landing
       if (res === 'raid') {
         battle.addBuff(u, { key: KEY.raid, mods: st.raidMods });
@@ -350,10 +351,13 @@ function raidPoll(battle, st) {
  * Returns 'raid' | 'home' | false.
  */
 function raidRedeploy(battle, u, r, c) {
+  u.mem.raidRelocating=true;
+  try {
   battle.retreat(u, { reason: 'raid' });
   if (u.alive) return false;
   if (battle.redeploy(u, { free: true, tile: [r, c], keepSp: true })) return 'raid';
   return battle.redeploy(u, { free: true, keepSp: true }) ? 'home' : false;
+  } finally {u.mem.raidRelocating=false;}
 }
 
 // =====================================================================================================================
@@ -397,6 +401,7 @@ export function install(battle) {
 
   // 突袭
   if (has(ID.raid)) {
+    battle.on('deploy',({unit:u,initial})=>{if(u&&!initial&&!u.mem.raidRelocating&&byPid[u.ownerId]?.members[ID.raid]?.has(u))u.mem.raidEntryPending=true;});
     const raid = states.filter((st) => st.tiers[ID.raid] && st.members[ID.raid].size);
     if (raid.length) {
       battle.every(RAID_POLL, () => { for (const st of raid) raidPoll(battle, st); });

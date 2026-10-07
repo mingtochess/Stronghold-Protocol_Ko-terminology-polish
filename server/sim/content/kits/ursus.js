@@ -58,6 +58,7 @@ export function imperialPlatforms(b,u,x,y,{radius=1,depth=0,multiplier=1,bind=0,
 function buildSkill(raw,sk){
  const bb=sk.bb||{},cid=raw.charId,i=sk.index;
  switch(cid){
+  case 'char_137_brownb': return i===0?{kind:'passive',mods:{dodgePhys:num(bb.prob)}}:duration(sk,{mods:{batPct:num(bb.base_attack_time)}});
   case 'char_4224_turdus': return i===0?duration(sk,{heal:true,mods:{aspd:num(bb.attack_speed)},attack:{dmgType:'heal'}}):{
    kind:'instant',heal:true,attack:{dmgType:'heal'},onStart:({battle,unit})=>battle.loseHp(unit,unit.hp*num(bb['turdus_s2[self_damage].hp_ratio']),{source:unit,reason:'turdus-s2'})};
   case 'char_188_helage':
@@ -79,7 +80,6 @@ function buildSkill(raw,sk){
    return duration(sk,{mods:{atkPct:num(bb.atk)},targeting:{maxTargets:num(bb['attack@max_target'],2)},attack:{dmgMul:()=>1},onStart({battle,unit}){
     for(const a of battle.allyUnits)if(a!==unit&&up(a)&&student(a)&&a.skill.ready)a.skill.activate('leto-linked');
    }});
-  case 'char_405_absin':return i===0?{kind:'toggle',mods:{atkPct:num(bb.atk)},targeting:{priority:'lowestHpRatio'}}:duration(sk,{attack:{hits:num(bb['attack@times'],4),atkScale:num(bb['attack@atk_scale'],.65)}});
   case 'char_4223_botany':
    if(i===0)return{kind:'instant',attack:{atkScale:num(bb.atk_scale,.7),onEachHit({battle,unit,target}){
     if(!up(target))return;
@@ -96,7 +96,7 @@ function buildSkill(raw,sk){
     if(skill.activations>=2){skill.kind='toggle';skill.timeLeft=Infinity;battle.addBuff(unit,{key:skill._buffKey,mods:{atkPct:num(bb['headb2_s_2[second].atk']),defPct:num(bb['headb2_s_2[second].def'])},tags:['skill']});}
    },onEnd({skill}){skill.kind='duration'}});
    // Client tables give five strikes but omit the enlarged splash radius; use a documented 2-tile radius.
-   return{kind:'ammo',ammo:5,mods:{atkPct:num(bb.atk_base)},targeting:{rangeGrid:[[0,1]],canHitFly:false},attack:{atkScale:num(bb.atk_scale),splashRadius:2},onStart({unit}){unit.mem.zimaStrikes=0},onAttack({battle,unit,skill}){
+   return{kind:'ammo',ammo:5,mods:{atkPct:num(bb.atk_base)},targeting:{rangeGrid:[[0,1]],canHitFly:false},attack:{atkScale:num(bb.atk_scale),splashRadius:2,allowEmptyAttack:true},onStart({unit}){unit.mem.zimaStrikes=0},onAttack({battle,unit,skill}){
     unit.mem.zimaStrikes++;battle.addBuff(unit,{key:skill._buffKey,mods:{atkPct:num(bb.atk_base)+unit.mem.zimaStrikes*num(bb.atk_step)},tags:['skill']});
    }};
  }
@@ -107,6 +107,11 @@ function kit(bb,raw,def){
  const cid=raw.charId,t=talentBb(raw),t2=talentBb(raw,1),tb=traitBb(raw);
  const skills=Object.fromEntries(raw.skills.map(sk=>[sk.skillId,buildSkill(raw,sk)]));
  return{skills,skill:skills[raw.skill.skillId],install(b,u){
+  if(cid==='char_137_brownb'){
+    b.on('beforeAttack',c=>{if(c.attacker!==u)return;const target=c.targets[0];if(!target)return;if(u.mem.brownbTarget!==target.id){u.mem.brownbTarget=target.id;u.mem.brownbStacks=0;}u.mem.brownbStacks=Math.min(num(t.max_stack_cnt,5),num(u.mem.brownbStacks)+1);S.passiveBuff(b,u,'talent:ursus:brownb',{atkPct:num(t.atk)*u.mem.brownbStacks});},{owner:u});
+    b.on('tick',()=>{if(up(u))S.passiveBuff(b,u,'module:ursus:brownb',{aspd:u.hpRatio>.5?num(tb.attack_speed):0})},{owner:u});
+    b.on('deploy',c=>{if(c.unit===u){u.mem.brownbTarget=null;u.mem.brownbStacks=0;S.passiveBuff(b,u,'talent:ursus:brownb',{atkPct:0})}},{owner:u});
+  }
   if(cid==='char_4224_turdus')u.profile.heal={...u.profile.heal,resolve:ukusikChain};
   if(cid==='char_188_helage'){b.on('hit',c=>{if(c.target===u&&['phys','arts'].includes(c.dmg.type)&&u.hpRatio<num(t.hp_ratio))c.dmg.mul=(c.dmg.mul??1)*(1-num(t.damage_resistance))},{owner:u});b.on('deploy',c=>{if(c.unit===u)u.mem.hellagurRevived=false},{owner:u});b.on('fatal',c=>{if(c.unit===u&&u.def.raw.module?.type==='SBL-Y'&&!u.mem.hellagurRevived){u.mem.hellagurRevived=true;c.prevented=true;u.hp=u.s.maxHp*num(tb.hp_ratio,.3)}},{owner:u});b.on('tick',()=>{
    if(up(u))S.passiveBuff(b,u,'talent:ursus:hellagur',{aspd:num(t.min_attack_speed)*Math.min(1,(1-u.hp/u.s.maxHp)/Math.max(.01,1-num(t.min_hp_ratio,.3))),hpRegen:(!u.blocking.length||(u.def.raw.module?.type==='SBL-Y'&&u.hpRatio<num(tb.hp_ratio,.3)))?num(t2.hp_recovery_per_sec):0});
@@ -120,11 +125,6 @@ function kit(bb,raw,def){
    for(const a of b.allyUnits)if(a.ownerId===u.ownerId&&student(a))S.passiveBuff(b,a,'talent:ursus:rosa',{atkPct:atk});
    b.on('beforeAttack',c=>{if(c.attacker===u&&(!u.skill.active||u.skill.id!=='skchr_poca_3')){const n=Math.max(1,c.targets.length);c.targets=b.enemiesInKeys(u.rangeKeys,u,c.profile).sort(heavy).slice(0,n)}},{owner:u});
   }
-  if(cid==='char_405_absin'){
-   S.passiveBuff(b,u,'module:ursus:absinthe',{resIgnoreFlat:num(tb.magic_resist_penetrate_fixed)});
-   b.on('hit',c=>{if(ownHit(c,u)&&c.target.hpRatio<num(t.hp_ratio))c.dmg.mul=(c.dmg.mul??1)*num(t.damage_scale,1)},{owner:u});
-   b.on('beforeAttack',c=>{if(c.attacker!==u||!u.skill.active||u.skill.id!=='skchr_absin_2')return;const list=b.enemiesInKeys(u.rangeKeys,u,c.profile).filter(e=>e.hpRatio<=.5);sortEnemyTargets(b,u,list,c.profile.priority);c.targets=list.slice(0,1)},{owner:u});
-  }
   if(cid==='char_194_leto'||cid==='char_1051_headb2'){
    const apply=()=>{for(const a of b.allyUnits)if(a.kind==='op'&&(cid==='char_1051_headb2'||student(a))){const active=up(u)&&u.skill.active;const v=active?(cid==='char_194_leto'?num(t.attack_speed):num(t2.atk)*(student(a)?num(t2.scale_bonus,2):1)):0;
     S.passiveBuff(b,a,`talent:ursus:${cid}:${u.id}`,cid==='char_194_leto'?{aspd:v}:{atkPct:v,defPct:active?num(t2.def)*(student(a)?num(t2.scale_bonus,2):1):0});}};
@@ -133,7 +133,9 @@ function kit(bb,raw,def){
     b.on('beforeAttack',c=>{if(c.attacker===u){const center=c.targets[0],radius=u.skill.active&&u.skill.id==='skchr_headb2_3'?2:num(tb['attack@ability_range_radius'],1);c.profile.atkScale=(u.skill.active?num(u.skill.bb.atk_scale,1):1)*(center&&b.enemiesInRadius(center.x,center.y,radius).length>=num(tb.cnt,Infinity)?num(tb.atk_scale_e,1):1)}},{owner:u});
     u.profile.splashScale=num(tb['attack@atk_scale_2'],.5)*num(t.damage_scale,1);
     b.on('attack',c=>{if(c.attacker!==u)return;const s3=u.skill.active&&u.skill.id==='skchr_headb2_3',sk=u.skill.bb;
-     for(const e of c.targets)imperialPlatforms(b,u,e.x,e.y,{radius:s3?2:num(tb['attack@ability_range_radius'],1),depth:s3?num(u.mem.zimaStrikes)+1:0,multiplier:s3?num(sk.splash_atk_scale_bonus,1):1,bind:s3?num(sk.unmovable):0,sp:u.skill.id==='skchr_headb2_2'?num(sk.sp_per_highland):0});
+     const key=u.rangeKeys.find(k=>k!==u.tileR*S.COLS+u.tileC);
+     const centers=c.targets.length?c.targets:(s3&&key!=null?[{x:key%S.COLS,y:Math.floor(key/S.COLS)}]:[]);
+     for(const e of centers)imperialPlatforms(b,u,e.x,e.y,{radius:s3?2:num(tb['attack@ability_range_radius'],1),depth:s3?num(u.mem.zimaStrikes)+1:0,multiplier:s3?num(sk.splash_atk_scale_bonus,1):1,bind:s3?num(sk.unmovable):0,sp:u.skill.id==='skchr_headb2_2'?num(sk.sp_per_highland):0});
     },{owner:u});
    }
   }
@@ -153,4 +155,4 @@ function kit(bb,raw,def){
   }
  }};
 }
-export default Object.fromEntries(['turdus','helage','headb2','glassb','poca','leto','absin','botany'].map(key=>[`chess_custom_ursus_${key}_a`,kit]));
+export default Object.fromEntries(['turdus','helage','headb2','glassb','poca','leto','brownb','botany'].map(key=>[`chess_custom_ursus_${key}_a`,kit]));

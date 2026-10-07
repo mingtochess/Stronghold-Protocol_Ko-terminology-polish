@@ -134,8 +134,8 @@
         "via": "attack"
       },
       "1": {
-        "clip": "Skill_2",
-        "via": null
+        "clip": "Attack",
+        "via": "attack"
       },
       "2": {
         "clip": "Skill_3_Attack",
@@ -152,8 +152,8 @@
         "via": "attack"
       },
       "1": {
-        "clip": "Skill_2",
-        "via": null
+        "clip": "Attack",
+        "via": "attack"
       },
       "2": {
         "clip": "Skill_3_Attack",
@@ -202,8 +202,8 @@
     "side": "front",
     "skills": {
       "0": {
-        "clip": "Skill_1",
-        "via": null
+        "clip": "Attack",
+        "via": "attack"
       },
       "1": {
         "clip": "Attack",
@@ -220,8 +220,8 @@
     "side": "back",
     "skills": {
       "0": {
-        "clip": "Skill_1",
-        "via": null
+        "clip": "Attack",
+        "via": "attack"
       },
       "1": {
         "clip": "Attack",
@@ -850,8 +850,8 @@
     "side": "front",
     "skills": {
       "0": {
-        "clip": "Skill_Loop",
-        "via": null
+        "clip": "Attack",
+        "via": "attack"
       },
       "1": {
         "clip": "Skill_Loop",
@@ -868,8 +868,8 @@
     "side": "back",
     "skills": {
       "0": {
-        "clip": "Skill_Loop",
-        "via": null
+        "clip": "Attack",
+        "via": "attack"
       },
       "1": {
         "clip": "Skill_Loop",
@@ -886,12 +886,12 @@
     "side": "front",
     "skills": {
       "0": {
-        "clip": "Skill",
-        "via": null
+        "clip": "Attack",
+        "via": "attack"
       },
       "1": {
-        "clip": "Skill",
-        "via": null
+        "clip": "Attack",
+        "via": "attack"
       },
       "2": {
         "clip": "Skill",
@@ -904,12 +904,12 @@
     "side": "back",
     "skills": {
       "0": {
-        "clip": "Skill",
-        "via": null
+        "clip": "Attack",
+        "via": "attack"
       },
       "1": {
-        "clip": "Skill",
-        "via": null
+        "clip": "Attack",
+        "via": "attack"
       },
       "2": {
         "clip": "Skill",
@@ -1030,8 +1030,8 @@
     "side": "front",
     "skills": {
       "0": {
-        "clip": "Skill_Loop",
-        "via": null
+        "clip": "Attack",
+        "via": "attack"
       },
       "1": {
         "clip": "Skill_Loop",
@@ -1246,8 +1246,8 @@
     "side": "front",
     "skills": {
       "0": {
-        "clip": "Skill_Loop",
-        "via": null
+        "clip": "Attack",
+        "via": "attack"
       },
       "1": {
         "clip": "Skill_Loop",
@@ -1264,8 +1264,8 @@
     "side": "back",
     "skills": {
       "0": {
-        "clip": "Skill_Loop",
-        "via": null
+        "clip": "Attack",
+        "via": "attack"
       },
       "1": {
         "clip": "Skill_Loop",
@@ -1498,8 +1498,8 @@
     "side": "front",
     "skills": {
       "0": {
-        "clip": "Skill_Loop",
-        "via": null
+        "clip": "Attack",
+        "via": "attack"
       },
       "1": {
         "clip": "Skill_2_Loop",
@@ -1516,8 +1516,8 @@
     "side": "back",
     "skills": {
       "0": {
-        "clip": "Skill_Loop",
-        "via": null
+        "clip": "Attack",
+        "via": "attack"
       },
       "1": {
         "clip": "Skill_2_Loop",
@@ -2132,8 +2132,8 @@
         "via": null
       },
       "1": {
-        "clip": "Skill_Loop",
-        "via": null
+        "clip": "Attack",
+        "via": "attack"
       },
       "2": {
         "clip": "Skill_Loop",
@@ -2150,8 +2150,8 @@
         "via": null
       },
       "1": {
-        "clip": "Skill_Loop",
-        "via": null
+        "clip": "Attack",
+        "via": "attack"
       },
       "2": {
         "clip": "Skill_Loop",
@@ -2344,8 +2344,8 @@
     "side": "front",
     "skills": {
       "0": {
-        "clip": "Skill_Loop",
-        "via": null
+        "clip": "Attack",
+        "via": "attack"
       },
       "1": {
         "clip": "Skill_Loop",
@@ -2362,8 +2362,8 @@
     "side": "back",
     "skills": {
       "0": {
-        "clip": "Skill_Loop",
-        "via": null
+        "clip": "Attack",
+        "via": "attack"
       },
       "1": {
         "clip": "Skill_Loop",
@@ -4162,12 +4162,12 @@
     "side": "front",
     "skills": {
       "0": {
-        "clip": "Skill",
-        "via": null
+        "clip": "Attack",
+        "via": "attack"
       },
       "1": {
-        "clip": "Skill",
-        "via": null
+        "clip": "Attack",
+        "via": "attack"
       },
       "2": {
         "clip": "Skill",
@@ -4180,12 +4180,12 @@
     "side": "back",
     "skills": {
       "0": {
-        "clip": "Skill",
-        "via": null
+        "clip": "Attack",
+        "via": "attack"
       },
       "1": {
-        "clip": "Skill",
-        "via": null
+        "clip": "Attack",
+        "via": "attack"
       },
       "2": {
         "clip": "Skill",
@@ -5062,12 +5062,12 @@
     "side": "front",
     "skills": {
       "0": {
-        "clip": "Skill_Loop",
-        "via": null
+        "clip": "Attack",
+        "via": "attack"
       },
       "1": {
-        "clip": "Skill_Loop",
-        "via": null
+        "clip": "Attack",
+        "via": "attack"
       },
       "2": {
         "clip": "Skill_Loop",
@@ -5080,12 +5080,12 @@
     "side": "back",
     "skills": {
       "0": {
-        "clip": "Skill_Loop",
-        "via": null
+        "clip": "Attack",
+        "via": "attack"
       },
       "1": {
-        "clip": "Skill_Loop",
-        "via": null
+        "clip": "Attack",
+        "via": "attack"
       },
       "2": {
         "clip": "Skill_Loop",
@@ -5130,7 +5130,7 @@
     }
   },
   {
-    "id": "char_405_absin",
+    "id": "char_137_brownb",
     "side": "front",
     "skills": {
       "0": {
@@ -5148,7 +5148,7 @@
     }
   },
   {
-    "id": "char_405_absin",
+    "id": "char_137_brownb",
     "side": "back",
     "skills": {
       "0": {
@@ -5454,42 +5454,6 @@
     }
   },
   {
-    "id": "skin_char_103_angel_sale_8",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "1": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "2": {
-        "clip": "Attack",
-        "via": "attack"
-      }
-    }
-  },
-  {
-    "id": "skin_char_103_angel_sale_8",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "1": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "2": {
-        "clip": "Attack",
-        "via": "attack"
-      }
-    }
-  },
-  {
     "id": "skin_char_437_mizuki_sale_7",
     "side": "front",
     "skills": {
@@ -5518,6 +5482,42 @@
       "1": {
         "clip": "Skill_2_Loop",
         "via": null
+      },
+      "2": {
+        "clip": "Attack",
+        "via": "attack"
+      }
+    }
+  },
+  {
+    "id": "skin_char_103_angel_sale_8",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "1": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "2": {
+        "clip": "Attack",
+        "via": "attack"
+      }
+    }
+  },
+  {
+    "id": "skin_char_103_angel_sale_8",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "1": {
+        "clip": "Attack",
+        "via": "attack"
       },
       "2": {
         "clip": "Attack",
@@ -5634,42 +5634,6 @@
     }
   },
   {
-    "id": "skin_char_332_archet_sale_14",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Skill_1",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_2",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_3",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_332_archet_sale_14",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Skill_1",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_2",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_3",
-        "via": null
-      }
-    }
-  },
-  {
     "id": "skin_char_1035_wisdel_sale_14",
     "side": "front",
     "skills": {
@@ -5710,8 +5674,8 @@
     "side": "front",
     "skills": {
       "0": {
-        "clip": "Skill_Loop",
-        "via": null
+        "clip": "Attack",
+        "via": "attack"
       },
       "1": {
         "clip": "Skill_Loop",
@@ -5728,8 +5692,8 @@
     "side": "back",
     "skills": {
       "0": {
-        "clip": "Skill_Loop",
-        "via": null
+        "clip": "Attack",
+        "via": "attack"
       },
       "1": {
         "clip": "Skill_Loop",
@@ -5742,37 +5706,37 @@
     }
   },
   {
-    "id": "skin_char_213_mostma_epoque_5",
+    "id": "skin_char_332_archet_sale_14",
     "side": "front",
     "skills": {
       "0": {
-        "clip": "Skill_Loop",
+        "clip": "Skill_1",
         "via": null
       },
       "1": {
-        "clip": "Skill_2_Loop",
+        "clip": "Skill_2",
         "via": null
       },
       "2": {
-        "clip": "Skill_Loop",
+        "clip": "Skill_3",
         "via": null
       }
     }
   },
   {
-    "id": "skin_char_213_mostma_epoque_5",
+    "id": "skin_char_332_archet_sale_14",
     "side": "back",
     "skills": {
       "0": {
-        "clip": "Skill_Loop",
+        "clip": "Skill_1",
         "via": null
       },
       "1": {
-        "clip": "Skill_2_Loop",
+        "clip": "Skill_2",
         "via": null
       },
       "2": {
-        "clip": "Skill_Loop",
+        "clip": "Skill_3",
         "via": null
       }
     }
@@ -5814,15 +5778,15 @@
     }
   },
   {
-    "id": "skin_char_1038_whitw2_sale_15",
+    "id": "skin_char_391_rosmon_sale_16",
     "side": "front",
     "skills": {
       "0": {
-        "clip": "Skill_1_Loop",
-        "via": null
+        "clip": "Attack_A",
+        "via": "attack"
       },
       "1": {
-        "clip": "Skill_2_Loop",
+        "clip": "Skill_2",
         "via": null
       },
       "2": {
@@ -5832,19 +5796,55 @@
     }
   },
   {
-    "id": "skin_char_1038_whitw2_sale_15",
+    "id": "skin_char_391_rosmon_sale_16",
     "side": "back",
     "skills": {
       "0": {
-        "clip": "Skill_1_Loop",
+        "clip": "Attack_A",
+        "via": "attack"
+      },
+      "1": {
+        "clip": "Skill_2",
         "via": null
+      },
+      "2": {
+        "clip": "Skill_3_Loop",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_213_mostma_epoque_5",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Attack",
+        "via": "attack"
       },
       "1": {
         "clip": "Skill_2_Loop",
         "via": null
       },
       "2": {
-        "clip": "Skill_3_Loop",
+        "clip": "Skill_Loop",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_213_mostma_epoque_5",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "1": {
+        "clip": "Skill_2_Loop",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_Loop",
         "via": null
       }
     }
@@ -5886,15 +5886,15 @@
     }
   },
   {
-    "id": "skin_char_391_rosmon_sale_16",
+    "id": "skin_char_1038_whitw2_sale_15",
     "side": "front",
     "skills": {
       "0": {
-        "clip": "Attack_A",
-        "via": "attack"
+        "clip": "Skill_1_Loop",
+        "via": null
       },
       "1": {
-        "clip": "Skill_2",
+        "clip": "Skill_2_Loop",
         "via": null
       },
       "2": {
@@ -5904,15 +5904,15 @@
     }
   },
   {
-    "id": "skin_char_391_rosmon_sale_16",
+    "id": "skin_char_1038_whitw2_sale_15",
     "side": "back",
     "skills": {
       "0": {
-        "clip": "Attack_A",
-        "via": "attack"
+        "clip": "Skill_1_Loop",
+        "via": null
       },
       "1": {
-        "clip": "Skill_2",
+        "clip": "Skill_2_Loop",
         "via": null
       },
       "2": {
@@ -6066,42 +6066,6 @@
     }
   },
   {
-    "id": "skin_char_197_poca_epoque_12",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Skill_Loop",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_Loop",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_Loop",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_197_poca_epoque_12",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Skill_Loop",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_Loop",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_Loop",
-        "via": null
-      }
-    }
-  },
-  {
     "id": "skin_char_337_utage_epoque_15",
     "side": "front",
     "skills": {
@@ -6110,8 +6074,8 @@
         "via": null
       },
       "1": {
-        "clip": "Skill_Loop",
-        "via": null
+        "clip": "Attack",
+        "via": "attack"
       },
       "2": {
         "clip": "Skill_Loop",
@@ -6128,8 +6092,44 @@
         "via": null
       },
       "1": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "2": {
         "clip": "Skill_Loop",
         "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_197_poca_epoque_12",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "1": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "2": {
+        "clip": "Skill_Loop",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_197_poca_epoque_12",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "1": {
+        "clip": "Attack",
+        "via": "attack"
       },
       "2": {
         "clip": "Skill_Loop",
@@ -6282,6 +6282,42 @@
     }
   },
   {
+    "id": "skin_char_4036_forcer_epoque_20",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Skill",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_4036_forcer_epoque_20",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Skill",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill",
+        "via": null
+      }
+    }
+  },
+  {
     "id": "skin_char_1014_nearl2_epoque_17",
     "side": "front",
     "skills": {
@@ -6349,42 +6385,6 @@
       },
       "2": {
         "clip": "Skill_Loop",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_4036_forcer_epoque_20",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Skill",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_4036_forcer_epoque_20",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Skill",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill",
         "via": null
       }
     }
@@ -6498,42 +6498,6 @@
     }
   },
   {
-    "id": "skin_char_427_vigil_epoque_27",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Skill1",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill2",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill3_Attack_A",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_427_vigil_epoque_27",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Skill1",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill2",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill3_Attack_A",
-        "via": null
-      }
-    }
-  },
-  {
     "id": "skin_char_126_shotst_epoque_28",
     "side": "front",
     "skills": {
@@ -6570,7 +6534,43 @@
     }
   },
   {
-    "id": "skin_char_405_absin_epoque_28",
+    "id": "skin_char_427_vigil_epoque_27",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Skill1",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill2",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill3_Attack_A",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_427_vigil_epoque_27",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Skill1",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill2",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill3_Attack_A",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_431_ashlok_epoque_28",
     "side": "front",
     "skills": {
       "0": {
@@ -6588,19 +6588,19 @@
     }
   },
   {
-    "id": "skin_char_405_absin_epoque_28",
+    "id": "skin_char_431_ashlok_epoque_28",
     "side": "back",
     "skills": {
       "0": {
-        "clip": "Skill_Loop",
+        "clip": "Skill_Loop_Up",
         "via": null
       },
       "1": {
-        "clip": "Skill_Loop",
+        "clip": "Skill_Loop_Up",
         "via": null
       },
       "2": {
-        "clip": "Skill_Loop",
+        "clip": "Skill_Loop_Up",
         "via": null
       }
     }
@@ -6678,42 +6678,6 @@
     }
   },
   {
-    "id": "skin_char_431_ashlok_epoque_28",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Skill_Loop",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_Loop",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_Loop",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_431_ashlok_epoque_28",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Skill_Loop_Up",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_Loop_Up",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_Loop_Up",
-        "via": null
-      }
-    }
-  },
-  {
     "id": "skin_char_388_mint_epoque_30",
     "side": "front",
     "skills": {
@@ -6750,48 +6714,12 @@
     }
   },
   {
-    "id": "skin_char_1020_reed2_epoque_30",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "1": {
-        "clip": "Skill_2",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_3_Attack",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_1020_reed2_epoque_30",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "1": {
-        "clip": "Skill_2",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_3_Attack",
-        "via": null
-      }
-    }
-  },
-  {
     "id": "skin_char_183_skgoat_epoque_30",
     "side": "front",
     "skills": {
       "0": {
-        "clip": "Skill",
-        "via": null
+        "clip": "Attack",
+        "via": "attack"
       },
       "1": {
         "clip": "Skill",
@@ -6808,8 +6736,8 @@
     "side": "back",
     "skills": {
       "0": {
-        "clip": "Skill",
-        "via": null
+        "clip": "Attack",
+        "via": "attack"
       },
       "1": {
         "clip": "Skill",
@@ -6817,6 +6745,42 @@
       },
       "2": {
         "clip": "Skill",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_1020_reed2_epoque_30",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "1": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "2": {
+        "clip": "Skill_3_Attack",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_1020_reed2_epoque_30",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "1": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "2": {
+        "clip": "Skill_3_Attack",
         "via": null
       }
     }
@@ -6858,42 +6822,6 @@
     }
   },
   {
-    "id": "skin_char_474_glady_epoque_33",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Skill_1_Loop",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_2_Loop",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_3_Loop",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_474_glady_epoque_33",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Skill_1_Loop",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_2_Loop",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_3_Loop",
-        "via": null
-      }
-    }
-  },
-  {
     "id": "skin_char_1028_texas2_epoque_36",
     "side": "front",
     "skills": {
@@ -6930,15 +6858,15 @@
     }
   },
   {
-    "id": "skin_char_4082_qiubai_epoque_31",
+    "id": "skin_char_474_glady_epoque_33",
     "side": "front",
     "skills": {
       "0": {
-        "clip": "Attack",
-        "via": "attack"
+        "clip": "Skill_1_Loop",
+        "via": null
       },
       "1": {
-        "clip": "Skill_2",
+        "clip": "Skill_2_Loop",
         "via": null
       },
       "2": {
@@ -6948,15 +6876,15 @@
     }
   },
   {
-    "id": "skin_char_4082_qiubai_epoque_31",
+    "id": "skin_char_474_glady_epoque_33",
     "side": "back",
     "skills": {
       "0": {
-        "clip": "Attack",
-        "via": "attack"
+        "clip": "Skill_1_Loop",
+        "via": null
       },
       "1": {
-        "clip": "Skill_2",
+        "clip": "Skill_2_Loop",
         "via": null
       },
       "2": {
@@ -7074,6 +7002,42 @@
     }
   },
   {
+    "id": "skin_char_4082_qiubai_epoque_31",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "1": {
+        "clip": "Skill_2",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_3_Loop",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_4082_qiubai_epoque_31",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "1": {
+        "clip": "Skill_2",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_3_Loop",
+        "via": null
+      }
+    }
+  },
+  {
     "id": "skin_char_4079_haini_epoque_45",
     "side": "front",
     "skills": {
@@ -7146,7 +7110,7 @@
     }
   },
   {
-    "id": "skin_char_127_estell_epoque_50",
+    "id": "skin_char_253_greyy_epoque_515",
     "side": "front",
     "skills": {
       "0": {
@@ -7164,7 +7128,7 @@
     }
   },
   {
-    "id": "skin_char_127_estell_epoque_50",
+    "id": "skin_char_253_greyy_epoque_515",
     "side": "back",
     "skills": {
       "0": {
@@ -7182,7 +7146,7 @@
     }
   },
   {
-    "id": "skin_char_253_greyy_epoque_515",
+    "id": "skin_char_127_estell_epoque_50",
     "side": "front",
     "skills": {
       "0": {
@@ -7200,7 +7164,7 @@
     }
   },
   {
-    "id": "skin_char_253_greyy_epoque_515",
+    "id": "skin_char_127_estell_epoque_50",
     "side": "back",
     "skills": {
       "0": {
@@ -7398,42 +7362,6 @@
     }
   },
   {
-    "id": "skin_char_107_liskam_nian_2",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Skill",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_107_liskam_nian_2",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Skill",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill",
-        "via": null
-      }
-    }
-  },
-  {
     "id": "skin_char_308_swire_nian_2",
     "side": "front",
     "skills": {
@@ -7470,37 +7398,37 @@
     }
   },
   {
-    "id": "skin_char_4191_tippi_epoque_57",
+    "id": "skin_char_107_liskam_nian_2",
     "side": "front",
     "skills": {
       "0": {
-        "clip": "Skill_Loop",
+        "clip": "Skill",
         "via": null
       },
       "1": {
-        "clip": "Skill_2_Loop",
+        "clip": "Skill",
         "via": null
       },
       "2": {
-        "clip": "Skill_Loop",
+        "clip": "Skill",
         "via": null
       }
     }
   },
   {
-    "id": "skin_char_4191_tippi_epoque_57",
+    "id": "skin_char_107_liskam_nian_2",
     "side": "back",
     "skills": {
       "0": {
-        "clip": "Skill_Loop",
+        "clip": "Skill",
         "via": null
       },
       "1": {
-        "clip": "Skill_2_Loop",
+        "clip": "Skill",
         "via": null
       },
       "2": {
-        "clip": "Skill_Loop",
+        "clip": "Skill",
         "via": null
       }
     }
@@ -7537,6 +7465,42 @@
       },
       "2": {
         "clip": "Skill3_Attack",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_4191_tippi_epoque_57",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Skill_Loop",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_2_Loop",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_Loop",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_4191_tippi_epoque_57",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Skill_Loop",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_2_Loop",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_Loop",
         "via": null
       }
     }
@@ -7614,6 +7578,42 @@
     }
   },
   {
+    "id": "skin_char_4148_philae_nian_12",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Skill_1",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_2_Loop",
+        "via": null
+      },
+      "2": {
+        "clip": "Attack",
+        "via": "attack"
+      }
+    }
+  },
+  {
+    "id": "skin_char_4148_philae_nian_12",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Skill_1",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_2_Loop",
+        "via": null
+      },
+      "2": {
+        "clip": "Attack",
+        "via": "attack"
+      }
+    }
+  },
+  {
     "id": "skin_char_2015_dusk_nian_12",
     "side": "front",
     "skills": {
@@ -7654,12 +7654,12 @@
     "side": "front",
     "skills": {
       "0": {
-        "clip": "Skill",
-        "via": null
+        "clip": "Attack",
+        "via": "attack"
       },
       "1": {
-        "clip": "Skill",
-        "via": null
+        "clip": "Attack",
+        "via": "attack"
       },
       "2": {
         "clip": "Skill",
@@ -7672,52 +7672,16 @@
     "side": "back",
     "skills": {
       "0": {
-        "clip": "Skill",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_4148_philae_nian_12",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Skill_1",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_2_Loop",
-        "via": null
-      },
-      "2": {
         "clip": "Attack",
         "via": "attack"
-      }
-    }
-  },
-  {
-    "id": "skin_char_4148_philae_nian_12",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Skill_1",
-        "via": null
       },
       "1": {
-        "clip": "Skill_2_Loop",
-        "via": null
-      },
-      "2": {
         "clip": "Attack",
         "via": "attack"
+      },
+      "2": {
+        "clip": "Skill",
+        "via": null
       }
     }
   },
@@ -7794,42 +7758,6 @@
     }
   },
   {
-    "id": "skin_char_430_fartth_whirlwind_5",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Attack_Loop",
-        "via": "attack"
-      },
-      "1": {
-        "clip": "Attack_Loop",
-        "via": "attack"
-      },
-      "2": {
-        "clip": "Skill3_Loop",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_430_fartth_whirlwind_5",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Attack_Loop",
-        "via": "attack"
-      },
-      "1": {
-        "clip": "Attack_Loop",
-        "via": "attack"
-      },
-      "2": {
-        "clip": "Skill3_Loop",
-        "via": null
-      }
-    }
-  },
-  {
     "id": "skin_char_196_sunbr_summer_1",
     "side": "front",
     "skills": {
@@ -7861,6 +7789,42 @@
       },
       "2": {
         "clip": "Skill",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_430_fartth_whirlwind_5",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Attack_Loop",
+        "via": "attack"
+      },
+      "1": {
+        "clip": "Attack_Loop",
+        "via": "attack"
+      },
+      "2": {
+        "clip": "Skill3_Loop",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_430_fartth_whirlwind_5",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Attack_Loop",
+        "via": "attack"
+      },
+      "1": {
+        "clip": "Attack_Loop",
+        "via": "attack"
+      },
+      "2": {
+        "clip": "Skill3_Loop",
         "via": null
       }
     }
@@ -8018,8 +7982,8 @@
         "via": null
       },
       "1": {
-        "clip": "Skill_Loop",
-        "via": null
+        "clip": "Attack",
+        "via": "attack"
       },
       "2": {
         "clip": "Skill_Loop",
@@ -8036,119 +8000,11 @@
         "via": null
       },
       "1": {
-        "clip": "Skill_Loop",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_Loop",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_171_bldsk_summer_7",
-    "side": "front",
-    "skills": {
-      "0": {
         "clip": "Attack",
         "via": "attack"
-      },
-      "1": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "2": {
-        "clip": "Attack",
-        "via": "attack"
-      }
-    }
-  },
-  {
-    "id": "skin_char_171_bldsk_summer_7",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "1": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "2": {
-        "clip": "Attack",
-        "via": "attack"
-      }
-    }
-  },
-  {
-    "id": "skin_char_426_billro_summer_8",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Skill_Loop",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_2_Loop",
-        "via": null
       },
       "2": {
         "clip": "Skill_Loop",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_426_billro_summer_8",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Skill_Loop",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_2_Loop",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_Loop",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_350_surtr_summer_9",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "1": {
-        "clip": "Skill_2",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_3_Loop",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_350_surtr_summer_9",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "1": {
-        "clip": "Skill_2",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_3_Loop",
         "via": null
       }
     }
@@ -8190,6 +8046,114 @@
     }
   },
   {
+    "id": "skin_char_171_bldsk_summer_7",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "1": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "2": {
+        "clip": "Attack",
+        "via": "attack"
+      }
+    }
+  },
+  {
+    "id": "skin_char_171_bldsk_summer_7",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "1": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "2": {
+        "clip": "Attack",
+        "via": "attack"
+      }
+    }
+  },
+  {
+    "id": "skin_char_350_surtr_summer_9",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "1": {
+        "clip": "Skill_2",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_3_Loop",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_350_surtr_summer_9",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "1": {
+        "clip": "Skill_2",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_3_Loop",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_426_billro_summer_8",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Skill_Loop",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_2_Loop",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_Loop",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_426_billro_summer_8",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Skill_Loop",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_2_Loop",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_Loop",
+        "via": null
+      }
+    }
+  },
+  {
     "id": "skin_char_344_beewax_summer_11",
     "side": "front",
     "skills": {
@@ -8221,474 +8185,6 @@
       },
       "2": {
         "clip": "Skill_Loop",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_1026_gvial2_summer_12",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Skill_1",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_2_Loop",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_3",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_1026_gvial2_summer_12",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Skill_1",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_2_Loop",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_3",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_4054_malist_summer_14",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "1": {
-        "clip": "Skill_2",
-        "via": null
-      },
-      "2": {
-        "clip": "Attack",
-        "via": "attack"
-      }
-    }
-  },
-  {
-    "id": "skin_char_4054_malist_summer_14",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "1": {
-        "clip": "Skill_2",
-        "via": null
-      },
-      "2": {
-        "clip": "Attack",
-        "via": "attack"
-      }
-    }
-  },
-  {
-    "id": "skin_char_341_sntlla_summer_15",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Skill_Loop",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_Loop",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_Loop",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_341_sntlla_summer_15",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Skill_Loop",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_Loop",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_Loop",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_136_hsguma_summer_16",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Skill",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_136_hsguma_summer_16",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Skill",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_1020_reed2_summer_17",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "1": {
-        "clip": "Skill_2",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_3_Attack",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_1020_reed2_summer_17",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "1": {
-        "clip": "Skill_2",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_3_Attack",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_4100_caper_summer_18",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Skill_Loop",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_Loop",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_Loop",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_4100_caper_summer_18",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Skill_Loop",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_Loop",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_Loop",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_498_inside_summer_22",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Skill_1_Loop",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_2_Loop",
-        "via": null
-      },
-      "2": {
-        "clip": "Attack_Loop",
-        "via": "attack"
-      }
-    }
-  },
-  {
-    "id": "skin_char_498_inside_summer_22",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Skill_1_Loop",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_2_Loop",
-        "via": null
-      },
-      "2": {
-        "clip": "Attack_Loop",
-        "via": "attack"
-      }
-    }
-  },
-  {
-    "id": "skin_char_4051_akkord_summer_23",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "1": {
-        "clip": "Skill_2_Loop",
-        "via": null
-      },
-      "2": {
-        "clip": "Attack",
-        "via": "attack"
-      }
-    }
-  },
-  {
-    "id": "skin_char_4051_akkord_summer_23",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "1": {
-        "clip": "Skill_2_Loop",
-        "via": null
-      },
-      "2": {
-        "clip": "Attack",
-        "via": "attack"
-      }
-    }
-  },
-  {
-    "id": "skin_char_263_skadi_marthe_5",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "1": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "2": {
-        "clip": "Attack",
-        "via": "attack"
-      }
-    }
-  },
-  {
-    "id": "skin_char_263_skadi_marthe_5",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "1": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "2": {
-        "clip": "Attack",
-        "via": "attack"
-      }
-    }
-  },
-  {
-    "id": "skin_char_1039_thorn2_marthe_9",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Skill",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_2",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_3_Loop",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_1039_thorn2_marthe_9",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Skill",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_2",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_3_Loop",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_491_humus_marthe_10",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "1": {
-        "clip": "Skill_2_Loop",
-        "via": null
-      },
-      "2": {
-        "clip": "Attack",
-        "via": "attack"
-      }
-    }
-  },
-  {
-    "id": "skin_char_491_humus_marthe_10",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "1": {
-        "clip": "Skill_2_Loop",
-        "via": null
-      },
-      "2": {
-        "clip": "Attack",
-        "via": "attack"
-      }
-    }
-  },
-  {
-    "id": "skin_char_381_bubble_marthe_11",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Skill_Loop",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_Loop",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_Loop",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_381_bubble_marthe_11",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Skill_Loop",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_Loop",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_Loop",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_264_f12yin_marthe_13",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Skill",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_2_Loop",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_3_Loop",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_264_f12yin_marthe_13",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Skill",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_2_Loop",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_3_Loop",
         "via": null
       }
     }
@@ -8712,6 +8208,474 @@
     }
   },
   {
+    "id": "skin_char_1026_gvial2_summer_12",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Skill_1",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_2_Loop",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_3",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_1026_gvial2_summer_12",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Skill_1",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_2_Loop",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_3",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_4054_malist_summer_14",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "1": {
+        "clip": "Skill_2",
+        "via": null
+      },
+      "2": {
+        "clip": "Attack",
+        "via": "attack"
+      }
+    }
+  },
+  {
+    "id": "skin_char_4054_malist_summer_14",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "1": {
+        "clip": "Skill_2",
+        "via": null
+      },
+      "2": {
+        "clip": "Attack",
+        "via": "attack"
+      }
+    }
+  },
+  {
+    "id": "skin_char_341_sntlla_summer_15",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Skill_Loop",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_Loop",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_Loop",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_341_sntlla_summer_15",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Skill_Loop",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_Loop",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_Loop",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_136_hsguma_summer_16",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "1": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "2": {
+        "clip": "Skill",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_136_hsguma_summer_16",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "1": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "2": {
+        "clip": "Skill",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_1020_reed2_summer_17",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "1": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "2": {
+        "clip": "Skill_3_Attack",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_1020_reed2_summer_17",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "1": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "2": {
+        "clip": "Skill_3_Attack",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_498_inside_summer_22",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Skill_1_Loop",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_2_Loop",
+        "via": null
+      },
+      "2": {
+        "clip": "Attack_Loop",
+        "via": "attack"
+      }
+    }
+  },
+  {
+    "id": "skin_char_498_inside_summer_22",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Skill_1_Loop",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_2_Loop",
+        "via": null
+      },
+      "2": {
+        "clip": "Attack_Loop",
+        "via": "attack"
+      }
+    }
+  },
+  {
+    "id": "skin_char_4100_caper_summer_18",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Skill_Loop",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_Loop",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_Loop",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_4100_caper_summer_18",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Skill_Loop",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_Loop",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_Loop",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_4051_akkord_summer_23",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "1": {
+        "clip": "Skill_2_Loop",
+        "via": null
+      },
+      "2": {
+        "clip": "Attack",
+        "via": "attack"
+      }
+    }
+  },
+  {
+    "id": "skin_char_4051_akkord_summer_23",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "1": {
+        "clip": "Skill_2_Loop",
+        "via": null
+      },
+      "2": {
+        "clip": "Attack",
+        "via": "attack"
+      }
+    }
+  },
+  {
+    "id": "skin_char_263_skadi_marthe_5",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "1": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "2": {
+        "clip": "Attack",
+        "via": "attack"
+      }
+    }
+  },
+  {
+    "id": "skin_char_263_skadi_marthe_5",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "1": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "2": {
+        "clip": "Attack",
+        "via": "attack"
+      }
+    }
+  },
+  {
+    "id": "skin_char_1039_thorn2_marthe_9",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Skill",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_2",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_3_Loop",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_1039_thorn2_marthe_9",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Skill",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_2",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_3_Loop",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_491_humus_marthe_10",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "1": {
+        "clip": "Skill_2_Loop",
+        "via": null
+      },
+      "2": {
+        "clip": "Attack",
+        "via": "attack"
+      }
+    }
+  },
+  {
+    "id": "skin_char_491_humus_marthe_10",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "1": {
+        "clip": "Skill_2_Loop",
+        "via": null
+      },
+      "2": {
+        "clip": "Attack",
+        "via": "attack"
+      }
+    }
+  },
+  {
+    "id": "skin_char_381_bubble_marthe_11",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "1": {
+        "clip": "Skill_Loop",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_Loop",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_381_bubble_marthe_11",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "1": {
+        "clip": "Skill_Loop",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_Loop",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_264_f12yin_marthe_13",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Skill",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_2_Loop",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_3_Loop",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_264_f12yin_marthe_13",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Skill",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_2_Loop",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_3_Loop",
+        "via": null
+      }
+    }
+  },
+  {
     "id": "skin_char_171_bldsk_witch_1",
     "side": "front",
     "skills": {
@@ -8964,42 +8928,6 @@
     }
   },
   {
-    "id": "skin_char_108_silent_winter_2",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "1": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "2": {
-        "clip": "Attack",
-        "via": "attack"
-      }
-    }
-  },
-  {
-    "id": "skin_char_108_silent_winter_2",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "1": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "2": {
-        "clip": "Attack",
-        "via": "attack"
-      }
-    }
-  },
-  {
     "id": "skin_char_237_gravel_winter_2",
     "side": "front",
     "skills": {
@@ -9032,2850 +8960,6 @@
       "2": {
         "clip": "Attack",
         "via": "attack"
-      }
-    }
-  },
-  {
-    "id": "skin_char_4010_etlchi_winter_5",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Skill_1",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_2_Loop",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_3_Loop_A",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_4010_etlchi_winter_5",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Skill_1",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_2_Loop",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_3_Loop_A",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_172_svrash_snow_1",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Skill",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_172_svrash_snow_1",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Skill",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_174_slbell_snow_1",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Skill_Loop",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_Loop",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_Loop",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_174_slbell_snow_1",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "1": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "2": {
-        "clip": "Attack",
-        "via": "attack"
-      }
-    }
-  },
-  {
-    "id": "skin_char_1040_blaze2_winter_5",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Skill_1",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_2_Loop",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_3_Loop",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_1040_blaze2_winter_5",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Skill_1",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_2_Loop",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_3_Loop",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_426_billro_snow_3",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Skill_Loop",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_2_Loop",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_Loop",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_426_billro_snow_3",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Skill_Loop",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_2_Loop",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_Loop",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_373_lionhd_snow_3",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Skill",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_373_lionhd_snow_3",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Skill",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_4114_harold_snow_7",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "1": {
-        "clip": "Skill_2_Loop",
-        "via": null
-      },
-      "2": {
-        "clip": "Attack",
-        "via": "attack"
-      }
-    }
-  },
-  {
-    "id": "skin_char_4114_harold_snow_7",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "1": {
-        "clip": "Skill_2_Loop",
-        "via": null
-      },
-      "2": {
-        "clip": "Attack",
-        "via": "attack"
-      }
-    }
-  },
-  {
-    "id": "skin_char_103_angel_wild_1",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "1": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "2": {
-        "clip": "Attack",
-        "via": "attack"
-      }
-    }
-  },
-  {
-    "id": "skin_char_103_angel_wild_1",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "1": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "2": {
-        "clip": "Attack",
-        "via": "attack"
-      }
-    }
-  },
-  {
-    "id": "skin_char_1020_reed2_snow_8",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "1": {
-        "clip": "Skill_2",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_3_Attack",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_1020_reed2_snow_8",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "1": {
-        "clip": "Skill_2",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_3_Attack",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_173_slchan_wild_1",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Skill_Loop",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_Loop",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_Loop",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_173_slchan_wild_1",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Skill_Loop",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_Loop",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_Loop",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_150_snakek_wild_1",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Skill_Loop",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_Loop",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_Loop",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_150_snakek_wild_1",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "1": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "2": {
-        "clip": "Attack",
-        "via": "attack"
-      }
-    }
-  },
-  {
-    "id": "skin_char_373_lionhd_wild_3",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Skill",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_373_lionhd_wild_3",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Skill",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_145_prove_wild_5",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "1": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "2": {
-        "clip": "Attack",
-        "via": "attack"
-      }
-    }
-  },
-  {
-    "id": "skin_char_145_prove_wild_5",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "1": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "2": {
-        "clip": "Attack",
-        "via": "attack"
-      }
-    }
-  },
-  {
-    "id": "skin_char_358_lisa_wild_3",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "1": {
-        "clip": "Skill2",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill3_Loop",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_358_lisa_wild_3",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "1": {
-        "clip": "Skill2",
-        "via": null
-      },
-      "2": {
-        "clip": "Attack",
-        "via": "attack"
-      }
-    }
-  },
-  {
-    "id": "skin_char_108_silent_sweep_1",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "1": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "2": {
-        "clip": "Attack",
-        "via": "attack"
-      }
-    }
-  },
-  {
-    "id": "skin_char_108_silent_sweep_1",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "1": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "2": {
-        "clip": "Attack",
-        "via": "attack"
-      }
-    }
-  },
-  {
-    "id": "skin_char_103_angel_kfc_1",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "1": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "2": {
-        "clip": "Attack",
-        "via": "attack"
-      }
-    }
-  },
-  {
-    "id": "skin_char_103_angel_kfc_1",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "1": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "2": {
-        "clip": "Attack",
-        "via": "attack"
-      }
-    }
-  },
-  {
-    "id": "skin_char_173_slchan_wwf_1",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Skill_Loop",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_Loop",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_Loop",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_173_slchan_wwf_1",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Skill_Loop",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_Loop",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_Loop",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_311_mudrok_wild_10",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Skill_1",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_2_Attack",
-        "via": null
-      },
-      "2": {
-        "clip": "Attack",
-        "via": "attack"
-      }
-    }
-  },
-  {
-    "id": "skin_char_311_mudrok_wild_10",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Skill_1",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_2_Attack",
-        "via": null
-      },
-      "2": {
-        "clip": "Attack",
-        "via": "attack"
-      }
-    }
-  },
-  {
-    "id": "skin_char_202_demkni_boc_1",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Skill_Loop",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_Loop",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_Loop",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_202_demkni_boc_1",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "1": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "2": {
-        "clip": "Attack",
-        "via": "attack"
-      }
-    }
-  },
-  {
-    "id": "skin_char_140_whitew_boc_1",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Skill",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_140_whitew_boc_1",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Skill",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_279_excu_boc_1",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Skill_Right_Loop",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_Right_Loop",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_Right_Loop",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_279_excu_boc_1",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Skill_Right_Loop",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_Right_Loop",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_Right_Loop",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_264_f12yin_boc_3",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Skill",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_2_Loop",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_3_Loop",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_264_f12yin_boc_3",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Skill",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_2_Loop",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_3_Loop",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_188_helage_boc_2",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Skill",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_2",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_3_Loop",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_188_helage_boc_2",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Skill",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_2",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_3_Loop",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_294_ayer_boc_3",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Skill_1",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_2_Loop",
-        "via": null
-      },
-      "2": {
-        "clip": "Attack",
-        "via": "attack"
-      }
-    }
-  },
-  {
-    "id": "skin_char_294_ayer_boc_3",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Skill_1",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_2_Loop",
-        "via": null
-      },
-      "2": {
-        "clip": "Attack",
-        "via": "attack"
-      }
-    }
-  },
-  {
-    "id": "skin_char_206_gnosis_boc_4",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Skill",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_2",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_3",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_206_gnosis_boc_4",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Skill",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_2",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_3",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_249_mlyss_boc_8",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Skill_1",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_2_Loop",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_3_loop",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_249_mlyss_boc_8",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Skill_1",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_2_Loop",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_3_loop",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_474_glady_boc_5",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Skill_1_Loop",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_2_Loop",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_3_Loop",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_474_glady_boc_5",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Skill_1_Loop",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_2_Loop",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_3_Loop",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_1023_ghost2_boc_6",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Skill_1",
-        "via": null
-      },
-      "1": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "2": {
-        "clip": "Skill_3_Attack",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_1023_ghost2_boc_6",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Skill_1",
-        "via": null
-      },
-      "1": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "2": {
-        "clip": "Skill_3_Attack",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_4087_ines_boc_8",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "1": {
-        "clip": "Skill_2_Attack",
-        "via": null
-      },
-      "2": {
-        "clip": "Attack",
-        "via": "attack"
-      }
-    }
-  },
-  {
-    "id": "skin_char_4087_ines_boc_8",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "1": {
-        "clip": "Skill_2_Attack",
-        "via": null
-      },
-      "2": {
-        "clip": "Attack",
-        "via": "attack"
-      }
-    }
-  },
-  {
-    "id": "skin_char_4194_rmixer_boc_12",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Skill_Loop",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_2_Loop",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_3_Idle",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_4194_rmixer_boc_12",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Skill_Loop",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_2_Loop",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_3_Idle",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_195_glassb_kitchen_1",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Skill_Loop",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_Loop",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_Loop",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_195_glassb_kitchen_1",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "1": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "2": {
-        "clip": "Attack",
-        "via": "attack"
-      }
-    }
-  },
-  {
-    "id": "skin_char_498_inside_kitchen_2",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Skill_1_Loop",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_2_Loop",
-        "via": null
-      },
-      "2": {
-        "clip": "Attack_Loop",
-        "via": "attack"
-      }
-    }
-  },
-  {
-    "id": "skin_char_498_inside_kitchen_2",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Skill_1_Loop",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_2_Loop",
-        "via": null
-      },
-      "2": {
-        "clip": "Attack_Loop",
-        "via": "attack"
-      }
-    }
-  },
-  {
-    "id": "skin_char_107_liskam_striker_1",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Skill",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_107_liskam_striker_1",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Skill",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_222_bpipe_race_1",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Skill",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_2_Loop",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_222_bpipe_race_1",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Skill",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_2_Loop",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_290_vigna_as_1",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "1": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "2": {
-        "clip": "Attack",
-        "via": "attack"
-      }
-    }
-  },
-  {
-    "id": "skin_char_290_vigna_as_1",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "1": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "2": {
-        "clip": "Attack",
-        "via": "attack"
-      }
-    }
-  },
-  {
-    "id": "skin_char_4042_lumen_ambienceSynesthesia_3",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Skill_1",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_2",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_3_Loop",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_4042_lumen_ambienceSynesthesia_3",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Skill_1",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_2",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_3_Loop",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_172_svrash_ambienceSynesthesia_4",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Skill",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_172_svrash_ambienceSynesthesia_4",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Skill",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_1033_swire2_ambienceSynesthesia_4",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Skill_1",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_2",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_3_Loop",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_1033_swire2_ambienceSynesthesia_4",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Skill_1",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_2",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_3_Loop",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_4087_ines_ambienceSynesthesia_5",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "1": {
-        "clip": "Skill_2_Attack",
-        "via": null
-      },
-      "2": {
-        "clip": "Attack",
-        "via": "attack"
-      }
-    }
-  },
-  {
-    "id": "skin_char_4087_ines_ambienceSynesthesia_5",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "1": {
-        "clip": "Skill_2_Attack",
-        "via": null
-      },
-      "2": {
-        "clip": "Attack",
-        "via": "attack"
-      }
-    }
-  },
-  {
-    "id": "skin_char_311_mudrok_ambienceSynesthesia_2",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Skill_1",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_2_Attack",
-        "via": null
-      },
-      "2": {
-        "clip": "Attack",
-        "via": "attack"
-      }
-    }
-  },
-  {
-    "id": "skin_char_311_mudrok_ambienceSynesthesia_2",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Skill_1",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_2_Attack",
-        "via": null
-      },
-      "2": {
-        "clip": "Attack",
-        "via": "attack"
-      }
-    }
-  },
-  {
-    "id": "skin_char_249_mlyss_ambienceSynesthesia_6",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Skill_1",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_2_Loop",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_3_loop",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_249_mlyss_ambienceSynesthesia_6",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Skill_1",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_2_Loop",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_3_loop",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_350_surtr_ambienceSynesthesia_6",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "1": {
-        "clip": "Skill_2",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_3_Loop",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_350_surtr_ambienceSynesthesia_6",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "1": {
-        "clip": "Skill_2",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_3_Loop",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_4146_nymph_ambienceSynesthesia_6",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "1": {
-        "clip": "Skill_2",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_3_Attack",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_4146_nymph_ambienceSynesthesia_6",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "1": {
-        "clip": "Skill_2",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_3_Attack",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_213_mostma_ambienceSynesthesia_6",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Skill_Loop",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_2_Loop",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_Loop",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_213_mostma_ambienceSynesthesia_6",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Skill_Loop",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_2_Loop",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_Loop",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_202_demkni_ambienceSynesthesia_7",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Skill_Loop",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_Loop",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_Loop",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_202_demkni_ambienceSynesthesia_7",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "1": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "2": {
-        "clip": "Attack",
-        "via": "attack"
-      }
-    }
-  },
-  {
-    "id": "skin_char_4193_lemuen_ambienceSynesthesia_7",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Skill_1_Loop",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_2_Idle",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_3_Idle",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_4193_lemuen_ambienceSynesthesia_7",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Skill_1_Loop",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_2_Idle",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_3_Idle",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_350_surtr_it_1",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "1": {
-        "clip": "Skill_2",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_3_Loop",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_350_surtr_it_1",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "1": {
-        "clip": "Skill_2",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_3_Loop",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_1046_sbell2_ambienceSynesthesia_8",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Skill",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_2_Attack",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_3_Attack_A",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_1046_sbell2_ambienceSynesthesia_8",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Skill",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_2_Attack",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_3_Attack_A",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_358_lisa_lxh_1",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "1": {
-        "clip": "Skill2",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill3_Loop",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_358_lisa_lxh_1",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "1": {
-        "clip": "Skill2",
-        "via": null
-      },
-      "2": {
-        "clip": "Attack",
-        "via": "attack"
-      }
-    }
-  },
-  {
-    "id": "skin_char_4040_rockr_lxh_1",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Skill_Loop",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_Loop",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_Loop",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_4040_rockr_lxh_1",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Skill_Loop",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_Loop",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_Loop",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_4042_lumen_sanrio_2",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Skill_1",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_2",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_3_Loop",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_4042_lumen_sanrio_2",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Skill_1",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_2",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_3_Loop",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_4082_qiubai_ncg_1",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "1": {
-        "clip": "Skill_2",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_3_Loop",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_4082_qiubai_ncg_1",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "1": {
-        "clip": "Skill_2",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_3_Loop",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_332_archet_shining_1",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Skill_1",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_2",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_3",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_332_archet_shining_1",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Skill_1",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_2",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_3",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_440_pinecn_shining_1",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Skill_1",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_2",
-        "via": null
-      },
-      "2": {
-        "clip": "Attack",
-        "via": "attack"
-      }
-    }
-  },
-  {
-    "id": "skin_char_440_pinecn_shining_1",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Skill_1",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_2",
-        "via": null
-      },
-      "2": {
-        "clip": "Attack",
-        "via": "attack"
-      }
-    }
-  },
-  {
-    "id": "skin_char_1032_excu2_sanrio_2",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Attack_A",
-        "via": "attack"
-      },
-      "1": {
-        "clip": "Skill_2_Attack_A",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_3_Attack_A",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_1032_excu2_sanrio_2",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Attack_A",
-        "via": "attack"
-      },
-      "1": {
-        "clip": "Skill_2_Attack_A",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_3_Attack_A",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_420_flamtl_game_2",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Skill_1",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_2_Attack_2",
-        "via": null
-      },
-      "2": {
-        "clip": "Attack",
-        "via": "attack"
-      }
-    }
-  },
-  {
-    "id": "skin_char_420_flamtl_game_2",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Skill_1",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_2_Attack_2",
-        "via": null
-      },
-      "2": {
-        "clip": "Attack",
-        "via": "attack"
-      }
-    }
-  },
-  {
-    "id": "skin_char_306_leizi_game_3",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "1": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "2": {
-        "clip": "Attack",
-        "via": "attack"
-      }
-    }
-  },
-  {
-    "id": "skin_char_306_leizi_game_3",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "1": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "2": {
-        "clip": "Attack",
-        "via": "attack"
-      }
-    }
-  },
-  {
-    "id": "skin_char_1021_kroos2_game_3",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Skill_Loop",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_Loop",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_Loop",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_1021_kroos2_game_3",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Skill_Loop",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_Loop",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_Loop",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_437_mizuki_game_6",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Skill_1",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_2_Loop",
-        "via": null
-      },
-      "2": {
-        "clip": "Attack",
-        "via": "attack"
-      }
-    }
-  },
-  {
-    "id": "skin_char_437_mizuki_game_6",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Skill_1",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_2_Loop",
-        "via": null
-      },
-      "2": {
-        "clip": "Attack",
-        "via": "attack"
-      }
-    }
-  },
-  {
-    "id": "skin_char_4163_rosesa_game_7",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Skill_1",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_2_Loop",
-        "via": null
-      },
-      "2": {
-        "clip": "Attack",
-        "via": "attack"
-      }
-    }
-  },
-  {
-    "id": "skin_char_4163_rosesa_game_7",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Skill_1",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_2_Loop",
-        "via": null
-      },
-      "2": {
-        "clip": "Attack",
-        "via": "attack"
-      }
-    }
-  },
-  {
-    "id": "skin_char_1035_wisdel_game_9",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Skill_1",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_2_Loop",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_3_Loop",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_1035_wisdel_game_9",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Skill_1",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_2_Loop",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_3_Loop",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_4139_papyrs_game_8",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Skill_1",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_2_Loop",
-        "via": null
-      },
-      "2": {
-        "clip": "Attack",
-        "via": "attack"
-      }
-    }
-  },
-  {
-    "id": "skin_char_4139_papyrs_game_8",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Skill_1",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_2_Loop",
-        "via": null
-      },
-      "2": {
-        "clip": "Attack",
-        "via": "attack"
-      }
-    }
-  },
-  {
-    "id": "skin_char_494_vendla_game_10",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Skill",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_494_vendla_game_10",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Skill",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_4122_grabds_yun_3",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Skill_1",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_2_Loop",
-        "via": null
-      },
-      "2": {
-        "clip": "Attack",
-        "via": "attack"
-      }
-    }
-  },
-  {
-    "id": "skin_char_4122_grabds_yun_3",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Skill_1",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_2_Loop",
-        "via": null
-      },
-      "2": {
-        "clip": "Attack",
-        "via": "attack"
-      }
-    }
-  },
-  {
-    "id": "skin_char_128_plosis_yun_4",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "1": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "2": {
-        "clip": "Attack",
-        "via": "attack"
-      }
-    }
-  },
-  {
-    "id": "skin_char_128_plosis_yun_4",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "1": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "2": {
-        "clip": "Attack",
-        "via": "attack"
-      }
-    }
-  },
-  {
-    "id": "skin_char_150_snakek_yun_7",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Skill_Loop",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_Loop",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_Loop",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_150_snakek_yun_7",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "1": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "2": {
-        "clip": "Attack",
-        "via": "attack"
-      }
-    }
-  },
-  {
-    "id": "skin_char_254_vodfox_yun_8",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "1": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "2": {
-        "clip": "Attack",
-        "via": "attack"
-      }
-    }
-  },
-  {
-    "id": "skin_char_254_vodfox_yun_8",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "1": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "2": {
-        "clip": "Attack",
-        "via": "attack"
-      }
-    }
-  },
-  {
-    "id": "skin_char_4207_branch_yun_10",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "1": {
-        "clip": "Skill_2_Loop",
-        "via": null
-      },
-      "2": {
-        "clip": "Attack",
-        "via": "attack"
-      }
-    }
-  },
-  {
-    "id": "skin_char_4207_branch_yun_10",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "1": {
-        "clip": "Skill_2_Loop",
-        "via": null
-      },
-      "2": {
-        "clip": "Attack",
-        "via": "attack"
-      }
-    }
-  },
-  {
-    "id": "skin_char_4196_reckpr_yun_12",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Skill_Loop",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_Loop",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_Loop",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_4196_reckpr_yun_12",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Skill_Loop",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_Loop",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_Loop",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_1028_texas2_iteration_1",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "1": {
-        "clip": "Skill_2_Loop",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_3_Loop",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_1028_texas2_iteration_1",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Attack",
-        "via": "attack"
-      },
-      "1": {
-        "clip": "Skill_2_Loop",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_3_Loop",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_4132_ascln_iteration_4",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Skill_1",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_2",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_3_Loop",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_4132_ascln_iteration_4",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Skill_1",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_2",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_3_Loop",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_4064_mlynar_iteration_3",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Skill_1_Loop",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_2_Loop",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_3_Loop",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_4064_mlynar_iteration_3",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Skill_1_Loop",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_2_Loop",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_3_Loop",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_4058_pepe_sightseer_2",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Skill_1",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_2_Loop",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_3_Loop_A",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_4058_pepe_sightseer_2",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Skill_1",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_2_Loop",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_3_Loop_A",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_1041_angel2_iteration_6",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Skill_1_Loop",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_2_Loop",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_3_Loop",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_1041_angel2_iteration_6",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Skill_1_Loop",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_2_Loop",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_3_Loop",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_4138_narant_breaker_1",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Skill_1",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_2_Loop",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_3_Loop",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_4138_narant_breaker_1",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Skill_1",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_2_Loop",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_3_Loop",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_197_poca_rilakkuma_1",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Skill_Loop",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_Loop",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_Loop",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_197_poca_rilakkuma_1",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Skill_Loop",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_Loop",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_Loop",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_4182_oblvns_avemujica_1",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Skill_1",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_2_Idle_A",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_3_Loop",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_4182_oblvns_avemujica_1",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Skill_1",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_2_Idle_A",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_3_Loop",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_4138_narant_littlePony_1",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Skill_1",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_2_Loop",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_3_Loop",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_4138_narant_littlePony_1",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Skill_1",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_2_Loop",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_3_Loop",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_423_blemsh_littlePony_1",
-    "side": "front",
-    "skills": {
-      "0": {
-        "clip": "Skill_1",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_2",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_3",
-        "via": null
-      }
-    }
-  },
-  {
-    "id": "skin_char_423_blemsh_littlePony_1",
-    "side": "back",
-    "skills": {
-      "0": {
-        "clip": "Skill_1",
-        "via": null
-      },
-      "1": {
-        "clip": "Skill_2",
-        "via": null
-      },
-      "2": {
-        "clip": "Skill_3",
-        "via": null
       }
     }
   },
@@ -11898,6 +8982,1338 @@
     }
   },
   {
+    "id": "skin_char_108_silent_winter_2",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "1": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "2": {
+        "clip": "Attack",
+        "via": "attack"
+      }
+    }
+  },
+  {
+    "id": "skin_char_108_silent_winter_2",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "1": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "2": {
+        "clip": "Attack",
+        "via": "attack"
+      }
+    }
+  },
+  {
+    "id": "skin_char_4010_etlchi_winter_5",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Skill_1",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_2_Loop",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_3_Loop_A",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_4010_etlchi_winter_5",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Skill_1",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_2_Loop",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_3_Loop_A",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_172_svrash_snow_1",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Skill",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_172_svrash_snow_1",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Skill",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_1040_blaze2_winter_5",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Skill_1",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_2_Loop",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_3_Loop",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_1040_blaze2_winter_5",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Skill_1",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_2_Loop",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_3_Loop",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_174_slbell_snow_1",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Skill_Loop",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_Loop",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_Loop",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_174_slbell_snow_1",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "1": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "2": {
+        "clip": "Attack",
+        "via": "attack"
+      }
+    }
+  },
+  {
+    "id": "skin_char_426_billro_snow_3",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Skill_Loop",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_2_Loop",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_Loop",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_426_billro_snow_3",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Skill_Loop",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_2_Loop",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_Loop",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_373_lionhd_snow_3",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Skill",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_373_lionhd_snow_3",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Skill",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_4114_harold_snow_7",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "1": {
+        "clip": "Skill_2_Loop",
+        "via": null
+      },
+      "2": {
+        "clip": "Attack",
+        "via": "attack"
+      }
+    }
+  },
+  {
+    "id": "skin_char_4114_harold_snow_7",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "1": {
+        "clip": "Skill_2_Loop",
+        "via": null
+      },
+      "2": {
+        "clip": "Attack",
+        "via": "attack"
+      }
+    }
+  },
+  {
+    "id": "skin_char_103_angel_wild_1",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "1": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "2": {
+        "clip": "Attack",
+        "via": "attack"
+      }
+    }
+  },
+  {
+    "id": "skin_char_103_angel_wild_1",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "1": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "2": {
+        "clip": "Attack",
+        "via": "attack"
+      }
+    }
+  },
+  {
+    "id": "skin_char_1020_reed2_snow_8",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "1": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "2": {
+        "clip": "Skill_3_Attack",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_1020_reed2_snow_8",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "1": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "2": {
+        "clip": "Skill_3_Attack",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_173_slchan_wild_1",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Skill_Loop",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_Loop",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_Loop",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_173_slchan_wild_1",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Skill_Loop",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_Loop",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_Loop",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_150_snakek_wild_1",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "1": {
+        "clip": "Skill_Loop",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_Loop",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_150_snakek_wild_1",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "1": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "2": {
+        "clip": "Attack",
+        "via": "attack"
+      }
+    }
+  },
+  {
+    "id": "skin_char_358_lisa_wild_3",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "1": {
+        "clip": "Skill2",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill3_Loop",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_358_lisa_wild_3",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "1": {
+        "clip": "Skill2",
+        "via": null
+      },
+      "2": {
+        "clip": "Attack",
+        "via": "attack"
+      }
+    }
+  },
+  {
+    "id": "skin_char_373_lionhd_wild_3",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Skill",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_373_lionhd_wild_3",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Skill",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_145_prove_wild_5",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "1": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "2": {
+        "clip": "Attack",
+        "via": "attack"
+      }
+    }
+  },
+  {
+    "id": "skin_char_145_prove_wild_5",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "1": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "2": {
+        "clip": "Attack",
+        "via": "attack"
+      }
+    }
+  },
+  {
+    "id": "skin_char_311_mudrok_wild_10",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Skill_1",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_2_Attack",
+        "via": null
+      },
+      "2": {
+        "clip": "Attack",
+        "via": "attack"
+      }
+    }
+  },
+  {
+    "id": "skin_char_311_mudrok_wild_10",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Skill_1",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_2_Attack",
+        "via": null
+      },
+      "2": {
+        "clip": "Attack",
+        "via": "attack"
+      }
+    }
+  },
+  {
+    "id": "skin_char_108_silent_sweep_1",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "1": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "2": {
+        "clip": "Attack",
+        "via": "attack"
+      }
+    }
+  },
+  {
+    "id": "skin_char_108_silent_sweep_1",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "1": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "2": {
+        "clip": "Attack",
+        "via": "attack"
+      }
+    }
+  },
+  {
+    "id": "skin_char_103_angel_kfc_1",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "1": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "2": {
+        "clip": "Attack",
+        "via": "attack"
+      }
+    }
+  },
+  {
+    "id": "skin_char_103_angel_kfc_1",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "1": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "2": {
+        "clip": "Attack",
+        "via": "attack"
+      }
+    }
+  },
+  {
+    "id": "skin_char_173_slchan_wwf_1",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Skill_Loop",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_Loop",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_Loop",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_173_slchan_wwf_1",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Skill_Loop",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_Loop",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_Loop",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_202_demkni_boc_1",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Skill_Loop",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_Loop",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_Loop",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_202_demkni_boc_1",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "1": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "2": {
+        "clip": "Attack",
+        "via": "attack"
+      }
+    }
+  },
+  {
+    "id": "skin_char_140_whitew_boc_1",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Skill",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_140_whitew_boc_1",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Skill",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_279_excu_boc_1",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Skill_Right_Loop",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_Right_Loop",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_Right_Loop",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_279_excu_boc_1",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Skill_Right_Loop",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_Right_Loop",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_Right_Loop",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_188_helage_boc_2",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Skill",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_2",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_3_Loop",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_188_helage_boc_2",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Skill",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_2",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_3_Loop",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_264_f12yin_boc_3",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Skill",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_2_Loop",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_3_Loop",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_264_f12yin_boc_3",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Skill",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_2_Loop",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_3_Loop",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_294_ayer_boc_3",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Skill_1",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_2_Loop",
+        "via": null
+      },
+      "2": {
+        "clip": "Attack",
+        "via": "attack"
+      }
+    }
+  },
+  {
+    "id": "skin_char_294_ayer_boc_3",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Skill_1",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_2_Loop",
+        "via": null
+      },
+      "2": {
+        "clip": "Attack",
+        "via": "attack"
+      }
+    }
+  },
+  {
+    "id": "skin_char_206_gnosis_boc_4",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Skill",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_2",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_3",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_206_gnosis_boc_4",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Skill",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_2",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_3",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_474_glady_boc_5",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Skill_1_Loop",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_2_Loop",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_3_Loop",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_474_glady_boc_5",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Skill_1_Loop",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_2_Loop",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_3_Loop",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_249_mlyss_boc_8",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Skill_1",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_2_Loop",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_3_loop",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_249_mlyss_boc_8",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Skill_1",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_2_Loop",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_3_loop",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_1023_ghost2_boc_6",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "1": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "2": {
+        "clip": "Skill_3_Attack",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_1023_ghost2_boc_6",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "1": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "2": {
+        "clip": "Skill_3_Attack",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_4194_rmixer_boc_12",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Skill_Loop",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_2_Loop",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_3_Idle",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_4194_rmixer_boc_12",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Skill_Loop",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_2_Loop",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_3_Idle",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_4087_ines_boc_8",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "1": {
+        "clip": "Skill_2_Attack",
+        "via": null
+      },
+      "2": {
+        "clip": "Attack",
+        "via": "attack"
+      }
+    }
+  },
+  {
+    "id": "skin_char_4087_ines_boc_8",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "1": {
+        "clip": "Skill_2_Attack",
+        "via": null
+      },
+      "2": {
+        "clip": "Attack",
+        "via": "attack"
+      }
+    }
+  },
+  {
+    "id": "skin_char_195_glassb_kitchen_1",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Skill_Loop",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_Loop",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_Loop",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_195_glassb_kitchen_1",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "1": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "2": {
+        "clip": "Attack",
+        "via": "attack"
+      }
+    }
+  },
+  {
+    "id": "skin_char_137_brownb_kitchen_1",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Skill_Loop",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_Loop",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_Loop",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_137_brownb_kitchen_1",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Skill_Loop",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_Loop",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_Loop",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_498_inside_kitchen_2",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Skill_1_Loop",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_2_Loop",
+        "via": null
+      },
+      "2": {
+        "clip": "Attack_Loop",
+        "via": "attack"
+      }
+    }
+  },
+  {
+    "id": "skin_char_498_inside_kitchen_2",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Skill_1_Loop",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_2_Loop",
+        "via": null
+      },
+      "2": {
+        "clip": "Attack_Loop",
+        "via": "attack"
+      }
+    }
+  },
+  {
+    "id": "skin_char_222_bpipe_race_1",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Skill",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_2_Loop",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_222_bpipe_race_1",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Skill",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_2_Loop",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_107_liskam_striker_1",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Skill",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_107_liskam_striker_1",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Skill",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_290_vigna_as_1",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "1": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "2": {
+        "clip": "Attack",
+        "via": "attack"
+      }
+    }
+  },
+  {
+    "id": "skin_char_290_vigna_as_1",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "1": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "2": {
+        "clip": "Attack",
+        "via": "attack"
+      }
+    }
+  },
+  {
     "id": "skin_char_291_aglina_boc_1",
     "side": "front",
     "skills": {
@@ -11912,6 +10328,1590 @@
       "2": {
         "clip": "Attack",
         "via": "attack"
+      }
+    }
+  },
+  {
+    "id": "skin_char_4042_lumen_ambienceSynesthesia_3",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Skill_1",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_2",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_3_Loop",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_4042_lumen_ambienceSynesthesia_3",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Skill_1",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_2",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_3_Loop",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_172_svrash_ambienceSynesthesia_4",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Skill",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_172_svrash_ambienceSynesthesia_4",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Skill",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_311_mudrok_ambienceSynesthesia_2",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Skill_1",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_2_Attack",
+        "via": null
+      },
+      "2": {
+        "clip": "Attack",
+        "via": "attack"
+      }
+    }
+  },
+  {
+    "id": "skin_char_311_mudrok_ambienceSynesthesia_2",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Skill_1",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_2_Attack",
+        "via": null
+      },
+      "2": {
+        "clip": "Attack",
+        "via": "attack"
+      }
+    }
+  },
+  {
+    "id": "skin_char_1033_swire2_ambienceSynesthesia_4",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Skill_1",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_2",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_3_Loop",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_1033_swire2_ambienceSynesthesia_4",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Skill_1",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_2",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_3_Loop",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_4087_ines_ambienceSynesthesia_5",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "1": {
+        "clip": "Skill_2_Attack",
+        "via": null
+      },
+      "2": {
+        "clip": "Attack",
+        "via": "attack"
+      }
+    }
+  },
+  {
+    "id": "skin_char_4087_ines_ambienceSynesthesia_5",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "1": {
+        "clip": "Skill_2_Attack",
+        "via": null
+      },
+      "2": {
+        "clip": "Attack",
+        "via": "attack"
+      }
+    }
+  },
+  {
+    "id": "skin_char_249_mlyss_ambienceSynesthesia_6",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Skill_1",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_2_Loop",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_3_loop",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_249_mlyss_ambienceSynesthesia_6",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Skill_1",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_2_Loop",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_3_loop",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_350_surtr_ambienceSynesthesia_6",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "1": {
+        "clip": "Skill_2",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_3_Loop",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_350_surtr_ambienceSynesthesia_6",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "1": {
+        "clip": "Skill_2",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_3_Loop",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_213_mostma_ambienceSynesthesia_6",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "1": {
+        "clip": "Skill_2_Loop",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_Loop",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_213_mostma_ambienceSynesthesia_6",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "1": {
+        "clip": "Skill_2_Loop",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_Loop",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_4146_nymph_ambienceSynesthesia_6",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "1": {
+        "clip": "Skill_2",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_3_Attack",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_4146_nymph_ambienceSynesthesia_6",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "1": {
+        "clip": "Skill_2",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_3_Attack",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_202_demkni_ambienceSynesthesia_7",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Skill_Loop",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_Loop",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_Loop",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_202_demkni_ambienceSynesthesia_7",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "1": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "2": {
+        "clip": "Attack",
+        "via": "attack"
+      }
+    }
+  },
+  {
+    "id": "skin_char_350_surtr_it_1",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "1": {
+        "clip": "Skill_2",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_3_Loop",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_350_surtr_it_1",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "1": {
+        "clip": "Skill_2",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_3_Loop",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_4193_lemuen_ambienceSynesthesia_7",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Skill_1_Loop",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_2_Idle",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_3_Idle",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_4193_lemuen_ambienceSynesthesia_7",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Skill_1_Loop",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_2_Idle",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_3_Idle",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_1046_sbell2_ambienceSynesthesia_8",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Skill",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_2_Attack",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_3_Attack_A",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_1046_sbell2_ambienceSynesthesia_8",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Skill",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_2_Attack",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_3_Attack_A",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_358_lisa_lxh_1",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "1": {
+        "clip": "Skill2",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill3_Loop",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_358_lisa_lxh_1",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "1": {
+        "clip": "Skill2",
+        "via": null
+      },
+      "2": {
+        "clip": "Attack",
+        "via": "attack"
+      }
+    }
+  },
+  {
+    "id": "skin_char_4040_rockr_lxh_1",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Skill_Loop",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_Loop",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_Loop",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_4040_rockr_lxh_1",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Skill_Loop",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_Loop",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_Loop",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_4082_qiubai_ncg_1",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "1": {
+        "clip": "Skill_2",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_3_Loop",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_4082_qiubai_ncg_1",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "1": {
+        "clip": "Skill_2",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_3_Loop",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_4042_lumen_sanrio_2",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Skill_1",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_2",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_3_Loop",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_4042_lumen_sanrio_2",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Skill_1",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_2",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_3_Loop",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_332_archet_shining_1",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Skill_1",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_2",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_3",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_332_archet_shining_1",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Skill_1",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_2",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_3",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_440_pinecn_shining_1",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Skill_1",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_2",
+        "via": null
+      },
+      "2": {
+        "clip": "Attack",
+        "via": "attack"
+      }
+    }
+  },
+  {
+    "id": "skin_char_440_pinecn_shining_1",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Skill_1",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_2",
+        "via": null
+      },
+      "2": {
+        "clip": "Attack",
+        "via": "attack"
+      }
+    }
+  },
+  {
+    "id": "skin_char_420_flamtl_game_2",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Skill_1",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_2_Attack_2",
+        "via": null
+      },
+      "2": {
+        "clip": "Attack",
+        "via": "attack"
+      }
+    }
+  },
+  {
+    "id": "skin_char_420_flamtl_game_2",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Skill_1",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_2_Attack_2",
+        "via": null
+      },
+      "2": {
+        "clip": "Attack",
+        "via": "attack"
+      }
+    }
+  },
+  {
+    "id": "skin_char_306_leizi_game_3",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "1": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "2": {
+        "clip": "Attack",
+        "via": "attack"
+      }
+    }
+  },
+  {
+    "id": "skin_char_306_leizi_game_3",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "1": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "2": {
+        "clip": "Attack",
+        "via": "attack"
+      }
+    }
+  },
+  {
+    "id": "skin_char_1021_kroos2_game_3",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Skill_Loop",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_Loop",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_Loop",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_1021_kroos2_game_3",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Skill_Loop",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_Loop",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_Loop",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_1032_excu2_sanrio_2",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Attack_A",
+        "via": "attack"
+      },
+      "1": {
+        "clip": "Skill_2_Attack_A",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_3_Attack_A",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_1032_excu2_sanrio_2",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Attack_A",
+        "via": "attack"
+      },
+      "1": {
+        "clip": "Skill_2_Attack_A",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_3_Attack_A",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_437_mizuki_game_6",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Skill_1",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_2_Loop",
+        "via": null
+      },
+      "2": {
+        "clip": "Attack",
+        "via": "attack"
+      }
+    }
+  },
+  {
+    "id": "skin_char_437_mizuki_game_6",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Skill_1",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_2_Loop",
+        "via": null
+      },
+      "2": {
+        "clip": "Attack",
+        "via": "attack"
+      }
+    }
+  },
+  {
+    "id": "skin_char_4163_rosesa_game_7",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Skill_1",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_2_Loop",
+        "via": null
+      },
+      "2": {
+        "clip": "Attack",
+        "via": "attack"
+      }
+    }
+  },
+  {
+    "id": "skin_char_4163_rosesa_game_7",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Skill_1",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_2_Loop",
+        "via": null
+      },
+      "2": {
+        "clip": "Attack",
+        "via": "attack"
+      }
+    }
+  },
+  {
+    "id": "skin_char_4139_papyrs_game_8",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Skill_1",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_2_Loop",
+        "via": null
+      },
+      "2": {
+        "clip": "Attack",
+        "via": "attack"
+      }
+    }
+  },
+  {
+    "id": "skin_char_4139_papyrs_game_8",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Skill_1",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_2_Loop",
+        "via": null
+      },
+      "2": {
+        "clip": "Attack",
+        "via": "attack"
+      }
+    }
+  },
+  {
+    "id": "skin_char_1035_wisdel_game_9",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Skill_1",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_2_Loop",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_3_Loop",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_1035_wisdel_game_9",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Skill_1",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_2_Loop",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_3_Loop",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_494_vendla_game_10",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "1": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "2": {
+        "clip": "Skill",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_494_vendla_game_10",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "1": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "2": {
+        "clip": "Skill",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_4122_grabds_yun_3",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Skill_1",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_2_Loop",
+        "via": null
+      },
+      "2": {
+        "clip": "Attack",
+        "via": "attack"
+      }
+    }
+  },
+  {
+    "id": "skin_char_4122_grabds_yun_3",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Skill_1",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_2_Loop",
+        "via": null
+      },
+      "2": {
+        "clip": "Attack",
+        "via": "attack"
+      }
+    }
+  },
+  {
+    "id": "skin_char_150_snakek_yun_7",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "1": {
+        "clip": "Skill_Loop",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_Loop",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_150_snakek_yun_7",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "1": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "2": {
+        "clip": "Attack",
+        "via": "attack"
+      }
+    }
+  },
+  {
+    "id": "skin_char_128_plosis_yun_4",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "1": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "2": {
+        "clip": "Attack",
+        "via": "attack"
+      }
+    }
+  },
+  {
+    "id": "skin_char_128_plosis_yun_4",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "1": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "2": {
+        "clip": "Attack",
+        "via": "attack"
+      }
+    }
+  },
+  {
+    "id": "skin_char_254_vodfox_yun_8",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "1": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "2": {
+        "clip": "Attack",
+        "via": "attack"
+      }
+    }
+  },
+  {
+    "id": "skin_char_254_vodfox_yun_8",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "1": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "2": {
+        "clip": "Attack",
+        "via": "attack"
+      }
+    }
+  },
+  {
+    "id": "skin_char_4207_branch_yun_10",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "1": {
+        "clip": "Skill_2_Loop",
+        "via": null
+      },
+      "2": {
+        "clip": "Attack",
+        "via": "attack"
+      }
+    }
+  },
+  {
+    "id": "skin_char_4207_branch_yun_10",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "1": {
+        "clip": "Skill_2_Loop",
+        "via": null
+      },
+      "2": {
+        "clip": "Attack",
+        "via": "attack"
+      }
+    }
+  },
+  {
+    "id": "skin_char_4196_reckpr_yun_12",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Skill_Loop",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_Loop",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_Loop",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_4196_reckpr_yun_12",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Skill_Loop",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_Loop",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_Loop",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_1028_texas2_iteration_1",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "1": {
+        "clip": "Skill_2_Loop",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_3_Loop",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_1028_texas2_iteration_1",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "1": {
+        "clip": "Skill_2_Loop",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_3_Loop",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_4064_mlynar_iteration_3",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Skill_1_Loop",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_2_Loop",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_3_Loop",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_4064_mlynar_iteration_3",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Skill_1_Loop",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_2_Loop",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_3_Loop",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_4132_ascln_iteration_4",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Skill_1",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_2",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_3_Loop",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_4132_ascln_iteration_4",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Skill_1",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_2",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_3_Loop",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_4058_pepe_sightseer_2",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Skill_1",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_2_Loop",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_3_Loop_A",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_4058_pepe_sightseer_2",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Skill_1",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_2_Loop",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_3_Loop_A",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_197_poca_rilakkuma_1",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "1": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "2": {
+        "clip": "Skill_Loop",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_197_poca_rilakkuma_1",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "1": {
+        "clip": "Attack",
+        "via": "attack"
+      },
+      "2": {
+        "clip": "Skill_Loop",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_4138_narant_breaker_1",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Skill_1",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_2_Loop",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_3_Loop",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_4138_narant_breaker_1",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Skill_1",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_2_Loop",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_3_Loop",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_4182_oblvns_avemujica_1",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Skill_1",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_2_Idle_A",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_3_Loop",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_4182_oblvns_avemujica_1",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Skill_1",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_2_Idle_A",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_3_Loop",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_423_blemsh_littlePony_1",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Skill_1",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_2",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_3",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_423_blemsh_littlePony_1",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Skill_1",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_2",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_3",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_4138_narant_littlePony_1",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Skill_1",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_2_Loop",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_3_Loop",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_4138_narant_littlePony_1",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Skill_1",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_2_Loop",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_3_Loop",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_1041_angel2_iteration_6",
+    "side": "front",
+    "skills": {
+      "0": {
+        "clip": "Skill_1_Loop",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_2_Loop",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_3_Loop",
+        "via": null
+      }
+    }
+  },
+  {
+    "id": "skin_char_1041_angel2_iteration_6",
+    "side": "back",
+    "skills": {
+      "0": {
+        "clip": "Skill_1_Loop",
+        "via": null
+      },
+      "1": {
+        "clip": "Skill_2_Loop",
+        "via": null
+      },
+      "2": {
+        "clip": "Skill_3_Loop",
+        "via": null
       }
     }
   }

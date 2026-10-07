@@ -1480,3 +1480,14 @@ test('Titi S1 can refresh an already sleeping enemy', () => {
  u.skill.spec.attack.onHit({battle:h.b,unit:u,target:e});h.b.rng.chance=original;
  approx(e.findBuff('sleep').timeLeft,u.skill.bb['attack@sleep']);done(h);
 });
+
+test('Horn S2 overdrive uses half the activation ammunition including additional bullets',()=>{
+ const h=run({defs:{enemies:{enemy_dummy:dummy('enemy_dummy')}},units:[entry('chess_char_5_08_a','skchr_horn_2',{row:10,col:2})],enemies:[{key:'enemy_dummy',pos:[10,6]}]});
+ const u=sel(h,'chess_char_5_08_a','skchr_horn_2');h.run(2);u.skill.gainSp(1000);assert.ok(h.runUntil(()=>u.skill.active,3));
+ u.skill.ammoMax=14;
+ for(const [left,over] of [[8,false],[7,true]]){
+  u.skill.ammoLeft=left;const profile={};h.b.emit('beforeAttack',{attacker:u,profile,targets:[h.b.enemies[0]]});
+  assert.equal(typeof profile.onEachHit==='function',over,`remaining ${left}/14`);
+ }
+ done(h);
+});

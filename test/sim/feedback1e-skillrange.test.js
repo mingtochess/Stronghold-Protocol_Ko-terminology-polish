@@ -315,6 +315,7 @@ test('audit: every selectable attack-range change attacks with the official grid
       const h = makeBattle({ units: [{ chessId: c.chessId, row: 10, col: 5, dir: 'UP', skillIndex: s.index, ...(mid ? { moduleId: mid } : {}) }], autoFinish: false, timeLimit: 30 });
       const u = h.unit(c.chessId);
       h.step();
+      h.run(Math.max(0,u.deployRemaining || 0)+.05); // deployment must finish before a manual cast
       const tag = `${c.chessId} S${s.index + 1} ${s.name} ${mid ?? 'default'}`;
       assert.equal(u.s.baseRangeExtend, permExt, `${tag}: permanent 攻击距离`);
       // a skill grid takes the 攻击距离 unless it ignores it; the record's attack range already carries it (attackRangeGrid)

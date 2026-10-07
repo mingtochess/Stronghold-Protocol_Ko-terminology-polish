@@ -232,7 +232,7 @@
 .readybtn.is-busy { opacity: .7; }
 
 /* ---- bond strip ---------------------------------------------------------------------------------------- */
-.gm__bonds { position: absolute; left: 50%; transform: translateX(-50%); top: 1.36rem; right: auto; width: calc(100% - 3.12rem); display: flex; justify-content: center; align-items:flex-start; gap:max(.1rem,8px); pointer-events: none; }
+.gm__bonds { position: absolute; left: 50%; transform: translateX(-50%); top: 1.13rem; right: auto; width: calc(100% - 3.12rem); display: flex; justify-content: center; align-items:flex-start; gap:max(.1rem,8px); pointer-events: none; }
 /* Only the bond discs (and the +N chip) take the pointer: the strip's box spans the width under the top bar, where the
    top board row's units stand (row 12 at 16:9 / 21:9 / 720p / phones, the boss field's row 5 in a boss prep) — it used
    to swallow the taps and drags on them (review of user playtest #2 item 8: every own unit reachable). */
@@ -257,7 +257,7 @@
 }
 .bstrip.is-other .bond__core { box-shadow: 0 0 0 1px rgba(246, 163, 41, .45); }
 .bstrip__more { align-self: center; font-size: .16rem; color: var(--text-lo); padding: .04rem .08rem; border: 1px solid var(--line-2); background: rgba(8, 11, 10, .7); }
-.bslot { position: relative; display: flex; flex-direction: column; align-items: center; width: .74rem; }
+.bslot { flex-shrink: 0; position: relative; display: flex; flex-direction: column; align-items: center; width: .74rem; }
 .bslot .bond { --disc: .52rem; }
 .bslot .bond__name { font-size: .14rem; font-weight: 500; text-shadow: 0 1px 3px #000, 0 0 6px #000; }
 .bslot__count {
@@ -415,8 +415,8 @@
 @keyframes bubble-out { to { opacity: 0; } }
 
 /* ---- ticker -------------------------------------------------------------------------------------------- */
-/* a slim strip hugging the bottom of the top bar; the bond strip starts right below it (.gm__bonds top) */
-.ticker { position: absolute; top: 1.0rem; left: 50%; transform: translateX(-50%); width: 7.6rem; height: .3rem; overflow: hidden; pointer-events: none; z-index: 4; }
+/* Broadcast notices sit below the bond list. */
+.ticker { position: absolute; top: 2.25rem; left: 50%; transform: translateX(-50%); width: min(7.6rem, calc(100% - .4rem)); height: .3rem; overflow: hidden; pointer-events: none; z-index: 4; }
 .ticker__line {
   position: absolute; right: 0; top: 0; height: 100%; display: flex; align-items: center; gap: .1rem; white-space: nowrap;
   padding: 0 .24rem; font-size: .16rem; color: var(--text-hi);
@@ -652,7 +652,12 @@
 
 .gm__bond-list { min-width: 0; }
 /* Bonds remain centered without duplicate watch labels or collapse controls. */
-.gm__bond-list { position: relative; }
+.gm__bonds > .gm__bond-list { position: relative; max-width: min(8.4rem, 100%); overflow-x: auto; overflow-y: hidden; padding: .12rem .05rem .05rem; scrollbar-width: thin; scrollbar-color: var(--mint-700) transparent; pointer-events: auto; }
+.gm__bond-list .bstrip { width: max-content; }
+.gm__bond-list .bond__ring { inset: calc(var(--disc) * -.16); width: calc(var(--disc) * 1.32); height: calc(var(--disc) * 1.32); }
+.gm__bond-list .bond__ring circle { stroke-width: 7.5; }
+.gm__bond-list::-webkit-scrollbar { height: 4px; }
+.gm__bond-list::-webkit-scrollbar-thumb { background: var(--mint-700); border-radius: 2px; }
 .edrawer .brief-banned__group { margin: .04rem 0; }
 .edrawer .brief-banned__group + .brief-banned__group { margin-top: .06rem; padding-top: .06rem; }
 .edrawer .brief-banned__group h4 { display: flex; align-items: center; gap: .06rem; margin-bottom: .04rem; }

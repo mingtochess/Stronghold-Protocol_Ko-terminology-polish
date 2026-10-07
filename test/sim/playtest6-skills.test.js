@@ -72,6 +72,7 @@ test('#15 audit: every MANUAL chess skill with its own 技能范围 casts with a
       assert.equal(u.skill.id, s.skillId);
       assert.equal(u.skill.rule, 'SKILL_RANGE', `${id} ${s.skillId}`);
       h.step();
+      h.run(Math.max(0,u.deployRemaining || 0)+.05); // wait for Start before auditing skill activation
       const skill = absoluteRangeKeys(s.rangeGrid, 10, 5, u.dir, 0).filter((k) => { const r = Math.floor(k / COLS), c = k % COLS; return r >= 9 && r <= 12 && c >= 2 && c <= 10 && k !== 10 * COLS + 5; });
       const outside = skill.filter((k) => !u.rangeKeySet.has(k));
       const k = (outside.length ? outside : skill)[0];

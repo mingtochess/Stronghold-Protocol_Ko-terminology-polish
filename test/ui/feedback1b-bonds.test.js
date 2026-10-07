@@ -134,7 +134,16 @@ test('hidden-layer bonds show activation and tiers without a stack badge or laye
     assert.equal(disc.props.active, true);
     assert.equal(disc.props.tier, 1);
   }
-  const disc = [...walk(BondStrip({ bonds: [{ bondId: 'yanShip', active: true, layers: 12 }], onOpen() {} }))]
+  const disc = [...walk(BondStrip({ bonds: [{ bondId: 'yanShip', count: 1, active: true, layers: 12 }], onOpen() {} }))]
     .find((v) => v.props?.name === DATA.bonds.yanShip.name);
   assert.equal(disc.props.layers, 12, 'stacking bonds keep their badge');
+});
+
+
+test('strip hides virtual-only stacks and retains hand-counted members without truncation',()=>{
+ const bonds=Object.keys(DATA.bonds).slice(0,16).map(bondId=>({bondId,count:1,layers:3}));
+ const all=[...walk(BondStrip({bonds,onOpen(){}}))].filter(v=>v.props?.ringGap===12);
+ assert.equal(all.length,16);
+ const hidden=[...walk(BondStrip({bonds:[{bondId:'yanShip',count:3,memberCount:0,layers:20}],onOpen(){}}))].filter(v=>v.props?.ringGap===12);
+ assert.equal(hidden.length,0);
 });

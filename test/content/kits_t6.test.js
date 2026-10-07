@@ -1220,3 +1220,12 @@ test('Lemuen S3 shells remain area attacks after their marked enemy dies, damagi
   assert.equal(lemFx(h,'bombard').length,count);
   assert.ok(h.dmg.some(d=>d.tgt===survivor.id&&d.tags.includes('bombard')));
 });
+
+test('Skadi seaborn returns after being killed, not only natural expiry',()=>{
+ const h=battle({units:[{chessId:'chess_char_6_04_a',row:11,col:4},{kind:'token',tokenId:'token_10017_skadi2_dedant',row:10,col:8,ownerUid:1}],flags:{dpInit:50}});
+ h.step();const tok=h.b.allyUnits.find(x=>x.defId==='token_10017_skadi2_dedant');
+ h.b.retreat(tok,{reason:'killed',permanent:true});h.run(31);
+ assert.ok(tok.alive&&tok.deployed);assert.equal(h.b.allyUnits.filter(x=>x.defId===tok.defId&&x.alive).length,1);
+ h.run(25.5);assert.equal(tok.alive,false);h.run(31);assert.ok(tok.alive);
+ checkInvariants(h.b);
+});

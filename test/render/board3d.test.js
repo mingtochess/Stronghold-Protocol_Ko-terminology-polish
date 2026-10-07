@@ -14,7 +14,7 @@ import { parseObj, mapMesh } from '../../public/js/render/board3d/obj.js';
 import {
   buildBoard, classifyStage, heightOf, AREAS, areaFor, unionAreas, objToBoard, boxProjectUV, tube, Geom, uvAt, ROWS, COLS,
 } from '../../public/js/render/board3d/layout.js';
-import { BoardScene, gatePulse, DIR_TURNS, boxData, LIGHTING, geometryForArea, sceneryForArea } from '../../public/js/render/board3d/scene.js';
+import { BoardScene, gatePulse, DIR_TURNS, boxData, LIGHTING, geometryForArea, sceneryForArea, surfaceForArea } from '../../public/js/render/board3d/scene.js';
 import { loadBoardPack, resetBoardPack, PACK_IMAGES } from '../../public/js/render/board3d/load.js';
 import { parseStage } from '../../public/js/render/tiles.js';
 import { TILE_H } from '../../public/js/render/style.js';
@@ -493,4 +493,23 @@ test('decorative components crossing a field edge stay whole while inactive isol
  const src={position:[10,9,0,12,9,0,10,11,0,12,11,0,14,9,0,15,9,0,14,10,0],index:[0,1,2,1,3,2,4,5,6]};
  assert.deepEqual(sceneryForArea(src,AREAS.normal).index,[0,1,2,1,3,2]);
  assert.deepEqual(sceneryForArea(src,AREAS.unite).index,src.index);
+});
+
+ test('connected water sheets clip at the active field boundary with UV and lightmap interpolation',()=>{
+ const src={position:[9,9,0,13,9,0,13,12,0,9,12,0],normal:[0,0,1,0,0,1,0,0,1,0,0,1],uv:[0,0,1,0,1,1,0,1],uv1:[0,0,1,0,1,1,0,1],color:Array(12).fill(1),index:[0,1,2,0,2,3]};
+ const out=surfaceForArea(src,AREAS.normal);assert.ok(out.index.length>0);
+ for(let i=0;i<out.position.length;i+=3){assert.ok(out.position[i]<=10.5);assert.ok(Math.abs(out.uv[i/3*2]-(out.position[i]-9)/4)<1e-6);}
+ assert.equal(out.color.length,out.position.length);assert.equal(out.uv1.length,out.uv.length);
+ const full=surfaceForArea(src,AREAS.unite);assert.equal(Math.max(...full.position.filter((_,i)=>i%3===0)),13);
+ const inactive={position:[13,9,0,15,9,0,14,12,0],index:[0,1,2]};assert.deepEqual(surfaceForArea(inactive,AREAS.normal).index,[]);
+ });
+
+test('runtime platform geometry remains available beside an original baked map',async()=>{
+ const {buildDeviceSlabs}=await import('../../public/js/render/board3d/layout.js');
+ const stages=JSON.parse(readFileSync(new URL('../../data/stages.json',import.meta.url)));
+ const b=buildBoard(stages.act1autochess_m03);
+ const slabs=buildDeviceSlabs(b.devices,b.grid);
+ assert.ok(slabs.board.position.length>0,'active shooting platforms have separate geometry');
+ assert.ok([...slabs.board.position].every(Number.isFinite));
+ const none=buildDeviceSlabs([],b.grid);assert.equal(none.board.position.length,0);
 });

@@ -1,0 +1,198 @@
+[
+  {
+    "chessId": "chess_char_1_19_a",
+    "charId": "char_496_wildmn",
+    "name": "와일드메인",
+    "skill": 2,
+    "skillName": "랜스 차지",
+    "range": [
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ]
+    ],
+    "rangeExtend": 0,
+    "canHitFly": false
+  },
+  {
+    "chessId": "chess_char_6_16_a",
+    "charId": "char_1047_halo2",
+    "name": "아스트젠 더 라이트체이서",
+    "skill": 3,
+    "skillName": "병렬 사슬",
+    "range": [
+      [
+        2,
+        -1
+      ],
+      [
+        2,
+        0
+      ],
+      [
+        2,
+        1
+      ],
+      [
+        1,
+        -1
+      ],
+      [
+        1,
+        0
+      ],
+      [
+        1,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        0,
+        -1
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        -1,
+        -1
+      ],
+      [
+        -1,
+        0
+      ],
+      [
+        -1,
+        1
+      ],
+      [
+        -1,
+        2
+      ],
+      [
+        -2,
+        -1
+      ],
+      [
+        -2,
+        0
+      ],
+      [
+        -2,
+        1
+      ]
+    ],
+    "rangeExtend": 0,
+    "canHitFly": true
+  },
+  {
+    "chessId": "chess_custom_recruit_chen3_5_a",
+    "charId": "char_1050_chen3",
+    "name": "첸 더 던스트릭",
+    "skill": 3,
+    "skillName": "적소·천위",
+    "range": [
+      [
+        1,
+        0
+      ],
+      [
+        1,
+        1
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        -1,
+        0
+      ],
+      [
+        -1,
+        1
+      ]
+    ],
+    "rangeExtend": 0,
+    "canHitFly": false
+  },
+  {
+    "chessId": "chess_custom_recruit_chen3_6_a",
+    "charId": "char_1050_chen3",
+    "name": "첸 더 던스트릭",
+    "skill": 3,
+    "skillName": "적소·천위",
+    "range": [
+      [
+        1,
+        0
+      ],
+      [
+        1,
+        1
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        -1,
+        0
+      ],
+      [
+        -1,
+        1
+      ]
+    ],
+    "rangeExtend": 0,
+    "canHitFly": false
+  }
+]

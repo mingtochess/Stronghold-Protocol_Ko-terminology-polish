@@ -19,3 +19,23 @@ test('host extension selection reaches the match and preserves both participants
   for(const seat of Recording.opts.seats.filter(s=>s&&!s.isBot)) assert.deepEqual(seat.loadout,prefs);
  } finally {await host?.terminate();await guest?.terminate();await srv.close();}
 });
+
+
+test('creation restores selected extensions atomically and joining does not replace host settings',async()=>{
+ const srv=await startServer({port:0,host:'127.0.0.1',MatchClass:StubMatch,log:{info(){},warn(){},error(){}}});let host,guest;
+ try{
+  host=await TestClient.connect(`ws://127.0.0.1:${srv.port}/ws`);await host.hello('Host');
+  guest=await TestClient.connect(`ws://127.0.0.1:${srv.port}/ws`);await guest.hello('Guest');
+  for(const mode of ['solo','coop']){
+   assert.equal((await host.request({t:'room.create',mode,difficulty:'NORMAL',customExtensions:{bonds:['ursus'],stages:['custom_removed']}})).t,'ok');
+   const room=await host.waitFor('room.state',r=>r.mode===mode && r.customFactions===true);
+   assert.deepEqual(room.customExtensions,{bonds:['ursus'],stages:[]});
+   if(mode==='coop'){
+    assert.equal((await guest.request({t:'room.join',code:room.code})).t,'ok');
+    const joined=await guest.waitFor('room.state',r=>r.code===room.code);assert.deepEqual(joined.customExtensions,room.customExtensions);
+   }
+  }
+  assert.equal((await host.request({t:'room.create',mode:'solo',difficulty:'NORMAL',customExtensions:{bonds:[],stages:[]}})).t,'ok');
+  const disabled=await host.waitFor('room.state',r=>r.mode==='solo'&&!r.customFactions);assert.deepEqual(disabled.customExtensions,{bonds:[],stages:[]});
+ }finally{await host?.terminate();await guest?.terminate();await srv.close();}
+});

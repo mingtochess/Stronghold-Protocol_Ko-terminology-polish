@@ -543,7 +543,7 @@ function seaborn(bb, raw, def) {
     trait: { noAttack: true },
     install(battle, unit) {
       onDeploy(battle, unit, () => { unit.mem.pulseAcc = 0; if (!managed(unit)) scheduleLifetime(battle, unit, life); });
-      enableRespawn(battle, unit, { delay: (u) => u.base.respawnTime, onExpire: true, unlessManaged: true });
+      enableRespawn(battle, unit, { delay: (u) => u.base.respawnTime, onExpire: true });
       battle.on('tick', ({ dt }) => {
         if (!unit.alive || !unit.deployed || !unit.canAct || managed(unit)) return;
         unit.mem.pulseAcc = (unit.mem.pulseAcc ?? 0) + dt;

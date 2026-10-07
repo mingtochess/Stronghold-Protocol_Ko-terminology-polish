@@ -378,6 +378,7 @@ test('1_11 地灵 (hidden): ATK +atk; elite 地质勘探 lengthens the trait 停
   const h = run({ defs: { enemies: { e: dummy('e') } }, units: [{ chessId: 'chess_char_1_11_a', row: 10, col: 4, carryState: READY }], enemies: [{ key: 'e', pos: [10, 5] }] });
   const u = h.unit('chess_char_1_11_a');
   h.step();
+  h.run(Math.max(0, u.deployRemaining || 0) + .05); // ready skills wait until deployment finishes
   approx(u.s.atk, u.base.atk * (1 + bbOf('chess_char_1_11_a').atk));
   done(h);
   const idb = 'chess_char_1_11_b';

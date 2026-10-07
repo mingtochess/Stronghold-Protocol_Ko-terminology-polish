@@ -21,6 +21,7 @@ import { LoadoutButton } from './loadout.js';
 import { net, identity } from '../net.js';
 import { store, useStore, shallowEqual, loadPref, savePref } from '../store.js';
 import { getConfig, getMode, getStage, useData } from '../data.js';
+import { loadCustomExtensionPrefs } from '../ui/customExtensionPrefs.js';
 
 /** Official mode texts (activity_table act2autochess.modeDataDict), fallback when config.json is absent. */
 export const MODE_TEXT = {
@@ -275,6 +276,7 @@ export function LobbyScreen() {
   const create = () => run('create', () => net.request('room.create', {
     mode: roomMode,
     difficulty,
+    customExtensions: loadCustomExtensionPrefs(),
     // only a co-op room carries the host's spectator cap (0 when the box is unticked)
     ...(roomMode === 'coop' ? { spectators: spectateOn ? spectateCount : 0 } : {}),
   }));

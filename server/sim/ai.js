@@ -103,7 +103,7 @@ export function updateAlly(b, u, dt) {
       if (targets.length && targets[0] !== previous[0]) b._ev(['atkRetarget', u.id, targets[0].id, !!pending.profile.allInRange]);
       pending.targets = targets;
     }
-    if (!targets.length) { cancelWindup(b, u); return; }
+    if (!targets.length && !pending.profile.allowEmptyAttack) { cancelWindup(b, u); return; }
     if (b.time + 1e-9 < pending.until) return;
     delete u.mem.attackWindup;
     performAttack(b, u, pending.profile, targets);
@@ -112,19 +112,19 @@ export function updateAlly(b, u, dt) {
   if (u.atkCd > 1e-9) return;
   if (prof.canAttack && !prof.canAttack(b, u)) return;
   let targets = acquireTargets(b, u, prof);
-  if (!targets.length) { u.trait.hadTarget = false; return; }
+  if (!targets.length && !prof.allowEmptyAttack) { u.trait.hadTarget = false; return; }
   u.trait.hadTarget = true;
   if (sk && sk.onAboutToAttack()) {
     if (u.atkCd > 1e-9 || b.time < (u.mem.skillCastUntil || 0)) return; // an independent cast owns its full animation
     prof = effectiveProfile(u);
     if (prof.noAttack || !u.alive) return;
     targets = acquireTargets(b, u, prof);
-    if (!targets.length) return;
+    if (!targets.length && !prof.allowEmptyAttack) return;
   }
   const wind = attackWindup(u);
   if (wind > 0) {
     u.mem.attackWindup = { until: b.time + wind, targets, profile: prof, seq: u.deploySeq, skillActive: !!sk?.active };
-    b._ev(['atkStart', u.id, targets[0].id, wind, u.s.interval, !!prof.allInRange]);
+    b._ev(['atkStart', u.id, targets[0]?.id ?? u.id, wind, u.s.interval, !!prof.allInRange || !targets.length]);
   } else performAttack(b, u, prof, targets);
   u.atkCd = Math.max(u.atkCd, u.s.interval);
 }
@@ -195,7 +195,7 @@ export function performAttack(b, u, prof, targets, opts = null) {
     const ctx = { attacker: u, targets, isSkill, profile: prof };
     b.emit('beforeAttack', ctx);
     targets = (ctx.targets || []).filter((t) => t && t.alive);
-    if (!targets.length || !u.alive) return;
+    if ((!targets.length && !prof.allowEmptyAttack) || !u.alive) return;
   }
   u.lastAttackAt = b.time;
   u.stats.attacks++;
@@ -226,6 +226,7 @@ export function performAttack(b, u, prof, targets, opts = null) {
       resolveHit(b, u, prof, t, info, t.x, t.y);
     }
   }
+  if (!targets.length && prof.allowEmptyAttack) b._ev(['atk', u.id, u.id, 'none', true]);
   if (b._hooks.attack) b.emit('attack', { attacker: u, targets, isSkill });
   if (u.skill) u.skill.onAttackPerformed(targets, isSkill, !!(opts && opts.noAmmo));
   if (prof.afterAttack) b._safe(() => prof.afterAttack(b, u, targets), 'profile.afterAttack', u);

@@ -104,13 +104,13 @@ test('drone movement gets a fixed 50 percent boost, independent of Ursus layers'
 });
 
 
-test('drone approach priority is boss, in-range blocked, outside blocked, other base-nearest enemies',async()=>{
+test('drone approach prioritizes base-nearest enemies before previous tie breakers',async()=>{
  const {droneTargets}=await import('../../server/sim/content/ursus.js');const h=setup(3);h.step();
  const d=h.b.allyUnits.find(u=>u.defId===DRONE_ID);d.x=7;d.y=11;
  const spawn=x=>h.spawn('dummy',{pos:[11,x],route:{motion:'WALK',start:[11,x],end:[11,2],checkpoints:[]}});
  const close=spawn(3),outer=spawn(4),inner=spawn(7.5),boss=spawn(9.5);
  outer.blockedBy=h.unit('u0_a');inner.blockedBy=h.unit('u1_a');boss.isBoss=true;
- assert.deepEqual(droneTargets(h.b,d).map(e=>e.id),[boss.id,inner.id,outer.id,close.id]);
+ assert.deepEqual(droneTargets(h.b,d).map(e=>e.id),[close.id,outer.id,inner.id,boss.id]);
  assert.deepEqual(droneTargets(h.b,d,true).map(e=>e.id),[inner.id]);
 });
 test('attack speed debuffs and increased attack intervals cannot slow the drone, buffs still work',()=>{

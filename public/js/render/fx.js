@@ -94,7 +94,7 @@ const NUM_GAP_PX = 7;         // horizontal gap between two numbers side by side
 const NUM_MERGE_GAP = 0.3;    // s: same-style hits on one unit closer than this join its running total
 const NUM_PER_TARGET = 4;     // live numbers per unit (then hits join / the oldest fades)
 const NUM_CROWD = 6;          // more live numbers than this around a spot → shorter lives there
-const NUM_LANES = Object.freeze([0, -1, 1, -2, 2]);   // lane order (lane widths from the unit's head)
+const NUM_LANES = Object.freeze([0, -1, 1]);   // lane order (lane widths from the unit's head)
 /** Screen scale of a number's text (24 px font) at `s` px per tile. */
 const numScale = (s, big, style) => clamp(s / 115, 0.42, 1.05) * (big ? 1.35 : 1) * (style === 'heal' ? 0.9 : 1);
 const MAX_PROJ = 260;
@@ -590,8 +590,8 @@ export class FxSystem {
     if (kind === 'beam') { if (tgt && tgt !== src) this._beam(src, tgt, src.isEnemy ? src.info.projectileColor ?? 0xff7a5a : 0xffe6a8, 0.18, 0.15); return; }
     const base = projectileStyle(kind,src.info,src.isEnemy);
     const weaponSprite=dedicatedProjectile(src.info,src.statuses?.has('skill'));
-    const original=base && weaponSprite ? {...base,tint:0xffffff,trail:weaponSprite==='titiDream'?0xdbb161:weaponSprite==='narantBlade'?0xb5539f:0xd16a56,glow:0xdbb161,weaponSprite,weaponSize:weaponSprite==='narantBlade'?.7:.6} : base;
-    const size = Number(this.ctx.projectileScale) || (original?.arc ? 2.4 : 1.8);
+    const original=base && weaponSprite ? {...base,tint:0xffffff,trail:weaponSprite==='titiDream'?0xdbb161:weaponSprite==='narantBlade'?0xb5539f:0xd16a56,glow:0xdbb161,weaponSprite,weaponSize:kind==='boomerang'?.38:weaponSprite==='narantBlade'?.7:.6} : base;
+    const size = kind === 'boomerang' ? 1 : Number(this.ctx.projectileScale) || (original?.arc ? 2.4 : 1.8);
     const spec = original && {...original, width: original.width * size, head: original.head * size};
     if (!spec || !tgt) {
       if (kind === 'none' || !kind) this._slashAt = src.id;
@@ -658,8 +658,8 @@ export class FxSystem {
     halo.tint = pr.glow;
     halo.visible = true;
     pr.weaponTexture = this.weaponTextures[spec.weaponSprite] || null;
-    core.texture = pr.weaponTexture || this.tex[look === 'boomerang' ? 'boomerang' : thin ? 'dot' : 'orb'];
-    core.blendMode = pr.weaponTexture ? this.P.BLEND_MODES.NORMAL : this.P.BLEND_MODES.ADD;
+    core.texture = pr.weaponTexture || this.tex[look === 'boomerang' ? 'boomerang' : thin ? 'projectileDot' : 'projectileOrb'];
+    core.blendMode = this.P.BLEND_MODES.NORMAL;
     core.tint = pr.weaponTexture ? 0xffffff : spec.tint;
     core.rotation = 0;
     core.visible = true;
@@ -1369,8 +1369,8 @@ export class FxSystem {
    *     young) adds to it — a running total that re-pops and lives a little longer;
    *   * cap: a unit shows at most NUM_PER_TARGET numbers; past it the hit joins the unit's youngest same-style number,
    *     else the unit's oldest number fades out at once;
-   *   * lanes: the new number takes the lowest free slot of its unit's lanes (centre, then beside the head, 0 / ±1 / ±2
-   *     lane widths), stacking upwards at most NUM_MAX_LINES lines; a slot is free when no live number of any unit
+   *   * lanes: the new number takes the lowest free slot of its unit's lanes (centre, then beside the head, 0 / ±1
+   *     narrow lane widths), stacking upwards at most NUM_MAX_LINES lines; a slot is free when no live number of any unit
    *     overlaps it now or later (a younger number rises faster: below an older one it must keep that one's rise so
    *     far as a margin) with a gap wide enough that two numbers never read as one;
    *   * crowded (> NUM_CROWD numbers near it): it lives shorter; a pair that still ends up overlapping (units walking
@@ -1416,7 +1416,7 @@ export class FxSystem {
     const sc = numScale(s, big, style);
     const w = numChars(n, style) * NUM_DIGIT_EM * 24 * sc * NUM_POP + NUM_GAP_PX;
     const h = 24 * NUM_LINE_EM * sc * NUM_POP;
-    const lane = Math.max(w, 24 * NUM_DIGIT_EM * sc * 3.2) * 0.62;
+    const lane = s * .035;
     let best = null;
     for (const k of NUM_LANES) {
       const cx = ax + k * lane;
@@ -2215,6 +2215,8 @@ export class FxSystem {
         points.push(pt.x,pt.y);
       }
       zn.edge.beginFill(zn.tint,zn.theme?.fillAlpha ?? .17);zn.edge.drawPolygon(points);zn.edge.endFill();
+      zn.edge.lineStyle(Math.max(2,p.s*.03)+4,0x080b10,.6*pulse);
+      for(let i=0;i<points.length;i+=2){if(!i)zn.edge.moveTo(points[i],points[i+1]+1);else zn.edge.lineTo(points[i],points[i+1]+1);}
       zn.edge.lineStyle(Math.max(2,p.s*.03),zn.theme?.outlineColor ?? zn.tint,.8*pulse);
       for(let i=0;i<points.length;i+=2){if(!i)zn.edge.moveTo(points[i],points[i+1]);else zn.edge.lineTo(points[i],points[i+1]);}
       this.zones[w++] = zn;

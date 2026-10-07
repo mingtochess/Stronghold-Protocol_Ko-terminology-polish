@@ -134,6 +134,7 @@ export function computeBonds(gd, ps) {
       tier = t;
     }
     out[id] = { count, active: tier >= 1, tier, layers: layersOf(id) };
+    if (bonusOf(id) !== 0) out[id].memberCount = Math.max(0, raw[id] - bonusOf(id));
     if (harmonyBonus) out[id].harmony = harmonyBonus;
   }
   return out;
@@ -210,6 +211,7 @@ export function bondList(gd, bonds, { full = false, off = null } = {}) {
     if (!(b.count > 0 || b.layers > 0 || b.active)) continue;
     const e = { bondId, count: b.count, active: b.active, tier: b.tier, layers: b.layers };
     if (b.harmony > 0) e.harmony = b.harmony;
+    if (Number.isFinite(b.memberCount)) e.memberCount = b.memberCount;
     list.push(extras(e));
   }
   list.sort((a, b) => (b.active - a.active) || (b.layers - a.layers) || ((order.get(a.bondId) ?? 99) - (order.get(b.bondId) ?? 99)));

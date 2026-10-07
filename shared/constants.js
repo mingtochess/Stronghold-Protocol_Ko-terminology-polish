@@ -3,7 +3,7 @@
 export const PROTOCOL_VERSION = 1;
 /** Upstream package version stays valid SemVer; the lowercase suffix identifies site updates. */
 export const BASE_VERSION = '0.1.4';
-export const APP_VERSION = `${BASE_VERSION}a`;
+export const APP_VERSION = `${BASE_VERSION}b`;
 
 export const MAX_SEATS = 4;
 /**
@@ -122,7 +122,7 @@ export const BOSS_HIT_LIMIT = 300000;
 
 // Snapshot unit flag bits (DESIGN §8.2)
 export const UF = Object.freeze({
-  BLOCKED: 1, STUNNED: 2, FROZEN: 4, STEALTH: 8, SKILL: 16, SHIELD: 32, INVULN: 64, COLD: 128, SLEEP: 256, FLYING: 512,
+  BLOCKED: 1, STUNNED: 2, FROZEN: 4, STEALTH: 8, SKILL: 16, SHIELD: 32, INVULN: 64, COLD: 128, SLEEP: 256, FLYING: 512, OVERDRIVE: 1024, OVERHEATED: 2048,
 });
 
 export const ANIM = Object.freeze({ IDLE: 0, MOVE: 1, ATTACK: 2, SKILL: 3, DIE: 4, STUN: 5, DEPLOY: 6 });

@@ -18,7 +18,8 @@
     "tier": 6,
     "bonds": [
       "ursusShip",
-      "raidShip"
+      "raidShip",
+      "indomShip"
     ],
     "skillIndex": 1,
     "trait": "power"
@@ -70,16 +71,16 @@
     "trait": "ursusSkill"
   },
   {
-    "key": "absin",
-    "charId": "char_405_absin",
-    "name": "압생트",
+    "key": "brownb",
+    "charId": "char_137_brownb",
+    "name": "비헌터",
     "tier": 2,
     "bonds": [
       "ursusShip",
-      "arcaneShip"
+      "raidShip"
     ],
-    "skillIndex": 0,
-    "trait": "ursus"
+    "skillIndex": 1,
+    "trait": "gainWeakness"
   },
   {
     "key": "botany",

@@ -588,3 +588,26 @@ test('dedicated textures follow the selected skill and keep original boomerang t
  fx.attack(src,tgt,'boomerang');fx.update(DT);assert.equal(fx.projs[0].core.texture,tex);
  assert.ok(fx.projs[0].core.scale.x<.2,'large original textures do not become giant quads');fx.clear();
 });
+
+test('all damage numbers stay within a narrow horizontal band around the target',()=>{
+ const v=unit(906,5,10),{fx}=makeFx({views:[v]});fx.ctx.settings.damageNumberMode='all';
+ const limit=fx.ctx.cam().project(v.x,v.y,(v._headTiles||1.2)*.8).s*.035;
+ for(let i=0;i<9;i++)fx.damage(v,100,'phys',null,{value:100});
+ assert.equal(fx.nums.length,9,'real hits are not merged');
+ assert.ok(fx.nums.every(n=>Math.abs(n.ox)<=limit+1e-6),'horizontal displacement stays within 3.5% of a tile');
+ fx.clear();
+});
+
+
+test('projectile bodies remain opaque with normal blending while boomerangs ignore global enlargement',()=>{
+ const src=unit(701,3,10),tgt=unit(702,9,10,{isEnemy:true});
+ const {fx}=makeFx({views:[src,tgt]});fx.ctx.projectileScale=3.2;
+ fx.attack(src,tgt,'boomerang');fx.update(DT);
+ assert.equal(fx.projs[0].spec.head,PROJ.boomerang.head);
+ assert.equal(fx.projs[0].core.alpha,1);
+ assert.equal(fx.projs[0].core.blendMode,fake.P.BLEND_MODES.NORMAL);
+ fx.clear();fx.attack(src,tgt,'arrow');fx.update(DT);
+ assert.equal(fx.projs[0].core.texture,fx.tex.projectileDot);
+ assert.equal(fx.projs[0].core.alpha,1);
+ assert.equal(fx.projs[0].core.blendMode,fake.P.BLEND_MODES.NORMAL);fx.clear();
+});

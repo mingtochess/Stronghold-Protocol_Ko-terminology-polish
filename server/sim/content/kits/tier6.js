@@ -946,7 +946,7 @@ function yu(bb, chess, def) {
 
 function skadi2(bb, chess, def) {
   const t0 = tbb(def, 0), t1 = tbb(def, 1), mod = moduleBb(chess), tb = def?.traitBb || {};
-  const isDef = onDefaultSkill(chess), sid = selectedSkill(chess, def);
+  const sid = selectedSkill(chess, def);
   const tokId = def?.talents?.[0]?.tokenKey || (chess?.tokens || [])[0] || 'token_10017_skadi2_dedant';
   const auraRatio = num(tb['attack@atk_to_hp_recovery_ratio'], 0.1);
   // S1 / S2 raise the trait heal ("特性效果提高至N%") while they run; S3 (default) turns it into the tide
@@ -996,7 +996,7 @@ function skadi2(bb, chess, def) {
           const allies = covered(battle, unit, toks);
           const sk = unit.skill;
           const on = !!(sk && sk.active);
-          if (on && isDef) {
+          if (on && sid === 'skchr_skadi2_3') {
             const val = unit.s.atk * num(bb.atk);
             for (const a of allies) if (a !== unit) inspire(battle, a, val, unit);
             if (n % 2 === 0) {
@@ -1056,20 +1056,10 @@ function skadi2(bb, chess, def) {
           if (!isTok(t, tokId, unit)) return;
           if (t.profile) t.profile.noAttack = true;
           const dur = num(t.def?.talents?.[0]?.bb?.duration, parseN(tdesc(def, 0), /持续(\d+(?:\.\d+)?)秒/, 25));
-          const seq = t.deploySeq, r = t.tileR, c = t.tileC;
+          const seq = t.deploySeq;
           battle.after(dur, () => {
             if (!t.alive || t.deploySeq !== seq) return;
             battle.retreat(t, { reason: 'expired', permanent: true });
-            const wait = num(t.base.respawnTime, 30), cost = num(t.base.cost, 0);
-            let tries = 0;
-            const again = () => {
-              if (battle.finished || tries++ > 300) return;
-              const ps = battle.getPlayer(unit.ownerId);
-              if (!live(unit) || !ps || ps.dp + 1e-9 < cost || battle.unitAt(r, c)) { battle.after(1, again, { owner: unit }); return; }
-              battle.addDp(unit.ownerId, -cost);
-              if (!battle.spawnToken(unit, tokId, r, c)) { battle.addDp(unit.ownerId, cost); battle.after(1, again, { owner: unit }); }
-            };
-            battle.after(wait, again, { owner: unit });
           }, { owner: t });
         }, { owner: unit });
       } },

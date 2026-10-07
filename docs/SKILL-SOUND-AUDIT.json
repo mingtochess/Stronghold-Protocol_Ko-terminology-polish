@@ -1890,16 +1890,16 @@
     "sound": null
   },
   {
-    "charId": "char_405_absin",
-    "skillId": "skchr_absin_1",
+    "charId": "char_137_brownb",
+    "skillId": "skchr_brownb_1",
     "index": 0,
-    "sound": "battle/b_char/b_char_atkboost.mp3"
+    "sound": null
   },
   {
-    "charId": "char_405_absin",
-    "skillId": "skchr_absin_2",
+    "charId": "char_137_brownb",
+    "skillId": "skchr_brownb_2",
     "index": 1,
-    "sound": "battle/b_char/b_char_atkboost.mp3"
+    "sound": null
   },
   {
     "charId": "char_4223_botany",

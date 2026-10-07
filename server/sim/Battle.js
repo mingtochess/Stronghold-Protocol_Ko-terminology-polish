@@ -147,6 +147,7 @@ export class Battle {
     for (let i = 0; i < this._eb.length; i++) this._eb[i] = [];
     this._ebUsed = [];
     this._idSeq = 0;
+    this._damageDisplaySeq = 0;
     this._attackSeq = 0;   // DamageInfo.attackId of normal attacks (one id per attack, all its damage instances)
     this._deploySeq = 0;
     this._spawnSeq = 0;
@@ -935,7 +936,7 @@ export class Battle {
     const sk = u.skill;
     // "自动操作具有3s冷却，在完成一次操作或作战开始时部署的单位将进入冷却" (PRTS 卫戍协议/帮助; skills.js)
     if (initial) sk.opReadyAt = this.time + this.flags.startOpCooldown;
-    if (keepSp && !sk.noSkill && sk.kind !== 'passive' && !sk.active) {
+    if (keepSp && !sk.noSkill && sk.kind !== 'passive' && !sk.active && !sk.spec.activateOnDeploy) {
       sk.charges = Math.max(0, Math.min(sk.maxCharges, Math.floor(fin(keepSp.charges, 0))));
       sk.sp = Math.max(0, Math.min(sk.spCost, fin(keepSp.sp, 0)));
       if (sk.charges >= sk.maxCharges) sk.sp = sk.spCost;
@@ -2369,6 +2370,7 @@ export class Battle {
 
   _ev(tuple) {
     if (!this.recordEvents) return;
+    if (tuple[0] === 'dmg') tuple = [...tuple.slice(0,4), {...tuple[4], displayId: ++this._damageDisplaySeq}];
     this._evq.push(tuple);
     if (this._evq.length > EVENT_BUFFER_CAP) this._evq.splice(0, this._evq.length - EVENT_BUFFER_CAP / 2);
   }
@@ -2418,6 +2420,10 @@ export class Battle {
     const ammo = this.units.filter(u => u.alive && u.deployed && !u.hidden && u.skill?.active && u.skill.kind === 'ammo')
       .map(u => [u.id, Math.max(0, u.skill.ammoLeft), Math.max(1, u.skill.ammoMax || u.skill.ammo || 0, u.skill.ammoLeft)]);
     if (ammo.length) snap.ammo = ammo;
+    // Cosmetic pace relative to each enemy's unmodified movement speed.
+    const moveRates = this.units.filter(u=>u.side==='enemy' && u.alive && u.deployed && !u.hidden && u.base.moveSpeed>0)
+      .map(u=>[u.id,Math.max(0,u.s.moveSpeed/u.base.moveSpeed)]).filter(([,rate])=>Math.abs(rate-1)>1e-6);
+    if(moveRates.length) snap.moveRates=moveRates;
     const shifts = this.units.filter(u=>u.alive && u.mem.visualShift && this.time-u.mem.visualShift[4]<u.mem.visualShift[5]+.2)
       .map(u=>[u.id,...u.mem.visualShift]);
     if(shifts.length) snap.shifts=shifts;

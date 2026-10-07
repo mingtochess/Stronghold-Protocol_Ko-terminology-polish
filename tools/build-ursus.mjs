@@ -48,18 +48,21 @@ export async function buildUrsus(){
   else if(o.trait==='slowedDeaths'){source='garrison_42_a';desc=`<전투 중> 공격 범위 내 정지 상태의 적이 사망할 때마다 활성화된 [우르수스]/[예견] 맹약의 중첩 수 각각 +${count}/+${elite?2:1} (전투당 최대 10회 발동)`}
   else if(o.key==='leto'){source='garrison_42_a';desc=`<전투 중> 아군 [우르수스] 오퍼레이터가 스킬을 발동할 때마다 활성화된 [우르수스] 맹약의 중첩 수 +${count} (전투당 최대 7회 발동)`}
   else if(o.trait==='all'){source='garrison_80_a';desc=`<휴식 기간 진입 시> 자신의 활성화된 맹약 중첩 수 +${count}`}
+  else if(o.trait==='gainWeakness'){source='garrison_35_a';desc=`<획득 시> [우르수스]/[기습] 맹약의 중첩 수 +${elite?6:3} (맹약 활성화 불필요)`}
   else if(o.key==='botany'){source='garrison_35_a';desc=`<획득 시> [우르수스]/[신속] 맹약의 중첩 수 +${elite?12:6} (맹약 활성화 불필요)`}
   else if(o.trait==='ursusStart'){source='garrison_69_a';desc=`<휴식 기간 진입·종료 시> 활성화된 [우르수스] 맹약의 중첩 수 +${elite?12:6}`}
   else {source='garrison_69_a';desc=`<휴식 기간 ${o.trait==='ursusStart'||o.trait==='swift'?'진입':'종료'} 시>${o.trait==='ursusStart'?'<휴식 기간 종료 시>':''} 활성화된 [${o.trait==='swift'?'신속':'우르수스'}] 맹약의 중첩 수 +${o.trait==='ursusStart'?(elite?12:6):count}`}
-  const gar=structuredClone(garrisons[source]);gar.garrisonId=r.garrisonIds[0];gar.name=o.name;gar.desc=desc;gar.descRaw=desc.replace(/\+\d+%?/g,'<@ba.vup>$&</>').replace('정지 상태','<@ba.vup>정지</> 상태');gar.requireActive=o.key!=='botany';
+  const gar=structuredClone(garrisons[source]);gar.garrisonId=r.garrisonIds[0];gar.name=o.name;gar.desc=desc;gar.descRaw=desc.replace(/\+\d+%?/g,'<@ba.vup>$&</>').replace('정지 상태','<@ba.vup>정지</> 상태');gar.requireActive=o.key!=='botany'&&o.trait!=='gainWeakness';
   // Every effect carries its own blackboard; update both top-level and nested representations.
   const change=e=>{if(!e||typeof e!=='object')return;
+   if(o.trait==='gainWeakness'){if(e.bb)e.bb.count=elite?6:3;if(e.bbStr)e.bbStr.bond='ursusShip,raidShip';return;}
    if(o.trait==='slowedDeaths'){e.effectKey='custom_ursus_slowed_death';if(e.bbStr)Object.assign(e.bbStr,{key:'custom_ursus_slowed_death',bond_type:'bond_by_id',bond_id:'ursusShip,visiShip',bond_add_type:'by_count'});if(e.bb)Object.assign(e.bb,{bond_add_count:count,visi_add_count:elite?2:1,max_add_count_per_battle:count*10,max_trigger_count:10});return;}
    if(o.key==='leto'){e.effectKey='custom_ursus_ally_skill';if(e.bbStr)Object.assign(e.bbStr,{key:'custom_ursus_ally_skill',bond_id:'ursusShip'});if(e.bb)Object.assign(e.bb,{bond_add_count:count,max_add_count_per_battle:count*7,max_trigger_count:7});return;}
    if(e.bb){if(o.trait==='power')Object.assign(e.bb,{divide_num:3,atk:0,max_hp:0,attack_speed:elite?4:2});else if(o.trait==='scale')e.bb.atk=elite?.02:.01;else e.bb.count=o.key==='botany'?(elite?12:6):o.trait==='ursusStart'?(elite?12:6):count;}
    if(e.bbStr){if(o.trait==='power')e.bbStr.bond_id='ursusShip';else if(o.key==='botany')e.bbStr.bond='ursusShip,swiftShip';else if(o.trait==='scale')e.bbStr.bond_id='ursusShip,preciShip';else if(['ursus','ursusStart','swift'].includes(o.trait))e.bbStr.bond=o.trait==='swift'?'swiftShip':'ursusShip';}
    if(o.trait==='ursusStart'){e.eventType='SERVER_PREP_START';e.eventTypes=['SERVER_PREP_START','SERVER_PREP_FIN'];}
   };change(gar);for(const e of gar.effects||[])change(e);gar.owners=[id];garrisons[gar.garrisonId]=gar;
+  if(o.trait==='gainWeakness'){const weak=structuredClone(garrisons['garrison_01_'+suffix]);weak.garrisonId=`garrison_ursus_brownb_weakness_${suffix}`;weak.desc=weak.descRaw='<전투 중> 입히는 대미지가 약점 대미지로 변경됨 (적의 방어력과 마법 저항에 따라 물리·마법 대미지 중 더 높은 대미지 적용)';weak.owners=[id];garrisons[weak.garrisonId]=weak;r.garrisonIds.push(weak.garrisonId);}
  }
  for(const r of Object.values(chess))if(['char_196_sunbr','char_4207_branch'].includes(r.charId)&&!r.bonds.includes('ursusShip'))r.bonds.push('ursusShip');
  const members=Object.values(chess).filter(c=>!c.isGolden&&c.bonds.includes('ursusShip')).map(c=>c.chessId);

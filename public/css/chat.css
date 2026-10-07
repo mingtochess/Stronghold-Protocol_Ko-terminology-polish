@@ -85,8 +85,8 @@
 .game-chat--room .game-chat__panel { flex: 1; min-height: 0; }
 .game-chat--room .game-chat__room-header { min-height: max(.36rem,30px); }
 
-/* Keep the fixed waiting-room panel above the actual 1.5rem action bar. */
-.game-chat--room { bottom: 1.74rem; }
+/* Follow the measured action bar so room controls never overlap the chat panel. */
+.game-chat--room { bottom: calc(var(--room-bar-height, 1.5rem) + .24rem); }
 .game-chat__factions { grid-template-columns: repeat(auto-fit, minmax(min(100%, 90px), 1fr)); min-height: 0; max-height: min(240px, 30vh); overflow-y: auto; flex-shrink: 0; }
 .game-chat__factions button { min-width: 0; justify-content: center; white-space: normal; overflow-wrap: anywhere; }
 .game-chat__panel header, .game-chat__panel form { flex-shrink: 0; }

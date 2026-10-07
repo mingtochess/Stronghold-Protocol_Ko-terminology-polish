@@ -1,6 +1,7 @@
 // Re-index existing skeletons for all selectable skills; never replace artwork or models.
 import {readFile,writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
+import {selectedSkillClip} from '../shared/attackTiming.js';
 import {resolveRoles} from './assets/anim-roles.mjs';
 export async function buildAnimationRoles(root,dir){
  const assets=JSON.parse(await readFile(join(dir,'assets.json'),'utf8'));
@@ -9,7 +10,7 @@ export async function buildAnimationRoles(root,dir){
   if(!sp?.animations)continue;
   const indices=[sp.anims?.skill?.index??0,0,1,2];
   sp.anims=resolveRoles(Object.keys(sp.animations),{skillIndices:indices,durations:sp.animations});
-  audit.push({id,side,skills:Object.fromEntries(Object.entries(sp.anims.skills||{}).map(([i,r])=>[i,{clip:r.loop,via:r.via||null}]))});
+  audit.push({id,side,skills:Object.fromEntries(Object.entries(sp.anims.skills||{}).map(([i,r])=>[i,{clip:(selectedSkillClip(sp,Number(i))||r).loop,via:(selectedSkillClip(sp,Number(i))||r).via||null}]))});
  }
  await writeFile(join(dir,'assets.json'),JSON.stringify(assets));
  await writeFile(join(root,'docs/SKILL-ANIMATION-AUDIT.json'),JSON.stringify(audit,null,2)+'\n');

@@ -366,7 +366,7 @@ export class Lobby {
   // room.* handlers
   // ---------------------------------------------------------------------------------------------------
 
-  create(session, { mode, difficulty, spectators }) {
+  create(session, { mode, difficulty, spectators, customExtensions }) {
     const cur = this.roomOf(session);
     if (cur && cur.match) return fail(ERR.ROOM_STARTED, 'leave your running match first');
     if (this.rooms.size >= this.opts.maxRooms) return fail(ERR.INTERNAL, 'too many rooms');
@@ -387,6 +387,8 @@ export class Lobby {
     const cap = mode !== 'coop' ? 0 : (isSpectatorCap(spectators) ? spectators : MAX_SPECTATORS);
     const room = new Room(code, mode, difficulty, this.now(), cap);
     room.customExtensionCatalog = customExtensionCatalog(this.safeData());
+    room.customExtensions = normalizeCustomExtensions(customExtensions, this.safeData());
+    room.customFactions = room.customExtensions.bonds.includes('ursus');
     room.ownerKey = key;
     room.seats[0] = this.humanSeat(0, session);
     room.hostId = session.playerId;

@@ -326,6 +326,11 @@ export class TileField {
 
   /** Tile info (always an object; off-grid → forbidden). */
   tile(r, c) { return this.grid[r]?.[c] || { r, c, glyph: '#', mat: 'forbid', h: 0, playable: false, drawn: false }; }
+  setArea(areas) {
+    if (JSON.stringify(this.areas) === JSON.stringify(areas)) return;
+    this.areas = areas;
+    if (this.stage) this._rebuild();
+  }
   heightAt(r, c) { const t = this.grid[r]?.[c]; return t && t.drawn ? t.h + (t.devH || 0) : 0; }
 
   setStage(stage) {
@@ -338,6 +343,10 @@ export class TileField {
     this.grid = parseStage(stage, this.band, this.field);
     const F = this.focus;
     for (const row of this.grid) for (const t of row) {
+      if (this.areas && !this.areas.some(a => t.r >= a.r0 && t.r <= a.r1 && t.c >= a.c0 && t.c <= a.c1)) {
+        t.drawn = false;
+        t.playable = false;
+      }
       t.focus = !F || (t.r >= F.r0 && t.r <= F.r1 && t.c >= F.c0 && t.c <= F.c1);
     }
     // raised device tops (active platforms / mounds) change the standing height of their tile
