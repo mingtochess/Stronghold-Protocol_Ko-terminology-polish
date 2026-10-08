@@ -34,7 +34,7 @@ export async function act(t, fields = {}, opts = {}) {
   inflight += 1;
   emitBusy();
   try {
-    if (t === 'g.band' || t === 'g.infoReady') await flushPendingLoadout();
+    if (t === 'room.reroll' || t === 'g.band' || t === 'g.infoReady') await flushPendingLoadout();
     const priv = store.get().match?.private;
     const bought = t === 'g.buy' ? priv?.shop?.slots?.[fields.slot] : null;
     const moved = t === 'g.move' && fields.to?.area === 'board' ? [...(priv?.board || []), ...(priv?.hand || []), ...(priv?.temp || [])].find(p => p?.uid === fields.uid) : null;
@@ -59,7 +59,8 @@ export async function act(t, fields = {}, opts = {}) {
 }
 
 export const actions = {
-  infoReady: () => act('g.infoReady'),
+  reroll: (matchNo) => act('room.reroll', { matchNo }, { sfx: 'confirm' }),
+  infoReady: () => act('g.infoReady', { matchNo: store.get().room?.matchNo }),
   band: (bandId) => act('g.band', { bandId }),
   bandSkip: () => act('g.bandSkip'),
   buy: (slot) => act('g.buy', { slot }),

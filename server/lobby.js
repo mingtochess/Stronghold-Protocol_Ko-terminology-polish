@@ -134,6 +134,8 @@ export class Room {
     this.code = code;
     this.mode = mode;
     this.difficulty = difficulty;
+    this.rerollLimit = 0;
+    this.rerollsUsed = 0;
     /** @type {string | null} */
     this.hostId = null;
     /** @type {(Seat | null)[]} */
@@ -194,6 +196,9 @@ export class Room {
       hostId: this.hostId,
       mode: this.mode,
       difficulty: this.difficulty,
+      rerollLimit: this.rerollLimit,
+      rerollsUsed: this.rerollsUsed,
+      matchNo: this.matchCount,
       customFactions: this.customFactions,
       customExtensions: structuredClone(this.customExtensions),
       customExtensionCatalog: this.customExtensionCatalog,
@@ -314,6 +319,8 @@ export class Lobby {
       case 'room.addBot': return this.addBot(session);
       case 'room.removeBot': return this.removeBot(session, msg);
       case 'room.kick': return this.kick(session, msg);
+      case 'room.setRerollLimit': return this.setRerollLimit(session, msg);
+      case 'room.reroll': return this.reroll(session, msg);
       case 'room.start': return this.start(session);
       case 'room.loadout': return this.loadout(session, msg);
       case 'room.spectate': return this.spectate(session, msg);
@@ -595,6 +602,30 @@ export class Lobby {
     return OK;
   }
 
+  setRerollLimit(session, { limit }) {
+    const room = this.roomOf(session);
+    if (!room) return fail(ERR.NOT_IN_ROOM);
+    if (room.hostId !== session.playerId) return fail(ERR.NOT_HOST);
+    if (room.match) return fail(ERR.ROOM_STARTED);
+    if (![0, 1, 3, 5, -1].includes(limit)) return fail(ERR.BAD_MSG);
+    room.rerollLimit = limit;
+    this.broadcastState(room);
+    return OK;
+  }
+
+  reroll(session, { matchNo }) {
+    const room = this.roomOf(session);
+    if (!room) return fail(ERR.NOT_IN_ROOM);
+    if (room.hostId !== session.playerId) return fail(ERR.NOT_HOST);
+    if (!room.match || room.match.phase !== 'INFO_CHECK') return fail(ERR.WRONG_PHASE);
+    if (matchNo !== room.matchCount) return fail(ERR.BAD_TARGET, 'stale reroll request');
+    if (room.rerollLimit !== -1 && room.rerollsUsed >= room.rerollLimit) return fail(ERR.BAD_MSG, '리롤 횟수를 모두 사용했습니다.');
+    room.rerollsUsed++;
+    const result = this.startMatch(room, room.matchKey, room.matchCtx);
+    if (result.error) { room.rerollsUsed--; this.broadcastState(room); }
+    return result;
+  }
+
   start(session) {
     const room = this.roomOf(session);
     if (!room) return fail(ERR.NOT_IN_ROOM);
@@ -615,6 +646,7 @@ export class Lobby {
       this.limitWarn(`match limit (${this.opts.maxMatchesPerAddr}) reached for ${session.addr}`);
       return fail(ERR.RATE, 'too many running matches from your network');
     }
+    room.rerollsUsed = 0;
     return this.startMatch(room, key);
   }
 
@@ -652,10 +684,10 @@ export class Lobby {
   // ---------------------------------------------------------------------------------------------------
 
   /** @param {Room} room @param {string | null} [key] per-network limit key of the starter */
-  startMatch(room, key = null) {
+  startMatch(room, key = null, replacedCtx = null) {
     const host = room.seatOf(room.hostId);
     if (host) host.ready = true;
-    const seats = room.seats.filter(Boolean).map((s) => ({
+    const seats = room.seats.filter(s => s && !s.left).map((s) => ({
       seat: s.seat, playerId: s.playerId, name: s.name, isBot: s.isBot, connected: s.connected,
       // DESIGN §16: the human's checked operator loadout (bots fight with the defaults)
       loadout: s.isBot ? null : s.loadout || null,
@@ -686,6 +718,7 @@ export class Lobby {
         onEnd: (summary) => this.onMatchEnd(room, ctx, summary),
       });
       ctx.match = match;
+      if (replacedCtx) this.disposeMatchCtx(replacedCtx);
       room.match = match;
       room.matchCtx = ctx;
       room.matchKey = key;
@@ -875,6 +908,7 @@ export class Lobby {
     const room = this.roomOf(session);
     if (!room) return fail(ERR.NOT_IN_ROOM);
     if (!room.match) return fail(ERR.WRONG_PHASE, 'no running match');
+    if (msg.t === 'g.infoReady' && msg.matchNo !== undefined && msg.matchNo !== room.matchCount) return fail(ERR.BAD_TARGET, 'stale confirmation');
     if (msg.t === 'g.leave') {
       this.removeMember(room, session.playerId);
       return OK;

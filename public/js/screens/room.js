@@ -332,6 +332,21 @@ export function RoomScreen() {
           <span class="room-bar__label">模拟难度<${MicroLabel}>DIFFICULTY<//></span>
           <${DifficultyPicker} room=${room} isHost=${facts.isHost} busy=${busy} onPick=${setDifficulty} />
         </div>
+        <div class="room-bar__reroll">
+          <span class="room-bar__label">리롤 횟수<${MicroLabel}>REROLL LIMIT<//></span>
+          ${facts.isHost ? html`<div class="dpick rpick" role="radiogroup" aria-label="리롤 허용 횟수">
+            ${[0, 1, 3, 5, -1].map(limit => html`<button key=${limit} type="button" role="radio"
+              aria-checked=${(room.rerollLimit ?? 0) === limit ? 'true' : 'false'}
+              class=${`dpick__opt rpick__opt${(room.rerollLimit ?? 0) === limit ? ' is-active' : ''}`}
+              disabled=${!!busy || !online}
+              onClick=${() => run('rerollLimit', () => net.request('room.setRerollLimit', { limit }))}>
+              ${limit === -1 ? '무제한' : `${limit}회`}
+            </button>`)}
+          </div>` : html`<div class="dpick dpick--ro">
+            <strong class="rpick__value">${room.rerollLimit === -1 ? '무제한' : `${room.rerollLimit ?? 0}회`}</strong>
+            <span class="t-dim">由创建者选择</span>
+          </div>`}
+        </div>
       </div>
       <div class="room-bar__center">
         <div class="ready-count" hidden=${!coop}>

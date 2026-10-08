@@ -21,6 +21,7 @@ const cx = (...p) => p.flat().filter(Boolean).join(' ');
 export function BriefingScreen() {
   const pub = useStore((s) => s.match.public);
   const myId = useStore((s) => s.me.playerId);
+  const room = useStore((s) => s.room);
   const solo = useStore((s) => s.room?.mode === 'solo') || String(pub?.modeId || '').includes('single');
   const gd = useGameData();
   const [exit, setExit] = useState(false);
@@ -87,6 +88,10 @@ export function BriefingScreen() {
       </section>
     </main>
     <footer class="brief__foot">
+      <span>리롤 ${room?.rerollLimit === -1 ? '무제한' : `${Math.max(0, (room?.rerollLimit ?? 0) - (room?.rerollsUsed ?? 0))}회 남음`}</span>
+      ${room?.hostId === myId && me ? html`<${Button} disabled=${busy || (room.rerollLimit !== -1 && (room.rerollsUsed ?? 0) >= (room.rerollLimit ?? 0))}
+        onClick=${async () => { if (busy) return; setBusy(true); try { await actions.reroll(room.matchNo); } finally { setBusy(false); } }}
+        title="방을 유지하고 보스·맵·적 세력·금지 목록을 다시 추첨합니다">리롤<//>` : null}
       <${LoadoutButton} from="briefing" size="lg" class="brief-loadout" />
       <div class="brief-ready">
         <span class="brief-ready__txt">已就绪 <b class="num">${readyN}</b><span class="num">/${players.length}</span></span>
