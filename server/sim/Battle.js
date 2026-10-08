@@ -348,6 +348,7 @@ export class Battle {
     }
     u.kit = kit || {};
     u.profile = resolveProfile(u.def, u.kit.trait || null);
+    if (u.def.raw?.noHeal) u.profile.noHeal = true;
     if (u.profile.sub === 'bard') u.mem.noInspire = true;
     if (u.def.untargetable) this.addBuff(u, { key: 'trait:untargetable', flags: { untargetable: true }, persist: true, allowDead: true });
     // abnormal effects a summon holds (tokens.json `abnormal`, PRTS; user playtest #6 item 18): 禁疗 — no heal reaches it;
@@ -2445,6 +2446,9 @@ export class Battle {
     const ammo = this.units.filter(u => u.alive && u.deployed && !u.hidden && u.skill?.active && u.skill.kind === 'ammo')
       .map(u => [u.id, Math.max(0, u.skill.ammoLeft), Math.max(1, u.skill.ammoMax || u.skill.ammo || 0, u.skill.ammoLeft)]);
     if (ammo.length) snap.ammo = ammo;
+    const shields = this.units.filter(u => u.alive && u.deployed && !u.hidden && u.s.shield > 0)
+      .map(u => [u.id, Math.ceil(u.s.shield)]);
+    if (shields.length) snap.shields = shields;
     // Cosmetic pace: Lancer's authored run uses a 1 tile/s reference.
     // Dividing by its .25 tile/s initial crawl made full charge play at 13.5x.
     const moveRates = this.units.filter(u=>u.side==='enemy' && u.alive && u.deployed && !u.hidden && u.base.moveSpeed>0)

@@ -540,10 +540,10 @@ export function reduceElement(target, amount, el = null) {
  */
 export function heal(battle, source, target, amount, opts = {}) {
   if (!target || !target.alive || target.removed || !target.deployed || target.bossPool) return 0;
-  const self = source === target || !!opts.self;
-  const through = !!(source && source.profile && typeof source.profile.healThrough === 'function' && source.profile.healThrough(source, target));
-  if (!self && ((target.s.flags.noHeal && !through) || (target.profile && target.profile.noHeal))) return 0;
+  const self = source === target || (!source && !!opts.self);
   const regen = !!opts.regen;
+  const through = !!(source && source.profile && typeof source.profile.healThrough === 'function' && source.profile.healThrough(source, target));
+  if (!self && !regen && ((target.s.flags.noHeal && !through) || (target.profile && target.profile.noHeal))) return 0;
   if (target.s.flags.healFree && !regen && !opts.ignoreHealFree && !through) return 0;
   let amt = regen ? amount : amount * (source && source.s ? source.s.healingDealtMul : 1) * target.s.healingTakenMul;
   if (!(amt > 0) || !Number.isFinite(amt)) return 0;

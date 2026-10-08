@@ -38,6 +38,15 @@ function view(info, opts = {}, assets = store()) {
 }
 
 describe('tier chips', () => {
+  test('optional recruit label updates without interrupting prep or battle frames', () => {
+    for (const prep of [true, false]) {
+      const v = view({ optionalRecruit: true }, { prep });
+      for (let i = 0; i < 3; i++) assert.doesNotThrow(() => v.update(1 / 60, cam(), i / 60));
+      assert.equal(v.recruitText.text, '선발');
+      assert.equal(v.recruitText.visible, true);
+      v.destroy();
+    }
+  });
   test('summon tokens in the hand show no tier chip (tokens have no tier)', async () => {
     const v = view({ kind: 'token', defId: 'token_10028_vigil_wolf', avatar: 'token_10028_vigil_wolf' }, { prep: true });
     for (let i = 0; i < 3; i++) v.update(1 / 60, cam(), i / 60);
@@ -496,7 +505,7 @@ test('skill outlines share their inset and animate dashes without leaving the ed
 });
 
 
-test('airborne movers enter union fields aloft and never ease through raised surfaces',async()=>{
+test('airborne movers enter union fields aloft and keep altitude over raised surfaces',async()=>{
  const {FLY_HOVER}=await import('../../public/js/render/units.js');
  const {UF,ANIM}=await import('../../shared/constants.js');
  const camera=presetCamera('unite',{width:1600,height:900});
@@ -506,7 +515,7 @@ test('airborne movers enter union fields aloft and never ease through raised sur
  const sample=(x,flags)=>({id:1,x,y:10,hp:1000,maxHp:1000,sp:0,spMax:0,anim:ANIM.MOVE,flags});
  late.sync(sample(11,UF.FLYING),0);late.update(1/60,camera,0);assert.equal(late.hover,FLY_HOVER,'first airborne snapshot also enters elevated');
  late.sync(sample(12,UF.FLYING),.05);late.update(1/60,camera,.05);
- assert.ok(late.z+late.hover>=.55+FLY_HOVER-1e-6,'crossing a raised union tile cannot put the body inside its surface');
+ assert.equal(late.z+late.hover,FLY_HOVER,'terrain height must not change flight altitude');
  late.sync(sample(11,UF.FLYING),.1);late.update(1/60,camera,.1);assert.ok(late.z+late.hover>=FLY_HOVER);
  late.sync(sample(11,0),.2);for(let i=0;i<90;i++)late.update(1/60,camera,.2+i/60);assert.equal(late.flying,false);assert.equal(late.hover,0,'temporary flight still expires and lands');
  const ground=view({side:'enemy',kind:'enemy'});ground.ctx.heightAt=()=>.55;ground.sync(sample(12,0),0);ground.update(1/60,camera,0);assert.equal(ground.z,0,'ground enemy movement is unchanged');
@@ -532,4 +541,25 @@ test('range fill keeps its original colour; saturated outlines are not recoloure
 test('mystic charge count initializes a real HUD text and clears in preparation',()=>{
  const v=view({energyMax:3});v.setEnergy(2);assert.equal(v.energyText.text,'●●○');assert.equal(v.energyText.visible,true);
  v.prep=true;v.setEnergy(1);assert.equal(v.energyText.visible,false);
+});
+
+test('HP shield bar reflects remaining shield HP instead of an always-full status strip',()=>{
+ const v=view({maxHp:1000});v.shieldHp=250;v.update(.016,cam(),0);
+ assert.equal(v.shieldBar.visible,true);assert.equal(v.shieldBar.tint,0xffffff);assert.equal(v.shieldBar.alpha,1);
+ assert.ok(v.shieldBar.position.y+v.shieldBar.height/2 < v.hpBg.position.y-v.hpBg.height/2,'shield stays above the HP frame');assert.ok(Math.abs(v.shieldBar.width/(v.hpBg.width-2)-.25)<1e-6);
+ v.shieldHp=100;v.update(.016,cam(),1);assert.ok(Math.abs(v.shieldBar.width/(v.hpBg.width-2)-.1)<1e-6);
+ v.shieldHp=0;v.flags=32;v.update(.016,cam(),2);assert.equal(v.shieldBar.visible,false);v.destroy();
+});
+
+test('fixed giant boss art and HUD use the hit-area centre without moving its simulation position',async()=>{
+ const camera=presetCamera('boss',{width:1440,height:900});
+ const ctx=fakeViewCtx(fake.P,{assets:store({spine:true}),cam:()=>camera});
+ ctx.lookupDef=()=>({hitArea:{w:4.95,h:2.95,dx:1,dy:1}});
+ const v=new UnitView(ctx,{id:1,kind:'enemy',side:'enemy',defId:'organ',boss:true,x:9,y:3,maxHp:1000});
+ await new Promise(resolve=>setTimeout(resolve,0));
+ assert.ok(v.spineReady);v.bossModelCenter=80;v.visFacing=-1;v.update(.016,camera,0);
+ const centre=camera.project(10,3,0);assert.equal(v.screen.x,centre.x);assert.equal(v.x,9);assert.equal(v.y,3);
+ assert.ok(v.body.position.x>0);
+ v.visFacing=1;v.flipValue=null;v.update(.016,camera,1);assert.ok(v.body.position.x<0);assert.equal(v.screen.x,centre.x);
+ v.destroy();
 });

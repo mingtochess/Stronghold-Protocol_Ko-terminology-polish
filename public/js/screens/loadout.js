@@ -29,7 +29,7 @@ import { useStore } from '../store.js';
 import { PHASE } from '../../../shared/constants.js';
 import {
   garrisonTexts, MODULE_NONE, PROF_ORDER, PROF_NAME, rosterOf, filterRoster, recordsOf, chessOptions, effectiveChoice, setChoice, resetChoice,
-  changedCount, skillLabel, moduleBadge, attrRows, skillTags, serializeExport, parseImport, LOADOUT_IMPORT_MAX_BYTES,
+  changedCount, skillLabel, moduleBadge, attrRows, skillTags, serializeExport, parseImport, LOADOUT_IMPORT_MAX_BYTES, sanitizeEntries,
 } from '../ui/loadoutModel.js';
 import { loadoutStore, openLoadout, closeLoadout, setEntries, applyLoadoutEntries } from '../ui/loadoutSync.js';
 import { copyText } from '../ui/clipboard.js';
@@ -428,14 +428,18 @@ function LoadoutScreen({ st }) {
 
   const pick = (id) => { const c=data.lookup('chess',id);if(c?.charId){audio.warmVoices([c.charId]);} loadoutStore.set({ sel: id }); setNarrowDetail(true); };
   const recruit = (c, tier) => {
-    const next = { ...loadoutStore.get().entries }, key = c.chessId.replace(/_[56]_a$/, '');
+    const next = sanitizeEntries(loadoutStore.get().entries, getChess), key = c.chessId.replace(/_[56]_a$/, '');
     for (const t of [5, 6]) {
       const id = `${key}_${t}_a`;
       if (next[id]) { next[id] = { ...next[id] }; delete next[id].selected; if (!Object.keys(next[id]).length) delete next[id]; }
     }
     const id = `${key}_${tier || 5}_a`;
     if (tier) next[id] = { ...next[id], selected: true };
-    if (!checkLoadout(next, getChess).ok) { toast('각 단계는 최대 2명까지 선발할 수 있습니다.', 'warn'); return; }
+    const check = checkLoadout(next, getChess);
+    if (!check.ok) {
+      toast(check.detail?.includes('최대 2명') ? '각 단계는 최대 2명까지 선발할 수 있습니다.' : '선발 설정을 확인하지 못했습니다. 오퍼레이터 데이터를 다시 불러와 주세요.', 'warn');
+      return;
+    }
     setEntries(next); loadoutStore.set({ sel: id });
   };
   const change = (patch) => { if (base) setEntries(setChoice(loadoutStore.get().entries, base, golden, patch)); };

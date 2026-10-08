@@ -139,6 +139,7 @@ export function updateAlly(b, u, dt) {
 /** Interrupted wind-ups never produce a strike or an extra attack animation. */
 function cancelWindup(b, u) {
   if (!u.mem.attackWindup) return;
+  if (u.mem.attackWindup.profile?.refundWindupCooldown) u.atkCd = 0;
   delete u.mem.attackWindup;
   b._ev(['atkCancel', u.id]);
 }
@@ -203,6 +204,10 @@ export function performAttack(b, u, prof, targets, opts = null) {
     if ((!targets.length && !prof.allowEmptyAttack) || !u.alive) return;
   }
   u.lastAttackAt = b.time;
+  if (prof.randomStrikeTargets > 0) {
+    const candidates = b.enemiesInKeys(u.rangeKeys, u, prof);
+    targets = Array.from({ length: prof.randomStrikeTargets }, () => b.rng.pick(candidates)).filter(Boolean);
+  }
   u.stats.attacks++;
   const attackId = ++b._attackSeq; // every damage instance of this attack (all targets, splash, chain) carries it
   const isHeal = !!(prof.heal && prof.dmgType === 'heal');
@@ -215,6 +220,12 @@ export function performAttack(b, u, prof, targets, opts = null) {
   const ranged = !prof._fortressMelee && prof.attack === 'ranged' && prof.projectile && prof.projectile !== 'none' && prof.projectile !== 'beam';
   const vis = prof._fortressMelee ? 'none' : (prof.projectile || 'none');
   const energy = !isHeal && prof.releaseEnergy ? prof.releaseEnergy(b, u) : 0;
+  const strikeCount = prof.hitsFn ? prof.hitsFn(b, u, { isSkill, energy: 0 }) : Math.max(1, prof.hits || 1);
+  const equipmentStrikes = isHeal ? null : prof.randomStrikeTargets > 0 ? targets.map(t => [t]) :
+    strikeCount > 1 || energy > 0 ? [
+      ...Array.from({ length: strikeCount }, () => targets),
+      ...Array.from({ length: energy }, () => targets.slice(0, 1)),
+    ] : null;
   if (prof.releaseEnergy) b._ev(['energy',u.id,u.trait.stored || 0]);
   for (let i = 0; i < targets.length; i++) {
     const t = targets[i];
@@ -234,7 +245,7 @@ export function performAttack(b, u, prof, targets, opts = null) {
     }
   }
   if (!targets.length && prof.allowEmptyAttack) b._ev(['atk', u.id, u.id, 'none', true]);
-  if (b._hooks.attack) b.emit('attack', { attacker: u, targets, isSkill });
+  if (b._hooks.attack) b.emit('attack', { attacker: u, targets, isSkill, equipmentStrikes });
   if (u.skill) u.skill.onAttackPerformed(targets, isSkill, !!(opts && opts.noAmmo));
   if (prof.afterAttack) b._safe(() => prof.afterAttack(b, u, targets), 'profile.afterAttack', u);
 }

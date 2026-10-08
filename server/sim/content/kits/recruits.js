@@ -17,11 +17,12 @@ function asclnPoison(b,u,e){
 }
 function wisdelShadows(b,u,count){
  const list=(u.mem.wisdelShadows||=[]).filter(up);u.mem.wisdelShadows=list;
- for(let i=list.length;i<Math.min(3,list.length+count);i++){
-  const p=u.rangeKeys.map(k=>[Math.floor(k/COLS),k%COLS]).find(([r,c])=>!b.unitAt(r,c)&&!b.downOn(r,c)&&b.grid.inRect(r,c));
+ const targetCount=Math.min(3,list.length+count);
+ for(let i=list.length;i<targetCount;i++){
+  const p=u.rangeKeys.map(k=>[Math.floor(k/COLS),k%COLS]).find(([r,c])=>!b.isReservedTile(r,c)&&b.grid.inRect(r,c));
   if(!p)break;
   const token=b.spawnToken(u,'token_10035_wisdel_wward',p[0],p[1]);
-  if(token){list.push(token);token.name='혼령의 그림자';token.rangeGrid=u.rangeGrid;token.profile.dmgType='arts';token.profile.projectile='arts';token.profile.canHitFly=true;b._refreshRange(token);
+  if(token){list.push(token);token.name='레버넌트의 그림자';token.profile.noHeal=true;token.rangeGrid=u.rangeGrid;token.profile.dmgType='arts';token.profile.projectile='arts';token.profile.canHitFly=true;b._refreshRange(token);
    token.profile.noAttackUnlessSkill=true;token.skill.spec={kind:'instant',attack:{dmgType:'arts',onEachHit({battle,target,skill}){target.mem.wisdelMark=u.id;battle.applyStatus(target,'sluggish',{duration:num(skill.bb.sluggish,1),source:token});token.skill.gainSp(Math.floor(battle.rng()*num(skill.bb.sp_max,3)),'shadow')}}};
    token.skill.kind='instant';
    b.on('tick',()=>{if(up(token)){token.rangeGrid=u.rangeGrid;token.rangeKeys=u.rangeKeys;token.rangeKeySet=u.rangeKeySet}},{owner:token});
@@ -53,7 +54,7 @@ function skill(raw,s){
   if(i===0)return{kind:'instant',attack:{splashRadius:1.3,onEachHit({battle,unit,target}){battle.applyStatus(target,'stun',{duration:num(bb.stun_duration),source:unit})},afterHit(b,u,target,info){
    const atk=u.s.atk,count=u.profile.shockTimes+1;for(let n=1;n<=count;n++)b.after(.3*n,()=>{for(const e of b.foesInRadius(info.x,info.y,1.3).filter(e=>!e.isFlying)){b.dealDamage(u,e,{amount:atk*num(bb.append_atk_scale),type:'phys',isSplash:true,isSkill:true,tags:['aftershock']});b.applyStatus(e,'stun',{duration:num(bb.stun_duration),source:u})}});
   }}};
-  if(i===1)return duration(s,{duration:s.duration*2,mods:{atkPct:num(bb.atk),batPct:batMod(bb.base_attack_time,raw,s.desc)},targeting:{maxTargets:3},onTick({battle,unit,skill}){if(skill.timeLeft<=skill.duration/2){skill.spec.targeting.maxTargets=1;skill.spec.attack={hits:1,atkScale:num(bb['attack@atk_scale_ol'])}}},onEnd({skill}){skill.spec.targeting.maxTargets=3;delete skill.spec.attack}});
+  if(i===1)return duration(s,{duration:s.duration*2,mods:{atkPct:num(bb.atk),batPct:batMod(bb.base_attack_time,raw,s.desc)},targeting:{maxTargets:3},onTick({battle,unit,skill}){if(skill.timeLeft<=skill.duration/2){skill.spec.targeting.maxTargets=1;skill.spec.attack={hits:1,randomStrikeTargets:4,atkScale:num(bb['attack@atk_scale_ol'])}}},onEnd({skill}){skill.spec.targeting.maxTargets=3;delete skill.spec.attack}});
   return{kind:'ammo',ammo:num(bb['attack@trigger_time'],6),targeting:{canHitFly:true},mods:{atkPct:num(bb.atk),batPct:batMod(bb.base_attack_time,raw,s.desc)},attack:{atkScale:num(bb['attack@atk_scale_3']),splashRadius:2,tags:['wisdel-s3']},onStart({battle,unit}){wisdelShadows(battle,unit,num(bb.max_cnt,2))}};
  }
  if(cid==='char_4138_narant'){

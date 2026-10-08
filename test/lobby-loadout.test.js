@@ -131,7 +131,7 @@ describe('room.loadout (lobby + real match)', () => {
   afterEach(async () => { await pool.closeAll(); });
   after(async () => { await srv?.close(); });
 
-  test('accepted during INFO_CHECK (the briefing entry), locked afterwards; the solo briefing has no deadline', async () => {
+  test('accepted during INFO_CHECK and strategy draft, locked once gameplay starts; solo briefing is untimed', async () => {
     const a = await pool.player('Solo');
     await createRoom(a, 'solo');
     await ok(a, { t: 'room.start' });
@@ -142,6 +142,10 @@ describe('room.loadout (lobby + real match)', () => {
     assert.deepEqual(priv.loadout, { [INSIDE]: { skill: 0, module: 'uniequip_002_inside' } });
     await ok(a, { t: 'g.infoReady' });
     await a.waitFor('m.public', (p) => p.phase === PHASE.BAND_DRAFT, 3000);
+    await ok(a, { t: 'room.loadout', entries: {} });
+    await a.waitFor('m.private', (p) => p.loadout && Object.keys(p.loadout).length === 0, 3000);
+    await ok(a, { t: 'g.band', bandId: 'band_amiya' });
+    await a.waitFor('m.public', (p) => p.phase === PHASE.BATTLE_CHECK, 3000);
     const r = await err(a, { t: 'room.loadout', entries: {} }, ERR.WRONG_PHASE);
     assert.match(r.detail || '', /locked/);
     assert.deepEqual(cap.errors, []);

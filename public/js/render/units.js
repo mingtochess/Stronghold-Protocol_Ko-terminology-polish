@@ -375,6 +375,10 @@ export class UnitView {
     this._far = false;            // small on screen (adaptive LOD, with hysteresis)
     this.isEnemy = info.side === 'enemy';
     this.isBoss = !!info.boss;
+    // Giant models can have an off-centre skeleton origin (notably the organ boss).
+    // Keep simulation coordinates intact; align their idle body to the authored hit-area centre.
+    this.bossArea = this.isBoss && this.isEnemy ? record?.hitArea ?? info.hitArea ?? null : null;
+    this.bossModelCenter = 0;
     // enemies: the official prefab's size factor (1 for operators, summons and enemies at the standard size)
     this.modelK = this.isEnemy ? enemyModelScale(ctx.lookupDef ? ctx.lookupDef(info) : null) : 1;
     this.isToken = info.kind === 'token';
@@ -383,6 +387,7 @@ export class UnitView {
     this.x = Number(info.x) || 0; this.y = Number(info.y) || 0; this.z = 0;
     this.zTarget = null;          // battle: standing height the feet ease towards (tile top under the unit)
     this.flying = !!info.flying || info.motion === 'FLY';
+    this.flightBaseZ = this.flying ? 0 : null;
     this.hover = this.flying ? FLY_HOVER : 0; // native flyers enter at flight height, including field switches
     this.dir = this.isEnemy ? null : unitDir(info);
     // whether the direction is known (UnitInfo / piece `dir`), not just the legacy ±1: battle and scouting views show
@@ -577,6 +582,11 @@ export class UnitView {
       const deployed = swap && this.alive ? this.actor.deployElapsed() : null;
       if (swap) this._dropActor();
       this.actor = actor;
+      if (this.bossArea) {
+        actor.spine.update(0);
+        const bounds = actor.spine.getLocalBounds();
+        this.bossModelCenter = Number.isFinite(bounds?.x) && bounds.width > 0 ? bounds.x + bounds.width / 2 : 0;
+      }
       this._actorEntry = entry;
       this.baseTint = (!entry.local && ALIAS_TINT[id]) || 0xffffff;   // the web alias of a local-only model
       this.body.addChild(this.actor.spine);
@@ -649,7 +659,7 @@ export class UnitView {
     this.hpBg = bar(P, h, COLORS.hpBack, 1);
     this.hpGhost = bar(P, h, COLORS.hpGhost, 0.9);
     this.hpFill = bar(P, h, this.isEnemy ? (this.isBoss ? COLORS.hpBoss : COLORS.hpEnemy) : COLORS.hpAlly);
-    this.shieldBar = bar(P, h, COLORS.shield, 0.95);
+    this.shieldBar = bar(P, h, 0xffffff, 1);
     this.spBg = bar(P, h, COLORS.hpBack, 1);
     this.spFill = bar(P, h, COLORS.sp);
     this.ammoDividers = new P.Graphics(); h.addChild(this.ammoDividers);
@@ -730,13 +740,16 @@ export class UnitView {
     this.elFill = this.el ? s.elFill || 0 : 0; this.elUntil = this.el ? s.elUntil || 0 : 0; this.elDur = this.el ? s.elDur || 0 : 0;
     this.x = s.x; this.y = s.y;
     // Snapshots carry the current airborne state, including temporary flight and landing.
+    const wasFlying = this.flying;
     this.flying = !!(s.flags & UF.FLYING);
+    if (this.flying && !wasFlying) this.flightBaseZ = this._airStateSeen ? this.z : 0;
+    if (!this.flying) this.flightBaseZ = null;
     if (!this._airStateSeen) {
       this._airStateSeen = true;
       if (this.flying) this.hover = FLY_HOVER;
     }
     // ground enemies only ever walk low tiles (a rounding step onto a block edge must not pop them up)
-    const gz = this.isEnemy && !this.flying ? 0 : groundZ(this.ctx, s.x, s.y);
+    const gz = this.flying ? this.flightBaseZ ?? 0 : this.isEnemy ? 0 : groundZ(this.ctx, s.x, s.y);
     if (this.zTarget == null || (this.flying && gz > this.z)) this.z = gz;
     this.zTarget = gz;
     if (s.maxHp > 0) this.maxHp = s.maxHp;
@@ -744,6 +757,7 @@ export class UnitView {
     if (hp < this.hp - 0.5 && this.isBoss) this.shake = 0.25;
     this.hp = hp;
     this.sp = s.sp; this.spMax = s.spMax;
+    this.shieldHp = Math.max(0, s.shieldHp || 0);
     this.snowTiles = s.snowTiles || [];
     this.skillTiles = s.skillTiles;
     this.ammoLeft = s.ammoLeft; this.ammoMax = s.ammoMax || 0;
@@ -1020,7 +1034,8 @@ export class UnitView {
     }
     const hoverTo = this.flying && this.alive ? FLY_HOVER : 0;
     if (this.hover !== hoverTo) this.hover = Math.abs(hoverTo - this.hover) < 1e-3 ? hoverTo : this.hover + (hoverTo - this.hover) * Math.min(1, dt * 6);
-    const p = cam.project(this.x, this.y, this.z + this.hover + this.lift, this.screen);
+    const visualX = this.x + (this.bossArea?.dx || 0);
+    const p = cam.project(visualX, this.y, this.z + this.hover + this.lift, this.screen);
     const s = p.s;
     // State effects follow the projected unit, including flying height, rather than the camera.
     const visualStates = this._iconKeys(Infinity).filter(k=>['freeze','cold','burn','poison','shield','refraction','stealth','stun','sleep','invuln','bind','slow','silence','fear','fragile','weaken','healFree','neural','necrosis'].includes(k));
@@ -1150,7 +1165,7 @@ export class UnitView {
 
     // shadow (on a raised top it is drawn with that block row, else in the shadow layer under everything)
     placeOnGround(this.ctx, this.shadow, this.ctx.layers.shadow, this.y, this.z);
-    const sh = cam.project(this.x, this.y, this.z, SH_P);
+    const sh = cam.project(visualX, this.y, this.z, SH_P);
     this.shadow.position.set(sh.x, sh.y);
     const shw = s * (this.isBoss ? 1.6 : 0.95) / this.shadow.texture.width;
     this.shadow.scale.set(shw, shw * (this.shadow.texture === shadowTexture() ? 1 : 1.05));
@@ -1242,6 +1257,7 @@ export class UnitView {
       this.fallback.alpha = 1 - this.swapT;
       this.fallback.visible = this.swapT < 1;
       const sc = s * UNIT.modelScale * this.modelK;
+      this.body.position.x = -this.bossModelCenter * sc * flip;
       const flashK = this.flash > 0 ? this.flash : 0;
       let tint = this.baseTint;
       if (this.down) tint = DOWN_LOOK.tint;
@@ -1364,12 +1380,12 @@ export class UnitView {
     if(this.info.energyMax && !this.energyText)this.setEnergy(this.info.energy || 0);
     if(this.energyText){this.energyText.visible=showBars;this.energyText.scale.set(clamp(s/90,.65,1));this.energyText.position.set(x,y-s*.16);}
     if(this.info.optionalRecruit && !this.recruitText){
-      this.recruitText=new P.Text('선발',{fontFamily:'sans-serif',fontSize:13,fontWeight:'700',fill:'#53e3c2',stroke:'#07120e',strokeThickness:3});
+      this.recruitText=new this.P.Text('선발',{fontFamily:'sans-serif',fontSize:13,fontWeight:'700',fill:'#53e3c2',stroke:'#07120e',strokeThickness:3});
       this.recruitText.anchor.set(.5);this.hud.addChild(this.recruitText);
     }
     if(this.recruitText){this.recruitText.visible=this.alive;this.recruitText.scale.set(clamp(s/90,.65,1));this.recruitText.position.set(x+s*.34,y-s*.08);}
     const damaged = this.hp < this.maxHp - 0.5;
-    const showHp = showBars && (!this.isEnemy || damaged || this.isBoss);
+    const showHp = showBars && (!this.isEnemy || damaged || this.isBoss || this.shieldHp > 0);
     const bw = clamp(s * (this.isBoss ? UNIT.bossBarWidth : UNIT.barWidth), 24, this.isBoss ? 260 : 96);
     const bh = clamp(s * (this.isBoss ? 0.09 : 0.065), 3, this.isBoss ? 9 : 6);
     // a knocked-down operator's HUD is its redeploy ring alone, drawn at full strength over the greyed model
@@ -1390,9 +1406,15 @@ export class UnitView {
       this.hpFill.position.set(x0, cy); this.hpFill.width = bw * k; this.hpFill.height = bh;
       if (!this.isEnemy) this.hpFill.tint = COLORS.hpAlly;
     }
-    const shielded = showHp && (this.flags & UF.SHIELD);
+    const shielded = showHp && this.shieldHp > 0;
     this.shieldBar.visible = !!shielded;
-    if (shielded) { this.shieldBar.position.set(x0, cy - bh / 2 - 1); this.shieldBar.width = bw; this.shieldBar.height = Math.max(1.5, bh * 0.35); }
+    if (shielded) {
+      const shieldH = Math.max(1.5, bh * 0.35);
+      // Sprite bars use a centred vertical anchor: leave a full pixel above the black HP frame.
+      this.shieldBar.position.set(x0, cy - (bh + 2) / 2 - 1 - shieldH / 2);
+      this.shieldBar.width = bw * clamp(this.shieldHp / this.maxHp, 0, 1);
+      this.shieldBar.height = shieldH;
+    }
     // SP
     const showSp = showBars && !this.isEnemy && this.spMax > 0;
     this.spBg.visible = this.spFill.visible = showSp;

@@ -116,7 +116,7 @@ function buildSkill(raw,sk){
 function kit(bb,raw,def){
  const cid=raw.charId,t=talentBb(raw),t2=talentBb(raw,1),tb=traitBb(raw);
  const skills=Object.fromEntries(raw.skills.map(sk=>[sk.skillId,buildSkill(raw,sk)]));
- return{skills,skill:skills[raw.skill.skillId],install(b,u){
+ return{...(cid==='char_137_brownb'?{trait:{hits:2,hitDmgMul:.5}}:{}),skills,skill:skills[raw.skill.skillId],install(b,u){
   if(cid==='char_137_brownb'){
     b.on('beforeAttack',c=>{if(c.attacker!==u)return;const target=c.targets[0];if(!target)return;if(u.mem.brownbTarget!==target.id){u.mem.brownbTarget=target.id;u.mem.brownbStacks=0;}u.mem.brownbStacks=Math.min(num(t.max_stack_cnt,5),num(u.mem.brownbStacks)+1);S.passiveBuff(b,u,'talent:ursus:brownb',{atkPct:num(t.atk)*u.mem.brownbStacks});},{owner:u});
     b.on('tick',()=>{if(up(u))S.passiveBuff(b,u,'module:ursus:brownb',{aspd:u.hpRatio>.5?num(tb.attack_speed):0})},{owner:u});

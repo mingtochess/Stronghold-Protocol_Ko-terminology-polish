@@ -1388,7 +1388,7 @@ export class FxSystem {
     if (!(n > 0 || (allowZero && n === 0)) || !view) return;
     const now = this.time;
     const cam = this.ctx.cam();
-    const base = (view.z || 0) + (view.hover || 0) + (view._headTiles || 1.2) * 0.8;
+    const base = (view.z || 0) + (view.hover || 0) + (view._headTiles || 1.2) * 0.8 + 0.22;
     const a = cam.project(view.x, view.y, base, this._p);
     const ax = a.x, ay = a.y, s = a.s > 0 ? a.s : 100;
     const pxPerZ = ay - cam.project(view.x, view.y, base + 1, this._q).y;

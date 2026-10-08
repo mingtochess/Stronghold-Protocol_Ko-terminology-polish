@@ -7,6 +7,7 @@
    ========================================================================================== */
 
 .lo {
+  width:100%; max-width:100vw; min-width:0; overflow:hidden; box-sizing:border-box;
   position: fixed; inset: 0; z-index: 55; /* above every screen (1) and the in-match banners (40), below the connection
                                              banner (60), modals / confirm dialogs (80), toasts and tooltips */
   display: flex; flex-direction: column;
@@ -72,6 +73,7 @@
 
 /* ---- body layout -------------------------------------------------------------------------------------------------- */
 .lo-body {
+  width:100%; max-width:100%; min-width:0; box-sizing:border-box;
   flex: 1 1 auto; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 7rem);
   gap: .22rem; padding: .18rem .3rem .22rem;
 }
@@ -199,6 +201,7 @@
 
 /* ---- detail panel -------------------------------------------------------------------------------------------------------- */
 .lo-detail {
+  min-width:0; max-width:100%; overflow:hidden;
   --bk-c: var(--mint-500);
   flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column;
   background: linear-gradient(180deg, rgba(24, 30, 28, .97), rgba(10, 13, 12, .98));

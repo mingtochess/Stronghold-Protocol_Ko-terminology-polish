@@ -173,7 +173,13 @@ class Scope {
   }
   key(part) { return `${this.tag}:${part}`; }
   on(name, fn, priority = 0) {
-    const h = this.b.on(name, fn, { owner: this.u, priority });
+    // Equipment procs follow individual strikes; talents, SP and ammo still see one attack.
+    const handler = name === 'attack' ? (c) => {
+      if (c.attacker === this.u && c.equipmentStrikes?.length) {
+        for (const targets of c.equipmentStrikes) fn({ ...c, targets });
+      } else fn(c);
+    } : fn;
+    const h = this.b.on(name, handler, { owner: this.u, priority });
     if (h) this.hooks.push(h);
     return h;
   }

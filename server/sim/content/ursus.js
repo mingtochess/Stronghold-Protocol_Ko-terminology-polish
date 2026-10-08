@@ -21,6 +21,7 @@ export const DRONE_FALL=.44;
 export function installDroneBombardment(battle,u){
  u.profile.deferHit=true;u.profile.projectile='mortar';u.profile.visibleRangeRadius=DRONE_RANGE;
  u.profile.windupNeedsRange=true;
+ u.profile.refundWindupCooldown=true;
  let sequence=0;
  battle.on('attack',({attacker,targets})=>{if(attacker!==u)return;
   const atk=u.s.atk,flight=DRONE_FLIGHT*100/Math.max(10,u.s.aspd);
@@ -53,7 +54,8 @@ export function installDroneBombardment(battle,u){
 
 export function droneTargets(b,u,inRange=false){
  const inside=e=>bodyDist(e,u.x,u.y)<=DRONE_RANGE+1e-9;
- const priority=e=>e.isBoss||e.def?.rank==='BOSS'?0:e.blockedBy?(inside(e)?1:2):3;
+ // Only the field's main leader gets boss priority; bounty bosses retain ordinary targeting.
+ const priority=e=>e.tag==='boss'?0:e.blockedBy?(inside(e)?1:2):3;
  return b.enemies.filter(e=>canTargetEnemy(u,e,u.profile)&&(!inRange||inside(e))).sort((a,c)=>{
   const bossA=priority(a)===0,bossC=priority(c)===0;
   if(bossA!==bossC)return bossA?-1:1;

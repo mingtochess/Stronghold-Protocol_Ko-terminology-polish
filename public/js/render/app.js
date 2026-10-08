@@ -815,6 +815,8 @@ export async function createFieldView(host, options = {}) {
     if (lastPrep) setPrep(lastPrep.ps, lastPrep.o);
     for (const e of prepPieces) {
       const v = views.get(e.key);
+      // Changing the displayed field transforms coordinates; it is not a piece move.
+      if (v?._home) { v.setWorld(v._home.x, v._home.y, v._home.z); v._tween = null; v.lift = 0; }
       if (e.area === 'board' && v && typeof v.setDir === 'function') v.setDir(prepXf.dirToDisp(pieceDirOf(e.piece) || 'RIGHT'));
     }
     for (const [group, req] of hlReq) drawHighlight(req.tiles, req.style, group);
@@ -972,6 +974,7 @@ export async function createFieldView(host, options = {}) {
     if (mode !== 'prep') enterPrepMode();
     for (const key of [...views.keys()]) if (String(key).startsWith('wb:')) dropView(key);
     lastPrep = { ps, o };
+    if (editable && !o.editable) { drag.reset(); endDragVisual(false); pending.clear(); held.clear(); }
     editable = !!o.editable;
     canPlaceFn = typeof o.canPlace === 'function' ? o.canPlace : null;
     drag.setCanPlace(canPlaceFn ? adaptCanPlace(canPlaceFn) : null);
@@ -1047,7 +1050,8 @@ export async function createFieldView(host, options = {}) {
         } else {
           pending.delete(key);
           if (e.area !== 'board') v._dropDeploy=false;
-          if (moved || Math.abs(v.x - w.x) + Math.abs(v.y - w.y) > 1e-3) v._tween = { fx: v.x, fy: v.y, fz: v.z, tx: w.x, ty: w.y, tz: w.z, t: 0 };
+          const sameTween = v._tween && v._tween.tx === w.x && v._tween.ty === w.y && v._tween.tz === w.z;
+          if (!sameTween && (moved || Math.abs(v.x - w.x) + Math.abs(v.y - w.y) > 1e-3)) v._tween = { fx: v.x, fy: v.y, fz: v.z, tx: w.x, ty: w.y, tz: w.z, t: 0 };
           v.lift = 0;
           if (placementChanged && !v._dropDeploy && v.onDeploy) { v.onDeploy(); fx.deploy(v); }
         }
@@ -1083,6 +1087,9 @@ export async function createFieldView(host, options = {}) {
   }
 
   function enterPrepMode() {
+    drag.reset();
+    endDragVisual(false);
+    pending.clear();
     mode = 'prep';
     held.clear();
     clearViews();
@@ -1900,16 +1907,24 @@ export async function createFieldView(host, options = {}) {
           v.x = tw.fx + (tw.tx - tw.fx) * k; v.y = tw.fy + (tw.ty - tw.fy) * k; v.z = tw.fz + (tw.tz - tw.fz) * k;
           if (tw.t >= 1) v._tween = null;
         }
-        v.update(dt, cam, clock);
+        try { v.update(dt, cam, clock); } catch (err) {
+          if (!v._frameWarned) { v._frameWarned = true; console.error('[render] unit frame failed', key, err); }
+        }
         if (v.remove) { dropView(key); if (mode === 'battle') gone.add(key); }
       }
       if (!penHidden) for (const v of penViews.values()) v.update(dt, cam, clock);
       if (leader && !leaderHidden) leader.view.update(dt, cam, clock);
       tiles.update(dt);
-      fx.update(dt);
       impostors.flush();
     } catch (err) {
       if (!frame.warned) { frame.warned = true; console.error('[render] frame failed', err); }
+    } finally {
+      // A failed model frame must not freeze finite deployment/promotion effects.
+      // Lifetime follows elapsed real time even while low-FPS model frames are capped.
+      try { fx.update(Math.min(5, Math.max(0, dtRaw))); } catch (err) {
+        console.error('[render] effect frame failed', err);
+        fx.clear();
+      }
     }
   }
   app.ticker.add(frame);

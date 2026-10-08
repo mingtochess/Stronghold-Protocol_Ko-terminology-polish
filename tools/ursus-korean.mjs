@@ -32,3 +32,16 @@ export function localizeOperator(rec,source,status){
  for(const m of rec.modules||[]){if(m.traitOverride&&desc)Object.assign(m.traitOverride,textPair(desc,m.traitOverride.bb,m.traitOverride.bbStr));applyModule(m,m.traitOverride,m.talentChanges);}
  const selected=rec.skills?.find(sk=>sk.index===rec.skill.index);if(selected)Object.assign(rec.skill,{name:selected.name,desc:selected.desc,descRaw:selected.descRaw});
 }
+
+export function localizeToken(rec, source) {
+ const ch=source.chars[rec.tokenId];if(!ch)return;
+ rec.name=ch.name||rec.name;
+ if(ch.description)Object.assign(rec,textPair(ch.description,rec.trait?.bb||{},rec.trait?.bbStr||{}));
+ const visit=value=>{
+  if(!value||typeof value!=='object')return;
+  if(value.skillId){const level=source.skills[value.skillId]?.levels?.[Math.max(0,(value.level||1)-1)];if(level){value.name=level.name;Object.assign(value,textPair(level.description,value.bb,value.bbStr));}}
+  if(value.trait&&ch.description)Object.assign(value.trait,textPair(ch.description,value.trait.bb,value.trait.bbStr));
+  for(const child of Object.values(value))if(child&&typeof child==='object')visit(child);
+ };
+ visit(rec);
+}

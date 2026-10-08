@@ -1,7 +1,7 @@
 // Optional local recruits, two immutable tier variants; selection belongs to each player's loadout.
 import {readFile,writeFile} from 'node:fs/promises';
 import {loadContext,buildChess,buildTokens} from './build-data.mjs';
-import {loadKorean,localizeOperator} from './ursus-korean.mjs';
+import {loadKorean,localizeOperator,localizeToken} from './ursus-korean.mjs';
 export async function buildRecruits(root,dir){
  const read=async p=>JSON.parse(await readFile(p,'utf8'));
  const ops=await read(`${root}/content/custom/ursus/recruits.json`),ctx=await loadContext({operatorsOnly:true}),a=ctx.act;
@@ -23,7 +23,7 @@ export async function buildRecruits(root,dir){
   if(suffix==='a')for(const bond of o.bonds)for(const k of ['members','visibleMembers'])if(bonds[bond]?.[k]&&!bonds[bond][k].includes(id))bonds[bond][k].push(id);
  }
  const tokens=await read(`${dir}/tokens.json`),generatedTokens=buildTokens(ctx,generated,result.tokenOwners,await read(`${dir}/enemies.json`));
- for(const key of ['token_10035_wisdel_wward'])if(generatedTokens[key]){tokens[key]=generatedTokens[key];tokens[key].placeable=false;}
+ for(const key of ['token_10035_wisdel_wward'])if(generatedTokens[key]){tokens[key]=generatedTokens[key];tokens[key].placeable=false;tokens[key].noHeal=true;localizeToken(tokens[key],kr);}
  for(const [k,v] of Object.entries({chess,bonds,tokens}))await writeFile(`${dir}/${k}.json`,JSON.stringify(v));
  return ops;
 }

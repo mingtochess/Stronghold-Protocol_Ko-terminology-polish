@@ -96,6 +96,10 @@ export function normalizeSnapshot(snap) {
   if(Array.isArray(snap.moveRates)) for(const e of snap.moveRates){
     const tu=units.get(e?.[0]);if(tu && Number.isFinite(e[1]) && e[1]>=0)tu[20]=e[1];
   }
+  if (Array.isArray(snap.shields)) for (const e of snap.shields) {
+    const tu = units.get(e?.[0]);
+    if (tu && Number.isFinite(e[1]) && e[1] >= 0) tu[21] = e[1];
+  }
   if (Array.isArray(snap.ammo)) for (const e of snap.ammo) {
     const tu = units.get(e?.[0]);
     if (tu && Number.isInteger(e[1]) && Number.isInteger(e[2]) && e[2] > 0) {
@@ -318,6 +322,7 @@ export class SnapshotBuffer {
       o.snowTiles = a[17] ?? [];
       o.states = a[15] ?? null;
       o.ammoLeft = a[13] ?? null; o.ammoMax = a[14] ?? 0;
+      o.shieldHp = a[21] ?? 0;
       const b = B ? B.units.get(id) : null;
       if (b) {
         const dx = b[1] - a[1], dy = b[2] - a[2];

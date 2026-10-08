@@ -267,3 +267,10 @@ test('note bubbles interpolate by owner and note identity and disappear on the n
  const b=new SnapshotBuffer();b.push({...snap(0,[]),sakikoNotes:[[1,1,3,10,'phys'],[2,1,7,10,'arts']]},0);b.push({...snap(1,[]),sakikoNotes:[[1,1,5,12,'phys'],[2,1,9,10,'arts']]},1);
  assert.deepEqual(b.notesAt(.5),[[1,1,4,11,'phys'],[2,1,8,10,'arts']]);b.push({...snap(2,[]),sakikoNotes:[]},2);assert.deepEqual(b.notesAt(2),[]);
 });
+
+test('HP shield amount travels through snapshots and clears when the shield expires',()=>{
+ const b=new SnapshotBuffer();b.push({...snap(0,[U(1,5,10)]),shields:[[1,250]]},0);
+ assert.equal(b.sample(0).get(1).shieldHp,250);
+ b.push(snap(.1,[U(1,5,10)]),.1);assert.equal(b.sample(.1).get(1).shieldHp,0);
+ assert.equal(normalizeSnapshot({...snap(0,[U(1,5,10)]),shields:[[1,-10],[1,NaN]]}).units.get(1)[21],undefined);
+});

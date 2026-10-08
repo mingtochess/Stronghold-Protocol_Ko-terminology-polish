@@ -911,7 +911,7 @@ function yu(bb, chess, def) {
           const ops = opsOf(battle, unit.ownerId);
           if (ops.length < cnt) return;
           for (const a of s3On(unit) ? ops : [unit]) {
-            if (hr > 0) battle.heal(unit, a, a.s.maxHp * hr * iv, { self: true, silent: true });
+            if (hr > 0) battle.heal(unit, a, a.s.maxHp * hr * iv, { regen: true, silent: true });
             if (er > 0) battle.reduceElement(a, a.s.maxHp * er * iv);
           }
         });

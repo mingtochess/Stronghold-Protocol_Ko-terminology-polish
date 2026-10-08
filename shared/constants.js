@@ -3,7 +3,7 @@
 export const PROTOCOL_VERSION = 1;
 /** Upstream package version stays valid SemVer; the lowercase suffix identifies site updates. */
 export const BASE_VERSION = '0.2.1';
-export const APP_VERSION = `${BASE_VERSION}a`;
+export const APP_VERSION = `${BASE_VERSION}b`;
 
 export const MAX_SEATS = 4;
 /**
