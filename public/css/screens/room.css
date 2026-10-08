@@ -332,3 +332,10 @@
 .custom-ext__tabs button { white-space:nowrap; }
 .custom-ext__card.is-excluded { border-color:var(--red); background:rgba(231,49,24,.09); }
 .custom-ext__card.is-excluded input { accent-color:var(--red); }
+
+.room-bar__reroll { display: flex; align-items: center; gap: .22rem; min-width: 0; }
+.room-bar__difficulty > .room-bar__label,
+.room-bar__reroll > .room-bar__label { flex: 0 0 1.1rem; }
+.rpick { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); width: 3.8rem; max-width: 100%; }
+.rpick__opt { --d-color: var(--mint-400); justify-content: center; min-width: 0; padding: 0 .08rem; letter-spacing: 0; white-space: nowrap; }
+.rpick__value { color: var(--mint-400); font-size: .18rem; white-space: nowrap; }

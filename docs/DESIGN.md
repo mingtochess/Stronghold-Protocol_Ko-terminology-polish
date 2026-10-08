@@ -2145,3 +2145,17 @@ The local Egir normal→Unite continuation now carries the completed devour's AT
 
 ### 2026-10-06 prep placement order override
 Battle start deploys operators in their persistent prep placement order, not tile scan order. Moving or swapping deployed operators and changing facing preserve the order. Returning to the bench and placing again gets a new, later order. An automatic elite replacing a deployed copy inherits the replaced copy's order. Each player's sequence is retained on shared and mirrored boss fields; summon pieces still deploy after operators. This supersedes earlier position-based initial deployment descriptions; merge tile selection itself is unchanged.
+
+
+### Room briefing reroll
+
+`room.setRerollLimit {limit}` is host-only in the lobby: 0 (default), 1, 3, 5, or -1 (unlimited).
+`room.state` exposes `rerollLimit`, `rerollsUsed`, and `matchNo`.
+During INFO_CHECK, the host may send `room.reroll {matchNo}` to replace the entire match with a fresh seed.
+The room, seats, lobby readiness, spectators, extension settings, and loadouts stay in place; the new match
+redraws the stage, boss, factions and bans, recreates its recruitment pool, and resets briefing confirmations
+and the briefing deadline (solo remains untimed). Departed seats do not re-enter the new match.
+Each successful reroll consumes the shared allowance; it resets only on a normal `room.start`.
+The old match is disposed without a result or lobby transition. Construction failure retains the old match
+and allowance. Stale reroll requests and versioned `g.infoReady {matchNo}` confirmations are rejected.
+Rerolls use the network heavy-intent bucket.

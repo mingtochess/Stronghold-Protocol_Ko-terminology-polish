@@ -90,7 +90,7 @@
 .brief-banned__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(.6rem, 1fr)); gap: .08rem; }
 .brief-banned__grid .uthumb { --ut: .6rem; }
 
-.brief__foot { position: relative; z-index: 2; flex: none; display: flex; align-items: center; justify-content: flex-end; gap: .4rem; padding: .18rem .5rem .3rem; }
+.brief__foot { flex-wrap: wrap; position: relative; z-index: 2; flex: none; display: flex; align-items: center; justify-content: flex-end; gap: .4rem; padding: .18rem .5rem .3rem; }
 .brief-ready { display: flex; align-items: center; gap: .16rem; }
 .brief-ready__txt { font-size: .2rem; color: var(--text-lo); }
 .brief-ready__txt b { font-size: .4rem; color: var(--mint-400); margin: 0 .02rem; }
