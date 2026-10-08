@@ -15,7 +15,7 @@ def main():
  index=json.loads(index_path.read_text())
  conf=json.loads(json.load(urllib.request.urlopen('https://ak-conf.hypergryph.com/config/prod/official/network_config',timeout=60))['content'])
  net=conf['configs'][str(conf['funcVer'])]['network'];base=net['hu'].rstrip('/')+'/Android/assets/'+index['versionId']
- resources={'shaders/standardrealtimeshadow.ab', 'arts/maps/common/trap/trap_110.ab', 'arts/maps/map_syracuse_metro/res.ab', 'arts/maps/common/meshes/s_background_common.ab', 'arts/maps/effect.ab', 'arts/maps/map_doss_shore/res.ab', 'arts/maps/map_yumen/res.ab', 'arts/maps/map_survivaloasis_city/res.ab', 'arts/maps/map_lakegarden/res.ab', 'arts/maps/map_lm_center/res.ab', 'arts/maps/map_kxmr/res.ab', 'arts/maps/map_autochesssand/res.ab'}
+ resources={'shaders/stylizedwater.ab','shaders/stylizedwaterdepth.ab','shaders/standardblend.ab','shaders/standardwater.ab','shaders/standard.ab','shaders/dynamicwatertile.ab','shaders/standardrealtimeshadow.ab', 'arts/maps/common/trap/trap_110.ab', 'arts/maps/map_syracuse_metro/res.ab', 'arts/maps/common/meshes/s_background_common.ab', 'arts/maps/effect.ab', 'arts/maps/map_doss_shore/res.ab', 'arts/maps/map_yumen/res.ab', 'arts/maps/map_survivaloasis_city/res.ab', 'arts/maps/map_lakegarden/res.ab', 'arts/maps/map_lm_center/res.ab', 'arts/maps/map_kxmr/res.ab', 'arts/maps/map_autochesssand/res.ab'}
  selected=[a for a in index['abInfos'] if a['name'] in resources or (a['name'].startswith(('scenes/activities/act1autochess/','scenes/activities/act2autochess/')) and ((a['name'].count('/')==4 and 'lighting' not in a['name']) or a['name'].endswith('/lightingdata.ab')))]
  for a in selected:
   name=a['name'];p=CACHE/name

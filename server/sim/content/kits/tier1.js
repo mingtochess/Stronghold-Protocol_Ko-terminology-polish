@@ -289,7 +289,7 @@ export function tinmanKit(bb, chess, def) {
             }
             // pulses every second: the buff bridges to the next pulse (two ticks over), the last one ends with the unit
             if (healRatio > 0) {
-              for (const a of b.alliesInRadius(x, y, radius, null)) {
+              for (const a of b.alliesInRadius(x, y, radius, null, { includeDevices: true })) {
                 if (b.allySelectable(a, unit)) b.addBuff(a, { key: regenKey, duration: 1 + 2 * b.dt, source: unit, mods: { hpRegen: atk * healRatio } });
               }
             }

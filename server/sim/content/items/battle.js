@@ -262,7 +262,7 @@ export function revivedInPlace(u) { if (u && u.mem) u.mem.revives = (u.mem.reviv
  * source] — and ends with the deployment. 信仰搅拌机 S2 steps aside while it holds (kits/tier4.js).
  */
 export function holdsUndying(battle, u) {
-  return !!u && u.mem.undyingAt != null && battle.time < u.mem.undyingUntil && u.mem.undyingAt === deploymentOf(u);
+  return !!u && (u.s.flags.undying || u.mem.undyingAt != null && battle.time < u.mem.undyingUntil && u.mem.undyingAt === deploymentOf(u));
 }
 /** Effective multiplier of a hammer type on `u` and its params (null when the type does not apply). */
 function hammerMul(battle, rt, u, hs, type) {
@@ -439,6 +439,25 @@ const BY_BUFF = {
 
 /** Item-key behaviours. */
 const BY_ITEM = {
+  chess_item_custom_ursus_favor(battle, u, rec, scope) {
+    scope.on('attack', c => {
+      if (c.attacker !== u || !isMember(battle,u,'ursusShip')) return;
+      // Scope already invokes this hook once for each equipment strike.
+      const strikes=[c.targets || []];
+      for(const strike of strikes){
+        const targets=[...new Set(strike)].filter(t=>t?.side==='enemy');
+        if(!targets.length)continue;
+        for(const t of targets)if(t.alive)battle.dealDamage(u,t,{amount:u.s.maxHp*.05,type:'true',tags:procTags('ursus_favor')});
+        if(!carries(battle,u,'chess_item_custom_ursus'))continue;
+        const state=battleStore(battle,'ursus:favor');state.counts??=new Map();
+        const n=state.counts.get(u.ownerId)||0;if(n>=100)continue;
+        const drone=battle.allyUnits.find(t=>t.ownerId===u.ownerId&&t.defId==='token_custom_ursus_drone'&&onField(t));
+        if(!drone)continue;
+        state.counts.set(u.ownerId,n+1);
+        passiveBuff(battle,drone,'item:ursus:favor:aspd',{aspd:n+1});
+      }
+    });
+  },
   // 精准狙击镜: damage ×damage_scale against targets ≥ radius tiles away
   chess_item_3_02_e(battle, u, rec, S) {
     const p = bp(rec, 'act1autochess_equip_acarm063_global_buff');

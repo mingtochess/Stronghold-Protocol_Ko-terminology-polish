@@ -220,7 +220,7 @@ export function viewKind(kind, opts) {
 }
 
 /** 3D areas without the enemy preview pen block (the own field / both normal halves); see `boardArea`. */
-const BOSS_PREP_AREA = Object.freeze(unionAreas(AREAS.boss, AREAS.normal));
+const BOSS_PREP_AREA = AREAS.boss;
 const AREA_NO_PEN = Object.freeze({
   normal: Object.freeze(AREAS.normal.filter((a) => a.r1 <= 13)),
   unite: Object.freeze(AREAS.unite.filter((a) => a.r1 <= 13)),
@@ -242,11 +242,11 @@ export function boardArea(vk) {
 
 /**
  * 2D rows drawn for a view kind: prep / normal / pen retain rows 6–18; the boss field with the separator
- * and the normal rows behind it as scenery.
+ * with its own separator row; other fields are excluded.
  */
 export function bandFor(kind) {
-  if (kind === 'bossPrep') return [0,18];
-  if (kind === 'boss' || kind === 'hidden') return [0, 13];
+  if (kind === 'bossPrep') return [0,6];
+  if (kind === 'boss' || kind === 'hidden') return [0, 6];
   return ['pen','prep','normal'].includes(kind) ? [6, 18] : [6, 13];
 }
 
@@ -303,7 +303,7 @@ export function renderInfo(u) {
     // DESIGN §16 loadout of an ally (UnitInfo.skillIndex / moduleId): the Spine actor plays that skill's clip, and a
     // tap hands them to the detail card (a teammate's unit shows its owner's skill / module)
     skillIndex: Number.isInteger(u.skillIndex) ? u.skillIndex : undefined,
-    skillId:u.skillId,skillName:u.skillName,skillDescription:u.skillDescription,skillDuration:u.skillDuration,skillNextAttack:!!u.skillNextAttack,skillZoneGrid:u.skillZoneGrid,omnidirectional:!!u.omnidirectional,fixedFacing:!!u.fixedFacing,
+    skillId:u.skillId,skillName:u.skillName,skillDescription:u.skillDescription,skillDuration:u.skillDuration,skillNextAttack:!!u.skillNextAttack,rangeGrid:u.rangeGrid,skillZoneGrid:u.skillZoneGrid,omnidirectional:!!u.omnidirectional,fixedFacing:!!u.fixedFacing,
     skinId: u.skinId, charId: u.charId,
     profession:u.profession,subProf:u.subProf,attackType:u.attackType,
     optionalRecruit:!!u.optionalRecruit,energy:u.energy,energyMax:u.energyMax,
@@ -551,7 +551,7 @@ export async function createFieldView(host, options = {}) {
   const heightAt = (r, c) => (tiles ? tiles.heightAt(r, c) : 0);
   const ctx = {
     P, layers, assets, settings, fx: null, shadowTex: shadowTexture(),
-    cam: () => cam, heightAt,
+    cam: () => cam, heightAt, tileAt: (r,c) => tiles.tile(r,c),
     animRate: () => (mode === 'battle' && !battleMeta?.prep ? interp.rate : 1),
     timeScale: () => (mode === 'battle' && !battleMeta?.prep ? interp.rate : 1),
     lookupDef: (info) => (info.side === 'enemy' ? data.enemy(info.defId) : data.chess(info.defId) || data.token(info.defId)),

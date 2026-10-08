@@ -212,11 +212,11 @@ const TIMES_KEYS = ['enemy_1196_msfyin', 'enemy_1196_msfyin_2', 'enemy_1198_msfs
   'enemy_1202_msfzhi', 'enemy_1202_msfzhi_2', 'enemy_1204_msfhu', 'enemy_1204_msfhu_2', 'enemy_1208_msfji', 'enemy_1208_msfji_2', 'enemy_1210_msfden', 'enemy_1210_msfden_2'];
 for (const key of TIMES_KEYS) {
   const artsOnly = /1204/.test(key);
-  test(`${nm(key)}: 频次 — needs ${E[key].stats.maxHp} × the round's HP ${artsOnly ? 'arts/true ' : ''}hits, unblockable`, () => {
+  test(`${nm(key)}: 频次 — needs ${E[key].stats.maxHp} fixed ${artsOnly ? 'arts/true ' : ''}hits, unblockable`, () => {
     const h = arena({ units: [{ chessId: 't_gun', row: 12, col: 3 }], hooks: ['death'], mods: { hpMul: 3 } });
     h.step();
-    const e = put(h, key, [10, 7], { mods: { hpMul: 3 } });   // the round's HP multiplier (攻坚装备) scales the hit count (PR #272)
-    const n = E[key].stats.maxHp * 3;
+    const e = put(h, key, [10, 7], { mods: { hpMul: 3 } });   // ordinary HP scaling must not change the hit count
+    const n = E[key].stats.maxHp;
     assert.equal(e.s.maxHp, n);
     assert.ok(e.s.flags.unblockable);
     const g = h.unit('t_gun');
@@ -238,23 +238,23 @@ test('频次 器物 vs the round effects: the 14 kitTimes keys are exactly 补�
   for (const id of ['aceffect_enemy_1', 'aceffect_enemy_3', 'aceffect_enemy_4', 'aceffect_enemy_5']) assert.deepEqual([...excludeOf(id)], ['enemy_9012_acloon'], id);
 });
 
-test('频次 器物: hits = data × hpMul / supplyHpMul (补给线\'s share out, 攻坚装备 kept), rounded [ASSUMED]; a 频次 enemy\'s death spawn inherits that', () => {
-  const h = arena();
-  h.step();
-  // co-op 终极 R6: hp 1.2⁴ × 1.08 (补给线) — the mirror takes 1.2⁴ only: 30 × 2.0736 = 62.2 → 62
+test('hit-count HP remains fixed through difficulty scaling, death summons and HP buffs', () => {
+  const h = arena();h.step();
   const mods = { hpMul: 2.239488, atkMul: 1.4641, speedMul: 0, supplyHpMul: 1.08 };
-  const jin = put(h, 'enemy_1200_msfjin', [10, 7], { mods });
-  assert.equal(jin.s.maxHp, 62);
-  const parent = put(h, 'enemy_1199_sfjin', [10, 9], { mods });
-  approx(parent.s.maxHp, E.enemy_1199_sfjin.stats.maxHp * 2.239488, 1e-9, '身观 itself takes 补给线');
-  h.b.kill(parent, null);
-  h.step();
-  const child = h.enemies().find((e) => e.defId === 'enemy_1200_msfjin' && e !== jin);
-  assert.ok(child, '身观 leaves its 青铜镜');
-  assert.equal(child.s.maxHp, 62);
-  // solo 标准 (攻坚装备III, HP ×0.75): fewer hits — 2 → 1.5 → 2, 3 → 2.25 → 2, 30 → 22.5 → 23
-  for (const [key, n] of [['enemy_1196_msfyin', 2], ['enemy_1196_msfyin_2', 2], ['enemy_1200_msfjin', 23]]) assert.equal(put(h, key, [11, 7], { mods: { hpMul: 0.75 } }).s.maxHp, n, key);
-  assert.equal(put(h, 'enemy_1196_msfyin', [11, 8]).s.maxHp, 2, 'no mods: the data\'s count');
+  const jin=put(h,'enemy_1200_msfjin',[10,7],{mods});
+  assert.equal(jin.s.maxHp,30);
+  h.b.addBuff(jin,{key:'test:hp',mods:{hpMul:3,hpPct:1,hpFlat:50},persist:true});
+  assert.equal(jin.s.maxHp,30,'HP bonuses do not add hit points');
+  const parent=put(h,'enemy_1199_sfjin',[10,9],{mods});
+  approx(parent.s.maxHp,E.enemy_1199_sfjin.stats.maxHp*mods.hpMul,1e-9,'ordinary parent HP still scales');
+  h.b.kill(parent,null);h.step();
+  const child=h.enemies().find(e=>e.defId==='enemy_1200_msfjin'&&e!==jin);
+  assert.ok(child);assert.equal(child.s.maxHp,30);
+  for(const key of TIMES_KEYS)for(const hpMul of [.75,1,1.5,3]) {
+    const enemy=put(h,key,[11,7],{mods:{hpMul,supplyHpMul:1.08}});
+    assert.equal(enemy.hp,E[key].stats.maxHp,key+' HP');
+    assert.equal(enemy.s.maxHp,E[key].stats.maxHp,key+' maximum');
+  }
 });
 
 for (const key of ['enemy_1200_msfjin', 'enemy_1204_msfhu', 'enemy_1288_duskls']) {
@@ -2236,7 +2236,7 @@ test('leader summons take the round\'s enemy effects (flags.enemyScale): HP — 
     assert.ok(h.runUntil(() => alive(h, 'enemy_9016_acstmr').length > 0, 90), `${key}: 刺胄之弹`);
     const shell = alive(h, 'enemy_9016_acstmr')[0];
     stats(shell, `${key} 刺胄之弹`);
-    assert.equal(shell.s.maxHp, E.enemy_9016_acstmr.stats.maxHp * 2, `${key} 刺胄之弹: hits × the round's HP`);
+    assert.equal(shell.s.maxHp, E.enemy_9016_acstmr.stats.maxHp, `${key} 刺胄之弹: fixed hits regardless of round HP`);
   }
   const p = bossArena({ flags: { enemyScale }, setup: setTpl('act1autochess_h07_03') });
   p.step();
@@ -2244,7 +2244,7 @@ test('leader summons take the round\'s enemy effects (flags.enemyScale): HP — 
   assert.ok(p.runUntil(() => alive(p, 'enemy_9023_acdums').length > 0, 90), '假想敌：管 summons');
   const echo = alive(p, 'enemy_9023_acdums')[0];
   stats(echo, '余音');
-  assert.equal(echo.s.maxHp, E.enemy_9023_acdums.stats.maxHp * 2, '余音: hits × the round\'s HP');
+  assert.equal(echo.s.maxHp, E.enemy_9023_acdums.stats.maxHp, '余音: fixed hit count');
   // without the flag (tools, tests): the data's numbers
   const q = bossArena({ units: [{ chessId: 't_wall', row: 10, col: 6 }], setup: setTpl('act1autochess_h07_01') });
   q.step();
@@ -2490,7 +2490,7 @@ test('假想敌：铳: unblockable, targets the highest DEF in range, ASPD ramps
   h.runUntil(() => e.stats.attacks >= 3, 120);
   assert.equal(h.unit('t_wall').stats.taken, 0);
   assert.ok(h.unit('t_wall2').stats.taken > 0);
-  assert.equal(e.s.aspd, 2 * tb('enemy_9017_achunt', '2.attack_speed'));
+  assert.equal(e.s.aspd, 3 * tb('enemy_9017_achunt', '2.attack_speed'), 'the first attack already gains one stack');
   assert.ok(h.unit('t_wall2').elem[EROSION] > 0);
 });
 

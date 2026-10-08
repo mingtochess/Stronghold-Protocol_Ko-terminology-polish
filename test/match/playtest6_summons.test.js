@@ -285,3 +285,13 @@ test('a summon stack left in temp at the prep deadline comes back next round (PR
   checkInvariants(m);
   m.dispose();
 });
+
+ test('an operator dragged onto its own deployed summon swaps both pieces without losing the summon',()=>{
+ const {m,ps}=prep();const cat=give(m,ps,CATHY);
+ assert.deepEqual(move(m,cat.uid,{area:'board',row:10,col:4}),{ok:true});
+ const card=stackOf(ps,DEVICE);assert.deepEqual(move(m,card.uid,{area:'board',row:10,col:3}),{ok:true});
+ const tok=ps.board.get('10,3'),count=tokensOf(ps,DEVICE).reduce((n,p)=>n+(p.count||1),0);
+ assert.deepEqual(move(m,cat.uid,{area:'board',row:10,col:3}),{ok:true});
+ assert.equal(ps.board.get('10,3')?.uid,cat.uid);assert.equal(ps.board.get('10,4')?.uid,tok.uid);
+ assert.equal(tokensOf(ps,DEVICE).reduce((n,p)=>n+(p.count||1),0),count);checkInvariants(m);m.dispose();
+ });

@@ -611,7 +611,7 @@ function seaborn(bb, raw, def) {
           }
         } else if (healRatio > 0) {
           const ownerKeys = o && o.alive && o.deployed ? (o.rangeKeySet || new Set(o.rangeKeys || [])) : null;
-          for (const a of battle.alliesInGrid(unit)) {
+          for (const a of battle.alliesInGrid(unit, { includeDevices: true })) {
             if (a === unit) continue;
             if (ownerKeys && ownerKeys.has(a.tileR * COLS + a.tileC)) continue; // the owner's own trait already covers it
             bardRegen(battle, o ?? unit, a, atk * healRatio, 1.25); // refreshed every second

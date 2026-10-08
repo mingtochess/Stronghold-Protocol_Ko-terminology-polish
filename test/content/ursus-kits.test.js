@@ -25,10 +25,10 @@ test('All 19 Ursus skills, normal and elite: selected authored runtime and compl
  }}assert.equal(total,38);
  }finally{setGameData(null)}
 });
-test('Botani acquisition adds six / twelve Ursus/Swift layers even while inactive; morph grants Ursus only when paired',{skip:!ready},()=>{
+test('Botani acquisition adds six / twelve Ursus/Miracle layers even while inactive; morph grants Ursus only when paired',{skip:!ready},()=>{
  const h=makeMatch({data,customFactions:true,mode:'solo',fake:true}).start();h.toPrep(1);const ps=h.ps('p_0');ps.layers={};ps.board.clear();ps.hand.fill(null);ps.temp.fill(null);ps.recompute();
- ps.acquireChess(id('botany'),{source:'test'});assert.equal(ps.layers.ursusShip,6);assert.equal(ps.layers.swiftShip,6);assert.equal(!!ps.bonds.ursusShip?.active,false);
- ps.acquireChess(id('botany',true),{source:'test'});assert.equal(ps.layers.ursusShip,18);assert.equal(ps.layers.swiftShip,18);
+ ps.acquireChess(id('botany'),{source:'test'});assert.equal(ps.layers.ursusShip,6);assert.equal(ps.layers.miraShip,6);assert.equal(!!ps.bonds.ursusShip?.active,false);
+ ps.acquireChess(id('botany',true),{source:'test'});assert.equal(ps.layers.ursusShip,18);assert.equal(ps.layers.miraShip,18);
  const gd=new GameData(data),base=Object.values(data.chess).find(c=>c.visible&&!c.isGolden&&!c.bonds.includes('ursusShip')).chessId;
  assert.ok(!pieceBonds(gd,{id:base,items:[{id:'chess_item_custom_ursus_a'}]}).includes('ursusShip'));
  for(const suffix of ['a','b'])assert.ok(pieceBonds(gd,{id:base,items:[{id:`chess_item_custom_ursus_${suffix}`},{id:'chess_item_6_09_e_a'}]}).includes('ursusShip'));
@@ -220,9 +220,9 @@ test('in-place Ukusik promotion uses the upgraded prep trait on the same piece',
  const h=makeMatch({data,customFactions:true,mode:'solo',fake:true}).start();h.toPrep(1);const ps=h.ps('p_0');
  ps.board.clear();ps.hand.fill(null);ps.temp.fill(null);ps.layers={};ps.bandId=null;
  const p=ps.acquireChess(id('turdus'),{source:'test'});ps.hand.fill(null);ps.board.set('10,3',p);ps.bondCountBonus.ursusShip=3;ps.recompute();
- h.m.dispatch(ps,'onRoundStart',{});assert.equal(ps.layers.ursusShip,4);
+ h.m.dispatch(ps,'onRoundStart',{});assert.equal(ps.layers.ursusShip,3);
  assert.ok(ps.promote(p));assert.equal(p.id,id('turdus',true));
- h.m.dispatch(ps,'onRoundStart',{});assert.equal(ps.layers.ursusShip,12,'elite contributes eight, not four');h.m.dispose();
+ h.m.dispatch(ps,'onRoundStart',{});assert.equal(ps.layers.ursusShip,9,'elite contributes six after the normal three');h.m.dispose();
 });
 
 test('Zima S3 fires all five rounds at its fixed front tile without enemies',{skip:!ready},()=>{

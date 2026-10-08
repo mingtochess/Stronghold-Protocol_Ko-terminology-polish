@@ -4,11 +4,14 @@ import {DEDICATED_TEXTURES,dedicatedProjectile} from './dedicatedEffects.js';
 import {assets} from '../assets.js';
 import {projectileMaterial} from './effectArt.js';
 import {projectileStyle,meleeStyle} from './projectileStyle.js';
-export function wideAttackEffect(info, active) {
-  if ((['spreadshooter','reaperrange'].includes(info?.subProf) || info?.charId === 'char_279_excu' || (info?.omnidirectional && info?.attackType !== 'heal'))) return true;
-  if (!active) return false;
-  return (info?.skillIndex === 2 && ['char_172_svrash','char_213_mostma','char_4064_mlynar','char_426_billro','char_4080_lin'].includes(info.charId)) || info?.subProf === 'phalanx';
+export function wideAttackFamily(info, active) {
+  if (['spreadshooter','reaperrange'].includes(info?.subProf) || info?.charId === 'char_279_excu') return 'cone';
+  if (!active) return null;
+  if (info?.skillIndex === 2 && ['char_172_svrash','char_4064_mlynar'].includes(info.charId)) return 'blade';
+  if (info?.subProf === 'phalanx' || (info?.skillIndex === 2 && info?.charId === 'char_213_mostma')) return 'pulse';
+  return null;
 }
+export function wideAttackEffect(info, active) { return !!wideAttackFamily(info,active); }
 // render/fx.js — battle visual effects with pooling and hard caps (DESIGN §9).
 //
 //   projectiles  b.ev 'atk' by projKind (render/style.js PROJ): sniper tracers with a muzzle flash; arts / heal / enemy
@@ -126,25 +129,20 @@ const ANCHOR_SNAP = 0.75;
 const SKILL_GOLD = 0xffd45a;
 const NO_OPTS = Object.freeze({});
 const clamp = (v, lo, hi) => (v < lo ? lo : v > hi ? hi : v);
-/**
- * Shot heights (GitHub #61): where a shot or beam leaves a unit (`launch`, ≈ its hands) and where shots, beams and lock
- * marks meet a unit (`aim`, ≈ its chest), as shares of the drawn model's height above the feet (`_headTiles`). The
- * models are upright screen billboards, so these are heights on screen, solved into world heights through the camera
- * (projection.js liftFor, `bodyZ`): 0.45 × the head height taken as a WORLD height drew at ≈ 18 % of the model under the
- * 30° pitch — shots left the hips and aimed at the targets' hips. [ASSUMED] the shares (a battle chibi's hands / chest;
- * the data has no official muzzle points).
- */
+/** Fractions of authored model height used by world-space attack anchors. */
 export const SHOT_HEIGHT = Object.freeze({ launch: 0.45, aim: 0.5 });
-/** World height of the point `frac` of a unit's drawn model height above its feet (SHOT_HEIGHT), seen through `cam`. */
-export function bodyZ(cam, v, frac) {
-  const z0 = (v.z || 0) + (v.hover || 0);
-  const h = (v._headTiles || 1.2) * frac;
-  if (!cam || typeof cam.liftFor !== 'function') return z0 + h;
-  const dz = cam.liftFor(v.x, v.y, z0, h * cam.scaleAt(v.x, v.y, z0));
-  return Number.isFinite(dz) ? z0 + dz : z0 + h;
+// Assets are upright sprites authored for the original 30-degree battle view.
+// Convert their model height once using that fixed reference, never the live camera.
+export const MODEL_WORLD_HEIGHT = 2;
+export function bodyZ(_cam, v, frac) {
+  return (v.z || 0) + (v.hover || 0) + (v.waterSink || 0) + (v._headTiles || 1.2) * MODEL_WORLD_HEIGHT * frac;
+}
+/** Camera-independent world anchor, including the giant body's authored horizontal offset. */
+export function bodyPoint(_cam, v, frac) {
+  return {x:v.x+(v.bossArea?.dx||0),y:v.y,z:bodyZ(null,v,frac)};
 }
 /** World height just above a unit's feet (where shells land). */
-const feetZ = (v) => (v.z || 0) + (v.hover || 0) + 0.2;
+const feetZ = (v) => (v.z || 0) + (v.hover || 0) + (v.waterSink || 0) + 0.2;
 /** Cheap fingerprint of a camera's framing (the damage-number layout cache is reused only while it is unchanged). */
 const camKey = (c) => (c ? c.tx + c.ty * 1e3 + c.tz * 1e6 + c.tilt * 7.13 + c.dist * 1e4 + c.scale * 3.7e-2 + c.cx * 1.1e-5 + c.cy * 1.3e-8 : 0);
 /** Characters of a damage number as drawn (heals get a '+'). */
@@ -415,18 +413,19 @@ export class FxSystem {
     this._particleAnchor=Number.isFinite(x)&&Number.isFinite(y)?{x,y,z:z||0}:previous;
     try{return fn()}finally{this._particleAnchor=previous}
   }
-  attack(src,tgt,kind){return src?this._anchored(src.x,src.y,bodyZ(this.ctx.cam(),src,SHOT_HEIGHT.launch),()=>this._attack(src,tgt,kind)):undefined}
-  damage(view,...args){return view?this._anchored(view.x,view.y,bodyZ(this.ctx.cam(),view,SHOT_HEIGHT.aim),()=>this._damage(view,...args)):undefined}
-  heal(view,...args){return view?this._anchored(view.x,view.y,bodyZ(this.ctx.cam(),view,SHOT_HEIGHT.aim),()=>this._heal(view,...args)):undefined}
-  skill(view,...args){return view?this._anchored(view.x,view.y,bodyZ(this.ctx.cam(),view,SHOT_HEIGHT.aim),()=>this._skill(view,...args)):undefined}
+  _bodyAnchored(view,frac,fn){const p=bodyPoint(this.ctx.cam(),view,frac);return this._anchored(p.x,p.y,p.z,fn)}
+  attack(src,tgt,kind){return src?this._bodyAnchored(src,SHOT_HEIGHT.launch,()=>this._attack(src,tgt,kind)):undefined}
+  damage(view,...args){return view?this._bodyAnchored(view,SHOT_HEIGHT.aim,()=>this._damage(view,...args)):undefined}
+  heal(view,...args){return view?this._bodyAnchored(view,SHOT_HEIGHT.aim,()=>this._heal(view,...args)):undefined}
+  skill(view,...args){return view?this._bodyAnchored(view,SHOT_HEIGHT.aim,()=>this._skill(view,...args)):undefined}
   explosion(x,y,z,...args){return this._anchored(x,y,z,()=>this._explosion(x,y,z,...args))}
-  _impact(pr,cam){return this._anchored(pr.tx,pr.ty,pr.tz,()=>this._impactAnchored(pr,cam))}
+  _impact(pr,cam){return pr.tgt&&pr.spec.look!=='shell'?this._bodyAnchored(pr.tgt,SHOT_HEIGHT.aim,()=>this._impactAnchored(pr,cam)):this._anchored(pr.tx,pr.ty,pr.tz,()=>this._impactAnchored(pr,cam))}
   simFx(kind,x,y,extra){
     if(kind==='bombardAim')return this._simFx(kind,x,y,extra);
     const ex=extra&&typeof extra==='object'?extra:{},spec=fxSpec(kind,ex);
     if(spec.a==='none')return;
     const at=spec.pt?this._point(Number(x),Number(y)):this._where(Number(x),Number(y),ex);
-    return this._anchored(at.x,at.y,at.z,()=>this._simFx(kind,x,y,extra));
+    return at.v&&!spec.pt?this._bodyAnchored(at.v,SHOT_HEIGHT.aim,()=>this._simFx(kind,x,y,extra)):this._anchored(at.x,at.y,at.z,()=>this._simFx(kind,x,y,extra));
   }
 
   particle(tex, x, y, o = NO_OPTS) {
@@ -514,15 +513,13 @@ export class FxSystem {
   }
 
   _chest(view, out = this._p) {
-    const z = (view.z || 0) + (view.hover || 0) + (view._headTiles ? view._headTiles * 0.45 : 0.5);
-    return this._proj(view.x, view.y, z, out);
+    return this._bodyPt(view,SHOT_HEIGHT.aim,out);
   }
 
   /** Screen point `frac` of a unit's drawn model height above its feet (SHOT_HEIGHT: beams, a mortar's muzzle). */
   _bodyPt(view, frac, out = this._p) {
-    const p = this._proj(view.x, view.y, (view.z || 0) + (view.hover || 0), out);
-    p.y -= (view._headTiles || 1.2) * frac * p.s;
-    return p;
+    const point=bodyPoint(null,view,frac);
+    return this._proj(point.x,point.y,point.z,out);
   }
 
   /** `n` sparks flying out of a screen point (halved at quality 'low'); o: speed, up, g, life, size, tex. */
@@ -543,15 +540,19 @@ export class FxSystem {
   /** b.ev 'atk' visual. src/tgt are views (tgt may be null). */
   _wideSweep(src) {
     const g=new this.P.Graphics(); this.ctx.layers.fxNormal.addChild(g);
-    const shotgun=['spreadshooter','reaperrange'].includes(src.info.subProf) || src.info.charId==='char_279_excu';
+    const family=wideAttackFamily(src.info,src.statuses?.has('skill'));
+    const shotgun=family==='cone';
     const circular=['stalker','phalanx'].includes(src.info.subProf);
-    const grid=(src.statuses?.has('skill') && src.info.skillZoneGrid?.length ? src.info.skillZoneGrid : src.info.rangeGrid) || [];
-    const radius=grid.length ? Math.max(...grid.map(([r,c])=>Math.hypot(r,c)+.5)) : shotgun?2:2.4;
+    let grid=(src.statuses?.has('skill') && src.info.skillZoneGrid?.length ? src.info.skillZoneGrid : src.info.rangeGrid) || [];
+    if(src.statuses?.has('skill') && src.skillTiles?.length){grid=src.skillTiles.map(([r,c])=>{const dr=r-src.y,dc=c-src.x;return src.dir==='UP'?[-dc,dr]:src.dir==='LEFT'?[-dr,-dc]:src.dir==='DOWN'?[dc,-dr]:[dr,dc];});}
+    if(!grid.length){g.destroy();return false;}
+    const radius=Math.max(...grid.map(([r,c])=>Math.hypot(r,c)+Math.SQRT1_2));
     // World rows increase upwards. Facing is the stored deployment direction,
     // independent of transient horizontal target flips.
     const angle={RIGHT:0,UP:Math.PI/2,LEFT:Math.PI,DOWN:-Math.PI/2}[src.dir] ?? 0;
     const color=src.statuses?.has('skill')?skillRangeStyle(src.info).color:shotgun?0xf2c580:({'char_4064_mlynar':0xffd65c,'char_172_svrash':0xb6e4f4,'char_213_mostma':0x738bfa}[src.info.charId] || (src.info.attackType==='arts'?0xa7c6f4:0xdfead9));
-    this.sweeps.push({g,x:src.x,y:src.y,angle,radius,grid,t:0,dur:shotgun?.25:.38,color,spread:shotgun?Math.PI*.6:circular?Math.PI*2:Math.PI});
+    this.sweeps.push({g,family,x:src.x,y:src.y,angle,radius,grid,t:0,dur:shotgun?.25:.38,color,spread:shotgun?Math.PI*.6:circular?Math.PI*2:Math.PI});
+    return true;
   }
 
   _updateSweeps(dt) {
@@ -559,11 +560,11 @@ export class FxSystem {
       a.t+=dt;if(a.t>=a.dur){a.g.destroy();return false;}
       const k=a.t/a.dur,cam=this.ctx.cam(),r=a.radius*(.12+.88*k);
       a.g.clear();
-      for(const [width,opacity,lag] of [[.22,.30,0],[.045,.95,0],[.085,.16,.15]]){
+      for(const [width,opacity,lag] of (a.family==='cone'?[[r*.55,.18,0],[.09,.75,0]]:a.family==='pulse'?[[.16,.28,0],[.055,.8,0],[.07,.2,.25]]:[[.22,.30,0],[.045,.95,0],[.085,.16,.15]])){
         const outer=Math.max(.04,r-lag),inner=Math.max(.02,outer-width),points=[];
         for(const [edge,reverse] of [[outer,false],[inner,true]])for(let i=0;i<=48;i++){
           const f=(reverse?48-i:i)/48,angle=a.angle-a.spread/2+f*a.spread;
-          const taper=a.spread>=Math.PI*1.99?1:Math.pow(Math.sin(Math.PI*f),.45);
+          const taper=a.family!=='blade' || a.spread>=Math.PI*1.99?1:Math.pow(Math.sin(Math.PI*f),.45);
           let radius=reverse?outer-(outer-inner)*taper:edge;
           if(a.grid?.length){
             const local=angle-a.angle,dx=Math.cos(local),dy=Math.sin(local);let limit=0;
@@ -573,7 +574,7 @@ export class FxSystem {
           const x=a.x+Math.cos(angle)*radius,y=a.y+Math.sin(angle)*radius,p=cam.project(x,y,this._groundZ(x,y)+.10);
           points.push(p.x,p.y);
         }
-        a.g.lineStyle(0);a.g.beginFill(width===.045 ? 0xfff8e9 : a.color,opacity);a.g.drawPolygon(points);a.g.endFill();
+        a.g.lineStyle(0);a.g.beginFill(a.family==='blade' && width===.045 ? 0xfff8e9 : a.color,opacity);a.g.drawPolygon(points);a.g.endFill();
       }
       a.g.alpha=Math.pow(1-k,.45);
       return true;
@@ -582,9 +583,10 @@ export class FxSystem {
 
   _attack(src, tgt, kind) {
     if (src?.info.charId === "char_4182_oblvns") return; // Actual note positions arrive in snapshots.
+    if(src){if(!this.attackKinds)this.attackKinds=new Map();this.attackKinds.set(src.id,kind||'none');}
     if (wideAttackEffect(src?.info, src?.statuses?.has('skill'))) {
-      if (src._wideAttackFxTime !== this.time) { src._wideAttackFxTime=this.time; this._wideSweep(src); }
-      return;
+      if (src._wideAttackFxTime === this.time) return;
+      if (this._wideSweep(src)) { src._wideAttackFxTime=this.time; return; }
     }
     if (!src) return;
     if (!this.attackKinds) this.attackKinds = new Map();
@@ -609,8 +611,8 @@ export class FxSystem {
     const hand = Math.min(0.28, dist * 0.3);   // the weapon is in front of the body
     const look = spec.look;
     pr.kind = kind; pr.spec = spec; pr.src = src; pr.tgt = tgt; pr.rise = 0;
-    pr.x0 = src.x + ux * hand; pr.y0 = src.y + uy * hand; pr.z0 = bodyZ(cam, src, SHOT_HEIGHT.launch);
-    pr.tx = tgt.x; pr.ty = tgt.y; pr.tz = look === 'shell' ? feetZ(tgt) : bodyZ(cam, tgt, SHOT_HEIGHT.aim);
+    pr.x0 = src.x+(src.bossArea?.dx||0) + ux * hand; pr.y0 = src.y + uy * hand; pr.z0 = bodyZ(cam, src, SHOT_HEIGHT.launch);
+    pr.tx=tgt.x+(tgt.bossArea?.dx||0);pr.ty=tgt.y;pr.tz=look==='shell'?feetZ(tgt):bodyZ(cam,tgt,SHOT_HEIGHT.aim);
     pr.t = 0; pr.fade = 0; pr.hit = false; pr.emit = Math.random(); pr.ang = Math.atan2(-uy, ux);   // ≈ on screen (rows run up)
     pr.dur = clamp(dist / projSpeed(kind) / this._ts(), 0.04, 1.5);
     pr.arc = spec.arc ? spec.arc * clamp(0.45 + dist * 0.18, 0.6, 1.8) : 0;
@@ -699,7 +701,7 @@ export class FxSystem {
   _shotPoint(pr, k, cam, out) {
     const x = pr.x0 + (pr.tx - pr.x0) * k, y = pr.y0 + (pr.ty - pr.y0) * k;
     const z = pr.z0 + (pr.tz - pr.z0) * k + (pr.arc ? pr.arc * 4 * k * (1 - k) : 0);
-    return cam.project(x, y, z, out);
+    return cam.project(x,y,z,out);
   }
 
   /**
@@ -710,7 +712,7 @@ export class FxSystem {
     const spec = pr.spec, look = spec.look;
     pr.t += dt;
     const tg = pr.tgt;
-    if (tg && !tg.destroyed && tg.alive !== false) { pr.tx = tg.x; pr.ty = tg.y; pr.tz = look === 'shell' ? feetZ(tg) : bodyZ(cam, tg, SHOT_HEIGHT.aim); }
+    if (tg && !tg.destroyed && tg.alive !== false) { pr.tx=tg.x+(look==='shell'?0:tg.bossArea?.dx||0);pr.ty=tg.y;pr.tz=look==='shell'?feetZ(tg):bodyZ(cam,tg,SHOT_HEIGHT.aim); }
     const k = Math.min(1, pr.t / pr.dur);
     if (k >= 1 && !pr.hit) { pr.hit = true; pr.fade = 0; this._impact(pr, cam); }
     let fk = 0;
@@ -791,12 +793,12 @@ export class FxSystem {
     let gx, gy, gz;
     if (pr.phase === 0) {
       const tg = pr.tgt;
-      if (tg && !tg.destroyed && tg.alive !== false) { pr.tx = tg.x; pr.ty = tg.y; pr.tz = bodyZ(cam, tg, SHOT_HEIGHT.aim); }
+      if (tg && !tg.destroyed && tg.alive !== false) { pr.tx=tg.x+(tg.bossArea?.dx||0);pr.ty=tg.y;pr.tz=bodyZ(cam,tg,SHOT_HEIGHT.aim); }
       gx = pr.tx; gy = pr.ty; gz = pr.tz;
     } else {
       const sv = pr.src;
       if (!sv || sv.destroyed || sv.alive === false) return false;
-      gx = sv.x; gy = sv.y; gz = bodyZ(cam, sv, SHOT_HEIGHT.launch);
+      gx=sv.x+(sv.bossArea?.dx||0);gy=sv.y;gz=bodyZ(cam,sv,SHOT_HEIGHT.launch);
     }
     const dx = gx - pr.bx, dy = gy - pr.by, dz = gz - pr.bz;
     const d = Math.hypot(dx, dy, dz);
@@ -962,7 +964,7 @@ export class FxSystem {
   /** Arrival burst of a shot (PROJ `hit`): at the target, or the ground under it for shells. */
   _impactAnchored(pr, cam) {
     const spec = pr.spec;
-    const p = cam.project(pr.tx, pr.ty, pr.tz, this._g);
+    const p = pr.tgt&&spec.look!=='shell'?this._bodyPt(pr.tgt,SHOT_HEIGHT.aim,this._g):cam.project(pr.tx,pr.ty,pr.tz,this._g);
     const x = p.x, y = p.y, s = p.s;
     const rich = this.rich;
     switch (spec.hit) {
@@ -1287,7 +1289,7 @@ export class FxSystem {
       }
       if (L.out >= 0) { L.out += dt; if (L.out >= LOCK_FADE) { this._freeLock(L); continue; } }
       const v = L.view;
-      if (v && !v.destroyed && v.alive !== false) { L.x = v.x; L.y = v.y; L.z = bodyZ(cam, v, SHOT_HEIGHT.aim); }
+      if (v && !v.destroyed && v.alive !== false) { const aim=bodyPoint(cam,v,SHOT_HEIGHT.aim);L.x=aim.x;L.y=aim.y;L.z=aim.z; }
       const p = cam.project(L.x, L.y, L.z, this._p);
       const s = p.s;
       const out = L.out >= 0 ? L.out / LOCK_FADE : 0;
@@ -1361,7 +1363,7 @@ export class FxSystem {
       }
     }
     this.ctx.layers.fxNormal.addChild(g);
-    this.contacts.push({g,t:0,dur:family==='impact'?.09:.12,x:view.x,y:view.y,z:bodyZ(this.ctx.cam(),view,SHOT_HEIGHT.aim),s});
+    this.contacts.push({g,t:0,dur:family==='impact'?.09:.12,...bodyPoint(this.ctx.cam(),view,SHOT_HEIGHT.aim),s});
     if(this.contacts.length>80)this.contacts.shift().g.destroy();
   }
 
@@ -1389,9 +1391,9 @@ export class FxSystem {
     const now = this.time;
     const cam = this.ctx.cam();
     const base = (view.z || 0) + (view.hover || 0) + (view._headTiles || 1.2) * 0.8 + 0.22;
-    const a = cam.project(view.x, view.y, base, this._p);
+    const a = cam.project(view.x+(view.bossArea?.dx||0), view.y, base, this._p);
     const ax = a.x, ay = a.y, s = a.s > 0 ? a.s : 100;
-    const pxPerZ = ay - cam.project(view.x, view.y, base + 1, this._q).y;
+    const pxPerZ = ay - cam.project(view.x+(view.bossArea?.dx||0), view.y, base + 1, this._q).y;
     const risePx = NUM_RISE * (pxPerZ > 1e-3 ? pxPerZ : s * 0.5);
     // the live boxes only change between frames: laid out once per frame / camera, not once per hit (a heavy AoE
     // lands dozens of hits in one frame — re-projecting every live number for each was O(hits × numbers))
@@ -1434,7 +1436,7 @@ export class FxSystem {
     t.text.text = (style === 'heal' ? '+' : '') + n;
     Object.assign(t, {
       unit: view, style, value: n, life: 0, end: life, born: now, lastHit: now, pop: 1, big: !!big, fading: false,
-      ox: cx - ax, oy: cy - ay, x0: view.x, y0: view.y, z0: base, risePx, _x: cx, _y: cy, _w: w, _h: h,
+      ox: cx - ax, oy: cy - ay, x0: view.x+(view.bossArea?.dx||0), y0: view.y, z0: base, risePx, _x: cx, _y: cy, _w: w, _h: h,
     });
     this.nums.push(t);
   }
@@ -1449,7 +1451,7 @@ export class FxSystem {
     const p = this._p;
     for (const t of this.nums) {
       const u = t.unit;
-      if (u && !u.destroyed) { t.x0 = u.x; t.y0 = u.y; }
+      if (u && !u.destroyed) { t.x0 = u.x+(u.bossArea?.dx||0); t.y0 = u.y; }
       cam.project(t.x0, t.y0, t.z0, p);
       t._s = p.s;
       const k = Math.min(1, t.life / NUM_RISE_T);
@@ -1717,7 +1719,7 @@ export class FxSystem {
     const v = this._viewOf(ex.id);
     if (v && Number.isFinite(v.x) && Number.isFinite(v.y)) {
       const here = !Number.isFinite(x) || !Number.isFinite(y) || Math.hypot(v.x - x, v.y - y) <= ANCHOR_SNAP;
-      if (here) return { x: v.x, y: v.y, z: (v.z || 0) + (v.hover || 0), v };
+      if (here) return { x: v.x, y: v.y, z: (v.z || 0) + (v.hover || 0) + (v.waterSink || 0), v };
     }
     return this._point(x, y);
   }
@@ -1912,11 +1914,12 @@ export class FxSystem {
           // `id` is always the locked enemy: the reticle sticks to its view even a little off the event's spot
           const lv = at.v || this._viewOf(ex.id);
           this._touchLocks(ex.src ?? null);
-          this._lock(lv, ex.src ?? null, lv ? lv.x : at.x, lv ? lv.y : at.y, lv ? bodyZ(cam, lv, SHOT_HEIGHT.aim) : at.z + 0.55);
+          const aim=lv?bodyPoint(cam,lv,SHOT_HEIGHT.aim):{x:at.x,y:at.y,z:at.z+.55};
+          this._lock(lv,ex.src??null,aim.x,aim.y,aim.z);
           break;
         }
         const v = at.v;
-        const hz = v ? (v.z || 0) + (v.hover || 0) + (v._headTiles || 1.2) + 0.25 : at.z + 1.4;
+        const hz = v ? bodyZ(null,v,1) + 0.25 : at.z + 1.4;
         const q = cam.project(at.x, at.y, hz, this._q);
         if (spec.a === 'mark') {
           this.particle('glow', q.x, q.y, { tint: col, life: 0.6, s0: q.s / 128 * 0.5, s1: q.s / 128 * 0.7, a0: 0.8, a1: 0 });
@@ -1948,7 +1951,7 @@ export class FxSystem {
       }
       case 'sleep': {
         const v = at.v;
-        const hz = v ? (v.z || 0) + (v._headTiles || 1.2) : at.z + 1.2;
+        const hz = v ? bodyZ(null,v,1) : at.z + 1.2;
         const q = cam.project(at.x + 0.2, at.y, hz, this._q);
         for (let i = 0; i < 3; i++) this.particle('st_sleep', q.x + i * q.s * 0.12, q.y - i * q.s * 0.12, { add: false, vy: -q.s * 0.5, vx: q.s * 0.15, life: 0.9 + i * 0.2, s0: q.s / 32 * 0.22, s1: q.s / 32 * 0.32, a0: 1, a1: 0, fadeIn: 0.1 * i });
         break;
@@ -2294,7 +2297,7 @@ export class FxSystem {
     if(!attacking || ranged || !view.alive || view.down || view.flags & 4){
       if(rec){rec.samples.length=0;rec.g.clear();}return;
     }
-    if(!slots || !sp.toGlobal || !cam.unproject)return;
+    if(!slots)return;
     const weapon=slots.find(slot=>/weapon|sword|blade|spear|hammer|knife|katana|lance|rapier|scythe|axe|mace/i.test((slot.data?.name || '')+' '+(slot.getAttachment?.()?.name || '')) && (slot.getAttachment?.()?.offset?.length>=8 || slot.getAttachment?.()?.worldVerticesLength>=4));
     if(!weapon)return;
     const att=weapon.getAttachment(),bone=weapon.bone;
@@ -2312,12 +2315,10 @@ export class FxSystem {
       if(d>far){far=d;tip={x,y};}
     }
     if(!tip)return;
-    // Atlas impostors park their Spine off-screen. Project bone coordinates
-    // through the displayed unit container, never through the parked skeleton.
-    const scale=cam.project(view.x,view.y,view.z+view.hover).s*UNIT.modelScale*(view.modelK || 1);
-    const screen=view.body?.toGlobal ? view.body.toGlobal({x:tip.x*scale*(view.flipValue ?? 1),y:tip.y*scale}) : sp.toGlobal(tip);
-    const z=view.z+view.hover,world=cam.unproject(screen.x,screen.y,z,{});
-    if(!world)return;
+    // Skeleton coordinates are model-local; retain the same world vertex through camera changes.
+    const modelScale=UNIT.modelScale*(view.modelK||1),flip=view.flipValue??1;
+    const world={x:view.x+(view.bossArea?.dx||0)+(tip.x-(view.bossModelCenter||0))*modelScale*flip,y:view.y};
+    const z=(view.z||0)+(view.hover||0)-tip.y*modelScale*MODEL_WORLD_HEIGHT;
     if(!rec){const g=new this.P.Graphics();this.projLayer.addChild(g);rec={g,samples:[],age:0,actor};this.weaponTrails.set(view,rec);}
     if(rec.actor!==actor){rec.samples.length=0;rec.actor=actor;}
     rec.age+=dt;
@@ -2353,7 +2354,7 @@ export class FxSystem {
       let g=this.noteSprites.get(key);
       if(!g){g=new this.P.Graphics();g.blendMode=this.P.BLEND_MODES.NORMAL;this.projLayer.addChild(g);this.noteSprites.set(key,g);}
       const p=cam.project(x,y,.55),base=cam.project(x,y,0),s=Math.max(10,base.s*.19),tint=type==='arts'?0xd5a1ff:0x99eaff;
-      g.clear();g.position.set(p.x,p.y);
+      g.clear();g.position.set(p.x,p.y);g.scale.set(.5);
       g.lineStyle(1.6,tint,.94);g.beginFill(tint,.13);g.drawCircle(0,0,s);g.endFill();
       g.lineStyle(2,0xffffff,.85);g.arc(0,0,s*.82,Math.PI*1.08,Math.PI*1.55);
       g.lineStyle(1,0xffb8e8,.8);g.arc(0,0,s*.92,.12,.95);

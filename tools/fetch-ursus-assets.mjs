@@ -13,6 +13,7 @@ const dl=new Downloader({root,ledgerPath:join(ROOT,'.cache/ursus-assets-ledger.j
 const jobs=[],models=new Map();
  jobs.push({rel:'custom/ursus/icon-full.png',urls:[RAW.aa2+'arts/camplogo/logo_ursus.png'],kind:'png'});
  jobs.push({rel:'custom/ursus/item/ursus-cutlass.png',urls:[RAW.aa2+'arts/ui/rogueliketopic/itempic/rogue_1_relic_c01.png'],kind:'png'});
+jobs.push({rel:'custom/ursus/item/emperors-favor.png',urls:[RAW.aa2+'arts/ui/rogueliketopic/itempic/rogue_1_relic_a14.png'],kind:'png'});
 const job=(rel,url)=>({rel,urls:[url],kind:rel.endsWith('.png')?'png':'binary'});
 for(const o of ops){
  const c=assets.chars[o.charId]={spine:{}};

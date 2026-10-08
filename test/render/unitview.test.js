@@ -38,12 +38,11 @@ function view(info, opts = {}, assets = store()) {
 }
 
 describe('tier chips', () => {
-  test('optional recruit label updates without interrupting prep or battle frames', () => {
+  test('optional recruit never adds a battlefield label in prep or battle', () => {
     for (const prep of [true, false]) {
       const v = view({ optionalRecruit: true }, { prep });
       for (let i = 0; i < 3; i++) assert.doesNotThrow(() => v.update(1 / 60, cam(), i / 60));
-      assert.equal(v.recruitText.text, '선발');
-      assert.equal(v.recruitText.visible, true);
+      assert.equal(v.recruitText, undefined);
       v.destroy();
     }
   });

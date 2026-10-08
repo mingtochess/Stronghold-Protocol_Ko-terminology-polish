@@ -153,7 +153,7 @@ export function loadBoardPack(assets) {
       const u = url('map/original', name);
       if (!u) return;
       if (entry.kind === 'original-unity-scene') return;
-      else if (name === 'crate') original.crate = await fetchJson(u);
+      else if (entry.kind === 'original-unity-device') original[name] = await fetchJson(u);
       else if (name === 'materials') original.materials = await fetchJson(u) || {};
       else if (entry.kind === 'Texture2D') {
         const image = await assets.image(u).catch(() => null);

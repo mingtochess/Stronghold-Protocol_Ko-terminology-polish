@@ -2,6 +2,7 @@
 import {readFile,writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {indexAudio} from './assets/audio.mjs';
+import {skillCombatSounds} from './assets/skill-combat-sounds.mjs';
 import {RAW} from './assets/sources.mjs';
 export async function buildSkillSounds(root,dir){
  const read=async p=>JSON.parse(await readFile(p,'utf8'));
@@ -14,14 +15,20 @@ export async function buildSkillSounds(root,dir){
  for(const [id,records]of Map.groupBy(Object.values(chess),c=>c.charId)){
   if(!id)continue;
   const skills=new Map(records.flatMap(c=>c.skills||[c.skill]).filter(Boolean).map(s=>[s.index,s]));
-  const mapping={};
+  const mapping={},combat={};
   for(const [i,s]of skills){
    const paths=audio.bank(`battle.ON_SKILL_START.${s.skillId}`);
    const sound=paths[0];mapping[i]=null;
    if(sound){const path=`/assets/audio/sfx/${sound}`;mapping[i]=path;files.push({path,sources:[RAW.aa2voice+sound]});}
-   audit.push({charId:id,skillId:s.skillId,index:i,sound:sound||null});
+   const resolved=skillCombatSounds(audio,id,i);
+   if(Object.keys(resolved).length){combat[i]={};for(const [role,v]of Object.entries(resolved)){
+    const path=`/assets/audio/sfx/${v.path}`;combat[i][role]=path;
+    if(v.mix)(combat[i].mix ||= {})[role]=v.mix;
+    files.push({path,sources:[RAW.aa2voice+v.path]});
+   }}
+   audit.push({charId:id,skillId:s.skillId,index:i,sound:sound||null,combat:resolved,abilityBanks:Object.fromEntries(audio.unitBanks.get(id)||[])});
   }
-  units[id]={...(units[id]||{}),skills:mapping};
+  units[id]={...(units[id]||{}),skills:mapping,skillCombat:combat};
  }
  await writeFile(join(dir,'assets.json'),JSON.stringify(assets));
  await writeFile(join(root,'.cache/skill-sound-resources.json'),JSON.stringify({files:[...new Map(files.map(f=>[f.path,f])).values()]}));

@@ -210,8 +210,8 @@ for (const scenario of ['normal', 'bench merge', 'board merge']) {
     const { m, ps } = s;
     ps.bandId = 'band_chiave';
     ps.shop.level = 2;
-    const roll = m.pool.roll.bind(m.pool);
-    m.pool.roll = (rng, opts = {}) => rng === m.rngMeta && opts.filter && opts.filter(LAP) ? LAP : roll(rng, opts);
+    const roll = ps.pool.roll.bind(ps.pool);
+    ps.pool.roll = (rng, opts = {}) => rng === m.rngMeta && opts.filter && opts.filter(LAP) ? LAP : roll(rng, opts);
     give(m, ps, PROVENCE, 'board', legalTileFor(m, ps, PROVENCE));
     give(m, ps, TEXAS, 'board', legalTileFor(m, ps, TEXAS));
     if (scenario !== 'normal') {
@@ -266,7 +266,7 @@ const fillTemp = (m, ps) => {
   while (ps.temp.some((x) => x == null)) giveItem(m, ps, ids.shift(), 'temp');
 };
 /** Force the cell's roll (the random draw) of `tier` to `id`; everything else stays the real path. */
-const forceRoll = (m, tier, id) => { const roll = m.pool.roll.bind(m.pool); m.pool.roll = (rng, o = {}) => (o.tier === tier ? id : roll(rng, o)); };
+const forceRoll = (m, tier, id) => { for (const ps of m.players.values()) { const pool = ps.pool, roll = pool.roll.bind(pool); pool.roll = (rng, o = {}) => (o.tier === tier ? id : roll(rng, o)); } };
 const where = (ps, pred) => (ps.hand.some((p) => p && pred(p)) ? 'hand' : ps.temp.some((p) => p && pred(p)) ? 'temp' : null);
 const handIdx = (ps, pred) => ps.hand.findIndex((p) => p && pred(p));
 /** The round loop's SETTLE dispatch, alone. */

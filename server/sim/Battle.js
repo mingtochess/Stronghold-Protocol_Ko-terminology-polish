@@ -240,12 +240,7 @@ export class Battle {
   /** Board → field tile for a player (see header). */
   mapTile(ps, row, col, abs = false) {
     if (abs || ps.coords === 'field') return [row, col];
-    const bossLike = this.kind === 'boss' || this.kind === 'hidden';
-    let r = row;
-    if (ps.rowOffset != null) r = row + ps.rowOffset;
-    else if (bossLike && row >= 7) r = row + BOSS_ROW_OFFSET;
-    const c = ps.mirror ? (col <= 10 ? COLS - 1 - col : col) : col + ps.colOffset;
-    return [r, c];
+    return this._boardTile(ps, row, col);
   }
 
   onOwnBoard(ps, r, c) {
@@ -881,9 +876,11 @@ export class Battle {
     e.atkCd = 0;
     e.pauseUntil = -Infinity;      // content holds (暴鸰's drop)
     e.atkStandUntil = -Infinity;   // standing for its attack clip (ai.js attackStand)
+    e.swing = false;               // a normal attack swung, its damage frame not reached yet (ai.js enemyAttack)
     // every enemy profile starts with the same fields (stable object shapes keep the hot loop's property reads fast);
-    // `dmgType` null = the data's (content may arm a data-unarmed enemy: ai.js enemyAttack)
-    e.profile = { noAttack: def.dmgType === 'none', maxTargets: 1, atkScale: 1, dmgType: null };
+    // `dmgType` null = the data's (content may arm a data-unarmed enemy: ai.js enemyAttack); `blockFree` = its 索敌不受阻挡
+    // 影响 (content: 自制投石机 — targeting.js canTargetAlly / sortAllyTargets, ai.js attackTargets)
+    e.profile = { noAttack: def.dmgType === 'none', maxTargets: 1, atkScale: 1, dmgType: null, blockFree: false };
     e.route = { legs: route ? compileRoute(route, this.rect) : [], legIdx: 0, pts: null, ptIdx: 0, suffix: null, version: -1, waitLeft: null };
     if (!e.route.legs.length) {
       const end = this.grid.specialTiles('end')[0];
@@ -935,7 +932,8 @@ export class Battle {
     u.removed = false;
     u.hidden = false;
     u.body = null;
-    u.downAtHome = false;
+    u.countdown = null; // a countdown summon's content starts its new life in the deploy hook (content/tokens.js startCountdown)
+    u.downAtHome = false; // a new deployment: a later knock-out lies where it falls again (Battle._layBody)
     u.x = C0; u.y = R0; u.tileR = R0; u.tileC = C0;
     u.blocking = [];
     u.deploySeq = ++this._deploySeq;
@@ -993,12 +991,12 @@ export class Battle {
    * Withdraw an ally without a kill (it may redeploy after its respawn time): an operator lies down where it stood and
    * comes back there (isDown, GitHub #60) — unless `permanent`, or the 突袭 retreat ('raid') that redeploys it at once.
    */
-  retreat(unit, { reason = 'retreat', permanent = false } = {}) {
+  retreat(unit, { reason = 'retreat', permanent = false, dying = false } = {}) {
     if (!unit || !unit.alive || unit.side !== 'ally') return;
-    this._remove(unit, reason, null, permanent);
+    this._remove(unit, reason, null, permanent, dying);
   }
 
-  _remove(unit, reason, killer = null, permanent = false) {
+  _remove(unit, reason, killer = null, permanent = false, dying = false) {
     unit.alive = false;
     unit.removeReason = reason;
     unit.deployed = false;
@@ -1052,7 +1050,7 @@ export class Battle {
     }
     // the reason ('killed' | 'retreat' | 'expired' | …) lets the client keep the knock-down sound for real knock-outs
     if (reason !== 'leak') this._ev(['die', unit.id, reason]);
-    if (this._hooks.death) this.emit('death', { unit, reason, killer });
+    if (this._hooks.death) this.emit('death', { unit, reason, killer, dying: !!dying });
     if (unit.removed) this._toRelease.push(unit);
   }
 
@@ -1191,7 +1189,8 @@ export class Battle {
         const o = this._occ[r * COLS + c];
         if (!o || !this._blockerFor(o, e, w)) continue;
         const d2 = (e.x - c) * (e.x - c) + (e.y - r) * (e.y - r);
-        const r2 = o.kind === 'device' ? BLOCK_RADIUS_SQ.device : fly ? BLOCK_RADIUS_SQ.fly : BLOCK_RADIUS_SQ.ground;
+        const k = fly ? 1 + (o.s.blockRadiusScale || 0) : 1;
+        const r2 = o.kind === 'device' ? BLOCK_RADIUS_SQ.device : fly ? BLOCK_RADIUS_SQ.fly * k * k : BLOCK_RADIUS_SQ.ground;
         if (d2 < r2 && d2 < bd) { u = o; bd = d2; }
       }
     }
@@ -1230,7 +1229,9 @@ export class Battle {
    * unit (起飞, flag `liftoff`: "不阻挡地面敌人…可以阻挡飞行敌人") blocks flyers only.
    */
   _blockerFor(u, e, w) {
-    if (!u.alive || !u.deployed || u.hidden || u.s.flags.noBlock || u.s.flags.sleep) return false;
+    // flag `noNewBlock`: a unit that takes no new enemy by contact — it blocks only those content hands it (酒神's 迷狂牢笼,
+    // PRTS "只在生成/刷新时判定阻挡新的敌人"); the blocks it holds go on as usual
+    if (!u.alive || !u.deployed || u.hidden || u.s.flags.noBlock || u.s.flags.sleep || u.s.flags.noNewBlock) return false;
     if (e.isFlying && !(u.s.flags.blockFly || (u.profile && u.profile.blockFly))) return false;
     // ground enemies: only a ground unit that has not taken off (起飞 "不阻挡地面敌人": flag `liftoff`), standing on a tile
     // ground units can pass (not a fenced 围墙 / 围栏 tile)
@@ -1436,9 +1437,9 @@ export class Battle {
     const immune = target.def && target.def.immune;
     if (!opts.force && tpl.immune && immune && immune.has(tpl.immune)) return false;
     // 浮空 Buff (PRTS 异常效果: "若单位数据上为飞行单位且不持有缚地异常或是持有浮空异常则Buff取消"; 行动方式 "行动类型（数据）为
-    // 飞行的单位、以及已持有浮空异常的单位无法被施加浮空Buff"): refused on data flyers (`motion` FLY) and units already
-    // levitated — a hovering 近地悬浮 enemy is WALK in its data, so it can be levitated (no 缚地 / 浮空强化 in this mode)
-    if (key === 'levitate' && (target.motion === 'FLY' || target.s.flags.levitate)) return false;
+    // 飞行的单位、以及已持有浮空异常的单位无法被施加浮空Buff"): refused on data flyers (`motion` FLY) that hold no 缚地 and on
+    // units already levitated — a hovering 近地悬浮 enemy is WALK in its data, so it can be levitated (no 浮空强化 in this mode)
+    if (key === 'levitate' && ((target.motion === 'FLY' && !target.s.flags.groundbind) || target.s.flags.levitate)) return false;
     if (this._hooks.beforeStatus) {
       const c = this.emit('beforeStatus', { source: opts.source ?? null, target, status: key, duration, value, cancel: false });
       if (c.cancel || !target.alive) return false;
@@ -1451,7 +1452,8 @@ export class Battle {
       const rv = this.resistOf(target);
       if (rv > 0) duration *= 1 - rv;
     }
-    if (key === 'levitate' && target.s.massLevel > LEVITATE_HALF_WEIGHT) duration /= 2;
+    // 浮空 / 缚地 (ba.levitate, ba.groundbind): "对重量大于3的单位持续时间减半"
+    if ((key === 'levitate' || key === 'groundbind') && target.s.massLevel > LEVITATE_HALF_WEIGHT) duration /= 2;
     if (!(duration > 0)) return false;
     if (key === 'cold' && target.findBuff('cold') && !(immune && immune.has('frozen'))) {
       // PRTS 术语释义 寒冷: 友方寒冷 pairs into 冻结, 「持续时间取双方之中最高」. `duration` is this cold after 抵抗;
@@ -1476,7 +1478,7 @@ export class Battle {
     if (tpl.palsy) {
       this.addBuff(target, { ...palsyBuff(value ?? 1), duration, source });
     } else if (tpl.valued != null && typeof tpl.mods === 'function' && opts.refresh == null) {
-      this._applyValuedStatus(target, key, tpl, duration, value ?? tpl.valued, source);
+      this._applyValuedStatus(target, key, tpl, duration, value ?? tpl.valued, source, opts.stackAs);
     } else {
       const mods = tpl.enemyOnlyMods && target.side !== 'enemy' ? null : typeof tpl.mods === 'function' ? tpl.mods(value) : (tpl.mods || null);
       const b = this.addBuff(target, { key, duration, refresh: opts.refresh ?? 'extend', mods, flags: tpl.flags || null, status: key, visible: true, source });
@@ -1536,31 +1538,35 @@ export class Battle {
    * "同名效果取最高": keep the strongest value; a weaker one that outlasts it resumes afterwards (buff.data.tail). A
    * `plain` template (applyStrongest) is an ordinary invisible buff, not a status.
    */
-  _applyValuedStatus(target, key, tpl, duration, value, source) {
-    const strength = (v) => Math.abs(Number.isFinite(v) ? v : tpl.valued);
-    const make = (v, dur, tail) => ({
+  _applyValuedStatus(target, key, tpl, duration, value, source, stackAs = null) {
+    const as = Number.isFinite(stackAs) ? stackAs : null;
+    const strength = (v, s = null) => Math.abs(Number.isFinite(s) ? s : Number.isFinite(v) ? v : tpl.valued);
+    // (no stackAs: the very objects of before — data { value, tail }, tails { value, until })
+    const entry = (v, s, extra) => (Number.isFinite(s) ? { value: v, stackAs: s, ...extra } : { value: v, ...extra });
+    const make = (v, dur, tail, s = null) => ({
       ...(tpl.buff || null),   // extra buff fields of the status (抵抗: the 麻痹 decay tick)
       key, duration: dur, refresh: 'replace', mods: tpl.mods(v), flags: tpl.flags || null, status: tpl.plain ? null : key,
       visible: !tpl.plain, source,
-      data: { value: v, tail },
+      data: entry(v, s, { tail }),
       onExpire: ({ battle, unit, buff }) => {
         const t = buff.data.tail;
-        if (t && t.until - battle.time > 1e-6 && unit.alive) battle.addBuff(unit, make(t.value, t.until - battle.time, null));
+        if (t && t.until - battle.time > 1e-6 && unit.alive) battle.addBuff(unit, make(t.value, t.until - battle.time, null, t.stackAs));
       },
     });
     const old = target.buffs.find((b) => b.key === key && (tpl.plain || b.status === key));
-    if (!old) { this.addBuff(target, make(value, duration, null)); return; }
+    if (!old) { this.addBuff(target, make(value, duration, null, as)); return; }
     const oldV = old.data && Number.isFinite(old.data.value) ? old.data.value : tpl.valued;
+    const oldAs = old.data && Number.isFinite(old.data.stackAs) ? old.data.stackAs : null;
     const oldEnd = this.time + old.timeLeft, newEnd = this.time + duration;
     const oldTail = old.data && old.data.tail;
     const longerTail = (a, b) => (!a ? b : !b ? a : (b.until > a.until ? b : a));
-    if (strength(value) > strength(oldV) + 1e-12) {
+    if (strength(value, as) > strength(oldV, oldAs) + 1e-12) {
       // stronger: takes over now; the weaker old one (or its tail) resumes if it lasts longer
-      const tail = longerTail(oldEnd > newEnd ? { value: oldV, until: oldEnd } : null, oldTail && oldTail.until > newEnd ? oldTail : null);
-      this.addBuff(target, make(value, duration, tail));
-    } else if (strength(value) < strength(oldV) - 1e-12) {
+      const tail = longerTail(oldEnd > newEnd ? entry(oldV, oldAs, { until: oldEnd }) : null, oldTail && oldTail.until > newEnd ? oldTail : null);
+      this.addBuff(target, make(value, duration, tail, as));
+    } else if (strength(value, as) < strength(oldV, oldAs) - 1e-12) {
       // weaker: never overrides; remembered as the tail when it outlasts the running one
-      if (newEnd > oldEnd && (!oldTail || newEnd > oldTail.until)) old.data = { ...old.data, value: oldV, tail: { value, until: newEnd } };
+      if (newEnd > oldEnd && (!oldTail || newEnd > oldTail.until)) old.data = { ...old.data, value: oldV, tail: entry(value, as, { until: newEnd }) };
     } else if (duration > old.timeLeft) {
       old.timeLeft = duration;
       old.duration = Math.max(old.duration, duration);
@@ -1589,10 +1595,10 @@ export class Battle {
    * credit — the stats and the per-player shared-pool tally).
    * On a leader in a boss / hidden battle a loss of ≥ BOSS_HIT_LIMIT is cancelled like a hit (damage.js leaderHitCancelled).
    */
-  loseHp(target, amount, { source = null, silent = false, tags = null, from = null, sourceless = false } = {}) {
+  loseHp(target, amount, { source = null, silent = false, tags = null, from = null, sourceless = false, noHitLimit = false } = {}) {
     if (!target || !target.alive || !(amount > 0)) return 0;
-    // 限伤 (shared/constants.js BOSS_HIT_LIMIT): a loss passed on to a leader (parts' 传递, 无人机) is one hit too
-    if (leaderHitCancelled(this, target, amount)) return 0;
+    // 限伤 (shared/constants.js BOSS_HIT_LIMIT): a loss passed on to a leader (the parts' 传递) is one hit too
+    if (!noHitLimit && leaderHitCancelled(this, target, amount)) return 0;
     const t = ['hpLoss'];
     for (const list of [from && from.tags, tags]) if (Array.isArray(list)) for (const x of list) if (!t.includes(x)) t.push(x);
     return applyHpLoss(this, source, target, amount, { type: 'true', tags: t, noSp: true, silent, origin: from ?? null, sourceless: !!sourceless || !!(from && from.sourceless) });
@@ -1602,29 +1608,28 @@ export class Battle {
 
   makeDamage(d) { return makeDamageInfo(d); }
 
-  // =============================================================================================================
-  // queries
+  addProjectile(p) { return this.projectiles.add(p); }
+
+  // exposed for ai/content convenience
+  effectiveProfile(u) { return effectiveProfile(u); }
 
   /**
-   * Tile buckets of the living enemies: a regular enemy on the tile of its position, a huge one (body.js) on every tile
-   * it occupies.
+   * Perform an immediate attack with a unit's current profile (content: "立即攻击", extra attacks, counters). It is an
+   * attack in every respect (hooks, attack SP, a running ammo skill's bullet) — except with `noAmmo: true`: an extra
+   * attack that spends no ammo (no `ammoUsed`, the skill never ends on it; 圣约送葬人 "不额外消耗弹药").
+   * Returns true when an attack was made.
    */
-  _buildEnemyIndex() {
-    for (const k of this._ebUsed) this._eb[k].length = 0;
-    this._ebUsed.length = 0;
-    for (const e of this.enemies) {
-      if (!e.alive || e.hidden) continue;
-      if (e.hitArea) {
-        for (const k of bodyKeys(e)) { const b = this._eb[k]; if (!b.length) this._ebUsed.push(k); b.push(e); }
-        continue;
-      }
-      const r = Math.round(e.y), c = Math.round(e.x);
-      if (r < 0 || r >= ROWS || c < 0 || c >= COLS) continue;
-      const k = r * COLS + c;
-      const b = this._eb[k];
-      if (!b.length) this._ebUsed.push(k);
-      b.push(e);
-    }
+  forceAttack(u, targets = null, { noAmmo = false, castImpact = false } = {}) {
+    if (!u || !u.alive || !u.profile) return false;
+    // A charged next attack must not bypass the normal recovery/wind-up.
+    // Genuine extra attacks of running skills remain independent.
+    if (u.skill?.pending && !castImpact && (u.atkCd > 1e-9 || u.mem.attackWindup)) return false;
+    const prof = effectiveProfile(u);
+    const t = targets ?? acquireTargets(this, u, prof);
+    if (!t || !t.length) return false;
+    const n0 = u.stats.attacks;
+    performAttack(this, u, prof, t, noAmmo ? { noAmmo: true } : null);
+    return u.stats.attacks > n0;
   }
 
   /** Targetable enemies whose body is on any of `keys` (absolute tile keys; a huge enemy is listed once). */
@@ -1657,10 +1662,11 @@ export class Battle {
     const out = [];
     if (!keys) return out;
     const set = keys instanceof Set ? keys : (healer && healer.rangeKeys === keys && healer.rangeKeySet ? healer.rangeKeySet : new Set(keys));
+    const through = healer && healer.profile && typeof healer.profile.healThrough === 'function' ? healer.profile.healThrough : null;
     for (const a of this.allyUnits) {
       if (!a.alive || !a.deployed || a.hidden || a.kind === 'device') continue;
       if (!set.has(a.tileR * COLS + a.tileC)) continue;
-      if (a !== healer && (a.s.flags.noHeal || (a.profile && a.profile.noHeal))) continue;
+      if (a !== healer && ((a.s.flags.noHeal && !(through && through(healer, a))) || (a.profile && a.profile.noHeal))) continue;
       const injured = a.hp < a.s.maxHp - 1e-6;
       const elem = includeElement && (a.elem.burn + a.elem.neural + a.elem.necrosis + a.elem.apoptosis + a.elem.erosion) > 0;
       if (injured || elem) out.push(a);
@@ -1689,9 +1695,9 @@ export class Battle {
   }
 
   /** Allies inside `unit`'s current range (for auras) — not the 孤立 ones ("无法被同阵营选中": 炎佑), `unit` aside. */
-  alliesInGrid(unit) {
+  alliesInGrid(unit, { includeDevices = false } = {}) {
     const set = unit.rangeKeySet || new Set(unit.rangeKeys || []);
-    return this.allyUnits.filter((a) => a.alive && a.deployed && !a.hidden && a.kind !== 'device' && set.has(a.tileR * COLS + a.tileC) && this.allySelectable(a, unit));
+    return this.allyUnits.filter((a) => a.alive && a.deployed && !a.hidden && (includeDevices || a.kind !== 'device') && set.has(a.tileR * COLS + a.tileC) && this.allySelectable(a, unit));
   }
 
   /**
@@ -1704,9 +1710,9 @@ export class Battle {
     return !!a && (a === by || !a.s.flags.isolated);
   }
 
-  /** Deployed allies (no devices) an ability of ally `by` may select: allies(ownerId) without the 孤立 ones. */
-  alliesFor(by, ownerId = null) {
-    return this.allies(ownerId).filter((a) => this.allySelectable(a, by));
+  /** Selectable deployed allies; regeneration opts into devices, ordinary selectors exclude them. */
+  alliesFor(by, ownerId = null, { includeDevices = false } = {}) {
+    return this.allies(ownerId, { includeDevices }).filter((a) => this.allySelectable(a, by));
   }
 
   /**
@@ -1764,19 +1770,25 @@ export class Battle {
     return out;
   }
 
-  /** Alive deployed allies (ops + tokens), optionally of one player. */
-  allies(ownerId = null) {
-    return this.allyUnits.filter((a) => a.alive && a.deployed && a.kind !== 'device' && (ownerId == null || a.ownerId === ownerId));
+  /** Alive deployed allies, optionally of one player; devices are included only when explicitly requested. */
+  allies(ownerId = null, { includeDevices = false } = {}) {
+    return this.allyUnits.filter((a) => a.alive && a.deployed && (includeDevices || a.kind !== 'device') && (ownerId == null || a.ownerId === ownerId));
   }
 
   aliveEnemies() { return this.enemies.filter((e) => e.alive); }
 
   unitAt(r, c) { const u = this._occ[r * COLS + c]; return u && u.alive ? u : null; }
+
   unitById(id) { return this.units.find((u) => u.id === id) ?? null; }
+
   tileInfo(r, c) { return this.grid.tile(r, c); }
 
   getPlayer(playerId) { return this.players.find((p) => p.playerId === playerId) ?? null; }
+
   _pp(playerId) { return playerId == null ? null : this._perPlayer[playerId] ?? null; }
+
+  // =============================================================================================================
+  // ranges
 
   /**
    * Recompute a unit's absolute range tile keys: `rangeKeys` / `rangeKeySet` = current range (skill range override +
@@ -1861,7 +1873,7 @@ export class Battle {
     const src = d && Array.isArray(d.sources) ? d.sources : null;
     if (!src || src.includes('skill') || src.includes('talent')) return true;
     const vs = this.data.rawToken?.(tokenId)?.variants;
-    const id = String(owner.defId ?? '');
+    const id = String(owner.def?.tokenOwner ?? owner.defId ?? ''); // a 自选 piece's variants are keyed by its owner form
     return !(vs && typeof vs === 'object' && (vs[id] || vs[id.replace(/_b$/, '_a')]));
   }
 
@@ -1971,8 +1983,6 @@ export class Battle {
 
   /** Toggle a ground obstacle (enemies re-read their flow field). `kind` 'block' (default, impassable) | 'crate'. */
   setObstacle(r, c, on, kind = 'block') { this.grid.setObstacle(r, c, on, kind); }
-
-  addProjectile(p) { return this.projectiles.add(p); }
 
   /** Move an ally to another tile (keeps state); never onto a living unit or a knocked-out operator (downOn). */
   relocate(unit, r, c) {
@@ -2145,6 +2155,8 @@ export class Battle {
     }
     if (moved > 0) {
       this._unblock(e);
+      // 失衡 ends the attack clip it stood for (PRTS 状态机: the states are exclusive — UNBALANCE, then DEFAULT → MOVE)
+      e.atkStandUntil = -Infinity;
       if (e.route) e.route.pts = null;
       const prev = e.mem.visualShift;
       const k = prev ? Math.max(0, Math.min(1,(this.time-prev[4])/prev[5])) : 1;
@@ -2224,7 +2236,7 @@ export class Battle {
     }
     u.mem.anchorReturn = null;
     if (r === hr && c === hc) return;
-    if (!this.allyUnits.some((a) => a !== u && a.uid != null && (a.kind === 'op' || a.kind === 'token') && a.homeR === r && a.homeC === c)) return;
+    if (!u.downAtHome && !this.allyUnits.some((a) => a !== u && a.uid != null && (a.kind === 'op' || a.kind === 'token') && a.homeR === r && a.homeC === c)) return;
     if (!this.grid.inRect(hr, hc) || this.isReservedTile(hr, hc)) return;
     u.body = [hr, hc];
   }
@@ -2449,6 +2461,8 @@ export class Battle {
     const shields = this.units.filter(u => u.alive && u.deployed && !u.hidden && u.s.shield > 0)
       .map(u => [u.id, Math.ceil(u.s.shield)]);
     if (shields.length) snap.shields = shields;
+    const modelScales=this.units.filter(u=>u.alive&&u.deployed&&!u.hidden&&Number.isFinite(u.mem.visualScale)).map(u=>[u.id,u.mem.visualScale]);
+    if(modelScales.length)snap.modelScales=modelScales;
     // Cosmetic pace: Lancer's authored run uses a 1 tile/s reference.
     // Dividing by its .25 tile/s initial crawl made full charge play at 13.5x.
     const moveRates = this.units.filter(u=>u.side==='enemy' && u.alive && u.deployed && !u.hidden && u.base.moveSpeed>0)
@@ -2546,24 +2560,67 @@ export class Battle {
   }
 
   // exposed for ai/content convenience
-  effectiveProfile(u) { return effectiveProfile(u); }
+
   /**
    * Perform an immediate attack with a unit's current profile (content: "立即攻击", extra attacks, counters). It is an
    * attack in every respect (hooks, attack SP, a running ammo skill's bullet) — except with `noAmmo: true`: an extra
    * attack that spends no ammo (no `ammoUsed`, the skill never ends on it; 圣约送葬人 "不额外消耗弹药").
    * Returns true when an attack was made.
    */
-  forceAttack(u, targets = null, { noAmmo = false, castImpact = false } = {}) {
-    if (!u || !u.alive || !u.profile) return false;
-    // A charged next attack must not bypass the normal recovery/wind-up.
-    // Genuine extra attacks of running skills remain independent.
-    if (u.skill?.pending && !castImpact && (u.atkCd > 1e-9 || u.mem.attackWindup)) return false;
-    const prof = effectiveProfile(u);
-    const t = targets ?? acquireTargets(this, u, prof);
-    if (!t || !t.length) return false;
-    const n0 = u.stats.attacks;
-    performAttack(this, u, prof, t, noAmmo ? { noAmmo: true } : null);
-    return u.stats.attacks > n0;
+
+
+  allyTargetsInKeys(keys, attacker) {
+    const set = this._allyTargets;
+    if (!set || !set.size || !keys || !attacker || set.has(attacker)) return [];
+    const ks = keys === attacker.rangeKeys && attacker.rangeKeySet ? attacker.rangeKeySet : new Set(keys);
+    const out = [];
+    for (const a of set) if (a.alive && a.deployed && !a.hidden && ks.has(a.tileR * COLS + a.tileC)) out.push(a);
+    return out;
+  }
+
+  setAllyTarget(unit, on = true) {
+    if (!unit || unit.side !== 'ally') return false;
+    if (on) (this._allyTargets ??= new Set()).add(unit);
+    else if (this._allyTargets) this._allyTargets.delete(unit);
+    return true;
+  }
+
+  isAllyTarget(unit) {
+    return !!(unit && this._allyTargets && this._allyTargets.has(unit));
+  }
+
+  _bountyPayee(unit, killer = null) {
+    if (killer && killer.side === 'ally' && killer.ownerId != null && this._pp(killer.ownerId)) return killer.ownerId;
+    const owner = unit.bounty?.ownerPlayerId ?? unit.ownerId;
+    if (owner != null && this._pp(owner)) return owner;
+    return this._ownerForTile([Math.round(unit.y), Math.round(unit.x)]);
+  }
+
+  _boardTile(ps, row, col) {
+    const bossLike = this.kind === 'boss' || this.kind === 'hidden';
+    let r = row;
+    if (ps.rowOffset != null) r = row + ps.rowOffset;
+    else if (bossLike && row >= 7) r = row + BOSS_ROW_OFFSET;
+    const c = ps.mirror ? (col <= 10 ? COLS - 1 - col : col) : col + ps.colOffset;
+    return [r, c];
+  }
+
+  _buildEnemyIndex() {
+    for (const k of this._ebUsed) this._eb[k].length = 0;
+    this._ebUsed.length = 0;
+    for (const e of this.enemies) {
+      if (!e.alive || e.hidden) continue;
+      if (e.hitArea) {
+        for (const k of bodyKeys(e)) { const b = this._eb[k]; if (!b.length) this._ebUsed.push(k); b.push(e); }
+        continue;
+      }
+      const r = Math.round(e.y), c = Math.round(e.x);
+      if (r < 0 || r >= ROWS || c < 0 || c >= COLS) continue;
+      const k = r * COLS + c;
+      const b = this._eb[k];
+      if (!b.length) this._ebUsed.push(k);
+      b.push(e);
+    }
   }
 }
 

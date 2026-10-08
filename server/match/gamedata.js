@@ -353,7 +353,7 @@ export class GameData {
   /**
    * Official enemy multipliers of round r (config enemyScale: the PRTS table + 终极 speed ×1.15 from R3). `supplyHpMul`
    * (only when ≠ 1: co-op 终极 R5–R15) = the share of hpMul from 补给线 / 补给线II (config `supplyHp`), effects whose
-   * `enemy_exclude` leaves out the 14 器物 hit-count keys — they take hpMul / supplyHpMul (archetypes.js `times`).
+   * `enemy_exclude` leaves out the 14 器物 keys; hit-count enemies retain their fixed count independently of HP multipliers.
    */
   baseEnemyScale(r) {
     const e = this.mode.enemyScale && this.mode.enemyScale[String(r)];
@@ -501,7 +501,9 @@ export class GameData {
         const src = Array.isArray(alt?.sources) ? alt.sources : Array.isArray(v.sources) ? v.sources : [];
         if (!src.includes('talent') && !src.includes('skill')) continue;
       }
-      const count = posIntOr(v?.stats?.deployLimit, posIntOr(t.deployLimit, 1));
+      const moduleId=loadout?.moduleId ?? (c.module?.active ? c.module.id : null);
+      const vm=moduleId && v?.byModule?.[moduleId];
+      const count = posIntOr(vm?.stats?.deployLimit, posIntOr(v?.stats?.deployLimit, posIntOr(t.deployLimit, 1)));
       out.push({ tokenId: tid, count: Math.min(count, 9) });
     }
     return out;

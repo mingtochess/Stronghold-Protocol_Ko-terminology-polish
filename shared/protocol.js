@@ -1,3 +1,4 @@
+import {isDiyModule} from './diy.js';
 // Normative message catalogue (DESIGN §8). Used by server (validation) and client (building requests).
 import { extensionSelectionShape } from './customExtensions.js';
 // Every client→server message is `{ t, rid?, ...fields }`. Unknown `t` or invalid fields ⇒ ERR.BAD_MSG.
@@ -69,7 +70,7 @@ export function isBattleResult(v) {
  * (known visible chess, legal skill index for the normal AND the elite status, legal module of the elite) is
  * `checkLoadout` — used by the server (lobby, match) and by the client to sanitise a stored loadout before sending.
  */
-export const LOADOUT_LIMITS = Object.freeze({ entries: 160, skillIndex: 9 });
+export const LOADOUT_LIMITS = Object.freeze({ entries: 400, skillIndex: 9 });
 /** The "no module" choice of an elite (模组: 不装备). */
 export const MODULE_NONE = 'none';
 const isLoadoutEntry = (e) => isPlain(e) && Object.keys(e).length > 0 && Object.keys(e).every((k) => k === 'skill' || k === 'module' || k === 'selected' || k === 'skin')
@@ -108,7 +109,7 @@ export function loadoutOptions(base, golden = null) {
   if (golden) {
     let def = null;
     if (Array.isArray(golden.modules)) {
-      modules = [...new Set(golden.modules.map((m) => m && m.uniEquipId).filter((id) => isId(id) && id !== MODULE_NONE))];
+      modules = [...new Set(golden.modules.filter(m=>!base?.recruitSource || isDiyModule(m)).map((m) => m && m.uniEquipId).filter((id) => isId(id) && id !== MODULE_NONE))];
       const d = golden.modules.find((m) => m && m.isDefault && isId(m.uniEquipId));
       def = d ? d.uniEquipId : null;
     } else if (golden.module && golden.module.active && isId(golden.module.id)) {
@@ -141,15 +142,17 @@ export function checkLoadout(entries, getChess) {
     }
     if (e.selected !== undefined && !base.optionalRecruit) return {error:'BAD_TARGET',detail:'not an optional recruit'};
     if (e.selected) {
-      if (![5,6].includes(base.tier) || ++tierCounts[base.tier] > 2 || selectedChars.has(base.charId)) return {error:'BAD_TARGET',detail:'최대 2명씩, 동일 오퍼레이터 중복 선발 불가'};
-      selectedChars.add(base.charId);
+      if (![5,6].includes(base.tier) || ++tierCounts[base.tier] > 2 || selectedChars.has(base.recruitPrototype ? `${base.charId}:${base.tier}` : base.charId)) return {error:'BAD_TARGET',detail:'최대 2명씩, 동일 오퍼레이터 중복 선발 불가'};
+      selectedChars.add(base.recruitPrototype ? `${base.charId}:${base.tier}` : base.charId);
     }
     const golden = base.goldenId ? getChess(base.goldenId) || null : null;
     const opt = loadoutOptions(base, golden);
     const skill = e.skill ?? opt.defaultSkill;
+    if (base.recruitPrototype && skill !== opt.defaultSkill) return {error:'BAD_TARGET',detail:'원형 오퍼레이터의 스킬은 고정됩니다'};
     if (!opt.skills.includes(skill)) return { error: 'BAD_TARGET', detail: `skill ${e.skill} not available for ${id}` };
     if (e.module !== undefined && !golden) return { error: 'BAD_TARGET', detail: `${id} has no elite module` };
     const module = golden ? (e.module ?? opt.defaultModule) : null;
+    if (base.recruitPrototype && module !== opt.defaultModule) return {error:'BAD_TARGET',detail:'원형 오퍼레이터의 모듈은 고정됩니다'};
     if (golden && !opt.modules.includes(module)) return { error: 'BAD_TARGET', detail: `module ${e.module} not available for ${id}` };
     if (e.skin && !base.skins?.some(s=>s.id===e.skin)) return {error:'BAD_TARGET',detail:'unknown skin'};
     if (!e.skin && skill === opt.defaultSkill && module === opt.defaultModule && !e.selected) continue;

@@ -720,8 +720,8 @@ const unblockable = () => ({ spawn(b, e) { b.addBuff(e, { key: 'ab:unblockable',
 const runWhenHit = (v) => ({ taken(c, b, e, a) { if (a.on || !(v > 0)) return; a.on = true; b.addBuff(e, { key: 'ab:duckRun', persist: true, mods: { moveMul: 1 + v } }); } });
 /** 频次: maxHp = hits. */
 const times = (artsOnly = false) => ({ spawn(b, e) {
-  const supply = Number(e.mods?.supplyHpMul);
-  setHits(e, e.base.maxHp / (Number.isFinite(supply) && supply > 0 ? supply : 1));
+  // Hit-count HP is a fixed number of damage instances, not scalable vitality.
+  setHits(e, e.def.maxHp);
   hitCount(b, e, true, artsOnly);
 } });
 /** "只能被阻挡数大于等于N的单位阻挡". */

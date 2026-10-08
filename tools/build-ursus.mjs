@@ -4,12 +4,14 @@ import {fileURLToPath} from 'node:url';
 import {dirname, resolve, join} from 'node:path';
 import {loadContext, buildChess} from './build-data.mjs';
 import {buildRecruits} from './build-recruits.mjs';
+import {buildUpstreamRecruits} from './build-upstream-recruits.mjs';
 import {loadKorean,localizeOperator} from './ursus-korean.mjs';
 const ROOT=resolve(dirname(fileURLToPath(import.meta.url)),'..');
 export const URSUS_DIR=join(ROOT,'.cache/ursus-data');
 const json=async p=>JSON.parse(await readFile(p,'utf8'));
 export async function buildUrsus(){
  await mkdir(URSUS_DIR,{recursive:true});
+ const previousChess=await json(join(URSUS_DIR,'chess.json')).catch(()=>({}));
  for(const f of await readdir(join(ROOT,'data'))) if(f.endsWith('.json')) await copyFile(join(ROOT,'data',f),join(URSUS_DIR,f));
  const ops=await json(join(ROOT,'content/custom/ursus/operators.json'));
  const ctx=await loadContext({operatorsOnly:true});
@@ -41,25 +43,25 @@ export async function buildUrsus(){
   const id=`chess_custom_ursus_${o.key}_${suffix}`,r=generated[id];
   if(!r?.stats || !r.skill)throw Error(`Incomplete generated operator ${id}`);
   r.name=o.name;localizeOperator(r,korean,a.charChessDataDict[id].status);chess[id]=r;
-  const elite=suffix==='b', count=o.key==='turdus'?(elite?8:4):o.key==='leto'?(elite?6:3):elite?4:2;
+  const elite=suffix==='b', count=o.key==='turdus'?(elite?6:3):o.key==='leto'?(elite?6:3):elite?4:2;
   let source,desc;
   if(o.trait==='power'){source='garrison_100_a';desc=`[우르수스] 맹약이 3회 중첩할 때마다 공격 속도 +${elite?4:2}`}
   else if(o.trait==='scale'){source='garrison_100_a';desc=`[우르수스]/[정밀] 맹약이 3회 중첩할 때마다 공격력 +${elite?2:1}%`}
   else if(o.trait==='slowedDeaths'){source='garrison_42_a';desc=`<전투 중> 공격 범위 내 정지 상태의 적이 사망할 때마다 활성화된 [우르수스]/[예견] 맹약의 중첩 수 각각 +${count}/+${elite?2:1} (전투당 최대 10회 발동)`}
   else if(o.key==='leto'){source='garrison_42_a';desc=`<전투 중> 아군 [우르수스] 오퍼레이터가 스킬을 발동할 때마다 활성화된 [우르수스] 맹약의 중첩 수 +${count} (전투당 최대 7회 발동)`}
   else if(o.trait==='all'){source='garrison_80_a';desc=`<휴식 기간 진입 시> 자신의 활성화된 맹약 중첩 수 +${count}`}
-  else if(o.trait==='gainWeakness'){source='garrison_35_a';desc=`<획득 시> [우르수스]/[기습] 맹약의 중첩 수 +${elite?6:3} (맹약 활성화 불필요)`}
-  else if(o.key==='botany'){source='garrison_35_a';desc=`<획득 시> [우르수스]/[신속] 맹약의 중첩 수 +${elite?12:6} (맹약 활성화 불필요)`}
+  else if(o.trait==='gainWeakness'){source='garrison_35_a';desc=`<획득 시> [우르수스]/[기습] 맹약의 중첩 수 +${elite?10:5} (맹약 활성화 불필요)`}
+  else if(o.key==='botany'){source='garrison_35_a';desc=`<획득 시> [우르수스]/[기적] 맹약의 중첩 수 +${elite?12:6} (맹약 활성화 불필요)`}
   else if(o.trait==='ursusStart'){source='garrison_69_a';desc=`<휴식 기간 진입·종료 시> 활성화된 [우르수스] 맹약의 중첩 수 +${elite?12:6}`}
   else {source='garrison_69_a';desc=`<휴식 기간 ${o.trait==='ursusStart'||o.trait==='swift'?'진입':'종료'} 시>${o.trait==='ursusStart'?'<휴식 기간 종료 시>':''} 활성화된 [${o.trait==='swift'?'신속':'우르수스'}] 맹약의 중첩 수 +${o.trait==='ursusStart'?(elite?12:6):count}`}
   const gar=structuredClone(garrisons[source]);gar.garrisonId=r.garrisonIds[0];gar.name=o.name;gar.desc=desc;gar.descRaw=desc.replace(/\+\d+%?/g,'<@ba.vup>$&</>').replace('정지 상태','<@ba.vup>정지</> 상태');gar.requireActive=o.key!=='botany'&&o.trait!=='gainWeakness';
   // Every effect carries its own blackboard; update both top-level and nested representations.
   const change=e=>{if(!e||typeof e!=='object')return;
-   if(o.trait==='gainWeakness'){if(e.bb)e.bb.count=elite?6:3;if(e.bbStr)e.bbStr.bond='ursusShip,raidShip';return;}
+   if(o.trait==='gainWeakness'){if(e.bb)e.bb.count=elite?10:5;if(e.bbStr)e.bbStr.bond='ursusShip,raidShip';return;}
    if(o.trait==='slowedDeaths'){e.effectKey='custom_ursus_slowed_death';if(e.bbStr)Object.assign(e.bbStr,{key:'custom_ursus_slowed_death',bond_type:'bond_by_id',bond_id:'ursusShip,visiShip',bond_add_type:'by_count'});if(e.bb)Object.assign(e.bb,{bond_add_count:count,visi_add_count:elite?2:1,max_add_count_per_battle:count*10,max_trigger_count:10});return;}
    if(o.key==='leto'){e.effectKey='custom_ursus_ally_skill';if(e.bbStr)Object.assign(e.bbStr,{key:'custom_ursus_ally_skill',bond_id:'ursusShip'});if(e.bb)Object.assign(e.bb,{bond_add_count:count,max_add_count_per_battle:count*7,max_trigger_count:7});return;}
    if(e.bb){if(o.trait==='power')Object.assign(e.bb,{divide_num:3,atk:0,max_hp:0,attack_speed:elite?4:2});else if(o.trait==='scale')e.bb.atk=elite?.02:.01;else e.bb.count=o.key==='botany'?(elite?12:6):o.trait==='ursusStart'?(elite?12:6):count;}
-   if(e.bbStr){if(o.trait==='power')e.bbStr.bond_id='ursusShip';else if(o.key==='botany')e.bbStr.bond='ursusShip,swiftShip';else if(o.trait==='scale')e.bbStr.bond_id='ursusShip,preciShip';else if(['ursus','ursusStart','swift'].includes(o.trait))e.bbStr.bond=o.trait==='swift'?'swiftShip':'ursusShip';}
+   if(e.bbStr){if(o.trait==='power')e.bbStr.bond_id='ursusShip';else if(o.key==='botany')e.bbStr.bond='ursusShip,miraShip';else if(o.trait==='scale')e.bbStr.bond_id='ursusShip,preciShip';else if(['ursus','ursusStart','swift'].includes(o.trait))e.bbStr.bond=o.trait==='swift'?'swiftShip':'ursusShip';}
    if(o.trait==='ursusStart'){e.eventType='SERVER_PREP_START';e.eventTypes=['SERVER_PREP_START','SERVER_PREP_FIN'];}
   };change(gar);for(const e of gar.effects||[])change(e);gar.owners=[id];garrisons[gar.garrisonId]=gar;
   if(o.trait==='gainWeakness'){const weak=structuredClone(garrisons['garrison_01_'+suffix]);weak.garrisonId=`garrison_ursus_brownb_weakness_${suffix}`;weak.desc=weak.descRaw='<전투 중> 입히는 대미지가 약점 대미지로 변경됨 (적의 방어력과 마법 저항에 따라 물리·마법 대미지 중 더 높은 대미지 적용)';weak.owners=[id];garrisons[weak.garrisonId]=weak;r.garrisonIds.push(weak.garrisonId);}
@@ -88,14 +90,24 @@ export async function buildUrsus(){
   rec.descRaw=rec.desc;rec.buffs[0].bb={atk:elite?.25:.15,max_hp:elite?.25:.15};rec.params={...rec.buffs[0].bb,key:'attr_common_global_buff'};items[id]=rec;
  }
  assets.items.ursus_cutlass='/assets/custom/ursus/item/ursus-cutlass.png';
+ for(const suffix of ['a','b']){
+  const elite=suffix==='b',id=`chess_item_custom_ursus_favor_${suffix}`,rec=structuredClone(items[`chess_item_1_01_e_${suffix}`]);
+  const desc='최대 HP +30%, 공격 속도 +30.\n착용자가 [우르수스] 오퍼레이터일 경우, 공격할 때마다 공격 대상에게 자신의 최대 HP의 5%에 해당하는 트루 대미지를 입힘.\n우르수스 곡도와 함께 장착 시, 공격할 때마다 자신의 제국 드론의 공격 속도 +1 (전투당 최대 100회 발동).';
+  Object.assign(rec,{id,baseId:'chess_item_custom_ursus_favor_a',goldenId:'chess_item_custom_ursus_favor_b',upgradeChessId:elite?null:'chess_item_custom_ursus_favor_b',identifier:9510+Number(elite),name:'황제의 은총',effectName:'황제의 은총',tier:6,shopSortId:91,trapId:'ursus_favor',iconId:'ursus_favor',effectId:'eff_custom_ursus_favor',desc,descRaw:desc,giveBondId:null,category:'DAMAGE',implFormula:null,flavor:'우르수스의 선황이 애용했던 날카로운 편지칼.',source:{relicId:'rogue_1_relic_a14',name:'皇帝的恩宠',mode:'Integrated Strategies',effects:'custom'}});
+  rec.buffs=[{key:'attr_common_global_buff',bb:{max_hp:.3,attack_speed:30},bbStr:{key:'attr_common_global_buff'}}];rec.params={max_hp:.3,attack_speed:30,key:'attr_common_global_buff'};items[id]=rec;
+ }
+ assets.items.ursus_favor='/assets/custom/ursus/item/emperors-favor.png';
+
  for(const rec of Object.values(items))if(rec.canGiveBond)rec.descRaw=rec.desc+='\n우르수스 곡도와 함께 장착: 우르수스 소속 추가.';
  const bandId='band_custom_ursus_kaschey';
  const bandDesc='[영광과 번영]<우르수스> 오퍼레이터를 승급할 때마다 레벨업 비용 -4 (라운드당 최대 1회)';
  bands[bandId]={...structuredClone(bands.band_bldsk),bandId,sortId:90,name:'카셰이',iconId:'icon_custom_ursus_kaschey',totalHp:22,effectId:'effect_custom_ursus_kaschey',effectName:'영광과 번영',desc:bandDesc,descRaw:bandDesc,bondIds:['ursusShip'],buffs:[{key:'custom_ursus_merge_level_discount',bb:{count:4,max_count:1},bbStr:{}}],params:{count:4,max_count:1}};
  assets.bands[bandId]='/assets/custom/ursus/band/kaschey-portrait-v3.png';
  await writeFile(join(ROOT,'.cache/ursus-band-resources.json'),JSON.stringify({files:[{path:assets.bands[bandId],local:true,sources:[]}]}));
+ for(const [id,rec]of Object.entries(chess))if(previousChess[id]?.charId===rec.charId&&previousChess[id]?.skins)rec.skins=previousChess[id].skins;
  for(const [key,value]of Object.entries({chess,bonds,garrisons,tokens,assets,items,bands}))await writeFile(join(URSUS_DIR,`${key}.json`),JSON.stringify(value));
  await buildRecruits(ROOT,URSUS_DIR);
+ await buildUpstreamRecruits(ROOT,URSUS_DIR);
  console.log(`Ursus overlay generated: ${members.length} operators, ${URSUS_DIR}`);return {dir:URSUS_DIR,ops};
 }
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url))await buildUrsus();

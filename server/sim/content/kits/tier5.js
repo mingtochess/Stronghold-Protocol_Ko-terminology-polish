@@ -1481,7 +1481,7 @@ const KITS = {
             if (!(healRatio > 0)) return;
             // until the next refresh (a little longer, so it never lapses in between; onEnd takes it off)
             const v = unit.s.atk * healRatio;
-            for (const a of battle.alliesInGrid(unit)) battle.addBuff(a, { key: foxKey(unit), duration: 1.25, source: unit, mods: { hpRegen: v } });
+            for (const a of battle.alliesInGrid(unit, { includeDevices: true })) battle.addBuff(a, { key: foxKey(unit), duration: 1.25, source: unit, mods: { hpRegen: v } });
           }
         },
         onEnd({ battle, unit }) {
@@ -2434,7 +2434,7 @@ const KITS = {
           // an HP-regeneration attribute, so 禁疗 does not stop it — PRTS 备注 "生命回复的提供方式为增加目标的'生命回复速度'属性，
           // 不受治疗加成和禁疗影响" (异常效果 禁疗: "增减生命回复速度…的效果不会被识别为治疗类能力"); a 孤立 unit (炎佑) is not
           // selected (Battle.alliesFor)
-          if (hp > 0) whileOn(battle, unit, AURA_IV, () => { if (!unit.skill?.active) for (const a of battle.alliesFor(unit)) battle.addBuff(a, { key: 'aglina:parttime', duration: AURA_DUR, mods: { hpRegen: hp } }); });
+          if (hp > 0) whileOn(battle, unit, AURA_IV, () => { if (!unit.skill?.active) for (const a of battle.alliesFor(unit, null, { includeDevices: true })) battle.addBuff(a, { key: 'aglina:parttime', duration: AURA_DUR, mods: { hpRegen: hp } }); });
         } },
       ],
     };

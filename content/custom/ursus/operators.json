@@ -3,7 +3,7 @@
     "key": "turdus",
     "charId": "char_4224_turdus",
     "name": "우쿠시크",
-    "tier": 3,
+    "tier": 2,
     "bonds": [
       "ursusShip",
       "deputShip"
@@ -74,7 +74,7 @@
     "key": "brownb",
     "charId": "char_137_brownb",
     "name": "비헌터",
-    "tier": 2,
+    "tier": 3,
     "bonds": [
       "ursusShip",
       "raidShip"
@@ -89,9 +89,9 @@
     "tier": 3,
     "bonds": [
       "ursusShip",
-      "swiftShip"
+      "miraShip"
     ],
     "skillIndex": 0,
-    "trait": "swift"
+    "trait": "miracle"
   }
 ]

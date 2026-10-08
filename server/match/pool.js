@@ -22,7 +22,7 @@
  * @param {Function} rng seeded rng (createRng)
  * @returns {{ drawn: string[], staticOff: string[], banned: string[] }}
  */
-export function drawDisabledBonds(gd, rng) {
+export function drawDisabledBonds(gd, rng, policy = {}) {
   const { core: nCore, addon: nAddon } = gd.bans(gd.difficulty);
   const staticOff = [...gd.modeInactiveBonds].filter((b) => gd.bond(b)).sort();
   const eligible = gd.bondIds.filter((b) => {
@@ -32,13 +32,19 @@ export function drawDisabledBonds(gd, rng) {
   const core = eligible.filter((b) => gd.bond(b).isCore);
   const addon = eligible.filter((b) => !gd.bond(b).isCore);
   const extraCore = core.includes('ursusShip') ? 1 : 0;
-  const drawn = [...sample(core, Math.min(nCore + extraCore,Math.max(0,core.length-5)), rng), ...sample(addon, Math.min(nAddon,Math.max(0,addon.length-3)), rng)].sort();
+  const forced = core.filter(id=>(policy.forcedBonds||[]).includes(id));
+  const protectedIds = new Set(policy.protectedBonds||[]);
+  const quota = Math.min(Math.max(nCore + extraCore,forced.length),Math.max(0,core.length-5));
+  const randomCore = core.filter(id=>!forced.includes(id)&&!protectedIds.has(id));
+  const drawn = [...forced, ...sample(randomCore,Math.max(0,quota-forced.length),rng), ...sample(addon, Math.min(nAddon,Math.max(0,addon.length-3)), rng)].sort();
   const off = new Set([...drawn, ...staticOff]);
   const banned = [];
   for (const id of gd.visibleChess) {
     const c = gd.chess(id);
-    if (c.optionalRecruit) continue; // personal selections remain available even when their bonds are disabled
-    const bonds = Array.isArray(c.bonds) ? c.bonds : [];
+    const allBonds = Array.isArray(c.bonds) ? c.bonds : [];
+    // Personal recruitment does not bypass core bans; auxiliary bonds cannot rescue a banned single-core recruit.
+    const cores = c.optionalRecruit ? allBonds.filter(b => gd.bond(b)?.isCore) : [];
+    const bonds = cores.length ? cores : allBonds;
     if (bonds.length > 0 && bonds.every((b) => off.has(b))) banned.push(id);
   }
   return { drawn, staticOff, banned };
@@ -61,7 +67,7 @@ export class SharedPool {
     /** @type {Map<string, { cap: number, left: number, tier: number }>} */
     this.entries = new Map();
     for (const id of gd.visibleChess) {
-      if (ban.has(id)) continue;
+      if (ban.has(id) || gd.chess(id)?.optionalRecruit) continue;
       const cap = gd.poolCopies(id);
       if (cap <= 0) continue;
       this.entries.set(id, { cap, left: cap, tier: gd.tierOf(id) });
@@ -172,4 +178,20 @@ export class SharedPool {
     for (const e of this.entries.values()) n += e.left;
     return n;
   }
+}
+
+/** Standard copies share their entries with the match; optional recruits have independent per-player stock. */
+export class RecruitPool extends SharedPool {
+ constructor(shared, player){
+  super(player.gd);this.entries=new Map(shared.entries);this.banned=shared.banned;
+  this.personal=new Map();this.player=player;
+ }
+ sync(){
+  for(const id of this.player.gd.visibleChess){const c=this.player.gd.chess(id);if(!c?.optionalRecruit)continue;
+   if(!this.player.canRecruit(id)){this.entries.delete(id);continue;}
+   if(!this.personal.has(id)){const cap=this.player.gd.poolCopies(id);this.personal.set(id,{cap,left:cap,tier:c.tier});}
+   this.entries.set(id,this.personal.get(id));
+  }
+  return this;
+ }
 }

@@ -166,11 +166,11 @@ function RosterCard({ m, chess, golden, entries, selected, onPick }) {
 
 // ---- detail --------------------------------------------------------------------------------------------------------------
 
-function SkillOption({ m, opt, on, level, onPick }) {
+function SkillOption({ m, opt, on, level, onPick, locked = false }) {
   const rec = level === 'elite' ? opt.elite || opt.normal : opt.normal || opt.elite;
   const tags = skillTags(rec);
   return html`<button type="button" role="radio" aria-checked=${on ? 'true' : 'false'} class=${cx('lo-skill', on && 'is-on')}
-      data-skill=${opt.index} onClick=${() => onPick(opt.index)}>
+      data-skill=${opt.index} disabled=${locked && !on} onClick=${() => onPick(opt.index)}>
     ${on ? html`<span class="lo-skill__deco" aria-hidden="true"><${Img} src=${localAsset('ui/outer', 'skill_select_deco')} fallback=${html`<i></i>`} /></span>` : null}
     <${SkillIcon} m=${m} rec=${rec} index=${opt.index} on=${on} size="md" />
     <span class="lo-skill__body">
@@ -325,7 +325,7 @@ function Detail({ m, chess, golden, entries, onChange, onReset, locked }) {
         </header>
         <div class="lo-skills" role="radiogroup" aria-label="选择技能">
           ${opt.skillOptions.map((s) => html`<${SkillOption} key=${s.index} m=${m} opt=${s} level=${level} on=${s.index === choice.skill}
-            onPick=${(i) => onChange({ skill: i })} />`)}
+            locked=${chess.recruitPrototype} onPick=${(i) => onChange({ skill: i })} />`)}
         </div>
       </section>
       <${LoadoutStats} base=${chess} golden=${golden} entries=${entries} level=${statLevel} onLevel=${setStatLevel} />
@@ -336,7 +336,7 @@ function Detail({ m, chess, golden, entries, onChange, onReset, locked }) {
         </header>
         <div class="lo-mods" role="radiogroup" aria-label="选择模组">
           ${opt.moduleOptions.map((mo) => html`<button key=${mo.id} type="button" role="radio" aria-checked=${mo.id === choice.module ? 'true' : 'false'}
-              data-module=${mo.id} class=${cx('lo-mod', mo.id === choice.module && 'is-on', mo.id === MODULE_NONE && 'lo-mod--none')}
+              data-module=${mo.id} disabled=${chess.recruitPrototype && mo.id !== choice.module} class=${cx('lo-mod', mo.id === choice.module && 'is-on', mo.id === MODULE_NONE && 'lo-mod--none')}
               onClick=${() => onChange({ module: mo.id })}>
             <${ModuleGlyph} m=${m} rec=${mo.rec} id=${mo.id} />
             <span class="lo-mod__text">
@@ -412,11 +412,13 @@ function LoadoutScreen({ st }) {
   }, [ready, roster]);
   const [tab, setTab] = useState('standard');
   const candidates = roster.filter(c => c.optionalRecruit && c.tier === 5);
+  const selectedAt = (c,t) => !!st.entries[c.chessId.replace(/_[56]_a$/, `_${t}_a`)]?.selected;
+  const displayTier = c => c.recruitPrototype && [5,6].find(t=>st.sel===c.chessId.replace(/_[56]_a$/, `_${t}_a`)) || selectedTier(c) || 5;
   const selectedTier = c => [5, 6].find(t => st.entries[c.chessId.replace(/_[56]_a$/, `_${t}_a`)]?.selected) || 0;
   const visibleRoster = tab === 'recruits'
-    ? candidates.map(c => getChess(c.chessId.replace(/_5_a$/, `_${selectedTier(c) || 5}_a`)))
+    ? candidates.map(c => getChess(c.chessId.replace(/_5_a$/, `_${displayTier(c)}_a`)))
     : roster.filter(c => !c.optionalRecruit);
-  const list = tab === 'recruits' ? visibleRoster : filterRoster(visibleRoster, st.filters, st.entries, getChess, getBond);
+  const list = filterRoster(visibleRoster, st.filters, st.entries, getChess, getBond);
   const selId = st.sel && list.some((c) => c.chessId === st.sel) ? st.sel : list[0]?.chessId || roster[0]?.chessId || null;
   const { base, golden } = selId ? recordsOf(selId, getChess) : { base: null, golden: null };
   const nChanged = changedCount(st.entries, getChess);
@@ -429,12 +431,12 @@ function LoadoutScreen({ st }) {
   const pick = (id) => { const c=data.lookup('chess',id);if(c?.charId){audio.warmVoices([c.charId]);} loadoutStore.set({ sel: id }); setNarrowDetail(true); };
   const recruit = (c, tier) => {
     const next = sanitizeEntries(loadoutStore.get().entries, getChess), key = c.chessId.replace(/_[56]_a$/, '');
-    for (const t of [5, 6]) {
+    for (const t of c.recruitPrototype && tier ? [tier] : [5, 6]) {
       const id = `${key}_${t}_a`;
       if (next[id]) { next[id] = { ...next[id] }; delete next[id].selected; if (!Object.keys(next[id]).length) delete next[id]; }
     }
     const id = `${key}_${tier || 5}_a`;
-    if (tier) next[id] = { ...next[id], selected: true };
+    if (tier && !(c.recruitPrototype && st.entries[id]?.selected)) next[id] = { ...next[id], selected: true };
     const check = checkLoadout(next, getChess);
     if (!check.ok) {
       toast(check.detail?.includes('최대 2명') ? '각 단계는 최대 2명까지 선발할 수 있습니다.' : '선발 설정을 확인하지 못했습니다. 오퍼레이터 데이터를 다시 불러와 주세요.', 'warn');
@@ -540,12 +542,12 @@ function LoadoutScreen({ st }) {
     </nav><${FavoritesButton} view="editor"/></div>
     ${!ready ? html`<div class="lo-loading"><${Spinner} size="sm" />正在载入干员数据（打开页面后仅载入一次）…</div>` : html`<main class=${cx('lo-body', narrowDetail && 'is-detail')}>
       <section class="lo-roster" id="lo-roster-panel" role="tabpanel" aria-labelledby=${`lo-tab-${tab}`}>
-        ${tab === 'standard' ? html`<${Filters} m=${m} filters=${st.filters} bonds=${bonds} onFilters=${(filters) => loadoutStore.set({ filters })} />` : html`<div class="lo-recruit-note"><div>${[5,6].map(t => html`<span>${t}단계 <b class="num">${candidates.filter(c => selectedTier(c) === t).length}/2</b></span>`)}</div><p>선발한 오퍼레이터만 본인의 모집·보상에 등장합니다. 특질은 없습니다.</p></div>`}
+        ${html`<${Filters} m=${m} filters=${st.filters} bonds=${bonds} onFilters=${(filters) => loadoutStore.set({ filters })} />`}${tab === 'recruits' ? html`<div class="lo-recruit-note"><div>${[5,6].map(t => html`<span>${t}단계 <b class="num">${candidates.filter(c => selectedAt(c,t)).length}/2</b></span>`)}</div><p>선발한 오퍼레이터만 본인의 모집·보상에 등장합니다. 특질은 없습니다. 원형 오퍼레이터는 각 단계에 한 번씩 선발할 수 있습니다.</p></div>` : null}
         <div class=${cx('lo-grid', tab === 'recruits' && 'lo-grid--recruits')} role="listbox" aria-label="干员列表" ref=${gridRef}>
           ${list.length ? list.map((c) => html`<div class=${cx(tab === 'recruits' && 'lo-recruit-card')} key=${c.chessId}>
             <${RosterCard} m=${m} chess=${c} golden=${c.goldenId ? getChess(c.goldenId) : null}
               entries=${st.entries} selected=${c.chessId === selId} onPick=${pick} />
-            ${tab === 'recruits' ? html`<div class="lo-seg lo-recruit-choice" aria-label=${`${c.name} 선발 단계`}>${[0,5,6].map(t => html`<button type="button" disabled=${locked} aria-pressed=${selectedTier(c) === t} class=${cx(selectedTier(c) === t && 'is-on')} onClick=${() => recruit(c,t)}>${t ? `${t}단계` : '미선발'}</button>`)}</div>` : null}
+            ${tab === 'recruits' ? html`<div class="lo-seg lo-recruit-choice" aria-label=${`${c.name} 선발 단계`}>${[0,5,6].map(t => html`<button type="button" disabled=${locked || (t===6 && c.recruitReserve)} aria-pressed=${t ? selectedAt(c,t) : !selectedTier(c)} class=${cx((t ? selectedAt(c,t) : !selectedTier(c)) && 'is-on')} onClick=${() => recruit(c,t)}>${t ? `${t}단계` : '미선발'}</button>`)}</div>` : null}
           </div>`) : html`<p class="lo-empty t-dim">没有符合条件的干员</p>`}
         </div>
       </section>

@@ -70,6 +70,7 @@
 //     it during INFO_CHECK only. battleInput() resolves every chess unit to `skillIndex` + `moduleId` (resolveLoadout:
 //     normal chess → moduleId null, elite → uniEquipId | 'none'); m.private exposes `loadout`.
 
+import { RecruitPool } from './pool.js';
 import { ERR, GEO, PHASE, layerGainRoom } from '../../shared/constants.js';
 import { checkLoadout, resolveLoadout } from '../../shared/protocol.js';
 import { FIELD, tileKey, parseKey, inField, canPlace, placeClass, boardOrder, freeSlot, pieceDir, parseDir, mergeTile, ownerRangeKeys } from './board.js';
@@ -241,10 +242,16 @@ export class PlayerState {
     return true;
   }
 
+  get pool(){
+    if(!this._recruitPool)this._recruitPool=new RecruitPool(this.m.pool,this);
+    return this._recruitPool.sync();
+  }
+
   /** The skill index / module a chess record fights with under this player's loadout (DESIGN §16). */
   canRecruit(id) {
     const c = this.gd.chess(id);
-    return !!c && (!c.optionalRecruit || this.loadout?.[c.baseId || c.chessId]?.selected === true);
+    const base=c?.baseId || c?.chessId;
+    return !!c && (!c.optionalRecruit || (!this.m.bannedChess?.includes(base) && this.loadout?.[base]?.selected === true));
   }
 
   loadoutFor(chessRecord) {
@@ -409,7 +416,7 @@ export class PlayerState {
   /** Return a piece's pool copies (and its equipped items are handled by the caller). */
   returnCopies(piece) {
     if (piece && piece.kind === 'chess' && piece.poolCopies > 0) {
-      this.m.pool.give(this.gd.baseIdOf(piece.id), piece.poolCopies);
+      this.pool.give(this.gd.baseIdOf(piece.id), piece.poolCopies);
       piece.poolCopies = 0;
     }
   }
@@ -499,7 +506,7 @@ export class PlayerState {
     if (!rec || !this.canRecruit(chessId)) return null;
     const base = this.gd.baseIdOf(chessId);
     const need = rec.isGolden ? this.gd.goldenCopies : 1;
-    const taken = fromPool ? this.m.pool.take(base, need) : 0;
+    const taken = fromPool ? this.pool.take(base, need) : 0;
     const piece = this.newPiece('chess', chessId, { poolCopies: taken });
     this.round.gainedChess++;
     let owned = piece;
@@ -579,7 +586,7 @@ export class PlayerState {
     // equipment, which would be lost in temp — a summon stack removed there comes back at the next round start)
     if (where === 'board') this.grantTokensFor(elite);
     if (!where) {
-      this.m.pool.give(baseId, copies);
+      this.pool.give(baseId, copies);
       this.m.toast(this, 'warn', '整备区已满，晋升的精锐干员无法放入');
       this.m.log.warn?.(`[match ${this.m.roomCode}] ${this.playerId}: merge result dropped (hand+temp full)`);
       this.recompute();
@@ -600,7 +607,7 @@ export class PlayerState {
     if (!goldenId) return false;
     const base = this.gd.baseIdOf(piece.id);
     const extra = Math.max(0, this.gd.goldenCopies - (piece.poolCopies || 0));
-    piece.poolCopies = (piece.poolCopies || 0) + this.m.pool.take(base, extra);
+    piece.poolCopies = (piece.poolCopies || 0) + this.pool.take(base, extra);
     piece.id = goldenId;
     this.recompute();
     this.m.dispatch(this, 'onMerge', { kind: 'chess', piece, baseId: base, consumed: [], source: 'promote' });
@@ -675,7 +682,7 @@ export class PlayerState {
       const fresh = (id) => this.canRecruit(id) && !list.includes(id);
       for (let i = 0; i < ro.count; i++) {
         let id = null;
-        for (let tt = t; tt >= 1 && !id; tt--) id = this.m.pool.roll(this.m.rngShop, { tier: tt, filter: fresh });
+        for (let tt = t; tt >= 1 && !id; tt--) id = this.pool.roll(this.m.rngShop, { tier: tt, filter: fresh });
         if (id) list.push(id);
       }
     }
@@ -851,12 +858,12 @@ export class PlayerState {
   }
 
   _rollChessSlot() {
-    const id = this.m.pool.roll(this.m.rngShop, { maxTier: this.shop.level, filter: (id) => this.canRecruit(id) });
+    const id = this.pool.roll(this.m.rngShop, { maxTier: this.shop.level, filter: (id) => this.canRecruit(id) });
     return id ? { kind: 'chess', id, basePrice: this.gd.chessPrice(id), frozen: false, sold: false } : null;
   }
 
   _rollItemSlot() {
-    const id = this.m.pool.rollItem(this.m.rngShop, this.shop.level);
+    const id = this.pool.rollItem(this.m.rngShop, this.shop.level);
     return id ? { kind: 'item', id, basePrice: this.gd.itemPrice(id), frozen: false, sold: false } : null;
   }
 
@@ -929,7 +936,7 @@ export class PlayerState {
       if (!rec) return fail(ERR.BAD_TARGET);
       const base = this.gd.baseIdOf(slot.id);
       const need = rec.isGolden ? this.gd.goldenCopies : 1;
-      if (this.m.pool.has(base) && this.m.pool.left(base) < need) return fail(ERR.SOLD_OUT);
+      if (this.pool.has(base) && this.pool.left(base) < need) return fail(ERR.SOLD_OUT);
       if (handFull) return fail(ERR.HAND_FULL);
       this.spend(price);
       slot.sold = true;
@@ -1128,11 +1135,11 @@ export class PlayerState {
     if (loc.area === 'board') {
       // board → board: move or swap (the occupant must be legal on the source tile and keeps its own facing); an
       // operator that changes its tile takes its summons off the board (back onto their stacks, _liftTokensOf) — its
-      // own summon swapped onto its old tile included, so that one needs no tile check
+      // directly swapped summon stays on the source tile if legal from the owner's new position
       if (occ) {
         const [sr, sc] = parseKey(loc.key);
         const ownSummon = occ.kind === 'token' && occ.ownerUid === piece.uid;
-        if (!ownSummon && !this._legal(occ, sr, sc)) return fail(ERR.BAD_TILE);
+        if (!this._legal(occ, sr, sc, ownSummon ? {key,piece,dir} : null)) return fail(ERR.BAD_TILE);
         this.board.set(loc.key, occ);
         if (occ.kind === 'chess') this._liftTokensOf(occ.uid);
       } else {
@@ -1140,7 +1147,7 @@ export class PlayerState {
       }
       piece.dir = dir;
       this.board.set(key, piece);
-      this._liftTokensOf(piece.uid);
+      this._liftTokensOf(piece.uid, occ?.kind === 'token' ? occ : null);
       this.recompute();
       return OK;
     }
@@ -1452,7 +1459,7 @@ export class PlayerState {
       if (!rec) return fail(ERR.BAD_TARGET);
       const base = this.gd.baseIdOf(slot.id);
       const need = rec.isGolden ? this.gd.goldenCopies : 1;
-      if (this.m.pool.has(base) && this.m.pool.left(base) < need) return fail(ERR.SOLD_OUT);
+      if (this.pool.has(base) && this.pool.left(base) < need) return fail(ERR.SOLD_OUT);
       if (handFull) return fail(ERR.HAND_FULL);
     }
     const price = Number.isFinite(slot.price) && slot.price > 0 ? Math.trunc(slot.price) : 0;

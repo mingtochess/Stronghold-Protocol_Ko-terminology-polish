@@ -118,9 +118,10 @@ test('ring healers heal three allies; bards heal everyone in range every second'
     units: [{ chessId: 't_bard', row: 10, col: 4 }, { chessId: 'a1', row: 10, col: 5 }, { chessId: 'a2', row: 11, col: 4 }],
     content: 'none',
   });
-  h2.step();
+  // Warm the aura before measuring its continuous regeneration rate.
+  h2.run(0.5);
   h2.unit('a1').hp = 1000; h2.unit('a2').hp = 1000;
-  h2.run(3.05);
+  h2.run(3);
   approx(h2.unit('a1').hp, 1000 + 3 * 100);
   approx(h2.unit('a2').hp, 1000 + 3 * 100);
   assert.equal(h2.unit('t_bard').stats.attacks, 0);

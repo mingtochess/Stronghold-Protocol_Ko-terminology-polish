@@ -37,10 +37,12 @@ const TIERS = await Promise.all([
   ...[1, 2, 3, 4, 5, 6].map((t) => safeImport(`./kits/tier${t}.js`)),
   safeImport('./kits/ursus.js'),
   safeImport('./kits/recruits.js'),
+  safeImport('./kits/upstreamRecruits.js'),
 ]);
 const DOMAIN_NAMES = ['tokens', 'devices', 'enemies', 'bosses', 'bonds', 'garrisons', 'items', 'bands', 'choices', 'ursus'];
 const DOMAINS = await Promise.all(DOMAIN_NAMES.map((n) => safeImport(`./${n}.js`)));
 const tokens = DOMAINS[0];
+const recruitTokens = await safeImport('./recruitTokens.js');
 
 /** Merged kit registry: baseChessId → (bb, chess, def) => Kit */
 export const KITS = Object.freeze(Object.assign({}, ...TIERS.map((m) => (m && m.default && typeof m.default === 'object' ? m.default : {}))));
@@ -56,7 +58,7 @@ export function setupUnitKit(battle, unit, mode = 'full') {
   const raw = def.raw ?? def;
   const bb = def.skill?.bb ?? {};
   if (unit.kind === 'token') {
-    const tk = mode === 'full' ? (tokens.kits?.[def.id] ?? tokens.default?.[def.id]) : null;
+    const tk = mode === 'full' ? (((unit.ownerUnit?.def?.raw?.optionalRecruit && unit.ownerUnit?.def?.raw?.recruitSource === 'upstream-0.2.1') ? (recruitTokens.kits?.[def.id] ?? recruitTokens.default?.[def.id]) : null) ?? tokens.kits?.[def.id] ?? tokens.default?.[def.id]) : null;
     if (typeof tk === 'function') {
       try { const k = tk(bb, raw, def); if (k) return k; } catch (e) { battle._handlerError(`tokenKit:${def.id}`, unit, e); }
     }
@@ -67,7 +69,7 @@ export function setupUnitKit(battle, unit, mode = 'full') {
   if (mode === 'full' || injected) {
     // DESIGN §5.6's example keys kits by the suffix-less id (`chess_char_1_01`), data/SIM.md by baseId (`…_a`): accept both
     const bare = String(def.baseId ?? def.id ?? '').replace(/_[ab]$/, '');
-    const pick = (reg) => reg?.[def.baseId] ?? reg?.[def.id] ?? reg?.[bare];
+    const pick = (reg) => reg?.[def.baseId] ?? reg?.[def.id] ?? reg?.[bare] ?? (raw.optionalRecruit ? reg?.[raw.charId] : undefined);
     const f = pick(injected) ?? (mode === 'full' ? pick(KITS) : undefined);
     if (typeof f === 'function') {
       try {

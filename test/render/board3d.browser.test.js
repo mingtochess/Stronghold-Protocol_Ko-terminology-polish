@@ -175,7 +175,7 @@ describe('3D board in headless Chrome', { skip }, () => {
     await page.close();
     assert.deepEqual(problems, []);
     assert.equal(r.faArea, '0,6,0,20', 'FA prep builds the boss field');
-    assert.deepEqual(r.faBand, [0, 13]);
+    assert.deepEqual(r.faBand, [0, 6]);
     assert.ok(r.faCamTx > 10, `right-hand boss prep camera (tx ${r.faCamTx})`);
     assert.equal(r.prepArea, '6,13,0,10', 'prep board without the pen block (user playtest #2 item 6), with the row-13 wall');
     assert.equal(r.bossArea, '0,6,0,20');

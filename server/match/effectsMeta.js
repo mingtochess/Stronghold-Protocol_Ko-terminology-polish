@@ -567,7 +567,7 @@ export function makeCtx(m, ps, source, hook, ev = null) {
         if (opts.bond) { const c = gd.chess(id); if (!c || !Array.isArray(c.bonds) || !c.bonds.includes(opts.bond)) return false; }
         return typeof opts.filter === 'function' ? !!opts.filter(id) : true;
       };
-      return m.pool.roll(m.rngMeta, { maxTier: Number.isInteger(opts.maxTier) ? opts.maxTier : 6, tier: Number.isInteger(opts.tier) ? opts.tier : null, filter: f });
+      return ps.pool.roll(m.rngMeta, { maxTier: Number.isInteger(opts.maxTier) ? opts.maxTier : 6, tier: Number.isInteger(opts.tier) ? opts.tier : null, filter: f });
     },
     rollItem: (opts = {}) => m.rollItemId(opts),
     /**

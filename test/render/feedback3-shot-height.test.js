@@ -66,13 +66,13 @@ test('an arrow leaves the shooter at its hands and flies at the target\'s chest 
   const src = unit(1, 3, 10), tgt = unit(2, 7, 11, { isEnemy: true, _headTiles: 1.6 });
   fx.attack(src, tgt, 'arrow');
   const pr = fx.projs[fx.projs.length - 1];
-  close(share(src, pr.x0, pr.y0, pr.z0), FX.SHOT_HEIGHT.launch, 0.03, 'launch share of the model height');
-  close(share(tgt, pr.tx, pr.ty, pr.tz), FX.SHOT_HEIGHT.aim, 1e-6, 'aim share of the target\'s model');
+  close(pr.z0,src.z+src.hover+src._headTiles*2*FX.SHOT_HEIGHT.launch,1e-9,'fixed world launch height');
+  close(pr.tz,tgt.z+tgt.hover+tgt._headTiles*2*FX.SHOT_HEIGHT.aim,1e-9,'fixed world target height');
   // the old rule: 0.45 × head height as a world height → ≈ 18–23 % of the model
   assert.ok(share(src, src.x, src.y, 0.45 * src._headTiles) < 0.25, 'the hip height it used to start from');
   // a raised / flying unit: measured from where it is drawn
   const fly = unit(3, 6, 9, { z: 0.4, hover: 0.32 });
-  assert.ok(Math.abs(FX.bodyZ(cam, fly, 0.5) - 0.72 - cam.liftFor(6, 9, 0.72, 0.5 * 1.18 * cam.scaleAt(6, 9, 0.72))) < 1e-9);
+  close(FX.bodyZ(cam,fly,.5),.72+1.18,1e-9);
 });
 
 test('operator models and fallback portraits both keep their place on an attack', async () => {
@@ -101,4 +101,19 @@ test('operator models and fallback portraits both keep their place on an attack'
     close(v.root.position.x, feet.x, 1e-6, 'x'); close(v.root.position.y, feet.y, 1e-6, 'y');
   }
   assert.equal(v.actor.current, 'Attack', 'the model shows the attack with its own clip');
+});
+
+test('submerged ground bodies sink and recover without lowering airborne or platform units', async () => {
+  const {submergedVisual} = await import('../../public/js/render/units.js');
+  let tile = {drawn:true,glyph:'d',devH:0};
+  const ctx=fakeViewCtx(fake.P,{cam});ctx.tileAt=()=>tile;
+  const v=new UnitView(ctx,{id:991,kind:'op',side:'ally',x:5,y:9,maxHp:1000});
+  assert.equal(submergedVisual(ctx,v),true);
+  v.update(.1,cam,0);assert.equal(v.waterSink,-.18);
+  const p=FX.bodyPoint(cam,v,.5);const sink=p.z;
+  tile={drawn:true,glyph:'R'};v.update(.1,cam,.1);
+  assert.equal(v.waterSink,0);assert.ok(FX.bodyPoint(cam,v,.5).z>sink);
+  tile={drawn:true,glyph:'d',devH:.2};assert.equal(submergedVisual(ctx,v),false);
+  tile.devH=0;v.flying=true;assert.equal(submergedVisual(ctx,v),false);
+  v.destroy();
 });

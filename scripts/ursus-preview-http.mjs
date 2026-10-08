@@ -1,22 +1,22 @@
 // Loopback-only development transport for HTTP-only preview tunnels. The real game protocol still runs through /ws.
 import WebSocket from 'ws';
 import {randomUUID} from 'node:crypto';
-import {readFile,writeFile,mkdir,access} from 'node:fs/promises';
+import {readFile,writeFile,mkdir,access,statfs} from 'node:fs/promises';
 import {join,dirname} from 'node:path';
 import {normalizeAtlas} from '../public/vendor/resource-atlas.mjs';
 export async function previewHandler(root,port){
  let closed=false;
- const sessions=new Map(),pending=new Map();const resources=JSON.parse(await readFile(join(root,'public/vendor/browser-resources.json'),'utf8'));const voices=JSON.parse(await readFile(join(root,'.cache/ursus-voice-resources.json'),'utf8').catch(()=>'{"files":[]}'));resources.files.push(...voices.files);const skins=JSON.parse(await readFile(join(root,'.cache/skin-resources.json'),'utf8').catch(()=>'{"files":[]}'));resources.files.push(...skins.files);const skillSounds=JSON.parse(await readFile(join(root,'.cache/skill-sound-resources.json'),'utf8').catch(()=>'{"files":[]}'));resources.files.push(...skillSounds.files);const bands=JSON.parse(await readFile(join(root,'.cache/ursus-band-resources.json'),'utf8').catch(()=>' {"files":[]}'));resources.files.push(...bands.files);const localArt=JSON.parse(await readFile(join(root,'.cache/ursus-local-assets.json'),'utf8').catch(()=>'{"groups":{}}'));for(const group of Object.values(localArt.groups || {}))for(const entry of Object.values(group))if(entry?.path)resources.files.push({path:entry.path,local:true,sources:[]});const files=new Map(resources.files.map(f=>[f.path,f]));
+ const sessions=new Map(),pending=new Map();const resources=JSON.parse(await readFile(join(root,'public/vendor/browser-resources.json'),'utf8'));const voices=JSON.parse(await readFile(join(root,'.cache/ursus-voice-resources.json'),'utf8').catch(()=>'{"files":[]}'));resources.files.push(...voices.files);const skins=JSON.parse(await readFile(join(root,'.cache/skin-resources.json'),'utf8').catch(()=>'{"files":[]}'));resources.files.push(...skins.files);const skillSounds=JSON.parse(await readFile(join(root,'.cache/skill-sound-resources.json'),'utf8').catch(()=>'{"files":[]}'));resources.files.push(...skillSounds.files);const bands=JSON.parse(await readFile(join(root,'.cache/ursus-band-resources.json'),'utf8').catch(()=>' {"files":[]}'));resources.files.push(...bands.files);const localArt=JSON.parse(await readFile(join(root,'.cache/ursus-local-assets.json'),'utf8').catch(()=>'{"groups":{}}'));for(const group of Object.values(localArt.groups || {}))for(const entry of Object.values(group))if(entry?.path)resources.files.push({path:entry.path,local:true,sources:[]});const recruits=JSON.parse(await readFile(join(root,'.cache/upstream-recruit-resources.json'),'utf8').catch(()=>'{"files":[]}'));const files=new Map([...recruits.files,...resources.files].map(f=>[f.path,f]));
  const timer=setInterval(()=>{for(const [id,s]of sessions)if(Date.now()-s.seen>90000){s.ws.close();sessions.delete(id)}},10000);timer.unref();
  const json=(res,value,status=200)=>{res.writeHead(status,{'Content-Type':'application/json','Cache-Control':'no-store'});res.end(JSON.stringify(value))};
  async function asset(path){
   if(pending.has(path))return pending.get(path);
-  const task=(async()=>{const file=files.get(path);if(!file)return null;const dest=join(root,'.cache/ursus-preview-resources',path.slice(1));try{return await readFile(dest)}catch(e){if(e.code!=='ENOENT')throw e}
+  const task=(async()=>{const file=files.get(path);if(!file)return null;const dest=join(root,'.cache/recruit-preview-resources',path.slice(1));try{return await readFile(join(root,'.cache/ursus-preview-resources',path.slice(1)))}catch(e){if(e.code!=='ENOENT')throw e}try{return await readFile(dest)}catch(e){if(e.code!=='ENOENT')throw e}
    if(file.local)return readFile(join(root,'public',path.slice(1)));
    let body;for(const url of file.sources){try{const r=await fetch(url,{signal:AbortSignal.timeout(30000)});if(!r.ok)continue;body=Buffer.from(await r.arrayBuffer());if(body.length)break}catch{}}
    if(!body)throw Error(`Missing preview resource ${path}`);
    if(file.atlas){const sizes=new Map();for(const tex of file.atlas.textures){const png=await asset(tex);sizes.set(tex.split('/').at(-1),{width:png.readUInt32BE(16),height:png.readUInt32BE(20)})}body=Buffer.from(normalizeAtlas(body.toString(),{pma:file.atlas.pma,renamePage:n=>n.replace(/[^A-Za-z0-9._-]/g,'_'),pageSize:n=>sizes.get(n.replace(/[^A-Za-z0-9._-]/g,'_'))}).text)}
-   await mkdir(dirname(dest),{recursive:true});await writeFile(dest,body);return body;
+   const disk=await statfs(root);if(disk.bavail*disk.bsize>body.length+16*1024*1024){await mkdir(dirname(dest),{recursive:true});await writeFile(dest,body).catch(e=>{if(e.code!=='ENOSPC')throw e});}return body;
   })();pending.set(path,task);try{return await task}finally{pending.delete(path)}
  }
  const handle=async(req,res)=>{

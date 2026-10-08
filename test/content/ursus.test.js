@@ -148,3 +148,7 @@ test('six Ursus adds donated total ATK before the three-member percentage, track
  const buffed=d.s.atk;h.step(10);close(d.s.atk,buffed);
  h.b.kill(u,null);h.step();assert.ok(d.s.atk<buffed);close(d.s.atk,expected());
 });
+test('hidden drone visual scale grows from 85 percent by 0.5 percent of that base per layer and is serialized',()=>{
+ const h=setup(3,100);h.step();const d=h.b.allyUnits.find(u=>u.defId===DRONE_ID);close(d.mem.visualScale,.85*1.5);assert.deepEqual(h.b.snapshot().modelScales,[[d.id,.85*1.5]]);
+ h.b.addLayers('p1','ursusShip',100,'test');h.step(2);close(d.mem.visualScale,.85*2);checkInvariants(h.b);
+});

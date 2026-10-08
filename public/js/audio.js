@@ -924,13 +924,14 @@ export class AudioManager {
     try {
       const u = this.getManifest()?.audio?.sfx?.units?.[defId];
       // DESIGN §16: the equipped skill's own ON_SKILL_START sound (`skills[index]`) when the manifest has it
+      const combat = (kind === 'attack' || kind === 'hit') && Number.isInteger(skillIndex) ? u?.skillCombat?.[skillIndex] : null;
       const own = kind === 'skill' && Number.isInteger(skillIndex) && u?.skills ? u.skills[skillIndex] : null;
       const indexedSkill = kind === 'skill' && Number.isInteger(skillIndex) && u?.skills && Object.hasOwn(u.skills,skillIndex);
-      const url = indexedSkill ? own : typeof own === 'string' ? own : u?.[kind];
+      const url = combat?.[kind] || (indexedSkill ? own : typeof own === 'string' ? own : u?.[kind]);
       if (typeof url !== 'string') return false;
-      if ((kind === 'attack' || kind === 'hit') && !normalAttackSfx(defId, url)) return false;
+      if ((kind === 'attack' || kind === 'hit') && !combat?.[kind] && !normalAttackSfx(defId, url)) return false;
       // the official bank's mix (header): a silent roll still counts as the unit's own sound (no generic fallback)
-      const mix = kind === 'skill' ? null : u?.mix?.[kind];
+      const mix = kind === 'skill' ? null : combat?.[kind] ? combat.mix?.[kind] : u?.mix?.[kind];
       if (!unitSoundPlays(mix, this.random())) return true;
       this._play(url, { volume: unitGain(kind === 'attack' || kind === 'hit' ? 0.55 : 0.8, mix), limited: true, unitKey: `${unitId}:${kind}` });
       return true;
@@ -1063,7 +1064,7 @@ export class AudioManager {
     // UnitInfo.spine is the model id (charId / tokenId / enemyId) — the key of sfx.units; kind/defId pick the
     // official class sounds (operator vs summon vs device)
     this.units.set(u.id, { def: u.charId || u.spine || u.defId, defId: u.defId ?? null, kind: u.kind ?? null, side: u.side, boss: !!u.boss,
-      skillIndex: Number.isInteger(u.skillIndex) ? u.skillIndex : null });
+      skillIndex: Number.isInteger(u.skillIndex) ? u.skillIndex : null, skillActive: !!u.skillActive });
   }
 
   /** Play a resolved battle sound for a unit event, limited like unit sounds. */
@@ -1090,18 +1091,20 @@ export class AudioManager {
           if (!src) continue;
           // only a hostile attack authors the target's next impact (a heal — an ally aiming at an ally — never does)
           const tgt = this.units.get(e[2]);
-          if (tgt && tgt.side !== src.side) this.lastAttacker.set(e[2], { def: src.def, at: now });
-          if (!this.unit(src.def, 'attack', e[1]) && src.side === 'enemy') this.battle('enemyHit', { unitKey: `${e[1]}:atk`, volume: 0.35 });
+          if (tgt && tgt.side !== src.side) this.lastAttacker.set(e[2], { def: src.def, at: now, skillIndex: src.skillActive ? src.skillIndex : undefined });
+          if (!this.unit(src.def, 'attack', e[1], src.skillActive ? src.skillIndex : undefined) && src.side === 'enemy') this.battle('enemyHit', { unitKey: `${e[1]}:atk`, volume: 0.35 });
         } else if (kind === 'dmg') {
           const by = this.lastAttacker.get(e[1]);
           if (!by || !IMPACT_TYPES.has(e[3])) continue;
           this.lastAttacker.delete(e[1]); // one impact per attack
-          if (now - by.at <= IMPACT_WINDOW_MS) this.unit(by.def, 'hit', `h${e[1]}`);
+          if (now - by.at <= IMPACT_WINDOW_MS) this.unit(by.def, 'hit', `h${e[1]}`, by.skillIndex);
         } else if (kind === 'heal') {
           this.battle('heal', { unitKey: `heal:${e[1]}`, volume: 0.35 });
-        } else if (kind === 'skill' && e[2]) {
+        } else if (kind === 'skill') {
           const u = this.units.get(e[1]);
           if (u) {
+            u.skillActive = !!e[2];
+            if (!e[2]) continue;
             this.unit(u.def, 'skill', e[1], u.skillIndex ?? undefined);
             // 作战中N: the equipped skill's own slot (0-based; 作战中4 is the fallback of a 4th slot)
             if (unitSoundClass(u) === 'char') {

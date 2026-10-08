@@ -27,7 +27,8 @@
     "test": "node --test",
     "dev": "node --watch server/index.js",
     "doctor": "node tools/doctor.mjs",
-    "start": "node server/index.js"
+    "start": "node server/index.js",
+    "dev:recruits": "node scripts/start-recruits-test.mjs"
   },
   "dependencies": {
     "htm": "^3.1.1",

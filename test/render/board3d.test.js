@@ -455,7 +455,8 @@ test('native gamma stages avoid a second sRGB transform and decode RGBM in their
   pack.original = { images:{albedo:{width:4,height:4},baked:{width:4,height:4}}, materials:{floor:{gammaLighting:true,textures:{_MainTex:{name:'albedo'}}}}, scenes:{act1autochess_m01:{stageId:'act1autochess_m01',lighting:{intensity:1.1,color:[1,0.93,0.87]},buckets:{floor:{material:'floor',lightMap:'baked',position:[0,0,0,1,0,0,0,1,0],uv:[0,0,1,0,0,1],uv1:[0,0,1,0,0,1],index:[0,1,2]}}}} };
   const scene = new BoardScene(THREE,pack,{renderer:stubRenderer()});scene.setArea(AREAS.all);scene.setStage(stages.act1autochess_m01);
   const m=scene.meshes['original:floor'].material;
-  assert.equal(scene.key.intensity,1.1);
+  assert.equal(scene.key.intensity,1.1 * LIGHTING.nativeDirectGain);
+  assert.equal(scene.hemi.intensity,LIGHTING.hemi.intensity,'brightness compensation does not lift the whole shadow floor');
   assert.deepEqual(scene.key.color.toArray(),[1,0.93,0.87]);
   assert.equal(m.map.colorSpace,THREE.NoColorSpace);
   assert.equal(m.lightMap.colorSpace,THREE.NoColorSpace);
@@ -465,13 +466,22 @@ test('native gamma stages avoid a second sRGB transform and decode RGBM in their
   assert.ok(shader.fragmentShader.includes('0.220916301'));
   assert.ok(shader.fragmentShader.includes('uniform vec4 uFocus;'),'focus declarations survive the colour-space adaptation');
   assert.ok(!shader.fragmentShader.includes('#include <colorspace_fragment>'),'the native gamma result is not encoded a second time');
+  const sourceDir=[-.3646601835779002,.9159545584072459,.16749254321147067];
+  const source=pack.original.scenes.act1autochess_m01;
+  source.lighting.dir=sourceDir;
+  pack.original.scenes.act2autochess_m01={...source,stageId:'act2autochess_m01'};
+  scene.setStage({...stages.act1autochess_m01,id:'act2autochess_m01'});
+  assert.deepEqual(scene.stageLightDir,[sourceDir[0],sourceDir[1],1.05],'city floor uses the short-shadow runtime elevation');
+  assert.deepEqual(source.lighting.dir,sourceDir,'the source light metadata remains intact');
+  scene.setStage(stages.act1autochess_m01);
+  assert.deepEqual(scene.stageLightDir,sourceDir,'other themes keep their native direction after leaving city');
   scene.setStage(stages.act1autochess_m02);assert.equal(scene.key.intensity,LIGHTING.key.intensity,'fallback boards retain their linear rig');scene.destroy();
 });
 
  test('native platforms follow phase areas while preserving scenery and source UVs', () => {
   const src = {position:[2,9,0, 3,9,0, 2,10,0, 14,9,0, 15,9,0, 14,10,0, -2,9,0, -1,9,0, -2,10,0], index:[0,1,2,3,4,5,6,7,8], uv:[0,0]};
-  assert.deepEqual(geometryForArea(src, AREAS.normal).index, [0,1,2,6,7,8]);
-  assert.deepEqual(geometryForArea(src, AREAS.unite).index, src.index);
+  assert.deepEqual(geometryForArea(src, AREAS.normal).index, [0,1,2]);
+  assert.deepEqual(geometryForArea(src, AREAS.unite).index, [0,1,2,3,4,5]);
   assert.equal(geometryForArea(src, AREAS.normal).uv, src.uv);
   assert.equal(src.index.length, 9);
  });
@@ -479,8 +489,8 @@ test('native gamma stages avoid a second sRGB transform and decode RGBM in their
 
 test('inactive field sub-floor geometry is excluded regardless of its depth, preserving the right scenic surroundings',()=>{
  const src={position:[12,10,-1,13,10,-1,12,11,-1, 24,10,-1,25,10,-1,24,11,-1],index:[0,1,2,3,4,5]};
- assert.deepEqual(geometryForArea(src,AREAS.normal).index,[3,4,5]);
- assert.deepEqual(geometryForArea(src,AREAS.unite).index,src.index);
+ assert.deepEqual(geometryForArea(src,AREAS.normal).index,[]);
+ assert.deepEqual(geometryForArea(src,AREAS.unite).index,[0,1,2]);
 });
 
 test('native scenery props inside an inactive cooperative half follow the same area rule as platforms',()=>{
@@ -512,4 +522,78 @@ test('runtime platform geometry remains available beside an original baked map',
  assert.ok(slabs.board.position.length>0,'active shooting platforms have separate geometry');
  assert.ok([...slabs.board.position].every(Number.isFinite));
  const none=buildDeviceSlabs([],b.grid);assert.equal(none.board.position.length,0);
+});
+
+test('inactive platforms outside the board envelope never leak above a cooperative or boss field',()=>{
+ const src={position:[-1,3,0,-2,3,0,-1,4,0, 2,9,0,3,9,0,2,10,0],index:[0,1,2,3,4,5]};
+ assert.deepEqual(geometryForArea(src,AREAS.unite).index,[3,4,5]);
+ assert.deepEqual(geometryForArea(src,AREAS.boss).index,[]);
+ assert.deepEqual(sceneryForArea(src,AREAS.boss).index,[0,1,2],'decorative scenery remains independent of platform filtering');
+});
+
+test('original shooting platforms use their own mesh/material and omit the atlas replacement slab',()=>{
+ const st={...stages.act1autochess_m03,id:'native-platform-test'};
+ const geom={position:[-.4,-.4,0,.4,-.4,0,0,.4,.5],normal:[0,0,1,0,0,1,0,0,1],uv:[0,0,1,0,.5,1],index:[0,1,2],bounds:{z1:.5}};
+ const pack={images:{D:{width:4,height:4}},original:{platform:geom,images:{},materials:{MT_trap_1106_achplat:{}},scenes:{'native-platform-test':{stageId:'native-platform-test',buckets:{}}}}};
+ const scene=new BoardScene(THREE,pack,{width:800,height:600,renderer:stubRenderer()});
+ scene.setStage(st);assert.ok(scene.meshes.platforms);assert.equal(scene.meshes.platforms.material,scene.originalMaterials.MT_trap_1106_achplat);
+ assert.equal(scene.meshes.deviceSlabs,null);scene.destroy();
+});
+
+test('environmental replacement surfaces remain in fallback maps and disappear after native stage loads', () => {
+ const scene=new BoardScene(THREE,fakePack(),{renderer:stubRenderer()});
+ scene.meshes={};
+ const board={terrain:{water:[[9,2]],mire:[[9,3]],infection:[[9,4]],smog:[]}};
+ scene._buildTerrain(board);
+ for(const k of ['water','mire','infection'])assert.ok(scene.meshes[k],k+' fallback retained');
+ scene._clear();scene.originalStage='native';scene._buildTerrain(board);
+ for(const k of ['water','mire','infection'])assert.equal(scene.meshes[k],undefined,k+' native surface not covered');
+ scene.destroy();
+});
+
+test('native painted terrain uses red as a blend mask rather than multiplying the tile RGB',async()=>{
+ const {applyNativeStageBlend,addFocus,focusUniforms}=await import('../../public/js/render/board3d/materials.js');
+ const rec={shader:'Torappu/Scene/StandardRealtimeShadow',keywords:['_HG_VERTEX_COLOR_BLEND_ON'],floats:{_BlendStrength:1,_Glossiness2:.2},colors:{_BlendColor:[.5,.38,.2,1],_BlendRangeCtrl:[0,1,0,0]}};
+ const m=addFocus(applyNativeStageBlend(THREE,new THREE.MeshStandardMaterial(),rec),focusUniforms(THREE));
+ const shader={uniforms:{},vertexShader:THREE.ShaderLib.standard.vertexShader,fragmentShader:THREE.ShaderLib.standard.fragmentShader};m.onBeforeCompile(shader);
+ assert.equal(m.vertexColors,true);assert.equal(m.defines.SP_NATIVE_BLEND,1);
+ assert.equal(shader.uniforms.spBlendColor.value.r,.5);
+ assert.ok(shader.fragmentShader.includes('vColor.r) * spBlendStrength'));
+ assert.ok(!shader.fragmentShader.includes('#include <color_fragment>'));
+ assert.ok(shader.fragmentShader.includes('!defined( SP_NATIVE_BLEND )'));
+});
+
+test('native material keywords control painted blending, emission, normals and metallic maps',()=>{
+ const pack=fakePack();pack.original={scenes:{},images:{map:{width:4,height:4}},materials:{
+  disabled:{gammaLighting:true,shader:'Torappu/Scene/StandardRealtimeShadow',keywords:[],floats:{_BlendStrength:1,_ShadowStrength:.5},colors:{_BlendColor:[1,1,1,1],_EmissionColor:[1,1,1,1]},textures:{_BumpMap:{name:'map'},_MetallicGlossMap:{name:'map'}}},
+  enabled:{gammaLighting:true,shader:'Torappu/Scene/StandardRealtimeShadow',keywords:['_HG_VERTEX_COLOR_BLEND_ON','_NORMALMAP','_EMISSION','_METALLICGLOSSMAP'],floats:{_BlendStrength:1},colors:{_EmissionColor:[1,1,1,1]},textures:{_BumpMap:{name:'map'},_MetallicGlossMap:{name:'map'}}}
+ }};
+ const scene=new BoardScene(THREE,pack,{renderer:stubRenderer()});const a=scene.originalMaterials.disabled,b=scene.originalMaterials.enabled;
+ assert.equal(a.userData.nativeBlend,undefined,'unused white blend does not erase the city tile texture');
+ assert.equal(a.normalMap,null);assert.equal(a.emissive.getHex(),0);assert.equal(a.roughnessMap,null);
+ assert.equal(b.userData.nativeBlend,true);assert.ok(b.normalMap);assert.equal(b.emissive.getHex(),0xffffff);assert.ok(b.metalnessMap);assert.equal(b.metalness,1);
+ const shader={uniforms:{},vertexShader:THREE.ShaderLib.standard.vertexShader,fragmentShader:THREE.ShaderLib.standard.fragmentShader};a.onBeforeCompile(shader);
+ assert.ok(shader.fragmentShader.includes('return diffuseColor * 0.779083729'));
+ assert.ok(shader.fragmentShader.includes('max(loH,.32)'));
+ assert.equal(shader.uniforms.spNativeShadowStrength.value,.5);
+ assert.ok(shader.fragmentShader.includes('directionalLightShadow.shadowIntensity * spNativeShadowStrength'));
+ assert.equal(a.defines.SP_NATIVE_LIGHTING,1,'approximate web sheen is disabled');scene.destroy();
+});
+
+test('native sunken water is not covered by the higher UI highlight plane',()=>{
+ const pack=fakePack(),geom={position:[6,9,-.141,7,9,-.141,6,10,-.141],index:[0,1,2]};
+ pack.original={images:{},materials:{MT_Dosshore_UI:{},MT_AutochessSand_water2:{shader:'StylizedWater'}},scenes:{act1autochess_m05:{stageId:'act1autochess_m05',buckets:{ui:{...geom,material:'MT_Dosshore_UI'},basin:{...geom,material:'MT_AutochessSand_water2'}}}}};
+ const scene=new BoardScene(THREE,pack,{renderer:stubRenderer()});scene.setStage(stages.act1autochess_m05);
+ assert.equal(scene.meshes['original:ui'],undefined);
+ assert.ok(scene.meshes['original:basin']);
+ assert.ok([...scene.meshes['original:basin'].geometry.attributes.position.array].filter((_,i)=>i%3===2).every(z=>Math.abs(z+.141)<1e-6));
+ scene.destroy();
+});
+
+test('city preview surroundings retain native decoration without adding inactive platform tiles',()=>{
+ const pack=fakePack(),geom={position:[2,15,0,3,15,0,2,16,0],index:[0,1,2]};
+ pack.original={images:{},materials:{floor:{}},scenes:{act2autochess_m01:{stageId:'act2autochess_m01',buckets:{decor:{...geom,material:'floor'},platform:{...geom,material:'floor',platform:true}}}}};
+ const scene=new BoardScene(THREE,pack,{renderer:stubRenderer()});scene.setStage({...stages.act1autochess_m01,id:'act2autochess_m01'});
+ assert.ok(scene.meshes['original:decor']);assert.equal(scene.meshes['original:platform'],null);
+ scene.setArea(AREAS.boss);assert.equal(scene.meshes['original:decor'],null);scene.destroy();
 });

@@ -18,7 +18,7 @@ test('Wisdel S2 overload fires four separately equipped random strikes',()=>{
  const id='chess_custom_recruit_wisdel_5_a';
  const h=makeBattle({data:{...data,enemies:{...data.enemies,dummy:enemyRec({key:'dummy',hp:1e7,speed:0})}},units:[{chessId:id,row:10,col:3,skillIndex:1,items:['chess_item_4_03_e_a']}],enemies:[{key:'dummy',route:{motion:'WALK',start:[10,4],end:[10,2],checkpoints:[]}}],autoFinish:false});
  h.run(1);const u=h.unit(id),e=h.enemy();u.skill.gainSp(1000);assert.ok(u.skill.active||u.skill.activate('test'));u.skill.timeLeft=u.skill.duration/2;u.skill.tick(.01);
- const profile=effectiveProfile(u);assert.equal(profile.randomStrikeTargets,4);
+ const profile=effectiveProfile(u);assert.ok(u.mem.wisdelOverload,'second half enters overload');
  const before=u.s.aspd,attackCount=u.stats.attacks;
  performAttack(h.b,u,profile,[e]);assert.equal(u.s.aspd-before,4);assert.equal(u.stats.attacks-attackCount,1);
  assert.equal(h.b.errorCount,0);

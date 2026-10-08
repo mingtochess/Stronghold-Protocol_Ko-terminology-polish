@@ -74,6 +74,17 @@ export const PROFESSION_DEFAULTS = Object.freeze({
  * window is 0.05 s and its stack count is the block number (`SetStackCountViaBlockNum`). [ASSUMED] the sim uses the same
  * `battle.time` as its window, so simultaneous hits (both 血镰, an AoE, or a normal attack) share the block-count cap.
  */
+const installMushaHeal = (battle, unit) => {
+  battle.on('damaged', (c) => {
+    if (c.source !== unit || !unit.alive || !c.target || c.target.side !== 'enemy') return;
+    const dmg = c.dmg;
+    if (!dmg || isHpLoss(dmg) || c.type === 'element') return;
+    const tags = dmg.tags || [];
+    if (tags.includes('talent') || tags.includes('dot') || tags.includes('periodic')) return;
+    battle.heal(unit, unit, unit.profile.selfHeal ?? 50, { self: true, ignoreHealFree: true });
+  }, { owner: unit, priority: -10 });
+};
+
 const installSelfHealOnHit = (capByBlock) => (battle, unit) => {
   const heal = (n) => { if (n > 0 && unit.alive) battle.heal(unit, unit, (unit.profile.selfHeal ?? 50) * n, { self: true, ignoreHealFree: true }); };
   battle.on('damaged', (c) => {
@@ -406,7 +417,7 @@ const installBard = (battle, unit) => {
     // Passive regeneration continues through stun, freeze and sleep; deployment and withdrawal still gate it.
     if (!unit.alive || !unit.deployed || unit.hidden || unit.deployRemaining > 1e-9) return;
     const v = unit.s.atk * (unit.profile.auraRatio ?? 0.1);
-    for (const ally of battle.alliesInGrid(unit)) bardRegen(battle, unit, ally, v);
+    for (const ally of battle.alliesInGrid(unit, { includeDevices: true })) bardRegen(battle, unit, ally, v);
   }, { owner: unit });
 };
 
@@ -536,7 +547,7 @@ export const SUB = Object.freeze({
       const [fr, fc] = frontOf(unit.tileR, unit.tileC, unit.dir);
       return bodyOnTile(target, unit.tileR, unit.tileC) || bodyOnTile(target, fr, fc) ? 1 : (unit.profile.rangedScale ?? 0.8);
     } }),
-  musha: P({ noHeal: true, install: installSelfHealOnHit(false) }),
+  musha: P({ noHeal: true, install: installMushaHeal }),
   reaper: P({ noHeal: true, allInRange: true, install: installSelfHealOnHit(true) }),
   sword: P({ hits: 2 }),
   artsfghter: P({ dmgType: 'arts' }),

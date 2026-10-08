@@ -11,7 +11,7 @@
 .game-chat__toggle svg { width: max(.28rem, 17px); height: max(.28rem, 17px); }
 .game-chat button.game-chat__toggle:hover, .game-chat button.game-chat__toggle[aria-expanded="true"] { color: var(--mint-400); border-color: var(--mint-700); }
 .game-chat__badge { position: absolute; top: -5px; right: -5px; min-width: 18px; padding: 0 4px; border-radius: 10px; background: #4ed8af; color: #09120d; font-size: 11px; }
-.has-game-chat .gm__corner { left: calc(var(--chat-corner-inset) + var(--chat-button-size) + var(--chat-button-gap)); bottom: var(--chat-corner-inset); gap: var(--chat-button-gap); }
+.has-game-chat .gm__corner { left: var(--chat-corner-inset); bottom: var(--chat-corner-inset); gap: var(--chat-button-gap); }
 .has-game-chat .gm__corner .gm__gear, .has-game-chat .gm__corner .ewheel__btn { height: var(--chat-button-size); border-radius: 0; }
 .has-game-chat .gm__corner .gm__gear { width: var(--chat-button-size); }
 .game-chat__panel { width: 360px; max-width: calc(100vw - var(--chat-corner-inset) - var(--chat-corner-inset)); margin-bottom: 8px; background: rgba(9, 16, 13, .96); border: 1px solid #416353; border-radius: 8px; box-shadow: 0 4px 20px #0008; overflow: hidden; }
@@ -97,3 +97,12 @@
 
 /* Room chat shares the participant screen stacking context; dialogs stay above both. */
 .game-chat--room { z-index: auto; }
+
+/* The in-game chat toggle participates in the same flex row as the other tools. */
+.gm__corner > .game-chat {
+  position:relative; left:auto; bottom:auto; flex:none; line-height:1.45; z-index:auto;
+}
+.gm__corner > .game-chat > .game-chat__panel,
+.gm__corner > .game-chat > .game-chat__preview {
+  position:absolute; left:0; bottom:calc(var(--chat-button-size) + 8px); margin-bottom:0;
+}

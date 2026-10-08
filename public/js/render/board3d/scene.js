@@ -1,3 +1,4 @@
+import { applyNativeStageBlend } from './materials.js';
 // render/board3d/scene.js — the official 卫戍协议 board as a real three.js scene (DESIGN §15), rendered on its own
 // canvas UNDER the Pixi canvas (units, FX, highlights, HP bars stay in Pixi). One camera model drives both layers:
 // render/projection.js `syncThreeCamera` makes the three.js PerspectiveCamera project exactly like the Pixi one.
@@ -23,14 +24,17 @@ import { buildBoard, buildDeviceSlabs, objToBoard, boxProjectUV, ROWS, COLS, DEV
 import { surfaceUV } from './atlas.js';
 import {
   focusUniforms, addFocus, makeTexture, boardMaterial, glassMaterial, decalMaterial, pipeMaterial, unlitMaterial, gateMaterial, glowMaterial,
-  waterMaterial, mireMaterial, infectionMaterial, smogMaterial, dashTexture, environmentMap,
+  waterMaterial, mireMaterial, infectionMaterial, smogMaterial, dashTexture, environmentMap, nativePhysicalLighting, addShadowContrast,
 } from './materials.js';
 import { syncThreeCamera } from '../projection.js';
 
 /** Lighting rig (tuned against the official screenshots: bright even tops, darker sides, soft shadows). */
 export const LIGHTING = Object.freeze({
   key: { color: 0xfff1df, intensity: 2.8, dir: [-5.2, -3.4, 10] },
-  hemi: { sky: 0xe4ecf4, ground: 0x4a5058, intensity: 0.5 },
+  hemi: { sky: 0xe4ecf4, ground: 0x4a5058, intensity: 0.44 },
+  // Native gamma direct light needs compensation for the web lighting pipeline.
+  // Apply it to direct light only: ambient and baked shadow detail stay intact.
+  nativeDirectGain: 1.8,
   env: 1.0,
   emissive: 0.25,
   roughness: 0.78,
@@ -56,7 +60,7 @@ export function gatePulse(t, phase = 0) {
 const areaKey = (list) => (list || []).map((a) => `${a.r0},${a.r1},${a.c0},${a.c1}`).sort().join(';');
 
 /** Exclude inactive field platforms and props from both the visible pass and shadow pass.
- * Terrain beyond the board envelope remains as the original scenic background.
+ * Scenic background is handled separately by sceneryForArea; platform meshes outside the board envelope are still platforms.
  * Sub-floor triangles inside an inactive field are still platform geometry: depth alone must not preserve them. */
 export function geometryForArea(src, areas) {
   const p = src.position, index = [];
@@ -64,8 +68,7 @@ export function geometryForArea(src, areas) {
     const ids = src.index.slice(i, i + 3);
     const x = ids.reduce((v, k) => v + p[k * 3], 0) / 3;
     const y = ids.reduce((v, k) => v + p[k * 3 + 1], 0) / 3;
-    const background = x < -0.5 || x > 20.5 || y < -0.5 || y > 18.5;
-    if (background || areas.some(a => x >= a.c0 - 0.5 && x <= a.c1 + 0.5 && y >= a.r0 - 0.5 && y <= a.r1 + 0.5)) index.push(...ids);
+    if (areas.some(a => x >= a.c0 - 0.5 && x <= a.c1 + 0.5 && y >= a.r0 - 0.5 && y <= a.r1 + 0.5)) index.push(...ids);
   }
   return { ...src, index };
 }
@@ -255,7 +258,7 @@ export class BoardScene {
       mire: mireMaterial(T, this.tex, this.focus),
       infection: infectionMaterial(T, this.tex, this.focus),
       smog: smogMaterial(T, this.tex, this.focus),
-      shadowCatcher: new T.ShadowMaterial({ opacity: 0.44, color: 0x000000 }),
+      shadowCatcher: new T.ShadowMaterial({ opacity: 0.60, color: 0x000000 }),
     };
     this.mat.crateFade = null;
     this.originalTextures = {};
@@ -275,32 +278,42 @@ export class BoardScene {
         }
         return this.originalTextures[key];
       };
+      if (/StylizedWater|StandardWater/.test(rec.shader || '')) {
+        this.originalMaterials[name] = waterMaterial(T, {waterN:texture('_BumpMap') || this.tex.waterN, caustics:texture('_CausticsTex') || this.tex.caustics}, this.focus, rec);
+        continue;
+      }
       const color = rec.colors?._Color || [1, 1, 1, 1];
-      const emission = rec.colors?._EmissionColor || [0, 0, 0, 1];
+      const emission = rec.keywords && !rec.keywords.includes('_EMISSION') ? [0,0,0,1] : rec.colors?._EmissionColor || [0, 0, 0, 1];
+      const metalGloss = rec.keywords?.includes('_METALLICGLOSSMAP');
       const material = new T.MeshStandardMaterial({
         map: texture('_MainTex'), color: new T.Color(...color.slice(0, 3)),
         emissiveMap: texture('_EmissionMap'), emissive: new T.Color(...emission.slice(0, 3)),
         // These stage shaders use vertex colours as terrain blend masks, not albedo/AO.
         // Multiplying the diffuse by them would turn grass black and byte colours glaring white.
-        emissiveIntensity: LIGHTING.emissive, vertexColors: false,
-        normalMap: texture('_BumpMap'),
+        emissiveIntensity: rec.gammaLighting ? 1 : LIGHTING.emissive, vertexColors: false,
+        normalMap: rec.keywords && !rec.keywords.includes('_NORMALMAP') ? null : texture('_BumpMap'),
         normalScale: new T.Vector2(rec.floats?._BumpScale ?? 1, rec.floats?._BumpScale ?? 1),
-        roughnessMap: texture('_MetallicGlossMap'), roughness: 0.9, metalness: 0,
+        roughnessMap: metalGloss || !rec.keywords ? texture('_MetallicGlossMap') : null, metalnessMap: metalGloss ? texture('_MetallicGlossMap') : null, roughness: metalGloss ? 1 : 1-(rec.floats?._Glossiness ?? .1), metalness: metalGloss ? 1 : rec.floats?._Metallic ?? 0,
         alphaTest: rec.floats?._Mode === 1 || /grass|common|_UI$/i.test(name) ? (rec.floats?._Cutoff || 0.4) : 0,
         side: /grass|common/i.test(name) ? T.DoubleSide : T.FrontSide,
       });
       if (rec.gammaLighting) {
         material.userData.nativeGamma = true;
+        material.defines = {...material.defines, SP_NATIVE_LIGHTING: 1};
         material.onBeforeCompile = shader => {
+          shader.uniforms.spNativeShadowStrength={value:rec.floats?._ShadowStrength ?? 1};
           // The shipped GLES shader uses gamma F0=.220916 and RGBM alpha*5,
           // rather than a linear PBR BRDF. Keep those colour values through
           // lighting and do not encode them into sRGB a second time.
           shader.fragmentShader = shader.fragmentShader
-            .replace('#include <common>', '#define BRDF_Lambert spLinearLambert\n#include <common>\n#undef BRDF_Lambert\nvec3 BRDF_Lambert(const in vec3 diffuseColor) { return diffuseColor; }')
+            .replace('#include <common>', 'uniform float spNativeShadowStrength;\n#define BRDF_Lambert spLinearLambert\n#include <common>\n#undef BRDF_Lambert\nvec3 BRDF_Lambert(const in vec3 diffuseColor) { return diffuseColor * 0.779083729; }')
+            .replace('#include <lights_fragment_begin>', T.ShaderChunk.lights_fragment_begin.replaceAll('directionalLightShadow.shadowIntensity','directionalLightShadow.shadowIntensity * spNativeShadowStrength'))
+            .replace('#include <lights_physical_pars_fragment>', nativePhysicalLighting(T))
             .replace('#include <lights_physical_fragment>', T.ShaderChunk.lights_physical_fragment.replace('vec3( 0.04 )', 'vec3( 0.220916301 )'))
             .replace('#include <colorspace_fragment>', '');
         };
       }
+      applyNativeStageBlend(T,material,rec);
       this.originalMaterials[name] = addFocus(material, this.focus);
       if (rec.gammaLighting) material.customProgramCacheKey = () => 'sp-focus-native-gamma';
     }
@@ -357,6 +370,7 @@ export class BoardScene {
   }
 
   _mesh(data, material, { cast = true, receive = true, order = 0 } = {}) {
+    addShadowContrast(this.THREE, material);
     if (!data || !material || !(data.index?.length > 0)) return null;
     const m = new this.THREE.Mesh(this._geometry(data), material);
     m.castShadow = cast; m.receiveShadow = receive; m.renderOrder = order;
@@ -426,7 +440,17 @@ export class BoardScene {
     // Missing/invalid material metadata must retain the working reconstructed board.
     const original = candidate && Object.entries(candidate.buckets).every(([k,g]) => this.originalMaterials[g.material || k]) ? candidate : null;
     this.originalStage = original?.stageId || null;
-    this.key.intensity = original?.lighting?.intensity ?? LIGHTING.key.intensity;
+    // The city bundle's serialized grazing light is a baking setting; its
+    // runtime screenshot has short wall shadows and illuminated floor faces.
+    // Preserve the azimuth, but match that elevation only for the city theme.
+    this.stageLightDir = original?.lighting?.dir || null;
+    if (original && stage.id === 'act2autochess_m01' && this.stageLightDir) {
+      this.stageLightDir = [this.stageLightDir[0], this.stageLightDir[1], 1.05];
+    }
+    // Retain a restrained sky contribution for the native reflection/probe
+    // lighting that is not represented by the exported static lightmaps.
+    this.hemi.intensity = LIGHTING.hemi.intensity;
+    this.key.intensity = original?.lighting?.intensity != null ? original.lighting.intensity * LIGHTING.nativeDirectGain : LIGHTING.key.intensity;
     if (original?.lighting?.color) this.key.color.setRGB(...original.lighting.color);
     else this.key.color.setHex(LIGHTING.key.color);
     if (original) {
@@ -434,8 +458,18 @@ export class BoardScene {
         // Serialized Waterplane nodes carry a green runtime placeholder material.
         // Preserve their original geometry and provide the animated web water shader.
         const sourceName = geometry.material || material;
-        let runtimeMaterial = sourceName === 'MT_Dosshore_UI' ? this.mat.water : this.originalMaterials[sourceName];
-        if (sourceName !== 'MT_Dosshore_UI' && geometry.lightMap && geometry.uv1?.length && this.pack.original.images[geometry.lightMap]) {
+        // The UI highlight is above the actual sunken water surface. Rendering
+        // both hides the basin rim and incorrectly raises the visible water.
+        if (sourceName === 'MT_Dosshore_UI' && Object.values(original.buckets).some(g=>
+          /water2$/i.test(g.material || '') && g.index?.length && this.originalMaterials[g.material]?.uniforms?.uDeep)) continue;
+        const nativeWater = Object.values(original.buckets).map(g=>this.originalMaterials[g.material]).find(m=>m?.isShaderMaterial && m.uniforms?.uDeep);
+        let runtimeMaterial = sourceName === 'MT_Dosshore_UI' ? (nativeWater || this.mat.water) : this.originalMaterials[sourceName];
+        // Match the cyan water in the reference; the serialized basin material
+        // carries a yellow/green editor tint. Keep the original basin geometry.
+        if (sourceName === 'MT_AutochessSand_water2' && this.originalMaterials.MT_AutochessSand_water?.uniforms?.uDeep) {
+          runtimeMaterial = this.originalMaterials.MT_AutochessSand_water;
+        }
+        if (!runtimeMaterial.isShaderMaterial && sourceName !== 'MT_Dosshore_UI' && geometry.lightMap && geometry.uv1?.length && this.pack.original.images[geometry.lightMap]) {
           const name = geometry.lightMap;
           const tex = this.lightmapTextures[name] ||= makeTexture(this.THREE, this.pack.original.images[name], { srgb: !runtimeMaterial.userData.nativeGamma });
           tex.channel = 1;
@@ -457,9 +491,13 @@ export class BoardScene {
           runtimeMaterial.customProgramCacheKey = () => nativeGamma ? 'sp-focus-native-gamma-rgbm5' : 'sp-focus-unity-rgbm5';
           this.lightmapMaterials.push(runtimeMaterial);
         }
-        const waterSurface = /Dosshore_UI|shuidi/i.test(sourceName);
-        const visibleGeometry = waterSurface ? surfaceForArea(geometry, this.area) : geometry.platform ? geometryForArea(geometry, this.area) : sceneryForArea(geometry, this.area);
-        M[`original:${material}`] = this._mesh(visibleGeometry, runtimeMaterial, { cast: sourceName !== 'MT_Dosshore_UI' });
+        const waterSurface = /Dosshore_UI/i.test(sourceName);
+        // City scenery beside the preview pen is environment, not a second field.
+        // Retain it only for normal/cooperative framing; never add platform tiles.
+        const scenicArea = stage.id === 'act2autochess_m01' && this.area.some(a=>a.r1 >= 13)
+          ? [...this.area, {r0:14,r1:18,c0:0,c1:5}] : this.area;
+        const visibleGeometry = waterSurface ? surfaceForArea(geometry, this.area) : geometry.platform ? geometryForArea(geometry, this.area) : sceneryForArea(geometry, scenicArea);
+        M[`original:${material}`] = this._mesh(visibleGeometry, runtimeMaterial, { cast: !runtimeMaterial.isShaderMaterial });
       }
     } else {
       M.board = this._mesh(board.buckets.board, this.mat.board);
@@ -468,7 +506,7 @@ export class BoardScene {
       M.pipe = this._mesh(board.buckets.pipe, this.mat.pipe);
     }
     if (original) {
-      const slabs = buildDeviceSlabs(board.devices, board.grid, this.pack?.uv);
+      const slabs = buildDeviceSlabs(board.devices.filter(d=>!this.nativeDevice(d)), board.grid, this.pack?.uv);
       M.deviceSlabs = this._mesh(slabs.board, this.mat.board);
       M.deviceDecals = this._mesh(slabs.decal, this.mat.decal, { cast: false });
     }
@@ -481,17 +519,30 @@ export class BoardScene {
     this.renderer.shadowMap.needsUpdate = true;
   }
 
+  nativeDevice(d) {
+    return d.kind === 'platform' && this.pack?.original?.platform && this.originalMaterials.MT_trap_1106_achplat
+      ? {geometry:this.pack.original.platform,material:this.originalMaterials.MT_trap_1106_achplat} : null;
+  }
+
   _buildDevices(board) {
     const crates = [], blowers = [];
     this.staticCrates = [];
     const wind = this.pack?.meshes?.blower ? objToBoard(this.pack.meshes.blower, 1) : null;
+    const nativePlatforms=[];
     for (const d of board.devices) {
+      const native=this.nativeDevice(d);
+      if(native){
+        const height=native.geometry.bounds?.z1 || .26;
+        nativePlatforms.push(placeMesh(native.geometry,{x:d.c,y:d.r,z:d.z0,sz:.26/height,rot:DIR_TURNS[d.dir]??0}));
+        continue;
+      }
       if (d.kind === 'crate') this.staticCrates.push(d);
       else if (d.kind === 'blower' && wind && this.mat.wind) blowers.push(placeMesh(wind, { x: d.c, y: d.r, z: d.z0 + 0.078, rot: DIR_TURNS[d.dir] ?? 0 }));
       else if (d.kind === 'blower' || d.kind === 'turret') crates.push(placeMesh(boxWithTop(this.pack?.uv, d.kind), { x: d.c, y: d.r, z: d.z0 }));
       else if (d.kind === 'mound') crates.push(placeMesh(this.crateGeometry(), { x: d.c, y: d.r, z: d.z0, s: 0.95, sz: 0.55 }));
       else if (d.kind === 'bush') crates.push(placeMesh(bushData(), { x: d.c, y: d.r, z: d.z0 }));
     }
+    if(nativePlatforms.length)this.meshes.platforms=this._mesh(mergeInto(nativePlatforms),this.originalMaterials.MT_trap_1106_achplat);
     if (blowers.length) this.meshes.blowers = this._mesh(mergeInto(blowers), this.mat.wind, { receive: false });
     if (crates.length) this.meshes.props = this._mesh(mergeInto(crates), this.mat.board);
     this._rebuildCrates();
@@ -576,9 +627,11 @@ export class BoardScene {
       const nrm = new Float32Array(pos.length); for (let i = 2; i < nrm.length; i += 3) nrm[i] = 1;
       return { position: new Float32Array(pos), normal: nrm, uv: new Float32Array(uv), color: null, index: new Uint16Array(idx) };
     };
+    // Native stage meshes already contain these environmental tile surfaces.
+    if (this.originalStage) return;
     const T = board.terrain;
     const opt = { cast: false, receive: false, order: 2 };
-    if (T.water.length) this.meshes.water = this._mesh(quads(T.water, -0.035), this.mat.water, opt);
+    if (T.water.length && !Object.keys(this.meshes).some(k=>k.startsWith('original:') && k.includes('Dosshore_UI'))) this.meshes.water = this._mesh(quads(T.water, -0.035), this.mat.water, opt);
     if (T.mire.length) this.meshes.mire = this._mesh(quads(T.mire, 0.006, 0.02), this.mat.mire, opt);
     if (T.infection.length) this.meshes.infection = this._mesh(quads(T.infection, 0.007, 0.02), this.mat.infection, opt);
     if (T.smog.length) {
@@ -624,7 +677,7 @@ export class BoardScene {
     const k = this.key;
     const b = board.bounds;
     const cx = (b.x0 + b.x1) / 2, cy = (b.y0 + b.y1) / 2;
-    const d = LIGHTING.key.dir;
+    const d = this.stageLightDir || LIGHTING.key.dir;
     const len = Math.hypot(d[0], d[1], d[2]);
     const dist = 30;
     k.position.set(cx + (d[0] / len) * dist, cy + (d[1] / len) * dist, (d[2] / len) * dist);
@@ -743,6 +796,7 @@ export class BoardScene {
     for (let i = this.flashes.length - 1; i >= 0; i--) { const f = this.flashes[i]; f.t += dt; if (f.t > 1.2) this.flashes.splice(i, 1); else flash = Math.max(flash, 1 - f.t / 1.2); }
     for (const m of [this.mat.gateEndAdd, this.mat.gateEndAb]) if (m) m.uniforms.uFlash.value.setRGB(flash, flash * 0.12, flash * 0.1);
     for (const k of ['water', 'mire', 'infection', 'smog']) this.mat[k].uniforms.uTime.value = t;
+    for (const m of Object.values(this.originalMaterials)) if (m.uniforms?.uTime) m.uniforms.uTime.value = t;
     this.renderer.render(this.scene, this.camera);
     this.frames++;
     if (t0) this.lastMs = this.lastMs * 0.9 + ((typeof performance !== 'undefined' ? performance.now() : t0) - t0) * 0.1;

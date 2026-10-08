@@ -777,8 +777,12 @@ export class TileField {
           const ox = (k - 1) * 0.28 * (dy !== 0 ? 1 : 0), oy = (k - 1) * 0.28 * (dx !== 0 ? 1 : 0);
           const x0 = c + ox + dx * (ph - 0.5), y0 = r + oy + dy * (ph - 0.5);
           cam.project(x0, y0, z, p);
-          cam.project(x0 + dx * 0.28, y0 + dy * 0.28, z, q);
-          g.lineStyle(Math.max(1, p.s * 0.022), 0xd8f6ff, 0.32 * Math.sin(ph * Math.PI));
+          cam.project(x0 + dx * 0.36, y0 + dy * 0.36, z, q);
+          const fade = Math.sin(ph * Math.PI);
+          // A soft dark edge keeps the airflow readable on pale city floors.
+          g.lineStyle(Math.max(2, p.s * 0.044), 0x163d4a, 0.36 * fade);
+          g.moveTo(p.x, p.y); g.lineTo(q.x, q.y);
+          g.lineStyle(Math.max(1, p.s * 0.022), 0xe6fbff, 0.74 * fade);
           g.moveTo(p.x, p.y); g.lineTo(q.x, q.y);
         }
       }

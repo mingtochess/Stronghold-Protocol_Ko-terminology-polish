@@ -274,3 +274,7 @@ test('HP shield amount travels through snapshots and clears when the shield expi
  b.push(snap(.1,[U(1,5,10)]),.1);assert.equal(b.sample(.1).get(1).shieldHp,0);
  assert.equal(normalizeSnapshot({...snap(0,[U(1,5,10)]),shields:[[1,-10],[1,NaN]]}).units.get(1)[21],undefined);
 });
+test('drone cosmetic scale passes through shared snapshot interpolation without changing position',()=>{
+ const b=new SnapshotBuffer();b.push({...snap(0,[U(1,4,10)]),modelScales:[[1,.850425]]},0);b.push({...snap(.1,[U(1,4,10)]),modelScales:[[1,.851275]]},.1);
+ assert.equal(b.sample(0).get(1).modelScale,.850425);assert.equal(b.sample(.1).get(1).modelScale,.851275);assert.equal(b.sample(.1).get(1).x,4);
+});

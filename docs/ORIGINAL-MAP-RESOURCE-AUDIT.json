@@ -1,0 +1,648 @@
+{
+  "scope": "Reproducible resource extraction only; not proof of visual equivalence to the original game.",
+  "source": {
+    "repository": "ArknightsAssets/ArknightsAssets2",
+    "indexCommit": "7ddea107cef9ab24d55052f36bf984fcd1bff9ed",
+    "versionId": "26-04-14-11-12-01_cf554f",
+    "stages": [
+      {
+        "id": "act1autochess_m01",
+        "renderers": 436,
+        "triangles": 34563,
+        "bounds": [
+          [
+            -9.213878631591797,
+            -10.985763549804688,
+            -3.794635772705078
+          ],
+          [
+            32.637210845947266,
+            30.481904983520508,
+            2.3339619636535645
+          ]
+        ],
+        "materials": {
+          "MT_AutochessSand_common": 52,
+          "MT_AutochessSand": 370,
+          "MT_AutochessSand_grass": 9,
+          "MT_AutochessSand_water": 1,
+          "MT_AutochessSand_sand": 2,
+          "MT_AutochessSand_shuidi": 1,
+          "MT_AutochessSand_sand2": 1
+        },
+        "excluded": {
+          "empty-material": 1,
+          "external/builtin-effect-mesh": 2
+        }
+      },
+      {
+        "id": "act1autochess_m02",
+        "renderers": 429,
+        "triangles": 33046,
+        "bounds": [
+          [
+            -9.213878631591797,
+            -10.985763549804688,
+            -3.794635772705078
+          ],
+          [
+            32.637210845947266,
+            30.481904983520508,
+            2.3339619636535645
+          ]
+        ],
+        "materials": {
+          "MT_AutochessSand": 361,
+          "MT_AutochessSand_water": 1,
+          "MT_AutochessSand_grass": 11,
+          "MT_AutochessSand_common": 52,
+          "MT_AutochessSand_shuidi": 1,
+          "MT_AutochessSand_sand": 2,
+          "MT_AutochessSand_sand2": 1
+        },
+        "excluded": {
+          "empty-material": 1,
+          "external/builtin-effect-mesh": 2
+        }
+      },
+      {
+        "id": "act1autochess_m03",
+        "renderers": 435,
+        "triangles": 34259,
+        "bounds": [
+          [
+            -9.213878631591797,
+            -10.985763549804688,
+            -3.794635772705078
+          ],
+          [
+            32.637210845947266,
+            30.481904983520508,
+            2.3339619636535645
+          ]
+        ],
+        "materials": {
+          "MT_AutochessSand": 360,
+          "MT_AutochessSand_grass": 10,
+          "MT_AutochessSand_common": 60,
+          "MT_AutochessSand_water": 1,
+          "MT_AutochessSand_shuidi": 1,
+          "MT_AutochessSand_sand2": 1,
+          "MT_AutochessSand_sand": 2
+        },
+        "excluded": {
+          "empty-material": 1,
+          "external/builtin-effect-mesh": 2
+        }
+      },
+      {
+        "id": "act1autochess_m04",
+        "renderers": 442,
+        "triangles": 34773,
+        "bounds": [
+          [
+            -9.213878631591797,
+            -10.985763549804688,
+            -3.794635772705078
+          ],
+          [
+            32.637210845947266,
+            30.481904983520508,
+            2.3339619636535645
+          ]
+        ],
+        "materials": {
+          "MT_AutochessSand": 363,
+          "MT_AutochessSand_common": 60,
+          "MT_AutochessSand_grass": 14,
+          "MT_AutochessSand_sand": 2,
+          "MT_AutochessSand_shuidi": 1,
+          "MT_AutochessSand_water": 1,
+          "MT_AutochessSand_sand2": 1
+        },
+        "excluded": {
+          "empty-material": 1,
+          "external/builtin-effect-mesh": 2
+        }
+      },
+      {
+        "id": "act1autochess_m05",
+        "renderers": 493,
+        "triangles": 38031,
+        "bounds": [
+          [
+            -9.213878631591797,
+            -10.985763549804688,
+            -3.794635772705078
+          ],
+          [
+            32.637210845947266,
+            30.481904983520508,
+            2.3339619636535645
+          ]
+        ],
+        "materials": {
+          "MT_Dosshore_UI": 64,
+          "MT_AutochessSand": 357,
+          "MT_AutochessSand_common": 52,
+          "MT_AutochessSand_grass": 7,
+          "MT_AutochessSand_shuidi": 5,
+          "MT_AutochessSand_water2": 4,
+          "MT_AutochessSand_water": 1,
+          "MT_AutochessSand_sand2": 1,
+          "MT_AutochessSand_sand": 2
+        },
+        "excluded": {
+          "empty-material": 1,
+          "external/builtin-effect-mesh": 2
+        }
+      },
+      {
+        "id": "act1autochess_m06",
+        "renderers": 450,
+        "triangles": 33991,
+        "bounds": [
+          [
+            -9.213878631591797,
+            -10.985763549804688,
+            -3.794635772705078
+          ],
+          [
+            32.637210845947266,
+            30.481904983520508,
+            2.3339619636535645
+          ]
+        ],
+        "materials": {
+          "MT_AutochessSand": 385,
+          "MT_AutochessSand_common": 52,
+          "MT_AutochessSand_grass": 9,
+          "MT_AutochessSand_water": 1,
+          "MT_AutochessSand_sand2": 1,
+          "MT_AutochessSand_shuidi": 1,
+          "MT_AutochessSand_sand": 1
+        },
+        "excluded": {
+          "empty-material": 1,
+          "external/builtin-effect-mesh": 2
+        }
+      },
+      {
+        "id": "act1autochess_m07",
+        "renderers": 437,
+        "triangles": 33698,
+        "bounds": [
+          [
+            -9.213878631591797,
+            -10.985763549804688,
+            -3.794635772705078
+          ],
+          [
+            32.637210845947266,
+            30.481904983520508,
+            2.3339619636535645
+          ]
+        ],
+        "materials": {
+          "MT_AutochessSand": 373,
+          "MT_AutochessSand_common": 52,
+          "MT_AutochessSand_grass": 7,
+          "MT_AutochessSand_water": 1,
+          "MT_AutochessSand_sand": 2,
+          "MT_AutochessSand_sand2": 1,
+          "MT_AutochessSand_shuidi": 1
+        },
+        "excluded": {
+          "external/builtin-effect-mesh": 2,
+          "empty-material": 1
+        }
+      },
+      {
+        "id": "act2autochess_m01",
+        "renderers": 659,
+        "triangles": 97973,
+        "bounds": [
+          [
+            -4.5261383056640625,
+            -4.061034202575684,
+            -0.8595474813979678
+          ],
+          [
+            25.5,
+            22.779191970825195,
+            6.789268493652344
+          ]
+        ],
+        "materials": {
+          "MT_Syracuse_metro": 567,
+          "MT_Syracuse_metro_common": 53,
+          "MT_Syracuse_metro_floor": 24,
+          "MT_Syracuse_metro_grass": 15
+        },
+        "excluded": {
+          "empty-material": 1,
+          "background": 1
+        }
+      },
+      {
+        "id": "act2autochess_m02",
+        "renderers": 447,
+        "triangles": 39690,
+        "bounds": [
+          [
+            -9.213878631591797,
+            -10.985763549804688,
+            -3.794635772705078
+          ],
+          [
+            32.637210845947266,
+            30.481904983520508,
+            2.3339619636535645
+          ]
+        ],
+        "materials": {
+          "MT_AutochessSand": 376,
+          "MT_AutochessSand_common": 52,
+          "MT_AutochessSand_grass": 14,
+          "MT_AutochessSand_sand": 2,
+          "MT_AutochessSand_sand2": 1,
+          "MT_AutochessSand_water": 1,
+          "MT_AutochessSand_shuidi": 1
+        },
+        "excluded": {
+          "empty-material": 1,
+          "external/builtin-effect-mesh": 2
+        }
+      },
+      {
+        "id": "act2autochess_m03",
+        "renderers": 621,
+        "triangles": 64370,
+        "bounds": [
+          [
+            -2.9910106658935547,
+            -2.518970489501953,
+            -0.8198163509368896
+          ],
+          [
+            22.512885093688965,
+            21.105783462524414,
+            3.207789421081543
+          ]
+        ],
+        "materials": {
+          "MT_KXMR2": 358,
+          "MT_LMZ_N2": 211,
+          "MT_LMZ_Common2": 52
+        },
+        "excluded": {
+          "empty-material": 1,
+          "external/builtin-effect-mesh": 1
+        }
+      },
+      {
+        "id": "act2autochess_m04",
+        "renderers": 462,
+        "triangles": 35069,
+        "bounds": [
+          [
+            -9.213878631591797,
+            -10.985763549804688,
+            -3.794635772705078
+          ],
+          [
+            32.637210845947266,
+            30.481904983520508,
+            2.3339619636535645
+          ]
+        ],
+        "materials": {
+          "MT_AutochessSand": 378,
+          "MT_AutochessSand_grass": 7,
+          "MT_AutochessSand_common": 52,
+          "MT_Dosshore_UI": 12,
+          "MT_AutochessSand_shuidi": 5,
+          "MT_AutochessSand_sand": 2,
+          "MT_AutochessSand_sand2": 1,
+          "MT_AutochessSand_water2": 4,
+          "MT_AutochessSand_water": 1
+        },
+        "excluded": {
+          "empty-material": 1,
+          "external/builtin-effect-mesh": 2
+        }
+      }
+    ]
+  },
+  "checked": [
+    {
+      "file": "TX_AutochessSand_A.png",
+      "matches": true
+    },
+    {
+      "file": "TX_AutochessSand_Grass_A.png",
+      "matches": true
+    },
+    {
+      "file": "TX_AutochessSand_Grass_M_metalrough-v2.png",
+      "matches": true
+    },
+    {
+      "file": "TX_AutochessSand_Grass_N_normal-rgb-v2.png",
+      "matches": true
+    },
+    {
+      "file": "TX_AutochessSand_M_metalrough-v2.png",
+      "matches": true
+    },
+    {
+      "file": "TX_AutochessSand_N_normal-rgb-v2.png",
+      "matches": true
+    },
+    {
+      "file": "TX_AutochessSand_background_A.png",
+      "matches": true
+    },
+    {
+      "file": "TX_AutochessSand_background_N_normal-rgb-v2.png",
+      "matches": true
+    },
+    {
+      "file": "TX_AutochessSand_common_A.png",
+      "matches": true
+    },
+    {
+      "file": "TX_AutochessSand_sand_A.png",
+      "matches": true
+    },
+    {
+      "file": "TX_AutochessSand_shuidi_A.png",
+      "matches": true
+    },
+    {
+      "file": "TX_AutochessSand_shuidi_N_normal-rgb-v2.png",
+      "matches": true
+    },
+    {
+      "file": "TX_Caustics256.png",
+      "matches": true
+    },
+    {
+      "file": "TX_KXMR_A.png",
+      "matches": true
+    },
+    {
+      "file": "TX_KXMR_E.png",
+      "matches": true
+    },
+    {
+      "file": "TX_KXMR_M_metalrough-v2.png",
+      "matches": true
+    },
+    {
+      "file": "TX_KXMR_N_normal-rgb-v2.png",
+      "matches": true
+    },
+    {
+      "file": "TX_LMC_common_M_metalrough-v2.png",
+      "matches": true
+    },
+    {
+      "file": "TX_LMZ_A.png",
+      "matches": true
+    },
+    {
+      "file": "TX_LMZ_E.png",
+      "matches": true
+    },
+    {
+      "file": "TX_LMZ_M_metalrough-v2.png",
+      "matches": true
+    },
+    {
+      "file": "TX_LMZ_N_normal-rgb-v2.png",
+      "matches": true
+    },
+    {
+      "file": "TX_LMZ_common.png",
+      "matches": true
+    },
+    {
+      "file": "TX_LMZ_common_E.png",
+      "matches": true
+    },
+    {
+      "file": "TX_LakeGarden_E.png",
+      "matches": true
+    },
+    {
+      "file": "TX_SmoothWaves_normal-rgb-v2.png",
+      "matches": true
+    },
+    {
+      "file": "TX_Survivaloasis_E.png",
+      "matches": true
+    },
+    {
+      "file": "TX_Syracuse_metro_D.png",
+      "matches": true
+    },
+    {
+      "file": "TX_Syracuse_metro_E.png",
+      "matches": true
+    },
+    {
+      "file": "TX_Syracuse_metro_M_metalrough-v2.png",
+      "matches": true
+    },
+    {
+      "file": "TX_Syracuse_metro_N_normal-rgb-v2.png",
+      "matches": true
+    },
+    {
+      "file": "TX_Syracuse_metro_common_D.png",
+      "matches": true
+    },
+    {
+      "file": "TX_Syracuse_metro_common_E.png",
+      "matches": true
+    },
+    {
+      "file": "TX_Syracuse_metro_common_M_metalrough-v2.png",
+      "matches": true
+    },
+    {
+      "file": "TX_Syracuse_metro_floor_D.png",
+      "matches": true
+    },
+    {
+      "file": "TX_Syracuse_metro_floor_M_metalrough-v2.png",
+      "matches": true
+    },
+    {
+      "file": "TX_Syracuse_metro_floor_N_normal-rgb-v2.png",
+      "matches": true
+    },
+    {
+      "file": "TX_Syracuse_metro_grass_D.png",
+      "matches": true
+    },
+    {
+      "file": "TX_Syracuse_metro_grass_M_metalrough-v2.png",
+      "matches": true
+    },
+    {
+      "file": "TX_WaterNoise.png",
+      "matches": true
+    },
+    {
+      "file": "TX_trap_1105_accrate.png",
+      "matches": true
+    },
+    {
+      "file": "TX_trap_1106_achplat.png",
+      "matches": true
+    },
+    {
+      "file": "act1autochess_m01-Lightmap-0_comp_light-rgbm-v1.png",
+      "matches": true
+    },
+    {
+      "file": "act1autochess_m01-Lightmap-1_comp_light-rgbm-v1.png",
+      "matches": true
+    },
+    {
+      "file": "act1autochess_m01-v16.json.gz",
+      "matches": true
+    },
+    {
+      "file": "act1autochess_m02-Lightmap-0_comp_light-rgbm-v1.png",
+      "matches": true
+    },
+    {
+      "file": "act1autochess_m02-Lightmap-1_comp_light-rgbm-v1.png",
+      "matches": true
+    },
+    {
+      "file": "act1autochess_m02-v16.json.gz",
+      "matches": true
+    },
+    {
+      "file": "act1autochess_m03-Lightmap-0_comp_light-rgbm-v1.png",
+      "matches": true
+    },
+    {
+      "file": "act1autochess_m03-v16.json.gz",
+      "matches": true
+    },
+    {
+      "file": "act1autochess_m04-Lightmap-0_comp_light-rgbm-v1.png",
+      "matches": true
+    },
+    {
+      "file": "act1autochess_m04-v16.json.gz",
+      "matches": true
+    },
+    {
+      "file": "act1autochess_m05-Lightmap-0_comp_light-rgbm-v1.png",
+      "matches": true
+    },
+    {
+      "file": "act1autochess_m05-v16.json.gz",
+      "matches": true
+    },
+    {
+      "file": "act1autochess_m06-Lightmap-0_comp_light-rgbm-v1.png",
+      "matches": true
+    },
+    {
+      "file": "act1autochess_m06-v16.json.gz",
+      "matches": true
+    },
+    {
+      "file": "act1autochess_m07-Lightmap-0_comp_light-rgbm-v1.png",
+      "matches": true
+    },
+    {
+      "file": "act1autochess_m07-v16.json.gz",
+      "matches": true
+    },
+    {
+      "file": "act2autochess_m01-Lightmap-0_comp_light-rgbm-v1.png",
+      "matches": true
+    },
+    {
+      "file": "act2autochess_m01-Lightmap-1_comp_light-rgbm-v1.png",
+      "matches": true
+    },
+    {
+      "file": "act2autochess_m01-v16.json.gz",
+      "matches": true
+    },
+    {
+      "file": "act2autochess_m02-Lightmap-0_comp_light-rgbm-v1.png",
+      "matches": true
+    },
+    {
+      "file": "act2autochess_m02-Lightmap-1_comp_light-rgbm-v1.png",
+      "matches": true
+    },
+    {
+      "file": "act2autochess_m02-Lightmap-2_comp_light-rgbm-v1.png",
+      "matches": true
+    },
+    {
+      "file": "act2autochess_m02-Lightmap-3_comp_light-rgbm-v1.png",
+      "matches": true
+    },
+    {
+      "file": "act2autochess_m02-Lightmap-4_comp_light-rgbm-v1.png",
+      "matches": true
+    },
+    {
+      "file": "act2autochess_m02-v16.json.gz",
+      "matches": true
+    },
+    {
+      "file": "act2autochess_m03-Lightmap-0_comp_light-rgbm-v1.png",
+      "matches": true
+    },
+    {
+      "file": "act2autochess_m03-Lightmap-1_comp_light-rgbm-v1.png",
+      "matches": true
+    },
+    {
+      "file": "act2autochess_m03-v16.json.gz",
+      "matches": true
+    },
+    {
+      "file": "act2autochess_m04-Lightmap-0_comp_light-rgbm-v1.png",
+      "matches": true
+    },
+    {
+      "file": "act2autochess_m04-Lightmap-1_comp_light-rgbm-v1.png",
+      "matches": true
+    },
+    {
+      "file": "act2autochess_m04-v16.json.gz",
+      "matches": true
+    },
+    {
+      "file": "crate-v1.json",
+      "matches": true
+    },
+    {
+      "file": "fangkuai_06.png",
+      "matches": true
+    },
+    {
+      "file": "materials-v13.json",
+      "matches": true
+    },
+    {
+      "file": "platform-v1.json",
+      "matches": true
+    }
+  ],
+  "differences": []
+}

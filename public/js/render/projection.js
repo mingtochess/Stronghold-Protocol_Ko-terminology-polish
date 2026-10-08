@@ -457,7 +457,15 @@ export function presetCamera(kind, viewport, options) {
     const table = opts.half && preset.half ? preset.half : opts.shop === false && observedPreset.officialNoShop ? observedPreset.officialNoShop : observedPreset.official;
     const key = table[side];
     const cfg = opts.config && typeof opts.config === 'object' ? opts.config : null;
-    const param = (cfg && parseCameraParam(cfg[key])) || parseCameraParam(OFFICIAL_PARAMS[key]);
+    let param = (cfg && parseCameraParam(cfg[key])) || parseCameraParam(OFFICIAL_PARAMS[key]);
+    // Boss prep's right-hand source offset overshoots the mirrored left field.
+    // Use the same optics and a world-space reflection about the board centre,
+    // including observed boss benches that use this preparation preset.
+    if (side === 'R' && observedPreset === CAMERA_PRESETS.bossPrep && !opts.half) {
+      const leftKey = table.L;
+      const left = (cfg && parseCameraParam(cfg[leftKey])) || parseCameraParam(OFFICIAL_PARAMS[leftKey]);
+      param = [-left[0], left[1], left[2], left[3]];
+    }
     const cam = officialCamera(param, { width: W, height: H }, opts);
     return observedPreset.keep && opts.hud ? clearHud(cam, opts.hud, observedPreset.keep, { width: W, height: H }) : cam;
   }

@@ -345,7 +345,7 @@ export class Match {
     this.factions = setup.factions;
     this.bossId = setup.bossId;
     this.hiddenBossId = setup.hiddenBossId;
-    const bans = drawDisabledBonds(this.gd, this.rngSetup);
+    const bans = drawDisabledBonds(this.gd, this.rngSetup, this.customExtensions);
     this.disabledBonds = bans.drawn;
     this.staticInactiveBonds = bans.staticOff;
     this.bannedChess = bans.banned;
@@ -1837,11 +1837,13 @@ export class Match {
     }
     if (p.kind !== 'chess') return null;
     const rng = this.rngMeta;
+    const owner = this.players.get(playerId);
+    const pool = owner?.pool ?? this.pool;
     const free = (id) => {
       if (typeof id !== 'string' || !this.gd.chess(id)) return false;
       if (this.gd.chess(id).optionalRecruit && !this.players.get(playerId)?.canRecruit(id)) return false;
       const base = this.gd.baseIdOf(id);
-      return !this.pool.has(base) || this.pool.left(base) > 0;
+      return !pool.has(base) || pool.left(base) > 0;
     };
     let id = null;
     if (Array.isArray(p.weighted) && p.weighted.length) {
@@ -1854,7 +1856,7 @@ export class Match {
       const maxTier = p.maxTier === 'shopLevel' ? lvl : Number.isInteger(p.maxTier) ? p.maxTier : 6;
       const minTier = Number.isInteger(p.minTier) ? p.minTier : 1;
       const bond = typeof p.bond === 'string' ? p.bond : null;
-      id = this.pool.roll(rng, {
+      id = (owner?.pool ?? this.pool).roll(rng, {
         tier: Number.isInteger(p.tier) ? p.tier : null,
         maxTier,
         filter: (cid, e) => free(cid) && e.tier >= minTier && (!bond || (Array.isArray(this.gd.chess(cid)?.bonds) && this.gd.chess(cid).bonds.includes(bond))),

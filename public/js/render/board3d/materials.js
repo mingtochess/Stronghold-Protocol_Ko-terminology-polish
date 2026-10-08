@@ -37,12 +37,12 @@ export function addFocus(material, uniforms) {
       .replace('#include <project_vertex>', '#include <project_vertex>\nvFocusWorld = (modelMatrix * vec4(transformed, 1.0)).xyz;');
     shader.fragmentShader = shader.fragmentShader
       // tinted (dark) blocks glow less: emission follows the vertex tint
-      .replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\n#if defined( USE_COLOR )\n  { float ek = (vColor.r + vColor.g + vColor.b) / 3.0; totalEmissiveRadiance *= ek * ek; }\n#endif')
+      .replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\n#if defined( USE_COLOR ) && !defined( SP_NATIVE_BLEND )\n  { float ek = (vColor.r + vColor.g + vColor.b) / 3.0; totalEmissiveRadiance *= ek * ek; }\n#endif')
       .replace('#include <common>', '#include <common>\nvarying vec3 vFocusWorld;\nuniform vec4 uFocus;\nuniform float uFocusDim;\nuniform float uFocusSoft;\nuniform vec3 uSheen;')
       .replace('#include <opaque_fragment>', [
-        '#ifdef USE_ROUGHNESSMAP',
+        '#if defined( USE_ROUGHNESSMAP ) && !defined( SP_NATIVE_LIGHTING )',
         '  { float sm = clamp(1.0 - texelRoughness.g, 0.0, 1.0); float tintk = 1.0;',
-        '    #if defined( USE_COLOR )',
+        '    #if defined( USE_COLOR ) && !defined( SP_NATIVE_BLEND )',
         '      tintk = (vColor.r + vColor.g + vColor.b) / 3.0; tintk *= tintk;',
         '    #endif',
         '    outgoingLight += uSheen * sm * sm * tintk * diffuseColor.a; }',
@@ -218,13 +218,13 @@ const FOCUS_GLSL = [
 ].join('\n');
 
 /** Deep sea: teal water with the official water normal map (two scrolling layers) and caustics. */
-export function waterMaterial(THREE, tex, focus) {
-  const uniforms = { uTime: { value: 0 }, uNormal: { value: tex.waterN || null }, uCaustics: { value: tex.caustics || null }, ...focus };
+export function waterMaterial(THREE, tex, focus, source = null) {
+  const uniforms = { uTime: { value: 0 }, uNormal: { value: tex.waterN || null }, uCaustics: { value: tex.caustics || null }, uDeep: {value:new THREE.Color(...(source?.colors?._DeepWaterColor || [.03,.2,.27]).slice(0,3))}, uShallow: {value:new THREE.Color(...(source?.colors?._ShallowWaterColor || [.09,.46,.55]).slice(0,3))}, ...focus };
   return new THREE.ShaderMaterial({
     uniforms,
     vertexShader: TERRAIN_VERT,
     fragmentShader: [
-      'uniform float uTime; uniform sampler2D uNormal; uniform sampler2D uCaustics;',
+      'uniform float uTime; uniform sampler2D uNormal; uniform sampler2D uCaustics; uniform vec3 uDeep; uniform vec3 uShallow;',
       FOCUS_GLSL,
       'varying vec2 vUv; varying vec3 vWorld;',
       'void main() {',
@@ -237,11 +237,11 @@ export function waterMaterial(THREE, tex, focus) {
       '  vec3 V = normalize(vec3(0.0, -0.5, 0.866));',
       '  float spec = pow(clamp(dot(reflect(-L, n), V), 0.0, 1.0), 40.0);',
       '  float ca = texture2D(uCaustics, vWorld.xy * 0.6 + n.xy * 0.08 + vec2(uTime * 0.02, 0.0)).r;',
-      '  vec3 deep = vec3(0.03, 0.2, 0.27), shallow = vec3(0.09, 0.46, 0.55);',
-      '  vec3 c = mix(deep, shallow, 0.35 + 0.45 * diff) + ca * vec3(0.18, 0.32, 0.34) + spec * vec3(0.8, 0.95, 1.0);',
+      '  vec3 deep = uDeep, shallow = uShallow;',
+      source ? '  vec3 c = mix(deep, shallow, .08 + .1 * diff) + ca * vec3(.015,.025,.03) + spec * vec3(.12,.15,.17);' : '  vec3 c = mix(deep, shallow, 0.35 + 0.45 * diff) + ca * vec3(0.18, 0.32, 0.34) + spec * vec3(0.8, 0.95, 1.0);',
       '  c *= focusMask(vWorld.xy);',
       '  gl_FragColor = vec4(c, 0.9);',
-      '  #include <colorspace_fragment>',
+      source ? '' : '  #include <colorspace_fragment>',
       '}',
     ].join('\n'),
     transparent: true, depthWrite: false,
@@ -402,4 +402,72 @@ export function softTexture(THREE, size = 64) {
   const t = new THREE.CanvasTexture(c);
   t.colorSpace = THREE.SRGBColorSpace;
   return t;
+}
+
+/** StandardRealtimeShadow's painted red-channel blend, from the shipped GLES
+ * program: smoothstep(range.x, range.y, vertex.r) * strength blends albedo
+ * towards _BlendColor and flattens its normal. Vertex RGB is NOT multiplied
+ * into the tile's albedo. */
+export function applyNativeStageBlend(THREE, material, rec) {
+  const enabled=rec.shader==='Torappu/Scene/StandardRealtimeShadow' && rec.keywords?.includes('_HG_VERTEX_COLOR_BLEND_ON') && (rec.floats?._BlendStrength||0)>.01;
+  if(!enabled)return material;
+  const previous=material.onBeforeCompile;
+  material.vertexColors=true;
+  material.onBeforeCompile=shader=>{
+    previous?.(shader);
+    const range=rec.colors?._BlendRangeCtrl || [0,1,0,0];
+    Object.assign(shader.uniforms,{
+      spBlendColor:{value:new THREE.Color(...(rec.colors?._BlendColor||[1,1,1]).slice(0,3))},
+      spBlendRange:{value:new THREE.Vector2(range[0],range[1])},
+      spBlendStrength:{value:rec.floats._BlendStrength},
+      spBlendRoughness:{value:1-(rec.floats._Glossiness2??.5)},
+      spBlendMetalness:{value:rec.floats._Metallic2??0},
+      spGlossScales:{value:new THREE.Vector2(rec.floats._GlossMapScale??1,rec.floats._GlossMapScale2??1)},
+    });
+    shader.fragmentShader=shader.fragmentShader
+      .replace('#include <common>','#include <common>\nuniform vec3 spBlendColor; uniform vec2 spBlendRange; uniform float spBlendStrength; uniform float spBlendRoughness; uniform float spBlendMetalness; uniform vec2 spGlossScales;')
+      .replace('#include <color_fragment>',`float spBlend = smoothstep(spBlendRange.x, max(spBlendRange.x + .00001,spBlendRange.y),vColor.r) * spBlendStrength;
+        diffuseColor.rgb = mix(diffuseColor.rgb,spBlendColor * diffuse,spBlend);`)
+      .replace('#include <roughnessmap_fragment>','#include <roughnessmap_fragment>\n#ifdef USE_ROUGHNESSMAP\nroughnessFactor = 1.0-(1.0-texelRoughness.g)*mix(spGlossScales.x,spGlossScales.y,spBlend);\n#else\nroughnessFactor = mix(roughnessFactor,spBlendRoughness,spBlend);\n#endif')
+      .replace('#include <metalnessmap_fragment>','#include <metalnessmap_fragment>\n#ifndef USE_METALNESSMAP\nmetalnessFactor = mix(metalnessFactor,spBlendMetalness,spBlend);\n#endif')
+      .replace('#include <normal_fragment_maps>','#include <normal_fragment_maps>\nnormal = normalize(mix(normal,nonPerturbedNormal,spBlend));');
+  };
+  material.defines = {...material.defines, SP_NATIVE_BLEND: 1};
+  material.userData.nativeBlend=true;
+  return material;
+}
+
+/** Direct specular term used by the shipped gamma StandardRealtimeShadow GLES
+ * program. Its capped approximation differs from Three's GGX/Schlick term. */
+export function nativePhysicalLighting(THREE) {
+  const chunk=THREE.ShaderChunk.lights_physical_pars_fragment;
+  const start=chunk.indexOf('vec3 BRDF_GGX(');
+  const brace=chunk.indexOf('{',start);let depth=1,end=brace+1;
+  while(depth && end<chunk.length){if(chunk[end]==='{')depth++;else if(chunk[end]==='}')depth--;end++;}
+  if(start<0 || depth)throw new Error('Unsupported Three physical lighting chunk');
+  const native=`vec3 BRDF_GGX(const in vec3 lightDir,const in vec3 viewDir,const in vec3 normal,const in PhysicalMaterial material) {
+    vec3 halfDir=normalize(lightDir+viewDir);
+    float noH=clamp(dot(normal,halfDir),0.0,1.0);
+    float loH=clamp(dot(lightDir,halfDir),0.0,1.0);
+    float r2=material.roughness*material.roughness;
+    float denominator=(noH*noH*(r2*r2-1.0)+1.00001)*max(loH,.32)*(r2+1.5);
+    float term=clamp(r2/max(denominator,.000001)-.0001,0.0,100.0);
+    return term*material.specularColorBlended;
+  }`;
+  return chunk.slice(0,start)+native+chunk.slice(end);
+}
+
+/** Darken only partially shadowed fragments; fully lit colours stay unchanged. */
+export function addShadowContrast(THREE, material) {
+  if (!material?.isMeshStandardMaterial || material.userData.spShadowContrast) return material;
+  material.userData.spShadowContrast = true;
+  const previous = material.onBeforeCompile;
+  material.onBeforeCompile = (shader, renderer) => {
+    previous?.(shader, renderer);
+    shader.fragmentShader = shader.fragmentShader.replace('#include <shadowmap_pars_fragment>',
+      THREE.ShaderChunk.shadowmap_pars_fragment.replaceAll(
+        'return mix( 1.0, shadow, shadowIntensity );',
+        'return pow( clamp( mix( 1.0, shadow, shadowIntensity ), 0.0, 1.0 ), 1.35 );'));
+  };
+  return material;
 }

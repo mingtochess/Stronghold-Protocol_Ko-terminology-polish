@@ -679,7 +679,7 @@ export default {
         battle.every(0.25, () => {
           if (!up(unit)) return;
           const v = unit.s.atk * r;
-          for (const a of battle.alliesFor(unit)) battle.addBuff(a, { key, duration: 0.5, source: unit, mods: { hpRegen: v }, tags: ['talent'] });
+          for (const a of battle.alliesFor(unit, null, { includeDevices: true })) battle.addBuff(a, { key, duration: 0.5, source: unit, mods: { hpRegen: v }, tags: ['talent'] });
         }, { owner: unit });
       } }],
     };

@@ -303,7 +303,7 @@ describe('蕾缪安 S3: lock, bombardShell, bombard', () => {
     const [L1, L2] = fx.locks;
     e1.x = 8.4;
     fx.update(DT);
-    assert.equal(L1.x, 8.4, 'the reticle follows the locked enemy');
+    assert.ok(Math.abs(L1.ring.position.x-fx._bodyPt(e1,FX.SHOT_HEIGHT.aim,{}).x)<1e-6,'reticle follows the model on screen');
     assert.equal(L1.ring.texture, fx.tex.reticle);
     // the shell fired at e1's spot takes that lock; it flies t game s = t / 2 real s
     fx.simFx('bombardShell', 8.5, 10.1, { id: 1, r: 1.5, t: 0.3, i: 0 });
@@ -394,7 +394,7 @@ describe('蕾缪安 S3: lock, bombardShell, bombard', () => {
     assert.equal(fx.locks[0].view, e1);
     e1.x = 7.5;
     fx.update(DT);
-    assert.equal(fx.locks[0].x, 7.5);
+    assert.ok(Math.abs(fx.locks[0].ring.position.x-fx._bodyPt(e1,FX.SHOT_HEIGHT.aim,{}).x)<1e-6);
   });
 
   test('a lock whose shooter goes quiet still times out (S2 aim at an enemy that died)', () => {
@@ -569,6 +569,8 @@ test('weapon tail follows mesh deformation and clears when the attack stops',()=
  assert.ok(polygons.every(p=>p.every(Number.isFinite)));
  assert.equal(fx.weaponTrails.get(a).samples.length,2);
  assert.notEqual(fx.weaponTrails.get(a).samples[0].x,fx.weaponTrails.get(a).samples[1].x);
+ fx.weaponTrail(a,.016,presetCamera('boss',{width:1440,height:900,side:'R',half:true}));
+ assert.equal(fx.weaponTrails.get(a).samples.length,2,'changing camera alone must not create weapon movement');
  a.actor.mode='stun';fx.weaponTrail(a,.016,cam);assert.equal(fx.weaponTrails.get(a).samples.length,0);
  fx.clear();assert.equal(fx.weaponTrails.size,0);
 });
@@ -593,7 +595,7 @@ test('dedicated textures follow the selected skill and keep original boomerang t
 
 test('all damage numbers stay within a narrow horizontal band around the target',()=>{
  const v=unit(906,5,10),{fx}=makeFx({views:[v]});fx.ctx.settings.damageNumberMode='all';
- const limit=fx.ctx.cam().project(v.x,v.y,(v._headTiles||1.2)*.8).s*.035;
+ const limit=fx.ctx.cam().project(v.x,v.y,(v._headTiles||1.2)*.8+.22).s*.035;
  for(let i=0;i<9;i++)fx.damage(v,100,'phys',null,{value:100});
  assert.equal(fx.nums.length,9,'real hits are not merged');
  assert.ok(fx.nums.every(n=>Math.abs(n.ox)<=limit+1e-6),'horizontal displacement stays within 3.5% of a tile');
@@ -612,4 +614,29 @@ test('projectile bodies remain opaque with normal blending while boomerangs igno
  assert.equal(fx.projs[0].core.texture,fx.tex.bulletBody);
  assert.equal(fx.projs[0].core.alpha,1);
  assert.equal(fx.projs[0].core.blendMode,fake.P.BLEND_MODES.NORMAL);fx.clear();
+});
+
+ test('world attack anchors do not change when switching between centre and either side',()=>{
+ const v=unit(99,9,3,{bossArea:{dx:1},_headTiles:2.2}),src=unit(1,12,4);
+ const {fx}=makeFx({views:[v,src],ts:1});
+ for(const side of ['L','R'])for(const half of [false,true]){
+ const camera=presetCamera('boss',{width:1440,height:900,side,half});fx.ctx.cam=()=>camera;
+ const fixed={x:10,y:3,z:2.2*FX.MODEL_WORLD_HEIGHT*FX.SHOT_HEIGHT.aim};
+ const aim=camera.project(fixed.x,fixed.y,fixed.z);
+ assert.deepEqual(FX.bodyPoint(camera,v,FX.SHOT_HEIGHT.aim),fixed);
+ const world=FX.bodyPoint(camera,v,FX.SHOT_HEIGHT.aim),point=camera.project(world.x,world.y,world.z);
+ assert.ok(Math.abs(point.x-aim.x)<1e-6&&Math.abs(point.y-aim.y)<1e-6);
+ fx._lock(v,null,v.x,v.y,0);fx._updateLocks(.1);const L=fx.locks.at(-1);
+ assert.ok(Math.abs(L.ring.position.x-aim.x)<1e-6&&Math.abs(L.ring.position.y-aim.y)<1e-6);
+ fx.attack(src,v,'arrow');const pr=fx.projs.at(-1);assert.ok(pr);const end=fx._shotPoint(pr,1,camera,{});
+ assert.ok(Math.abs(end.x-aim.x)<1e-6&&Math.abs(end.y-aim.y)<1e-6);fx.clear();
+ }
+ });
+
+test('wide effects distinguish weapons and magic, without using omnidirectional as a sword flag',()=>{
+ assert.equal(FX.wideAttackFamily({charId:'char_4064_mlynar',skillIndex:2},true),'blade');
+ assert.equal(FX.wideAttackFamily({subProf:'spreadshooter'},false),'cone');
+ assert.equal(FX.wideAttackFamily({subProf:'phalanx'},true),'pulse');
+ assert.equal(FX.wideAttackFamily({omnidirectional:true,attackType:'arts'},true),null);
+ const {fx}=makeFx();fx._wideSweep(unit(10,0,0,{info:{subProf:'spreadshooter'}}));assert.equal(fx.sweeps.length,0,'unknown range never invents a wide radius');
 });

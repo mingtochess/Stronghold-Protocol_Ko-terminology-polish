@@ -861,3 +861,11 @@ test('language change immediately stops the old line and cancels a still-decodin
  const a=new AudioManager({getManifest:()=>({})});let stopped=0;const before=a.voiceToken;a.voiceNode={src:{stop(){stopped++}},gain:{gain:{value:1,cancelScheduledValues(){},setValueAtTime(){}}}};a.ctx={currentTime:0};a.setVolumes({voiceLanguage:'jp'});assert.equal(stopped,1);assert.equal(a.voiceNode,null);assert.ok(a.voiceToken>before);
  let release;const buffer=new Promise(r=>release=r);a._buffer=()=>buffer;let played=0;a.ctx={currentTime:0,createBufferSource(){played++;return{};}};a.voiceGain={};a._playVoice('/jp.mp3',a.voiceToken);a.setVolumes({voiceLanguage:'kr'});release({duration:1});await new Promise(r=>setTimeout(r,0));assert.equal(played,0);
 });
+
+test('skill combat sounds follow activation and preserve the mode until impact',()=>{
+ const a=new AudioManager({getManifest:()=>({audio:{sfx:{units:{char_test:{attack:'/normal.mp3',hit:'/normal-hit.mp3',skills:{2:null},skillCombat:{2:{attack:'/player/p_atk/p_atk_test_s.mp3',hit:'/player/p_imp/p_imp_test_s.mp3'}}}}}}})});
+ a.ctx={};a._track({id:1,charId:'char_test',kind:'op',side:'ally',skillIndex:2});a._track({id:2,defId:'enemy_test',side:'enemy'});
+ const played=[];a._play=(url)=>played.push(url);
+ a.handleBattleEvents([['skill',1,true],['atk',1,2,'none'],['skill',1,false],['dmg',2,100,'phys'],['atk',1,2,'none']]);
+ assert.deepEqual(played,['/player/p_atk/p_atk_test_s.mp3','/player/p_imp/p_imp_test_s.mp3','/normal.mp3']);
+});

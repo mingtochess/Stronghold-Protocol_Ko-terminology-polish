@@ -321,6 +321,12 @@ export function groundZ(ctx, x, y) {
   return Number.isFinite(h) && h > 0 ? h : 0;
 }
 
+/** Native deep-sea tiles lower ground bodies; raised devices and airborne units remain above water. */
+export function submergedVisual(ctx, unit) {
+  const tile = ctx.tileAt?.(Math.round(unit.y), Math.round(unit.x));
+  return !!(tile?.drawn && tile.glyph === 'd' && !tile.devH && !unit.flying && !unit.info?.preview);
+}
+
 /** Enemy Spine models face right by default like operators (verified by eye on Ark-Models skeletons). */
 export const ENEMY_MODEL_FACES_LEFT = false;
 
@@ -758,6 +764,7 @@ export class UnitView {
     this.hp = hp;
     this.sp = s.sp; this.spMax = s.spMax;
     this.shieldHp = Math.max(0, s.shieldHp || 0);
+    if(this.info.defId==='token_custom_ursus_drone')this.modelK=s.modelScale??1;
     this.snowTiles = s.snowTiles || [];
     this.skillTiles = s.skillTiles;
     this.ammoLeft = s.ammoLeft; this.ammoMax = s.ammoMax || 0;
@@ -1034,8 +1041,12 @@ export class UnitView {
     }
     const hoverTo = this.flying && this.alive ? FLY_HOVER : 0;
     if (this.hover !== hoverTo) this.hover = Math.abs(hoverTo - this.hover) < 1e-3 ? hoverTo : this.hover + (hoverTo - this.hover) * Math.min(1, dt * 6);
+    const submerged = submergedVisual(this.ctx, this);
+    const sinkTo = submerged ? -.18 : 0;
+    this.waterSink = (this.waterSink || 0) + (sinkTo - (this.waterSink || 0)) * Math.min(1, dt * 12);
+    if (Math.abs(this.waterSink - sinkTo) < .001) this.waterSink = sinkTo;
     const visualX = this.x + (this.bossArea?.dx || 0);
-    const p = cam.project(visualX, this.y, this.z + this.hover + this.lift, this.screen);
+    const p = cam.project(visualX, this.y, this.z + this.hover + this.lift + this.waterSink, this.screen);
     const s = p.s;
     // State effects follow the projected unit, including flying height, rather than the camera.
     const visualStates = this._iconKeys(Infinity).filter(k=>['freeze','cold','burn','poison','shield','refraction','stealth','stun','sleep','invuln','bind','slow','silence','fear','fragile','weaken','healFree','neural','necrosis'].includes(k));
@@ -1140,8 +1151,8 @@ export class UnitView {
     if (this.stealthMist) this.stealthMist.forEach((sp,i) => {
       sp.visible = mistOn;
       if (!mistOn) return;
-      sp.position.set(Math.sin(t*.55+i*2.1)*s*.18, -s*(.23+i*.22)+Math.sin(t*.4+i)*s*.035);
-      sp.width=s*(1.7+i*.08);sp.height=s*(.92+i*.04);
+      sp.position.set(Math.sin(t*.55+i*2.1)*s*.16, -s*(.22+i*.20)+Math.sin(t*.4+i)*s*.035);
+      sp.width=s*(1.50+i*.07);sp.height=s*(.82+i*.035);
       sp.rotation=Math.sin(t*.16+i)*.16;
       sp.alpha=.82+.07*Math.sin(t*.65+i);
     });
@@ -1151,7 +1162,7 @@ export class UnitView {
     this.lunge = Math.max(0, this.lunge - dt * 5);
     const lx = this.lungeDir.x * lungeK, ly = this.lungeDir.y * lungeK;
     let bx = p.x, by = p.y;
-    if (lungeK) { const q = cam.project(this.x + lx, this.y + ly, this.z + this.hover + this.lift, LG_P); bx = q.x; by = q.y; }
+    if (lungeK) { const q = cam.project(this.x + lx, this.y + ly, this.z + this.hover + this.lift + this.waterSink, LG_P); bx = q.x; by = q.y; }
     this.root.position.set(bx, by);
     this.root.alpha = alpha;
     this.root.zIndex = unitDepthKey(cam, this.x, this.y, this.lift, this.flying);
@@ -1263,6 +1274,7 @@ export class UnitView {
       if (this.down) tint = DOWN_LOOK.tint;
       else if (this.alive && (this.flags & UF.FROZEN)) tint = 0x9fd4ff;
       else if (this.flags & UF.COLD) tint = 0xcfe6ff;
+      if (submerged) tint = mixTint(tint, 0x275d69, .3);
       if (this.flags & UF.STEALTH) tint = mixTint(tint,0x26333f,.6);
       if (flashK > 0) tint = mixTint(tint, 0xff8a80, flashK * 0.8);
       this.actor.moveRate = this.moveAnimRate ?? 1;
@@ -1307,6 +1319,7 @@ export class UnitView {
     }
     this.flash = Math.max(0, this.flash - dt * 4.5);
 
+    if (!spineShown && submerged) this.fallback.tint = mixTint(this.fallback.tint, 0x275d69, .3);
     // facing chevron on the ground, like the original's orange › (research 09 §1.2: prep and combat): own prep pieces
     // on the board (app.js sets _showFacing; bench pieces have none); battle / scouting allies whose dir is known
     const wedge = this._showFacing !== undefined ? this._showFacing && this.prep : this.hasDir && this.info.kind !== 'device';
@@ -1379,11 +1392,7 @@ export class UnitView {
     const showBars = !prep && this.alive && this.info.kind !== 'item';
     if(this.info.energyMax && !this.energyText)this.setEnergy(this.info.energy || 0);
     if(this.energyText){this.energyText.visible=showBars;this.energyText.scale.set(clamp(s/90,.65,1));this.energyText.position.set(x,y-s*.16);}
-    if(this.info.optionalRecruit && !this.recruitText){
-      this.recruitText=new this.P.Text('선발',{fontFamily:'sans-serif',fontSize:13,fontWeight:'700',fill:'#53e3c2',stroke:'#07120e',strokeThickness:3});
-      this.recruitText.anchor.set(.5);this.hud.addChild(this.recruitText);
-    }
-    if(this.recruitText){this.recruitText.visible=this.alive;this.recruitText.scale.set(clamp(s/90,.65,1));this.recruitText.position.set(x+s*.34,y-s*.08);}
+
     const damaged = this.hp < this.maxHp - 0.5;
     const showHp = showBars && (!this.isEnemy || damaged || this.isBoss || this.shieldHp > 0);
     const bw = clamp(s * (this.isBoss ? UNIT.bossBarWidth : UNIT.barWidth), 24, this.isBoss ? 260 : 96);

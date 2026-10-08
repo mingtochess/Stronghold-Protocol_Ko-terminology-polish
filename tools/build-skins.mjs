@@ -14,8 +14,8 @@ export async function buildSkins(root,dir){
  const files=[],catalog=new Map();let done=0,missing=0;
  await mkdir(join(root,'.cache/skin-metadata'),{recursive:true});
  async function cached(url){const path=join(root,'.cache/skin-metadata',Buffer.from(url).toString('base64url'));try{return await readFile(path)}catch{}const r=await fetch(url,{signal:AbortSignal.timeout(12000)});if(!r.ok)throw Error(`${r.status}`);const b=Buffer.from(await r.arrayBuffer());await writeFile(path,b);return b;}
- async function model(s,id,side){
-  const file=s.battleSkin.skinOrPrefabId.replace(/#/g,'_'),base=`${RAW.fexli}spine/${s.charId}/${file}/${side}/`;
+ async function model(s,id,side,folder=side){
+  const file=s.battleSkin.skinOrPrefabId.replace(/#/g,'_'),base=`${RAW.fexli}spine/${s.charId}/${file}/${folder}/`;
   const [bytes,atlas]=await Promise.all([cached(base+file+'.skel'),cached(base+file+'.atlas')]);
   const info=atlasInfo(atlas.toString()),sk=parseSkel(bytes,new Set(info.regions));const prefix=`/assets/custom/skins/${id}/${side}`;
   const textures=info.pages.map(p=>`${prefix}/${p.replace(/[^A-Za-z0-9._-]/g,'_')}`);
@@ -24,7 +24,7 @@ export async function buildSkins(root,dir){
   return {skel:prefix+'/'+file+'.skel',atlas:prefix+'/'+file+'.atlas',textures,pma:false,animations:sk.durations,durations:sk.durations,hits:sk.hits,bounds:sk.bounds,anims:resolveRoles(sk.animations,{skillIndices:[0,1,2],durations:sk.durations})};
  }
  async function worker(){while(candidates.length){const s=candidates.shift(),id='skin_'+s.battleSkin.skinOrPrefabId.replace(/[^A-Za-z0-9_]/g,'_');try{
-   const front=await model(s,id,'Front');let back=null;try{back=await model(s,id,'Back')}catch{}
+   let front;try{front=await model(s,id,'Front')}catch{front=await model(s,id,'Front','Spine')}let back=null;try{back=await model(s,id,'Back')}catch{}
    const avatar=`/assets/custom/skins/${id}/avatar.png`,portrait=`/assets/custom/skins/${id}/portrait.png`;
    files.push({path:avatar,sources:[RAW.yuanyan+'avatar/'+encodeURIComponent(s.avatarId)+'.png']},{path:portrait,sources:[RAW.yuanyan+'portrait/'+encodeURIComponent(s.portraitId)+'.png']});
    assets.chars[id]={avatar,portrait,spine:{front,back}};

@@ -1,0 +1,68 @@
+[
+  {
+    "id": "act1autochess_m01",
+    "tiles": 399,
+    "devices": 17,
+    "differences": []
+  },
+  {
+    "id": "act1autochess_m02",
+    "tiles": 399,
+    "devices": 37,
+    "differences": []
+  },
+  {
+    "id": "act1autochess_m03",
+    "tiles": 399,
+    "devices": 29,
+    "differences": []
+  },
+  {
+    "id": "act1autochess_m04",
+    "tiles": 399,
+    "devices": 17,
+    "differences": []
+  },
+  {
+    "id": "act1autochess_m05",
+    "tiles": 399,
+    "devices": 70,
+    "differences": []
+  },
+  {
+    "id": "act1autochess_m06",
+    "tiles": 399,
+    "devices": 43,
+    "differences": []
+  },
+  {
+    "id": "act1autochess_m07",
+    "tiles": 399,
+    "devices": 17,
+    "differences": []
+  },
+  {
+    "id": "act2autochess_m01",
+    "tiles": 399,
+    "devices": 13,
+    "differences": []
+  },
+  {
+    "id": "act2autochess_m02",
+    "tiles": 399,
+    "devices": 10,
+    "differences": []
+  },
+  {
+    "id": "act2autochess_m03",
+    "tiles": 399,
+    "devices": 15,
+    "differences": []
+  },
+  {
+    "id": "act2autochess_m04",
+    "tiles": 399,
+    "devices": 10,
+    "differences": []
+  }
+]

@@ -48,7 +48,6 @@ import { GuideHost } from './ui/guide.js';
 import { installDeviceSupport } from './ui/device.js';
 import { LoadoutHost } from './screens/loadout.js';
 import { installLoadoutSync } from './ui/loadoutSync.js';
-import { ChatPanel } from './ui/chat.js';
 import { CHAT_HISTORY_LIMIT } from '../../shared/chat.js';
 import { startBuildGuard } from './ui/buildGuard.js';
 
@@ -287,7 +286,6 @@ function App() {
     <div class="app-bg" aria-hidden="true"></div>
     ${error ? html`<${ScreenCrashed} error=${error} reset=${resetError} />` : html`<${Screen} key=${route} />`}
     <${ConnectionBanner} />
-    ${route === 'game' ? html`<${ChatPanel} />` : null}
     <${ToastHost} />
     <${UiHosts} />
     <${GuideHost} />

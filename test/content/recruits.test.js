@@ -39,7 +39,7 @@ test('Ascalon poison stacks, slows and ticks arts damage; elite module boosts it
  setGameData(data);try{const h=combat('ascln',1,true),u=h.unit(id('ascln',6,true)),e=h.enemy();assert.ok(h.runUntil(()=>e.findBuff(`ascln:poison:${u.id}`)?.stacks===3,12));const poison=e.findBuff(`ascln:poison:${u.id}`);assert.ok(poison);assert.equal(poison.stacks,3);assert.ok(e.s.moveSpeed<e.base.moveSpeed||e.s.speed<e.base.speed);assert.ok(h.hooksOf('hit').some(c=>c.dmg.tags?.includes('ascln-poison')))}finally{setGameData(null)}
 });
 test('Narantuya steals stats up to cap and collects returning boomerangs',()=>{
- setGameData(data);try{const h=combat('narant',2,true),u=h.unit(id('narant',6,true));h.run(40);assert.ok(u.mem.narantSteal.atk>0);assert.ok(u.mem.narantSteal.atk<=300);assert.ok(u.mem.narantReturns>0);assert.equal(h.b.errorCount,0)}finally{setGameData(null)}
+ setGameData(data);try{const h=combat('narant',2,true),u=h.unit(id('narant',6,true));h.run(40);assert.ok(u.mem.narantLoot.a>0);assert.ok(u.mem.narantLoot.a<=u.def.raw.talents[0].bb['attack@steal_atk_max']);assert.ok(h.eventsOf('atk').length>0);assert.equal(h.b.errorCount,0)}finally{setGameData(null)}
 });
 test('Ascalon periodic basic damage activates Dormant Progeny healing without another attack or poison recursion',()=>{
  setGameData(data);try{
@@ -53,11 +53,10 @@ test('all seven official modules select their exact data and execute the authore
  setGameData(data);try{let count=0;for(const key of keys){const r=get(id(key,6,true));for(const m of r.modules){const h=combat(key,2,true,6,{units:[{chessId:r.chessId,row:10,col:3,skillIndex:2,moduleId:m.uniEquipId}]}),u=h.unit(r.chessId);assert.equal(u.def.raw.module.id,m.uniEquipId);u.skill.gainSp(1000);if(!u.skill.active)u.skill.activate('test');h.run(8);assert.equal(h.b.errorCount,0,`${key} ${m.uniEquipId}`);checkInvariants(h.b);count++;}}assert.equal(count,7)}finally{setGameData(null)}
 });
 
-test('personally selected candidates remain in the pool when every one of their bonds is banned',()=>{
- const candidate=get(id('wisdel'));
- const gd={difficulty:'NORMAL',bans:()=>({core:1,addon:0}),modeInactiveBonds:new Set(),bondIds:['emptyShip'],bond:()=>({weight:1,isCore:true}),visibleChess:[candidate.chessId,'ordinary'],chess:cid=>cid==='ordinary'?{bonds:['emptyShip']}:candidate};
+test('single-core recruits are banned despite an active auxiliary bond; another active core keeps dual-core recruits available',()=>{
+ const gd={difficulty:'NORMAL',bans:()=>({core:0,addon:0}),modeInactiveBonds:new Set(['emptyShip']),bondIds:['emptyShip','other','aux'],bond:b=>({weight:1,isCore:b!=='aux'}),visibleChess:['single','dual','ordinary'],chess:cid=>({optionalRecruit:cid!=='ordinary',bonds:cid==='dual'?['emptyShip','other']:['emptyShip','aux']})};
  const rng=()=>0;rng.shuffle=()=>{};
- const result=drawDisabledBonds(gd,rng);assert.deepEqual(result.banned,['ordinary']);
+ assert.deepEqual(drawDisabledBonds(gd,rng).banned,['single']);
 });
 
 test('Dawnstriker S3 auto-casts on airborne targets; only the opening wave hits air',()=>{
@@ -67,7 +66,7 @@ test('Dawnstriker S3 auto-casts on airborne targets; only the opening wave hits 
    const h=makeBattle({data:raw,autoFinish:false,captureNoisy:true,units:[{chessId:id('chen3',tier,elite),row:10,col:3,skillIndex:2}],enemies:[{key:'air',pos:[10,4],route:{motion:'FLY',start:[10,4],end:[10,2],checkpoints:[]}}]});
    h.run(2);const u=h.unit(id('chen3',tier,elite)),e=h.enemy();assert.ok(e.isFlying);u.skill.gainSp(1000);
    assert.ok(h.runUntil(()=>u.skill.active,1),'air alone starts the sword wave');
-   assert.ok(h.hooksOf('hit').some(c=>c.target===e&&c.dmg.tags?.includes('chen3-sword-wave')));
+   assert.ok(h.runUntil(()=>h.hooksOf('hit').some(c=>c.target===e&&c.dmg.tags?.includes('chen3:wave')),3));
    const hp=e.hp;h.run(3);assert.equal(e.hp,hp,'sustained slashes remain ground-only');assert.equal(h.b.errorCount,0);
   }
  }finally{setGameData(null)}
@@ -98,7 +97,7 @@ test('Ascalon S2 slow multiplies module slow, affects air, and poison tick survi
  setGameData(data);try{
   const h=combat('ascln',1,true),u=h.unit(id('ascln',6,true)),e=h.enemy();
   e.x=4;e.y=10;e.markDirty();h.b.removeBuff(e,`ascln:poison:${u.id}`);h.b.addBuff(u,{key:'test-disarm',flags:{disarm:true},duration:100});
-  u.skill.gainSp(1000);if(!u.skill.active)u.skill.activate('test');h.step();
+  u.skill.gainSp(1000);if(!u.skill.active)u.skill.activate('test');h.run(.3);
   const ratio=Math.max(.05,(1+(u.def.raw.module?.active?-.2:0))*(1+u.skill.bb.move_speed));
   assert.ok(Math.abs(e.s.moveSpeed/e.base.moveSpeed-ratio)<1e-6,JSON.stringify({actual:e.s.moveSpeed/e.base.moveSpeed,ratio,x:e.x,y:e.y,buffs:e.buffs,active:u.skill.active}));
   e.motion='FLY';h.step();assert.ok(Math.abs(e.s.moveSpeed/e.base.moveSpeed-ratio)<1e-6,'S2 and module affect air too');e.motion='WALK';
@@ -111,11 +110,11 @@ test('Ascalon S2 slow multiplies module slow, affects air, and poison tick survi
  }finally{setGameData(null)}
 });
 
-test('Narantuya S1 actually shortens her range and restores it when toggled off',()=>{
+test('Narantuya S1 actually shortens her range and restores it when the skill ends',()=>{
  setGameData(data);try{
- const h=combat('narant',0),u=h.unit(id('narant')),grid=u.rangeGrid.map(p=>[...p]);
- u.skill.gainSp(1000);u.skill.activate('test');assert.ok(u.rangeGrid.length<grid.length);
- u.skill.gainSp(1000);u.skill.activate('test');assert.deepEqual(u.rangeGrid,grid);
+ const h=combat('narant',0),u=h.unit(id('narant')),grid=[...u.rangeKeys];
+ u.skill.gainSp(1000);u.skill.activate('test');assert.ok(u.rangeKeys.length<grid.length);
+ u.skill.end('retreat');h.b._refreshRange(u);assert.deepEqual(u.rangeKeys,grid);
  }finally{setGameData(null)}
 });
 

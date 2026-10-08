@@ -5,7 +5,8 @@ import {PHASE} from '../../shared/constants.js';
 
 test('draft recruit edits replace personal eligibility before the first shop opens',()=>{
  const data=structuredClone(DATA);
- const base=Object.values(data.chess).find(c=>c.visible&&!c.isGolden&&c.tier===5&&!c.isDiy&&!c.isHidden);
+ const base=Object.values(data.chess).find(c=>c.visible&&!c.isGolden&&c.tier===5&&!c.isDiy&&!c.isHidden&&c.bonds?.some(id=>!['emptyShip'].includes(id)));
+ base.bonds=['emptyShip'];
  base.optionalRecruit=true;
  if(data.chess[base.goldenId])data.chess[base.goldenId].optionalRecruit=true;
  const h=makeMatch({data,mode:'solo',humans:1,bots:0,seed:41}).start();

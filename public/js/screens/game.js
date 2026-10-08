@@ -1,3 +1,4 @@
+import { ChatPanel } from '../ui/chat.js';
 // Game screen — every in-match screen, dispatched by m.public.phase (DESIGN §10):
 //   INFO_CHECK → Briefing (screens/briefing.js), BAND_DRAFT → Band draft (screens/bandDraft.js),
 //   RESULT / m.result → Result (screens/result.js), everything else → MatchScreen below.
@@ -1404,6 +1405,7 @@ function MatchScreen() {
       <${Ticker} />
 
       <div class="gm__corner">
+        <${ChatPanel} />
         ${spectator ? null : html`<${EmoteWheel} open=${emoteOpen} onToggle=${setEmoteOpen} onSend=${(id) => actions.emote(id)} disabled=${conn.status !== 'online'} />`}
         <button type="button" class="gm__gear" aria-label="设置" title="设置" onClick=${() => setSettingsOpen(true)}><${GIcon} name="gear" /></button>
         <button type="button" class="gm__gear gm__guide" aria-label="玩法说明" title="玩法说明" onClick=${() => openGuide(0)}><${Icon} name="book" /></button>

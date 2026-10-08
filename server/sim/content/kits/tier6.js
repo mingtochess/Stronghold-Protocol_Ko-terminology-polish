@@ -967,8 +967,8 @@ function skadi2(bb, chess, def) {
   const skillRatio = num(bb['attack@atk_to_hp_recovery_ratio'], auraRatio);
   const seaborns = (battle, unit) => battle.allyUnits.filter((t) => isTok(t, tokId, unit) && live(t));
   const covered = (battle, unit, toks) => { // allies inside her range ∪ the seaborns' ranges
-    const set = new Set(battle.alliesInGrid(unit));
-    for (const t of toks) for (const a of battle.alliesInGrid(t)) set.add(a);
+    const set = new Set(battle.alliesInGrid(unit, { includeDevices: true }));
+    for (const t of toks) for (const a of battle.alliesInGrid(t, { includeDevices: true })) set.add(a);
     for (const t of toks) set.delete(t);
     return [...set];
   };

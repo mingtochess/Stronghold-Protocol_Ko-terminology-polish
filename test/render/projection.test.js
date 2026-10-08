@@ -438,3 +438,24 @@ test('observed battle cameras keep bench feet and heads inside the padded viewpo
   }
  }
 });
+
+
+test('boss preparation and observed benches use mirrored left/right framing',()=>{
+ for(const [width,height] of [[1920,1080],[1280,900],[844,390],[390,844]])for(const shop of [true,false]) {
+  const viewport={width,height},hud={top:height*.18,bottom:shop?height*.25:height*.06};
+  const left=presetCamera('bossPrep',viewport,{side:'L',shop,hud});
+  const right=presetCamera('bossPrep',viewport,{side:'R',shop,hud});
+  assert.ok(near(left.tx+right.tx,20),'world camera centres reflect about the field centre');
+  for(const [x,y,z]of [[0,0,0],[5,3,0],[10,5,1.3]]){
+   const a=left.project(x,y,z),b=right.project(20-x,y,z);
+   assert.ok(near(a.x+b.x,width),'matching tiles have mirrored screen positions');
+   assert.ok(near(a.y,b.y));assert.ok(near(a.s,b.s));
+  }
+ }
+ const vp={width:1600,height:900};
+ const left=presetCamera('boss',vp,{side:'L',observedBench:true,shop:false});
+ const right=presetCamera('boss',vp,{side:'R',observedBench:true,shop:false});
+ assert.ok(near(left.tx+right.tx,20));
+ const battleL=presetCamera('boss',vp,{side:'L',half:true}),battleR=presetCamera('boss',vp,{side:'R',half:true});
+ assert.ok(near(battleL.tx+battleR.tx,20),'battle half presets stay symmetric');
+});

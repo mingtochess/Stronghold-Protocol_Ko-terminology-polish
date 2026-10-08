@@ -45,7 +45,7 @@ test('two browsers chat over real game sockets: toggle, unread, safe text, Korea
         };
       };
       window.reconnect=()=>new Promise(resolve=>{socket.onclose=()=>{window.ready=false;window.connect();resolve();};socket.close();});
-      function Fixture(){const [emoteOpen,setEmoteOpen]=useState(false);return html\`<div class="screen gm"><div class="gm__hud"><div class="gm__corner"><\${EmoteWheel} open=\${emoteOpen} onToggle=\${setEmoteOpen} onSend=\${id=>window.request('g.emote',{id})} /></div></div></div><\${ChatPanel} />\`;}
+      function Fixture(){const [emoteOpen,setEmoteOpen]=useState(false);return html\`<div class="screen gm"><div class="gm__hud"><div class="gm__corner"><\${ChatPanel} /><\${EmoteWheel} open=\${emoteOpen} onToggle=\${setEmoteOpen} onSend=\${id=>window.request('g.emote',{id})} /></div></div></div>\`;}
       window.store=store;window.connect();render(html\`<\${Fixture} />\`,document.getElementById('app'));
       </script>`;
     try {

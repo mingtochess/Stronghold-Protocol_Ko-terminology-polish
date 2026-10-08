@@ -106,6 +106,7 @@ export function install(battle){
     if(old?.mods?.atkPct!==bonus)S.passiveBuff(battle,u,'bond:ursus:stats',S.directMods({atk:bonus,hp:bonus}));
    }
    if(drone){
+    drone.mem.visualScale=.85*(1+.005*layers);
     const atkFlat=six()?members.filter(u=>u.alive&&u.deployed&&!u.hidden).reduce((sum,u)=>sum+u.s.atk,0)*(.05+.00025*layers):0;
     const aspd=six()?50:0,old=drone.findBuff('bond:ursus:drone');
     if(old?.mods?.atkPct!==bonus||old?.mods?.atkFlat!==atkFlat||old?.mods?.aspd!==aspd)

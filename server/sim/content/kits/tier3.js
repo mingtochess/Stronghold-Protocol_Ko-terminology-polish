@@ -1146,7 +1146,7 @@ const KITS = {
           const grid = copyGrid(s.rangeGrid) ?? NINE;
           const ratio = num(s.bb['attack@atk_to_hp_recovery_ratio'], num(s.bb.atk_to_hp_recovery_ratio, 0));
           // "周围的所有友方单位每秒恢复相当于攻击力N%的生命值": an hpRegen buff on every ally on the skill range's tiles (no
-          // device, no 孤立 unit), refreshed every REGEN_IV while the skill runs and removed at its end [ASSUMED: from the
+          // 孤立 unit), refreshed every REGEN_IV while the skill runs and removed at its end [ASSUMED: from the
           // start of the skill — unlike 铃兰's, the note names no delay]
           const regenKey = (unit) => `blemsh:regen:${unit.id}`;
           const regen = (battle, unit) => {
@@ -1154,7 +1154,7 @@ const KITS = {
             const keys = new Set(gridKeys(grid, unit));
             const v = unit.s.atk * ratio;
             for (const a of battle.allyUnits) {
-              if (!a.alive || !a.deployed || a.hidden || a.kind === 'device' || !onTiles(a, keys) || !battle.allySelectable(a, unit)) continue;
+              if (!a.alive || !a.deployed || a.hidden || !onTiles(a, keys) || !battle.allySelectable(a, unit)) continue;
               battle.addBuff(a, { key: regenKey(unit), duration: REGEN_IV * 2, source: unit, mods: { hpRegen: v } });
             }
           };
