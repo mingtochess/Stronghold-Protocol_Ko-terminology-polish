@@ -87,10 +87,6 @@ const DEVIATIONS = {
   'act1autochess_m05 normal 12,10>9,2': '12,10 12,9 9,9 9,2',
   'act1autochess_m05 unite 12,10>9,2': '12,10 12,9 9,9 9,2',
   'act1autochess_m05 unite 12,18>9,2': '12,18 12,17 9,17 9,2',
-  'act1autochess_m05 boss 5,10>1,3': '5,10 5,9 2,9 2,3 1,3',
-  'act1autochess_m05 boss 5,10>2,2': '5,10 5,9 2,9 2,2',
-  'act1autochess_m05 boss 5,10>1,17': '5,10 5,11 2,11 2,17 1,17',
-  'act1autochess_m05 boss 5,10>2,18': '5,10 5,11 2,11 2,18',
 };
 
 test('audit: every route of every stage (11, active or not) × gate × field is the official one, except the listed floor-avoiding ones', REAL, () => {
@@ -189,4 +185,18 @@ test('equal floor never bends the official route: one crate on any tile of an ac
   const g = stageGrid(M04, R);
   g.setObstacle(10, 6, true, 'crate');
   assert.equal(str(g.waypoints(9, 10, 9, 2)), '9,10 9,9 11,7 11,4 9,4 9,2');
+});
+
+
+test('flooded boss arenas keep the official upper lane toward either player', REAL, () => {
+  for (const sid of ['act1autochess_m05', 'act2autochess_m04']) {
+    for (const end of [[2,2],[1,3],[2,18],[1,17]]) {
+      const g = stageGrid(sid, GEO.BOSS_RECT);
+      const official = stageGrid(sid, GEO.BOSS_RECT, true);
+      const route = g.waypoints(5,10,...end);
+      assert.deepEqual(route, official.waypoints(5,10,...end));
+      assert.equal(route[1][0], 5, `${sid}: remains on the upper lane`);
+      assert.ok(Math.abs(route[1][1]-10)>=6, `${sid}: follows upper lane to the outer column`);
+    }
+  }
 });

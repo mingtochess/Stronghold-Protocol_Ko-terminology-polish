@@ -54,7 +54,12 @@ export function installDroneBombardment(battle,u){
 export function droneTargets(b,u,inRange=false){
  const inside=e=>bodyDist(e,u.x,u.y)<=DRONE_RANGE+1e-9;
  const priority=e=>e.isBoss||e.def?.rank==='BOSS'?0:e.blockedBy?(inside(e)?1:2):3;
- return b.enemies.filter(e=>canTargetEnemy(u,e,u.profile)&&(!inRange||inside(e))).sort((a,c)=>b.remainingDistance(a)-b.remainingDistance(c)||priority(a)-priority(c)||a.spawnSeq-c.spawnSeq||a.id-c.id);
+ return b.enemies.filter(e=>canTargetEnemy(u,e,u.profile)&&(!inRange||inside(e))).sort((a,c)=>{
+  const bossA=priority(a)===0,bossC=priority(c)===0;
+  if(bossA!==bossC)return bossA?-1:1;
+  if(bossA && bossC)return bodyDist(a,u.x,u.y)-bodyDist(c,u.x,u.y)||a.spawnSeq-c.spawnSeq||a.id-c.id;
+  return b.remainingDistance(a)-b.remainingDistance(c)||priority(a)-priority(c)||a.spawnSeq-c.spawnSeq||a.id-c.id;
+ });
 }
 
 // Like the existing flying Yan summon, keep its spawn tile reserved but move the airborne world position.

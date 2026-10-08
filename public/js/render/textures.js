@@ -1435,7 +1435,9 @@ export function stealthMistTexture(assets) {
       const i = (y * 256 + x) * 4;
       const density = Math.max(0, Math.min(1, (pixels.data[i] / 255 - .27) * 3));
       const edge = Math.sin(Math.PI * x / 255) ** 2 * Math.sin(Math.PI * y / 255) ** 2;
-      pixels.data[i] = 18; pixels.data[i + 1] = 25; pixels.data[i + 2] = 32;
+      // Preserve cloud detail instead of flattening every wisp to near-black.
+      const shade=Math.round(40+50*density);
+      pixels.data[i] = shade; pixels.data[i + 1] = shade+6; pixels.data[i + 2] = shade+12;
       pixels.data[i + 3] = Math.round(255 * density * edge);
     }
     c.putImageData(pixels, 0, 0);

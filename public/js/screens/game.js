@@ -510,7 +510,11 @@ function MatchScreen() {
       view?.pushSnapshot(snap);
       if (Array.isArray(snap.units)) {
         const mp = new Map();
-        for (const t of snap.units) if (Array.isArray(t)) mp.set(t[0], t);
+        for (const t of snap.units) if (Array.isArray(t)) mp.set(t[0], t.slice());
+        for (const a of snap.ammo || []) {
+          const t = mp.get(a[0]);
+          if (t) { t[13] = a[1]; t[14] = a[2]; }
+        }
         snapUnitsRef.current = mp;
       }
       hudRef.current = snapHud(snap);
@@ -1116,7 +1120,7 @@ function MatchScreen() {
   const snapHp = (() => {
     const id = resolved?.unitId;
     const t = id != null ? snapUnitsRef.current.get(id) : null;
-    return t ? { hp: t[3], max: t[4], sp: t[5], spMax: t[6], flags: t[7] } : null;
+    return t ? { hp: t[3], max: t[4], sp: t[5], spMax: t[6], flags: t[7], ammoLeft: t[13], ammoMax: t[14] } : null;
   })();
 
   // ---- live stats of the detail card (user playtest #4 item 7) ------------------------------------------------------
@@ -1156,7 +1160,7 @@ function MatchScreen() {
       const e = cc && field.local && uid != null ? battleRunner?.unitStats(uid, fid) : null;
       const row = uid != null ? snapUnitsRef.current.get(uid) : null;
       if (!e && !row) return null;
-      return { ...e, ...(row ? {hp:row[3],maxHp:row[4],sp:row[5],spMax:row[6],flags:row[7]} : {}), src: 'battle' };
+      return { ...e, ...(row ? {hp:row[3],maxHp:row[4],sp:row[5],spMax:row[6],flags:row[7],ammoLeft:row[13],ammoMax:row[14]} : {}), src: 'battle' };
     };
   })();
   useEffect(() => {
@@ -1388,7 +1392,7 @@ function MatchScreen() {
       ${phase === PHASE.PREP && priv?.shop?.rewardOffer ? html`<${RewardOverlay} priv=${priv} minimized=${rewardMin || collapsed}
         onMinimize=${(m) => { setRewardMin(m); if (!m) setCollapsed(false); }} />` : null}
 
-      ${prepLayers.length ? html`<${CombatHud} pub=${pub} myId=${myId} watching=${watchingNow} hud=${null} myDone=${false}
+      ${prepLayers.length && (!showShop || collapsed) ? html`<${CombatHud} pub=${pub} myId=${myId} watching=${watchingNow} hud=${null} myDone=${false}
         onWatch=${watchField} client=${{ layers: prepLayers, layer: prepOwnerId, onLayer: pid => watchPlayer({playerId:pid}) }} />` : null}
 
       ${combat || mode === 'settle' ? html`<${CombatHud} pub=${pub} myId=${myId} watching=${watchingNow} hud=${hud} myDone=${!!myDone && alive}

@@ -46,7 +46,7 @@ import {showsSkillArea,skillAreaKeys} from './skillArea.js';
 import { absoluteRangeKeys, canTargetEnemy } from './targeting.js';
 import { AUTO_OP_COOLDOWN, COLS, ROWS } from './constants.js';
 
-const TICK_RULES = new Set(['SP_FULL', 'SEARCH', 'CUSTOM_RANGE', 'SKILL_RANGE', 'GDGLOW_SKILL_2']);
+const TICK_RULES = new Set(['SP_FULL', 'SEARCH', 'ACTIVE_RANGE', 'CUSTOM_RANGE', 'SKILL_RANGE', 'GDGLOW_SKILL_2']);
 /** True when a SkillSpec `targeting` changes the unit's range while the skill runs (Battle._refreshRange). */
 const changesRange = (tg) => !!(tg && (tg.rangeGrid || tg.rangeExtend || tg.noRangeExtend));
 /** Enemies that satisfy a content trigger range (any targetable enemy, flyers included). */
@@ -382,7 +382,7 @@ export class SkillRuntime {
     if (this.rule === 'SP_FULL') return true;
     // SEARCH: an enemy inside the initial attack range, every tick (librators / phalanxes and 安洁莉娜 do not attack
     // while the skill is off, so DEFAULT's "about to attack" never comes)
-    if (this.rule === 'SEARCH') return this._defaultCondition();
+    if (this.rule === 'SEARCH' || this.rule === 'ACTIVE_RANGE') return this._defaultCondition();
     if (this.rule === 'CUSTOM_RANGE') {
       if (!this.triggerGrid) return this._defaultCondition();
       return b.enemiesInKeys(this._triggerKeys(), u, { canHitFly: true }).length > 0;

@@ -41,3 +41,6 @@ desktop.ini
 # Cloudflare local state and deployment dependencies
 deploy/cloudflare/node_modules/
 deploy/cloudflare/.wrangler/
+
+# Small, checked-in map selector screenshots.
+!public/assets/map-previews/

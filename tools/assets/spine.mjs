@@ -206,7 +206,7 @@ export async function processModels(models, { root, dl, cachePath, download = tr
     nextCache[m.skel.rel] = { key: ck, info: sk };
     if (sk.missingRegions?.length) problems.push(`${m.key}: ${sk.missingRegions.length} attachment(s) not in atlas (e.g. ${sk.missingRegions[0]})`);
     if (!sk.animations.length) { problems.push(`${m.key}: skeleton has no animations`); continue; }
-    const anims = resolveRoles(sk.animations, { skillIndices: m.skillIndices, durations: sk.durations });
+    const anims = resolveRoles(sk.animations, { skillIndices: m.skillIndices, numberedSkills: String(m.key).startsWith('enemy_'), durations: sk.durations });
     entries.set(m.key, {
       skel: assetUrl(m.skel.rel),
       atlas: assetUrl(m.atlas.rel),

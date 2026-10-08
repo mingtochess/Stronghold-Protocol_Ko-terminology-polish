@@ -94,3 +94,6 @@
 .game-chat__spectator { color: #929b97; font-size: .85em; margin-left: .35em; }
 .game-chat button.game-chat__visibility { display: grid; place-items: center; flex-shrink: 0; padding: 4px; margin-right: 6px; border-color: var(--line); }
 .game-chat__visibility svg { width: 18px; height: 18px; }
+
+/* Room chat shares the participant screen stacking context; dialogs stay above both. */
+.game-chat--room { z-index: auto; }

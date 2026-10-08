@@ -1401,9 +1401,9 @@ export function dropIntent(ctx, uid, target) {
   if (res.action === 'equip') {
     const occ = target.area === 'hand' ? ctx.handAt.get(target.idx) : ctx.boardAt.get(tileKey(target.row, target.col));
     // both slots used: the replace dialog picks the equipped item to destroy (g.equip replaceUid) — unless the item is
-    // consumed on equip, or it completes an item merge (the server merges it instead of equipping: nothing replaced)
+    // it completes an item merge (the server merges it instead of equipping: nothing replaced)
     const full = Array.isArray(occ?.piece?.items) && occ.piece.items.length >= 2
-      && itemAttaches(ctx.getItem(ctx.pieces.get(uid)?.piece?.id)) && !equipMerges(ctx, uid);
+      && !equipMerges(ctx, uid);
     return { t: 'g.equip', fields: { itemUid: uid, targetUid: occ.piece.uid }, confirmReplace: full };
   }
   const to = target.area === 'hand' ? { area: 'hand', idx: target.idx } : { area: 'board', row: target.row, col: target.col };

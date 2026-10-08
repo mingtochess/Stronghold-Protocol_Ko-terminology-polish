@@ -39,3 +39,15 @@ test('creation restores selected extensions atomically and joining does not repl
   const disabled=await host.waitFor('room.state',r=>r.mode==='solo'&&!r.customFactions);assert.deepEqual(disabled.customExtensions,{bonds:[],stages:[]});
  }finally{await host?.terminate();await guest?.terminate();await srv.close();}
 });
+test('minimum violations and addon exclusions are rejected without changing the host settings',async()=>{
+ const srv=await startServer({port:0,host:'127.0.0.1',MatchClass:StubMatch,log:{info(){},warn(){},error(){}}});let host;
+ try{
+  host=await TestClient.connect(`ws://127.0.0.1:${srv.port}/ws`);await host.hello('Host');
+  assert.equal((await host.request({t:'room.create',mode:'coop',difficulty:'NORMAL'})).t,'ok');
+  const room=await host.waitFor('room.state');
+  for(const disabled of [{disabledBonds:['swiftShip']},{disabledStages:room.customExtensionCatalog.disabledStages.map(e=>e.id)}])assert.equal((await host.request({t:'room.setCustomExtensions',selection:{bonds:[],stages:[],...disabled}})).t,'error');
+  assert.equal((await host.request({t:'room.setCustomExtensions',selection:{bonds:[],stages:[],disabledBosses:['boss_1'],disabledBands:['band_bldsk']}})).t,'ok');
+  const updated=await host.waitFor('room.state',r=>r.customExtensions?.disabledBosses?.includes('boss_1'));
+  assert.deepEqual(updated.customExtensions.disabledBands,['band_bldsk']);
+ }finally{await host?.terminate();await srv.close();}
+});

@@ -265,7 +265,7 @@ function naturalCmp(a, b) { return String(a).localeCompare(String(b), 'en', { nu
 const PHASE_INDEX = { PHASE_0: 0, PHASE_1: 1, PHASE_2: 2 };
 const phaseIdx = (p) => (typeof p === 'number' ? p : PHASE_INDEX[p] ?? 0);
 
-/** Does an unlock condition hold for a given phase/level at potential rank 0? */
+/** Does an unlock condition hold for a given phase/level at a potential rank (a candidate's `requiredPotentialRank`)? */
 function unlocked(cond, phase, level, potRank = 0, reqPot = 0) {
   if ((reqPot || 0) > potRank) return false;
   if (!cond) return true;
@@ -274,11 +274,55 @@ function unlocked(cond, phase, level, potRank = 0, reqPot = 0) {
   if (p > phase) return false;
   return (cond.level || 1) <= level;
 }
-/** Pick the best candidate (the last unlocked one) from an official candidate list. */
-function bestCandidate(cands, phase, level) {
+/** Pick the best candidate (the last unlocked one) from an official candidate list, at potential rank `potRank`. */
+function bestCandidate(cands, phase, level, potRank = 0) {
   let best = null;
-  for (const c of cands || []) if (c && unlocked(c.unlockCondition, phase, level, 0, c.requiredPotentialRank)) best = c;
+  for (const c of cands || []) if (c && unlocked(c.unlockCondition, phase, level, potRank, c.requiredPotentialRank)) best = c;
   return best;
+}
+
+/**
+ * The potential rank every operator fights at: FULL potential, 潜能 6 = rank 5 (character_table `potentialRanks` lists
+ * ranks 1–5, the 潜能 2–6 steps; a candidate's `requiredPotentialRank` counts the same way) — the owner's decision of
+ * 2026-10-07 (GitHub #252, PR #255). The season's chess records (activity_table charChessDataDict `status`: evolvePhase,
+ * charLevel, skillLevel, favorPoint 0, equipLevel) carry no potential field, while a tournament video shows 刺玫
+ * (chess_char_1_06_a) at ATK 435 and cost 15: her E1 Lv55 413 / 17 plus her potentials 攻击力+22 and two 部署费用-1. Every
+ * chess (normal and elite), 补位 stand-in and 自选 pick is built at this rank: its `potentialRanks` attribute modifiers are
+ * added (withPotential) and its talent / trait / module candidates are picked at it (the 「天赋效果增强」 steps). The 原型干员
+ * stand-ins have no potential ranks (unchanged). A summon picks its own talent / trait candidates at its owner's rank —
+ * their `requiredPotentialRank` mirrors the owner's 「天赋效果增强」 (夕's “小自在” 化境 15 → 18 层, 凯尔希's Mon3tr 不毁重构,
+ * 望's 棋子 +1 持有 / 部署) — and takes none of the owner's attribute modifiers (a token has no potential ranks; the owner's
+ * ATK / cost / redeploy steps are the owner's own). Stage devices and the band's map characters are no player's
+ * operators: rank 0.
+ */
+const OPERATOR_POTENTIAL = 5;
+
+/** character_table potential attribute types → interpolateAttrs keys (every potential modifier of the season is an ADDITION). */
+const POTENTIAL_ATTRS = Object.freeze({
+  MAX_HP: 'maxHp', ATK: 'atk', DEF: 'def', MAGIC_RESISTANCE: 'magicResistance', COST: 'cost', RESPAWN_TIME: 'respawnTime',
+  ATTACK_SPEED: 'attackSpeed', BLOCK_CNT: 'blockCnt', BASE_ATTACK_TIME: 'baseAttackTime',
+});
+
+/**
+ * Interpolated attributes (interpolateAttrs) with the character's potential attribute modifiers up to rank `potRank`
+ * added (`potentialRanks[0 … potRank-1]`, each 「攻击力+22」 / 「部署费用-1」 / 「再部署时间-4秒」 … an ADDITION to the raw
+ * value, before statsFrom rounds it). A modifier of another kind is reported, not applied.
+ * @returns {object|null} a new attribute object (null when `attrs` is)
+ */
+function withPotential(char, attrs, potRank, label) {
+  if (!attrs) return attrs;
+  const out = { ...attrs };
+  for (const rank of (char?.potentialRanks || []).slice(0, potRank)) {
+    for (const m of rank?.buff?.attributes?.attributeModifiers || []) {
+      const key = POTENTIAL_ATTRS[m.attributeType];
+      if (!key || m.formulaItem !== 'ADDITION' || typeof m.value !== 'number' || m.loadFromBlackboard || m.fetchBaseValueFromSourceEntity) {
+        warn(`${label}: potential modifier ${m.attributeType} ${m.formulaItem} not applied`);
+        continue;
+      }
+      out[key] = (typeof out[key] === 'number' ? out[key] : 0) + m.value;
+    }
+  }
+  return out;
 }
 
 // ===== context loading ==========================================================================
@@ -566,10 +610,10 @@ function splitModuleParts(modulePhase) {
  * Mutates `traitBB`; returns the (possibly overridden) trait template, module text and trait range id.
  * @returns {{ template: string, moduleText: string|null, rangeId: string|null }}
  */
-function applyModuleTraitParts(parts, phase, level, traitBB, template, rangeId, label) {
+function applyModuleTraitParts(parts, phase, level, traitBB, template, rangeId, label, potRank = 0) {
   let moduleText = null;
   for (const part of parts || []) {
-    const mc = bestCandidate(part.overrideTraitDataBundle?.candidates, phase, level);
+    const mc = bestCandidate(part.overrideTraitDataBundle?.candidates, phase, level, potRank);
     if (!mc) continue;
     const mb = flattenBB(mc.blackboard, `${label} module trait`);
     Object.assign(traitBB.bb, mb.bb);
@@ -582,15 +626,15 @@ function applyModuleTraitParts(parts, phase, level, traitBB, template, rangeId, 
 }
 
 /**
- * Trait record of a character at (phase, level) with the given (operator) module parts, plus the
+ * Trait record of a character at (phase, level, potential rank) with the given (operator) module parts, plus the
  * combat classification derived from its text.
  * @returns {{ trait: object, classify: object }}
  */
-function traitRecord(ctx, char, phase, level, opParts, chessId) {
-  const tc = bestCandidate(char.trait?.candidates, phase, level);
+function traitRecord(ctx, char, phase, level, opParts, chessId, potRank = 0) {
+  const tc = bestCandidate(char.trait?.candidates, phase, level, potRank);
   const traitBB = flattenBB(tc?.blackboard, `${chessId} trait`);
   const traitMod = applyModuleTraitParts(opParts, phase, level, traitBB,
-    tc?.overrideDescripton || char.description || '', tc?.rangeId || null, chessId);
+    tc?.overrideDescripton || char.description || '', tc?.rangeId || null, chessId, potRank);
   const tp = textPair(traitMod.template, traitBB.bb, traitBB.bbStr, `${chessId} trait`);
   const trait = { desc: tp.desc, descRaw: tp.descRaw, bb: traitBB.bb, bbStr: traitBB.bbStr, rangeGrid: rangeGrid(ctx, traitMod.rangeId) };
   if (traitMod.moduleText) {
@@ -622,19 +666,20 @@ function moduleAttr(modulePhase) {
  * (golden chess: the operator's non-token parts; tokens: the owner's `isToken` parts).
  * An override of an existing talent keeps the base values that the module candidate does not
  * restate (blackboard keys merged, module values win; name/text/range/token kept when absent).
- * `modPhase`/`modLevel` select module candidates (tokens: the owner's phase/level).
+ * `modPhase`/`modLevel` select module candidates (tokens: the owner's phase/level); `potRank` every candidate (tokens:
+ * the owner's potential rank, OPERATOR_POTENTIAL).
  * @returns {Array<{index:number,name:string|null,desc:string|null,descRaw:string|null,bb:object,bbStr:object,rangeGrid:any,tokenKey:string|null,hidden:boolean,fromModule:boolean}>}
  */
-function buildTalents(ctx, char, phase, level, moduleParts, label, modPhase = phase, modLevel = level) {
-  return mergeTalentChanges(baseTalentList(ctx, char, phase, level, label),
-    moduleTalentChanges(ctx, moduleParts, modPhase, modLevel, label));
+function buildTalents(ctx, char, phase, level, moduleParts, label, modPhase = phase, modLevel = level, potRank = 0) {
+  return mergeTalentChanges(baseTalentList(ctx, char, phase, level, label, potRank),
+    moduleTalentChanges(ctx, moduleParts, modPhase, modLevel, label, potRank));
 }
 
-/** The character's own talents at (phase, level), unfiltered (no module). */
-function baseTalentList(ctx, char, phase, level, label) {
+/** The character's own talents at (phase, level, potential rank), unfiltered (no module). */
+function baseTalentList(ctx, char, phase, level, label, potRank = 0) {
   const talents = [];
   (char.talents || []).forEach((t, index) => {
-    const c = bestCandidate(t.candidates, phase, level);
+    const c = bestCandidate(t.candidates, phase, level, potRank);
     if (!c) return;
     const { bb, bbStr } = flattenBB(c.blackboard, `${label} talent ${index}`);
     const { desc, descRaw } = textPair(c.description, bb, bbStr);
@@ -648,16 +693,16 @@ function baseTalentList(ctx, char, phase, level, label) {
 }
 
 /**
- * Talent additions/overrides of module parts at (modPhase, modLevel), in part order, as ModuleRecord
+ * Talent additions/overrides of module parts at (modPhase, modLevel, potential rank), in part order, as ModuleRecord
  * `talentChanges` entries: { talentIndex, name, desc, descRaw, bb, bbStr, rangeGrid, tokenKey, hidden }.
  * `talentIndex` −1 = a new (usually hidden, data-only) talent.
  */
-function moduleTalentChanges(ctx, moduleParts, modPhase, modLevel, label) {
+function moduleTalentChanges(ctx, moduleParts, modPhase, modLevel, label, potRank = 0) {
   const out = [];
   for (const part of moduleParts || []) {
     const cands = part.addOrOverrideTalentDataBundle?.candidates;
     if (!cands) continue;
-    const c = bestCandidate(cands, modPhase, modLevel);
+    const c = bestCandidate(cands, modPhase, modLevel, potRank);
     if (!c) continue;
     const { bb, bbStr } = flattenBB(c.blackboard, `${label} module talent`);
     const text = c.upgradeDescription || c.description;
@@ -836,8 +881,8 @@ export function buildChess(ctx) {
     // Module parts flagged isToken upgrade the summons, not the operator (see splitModuleParts).
     const moduleParts = splitModuleParts(modulePhase);
 
-    // Stats (+ module attribute bonus on golden).
-    const attrs = interpolateAttrs(char, phase, level);
+    // Stats at full potential (OPERATOR_POTENTIAL, withPotential) (+ module attribute bonus on golden).
+    const attrs = withPotential(char, interpolateAttrs(char, phase, level), OPERATOR_POTENTIAL, `chess ${chessId}`);
     if (!attrs) warn(`chess ${chessId}: cannot interpolate attributes`);
     const bonus = {};
     for (const b of modulePhase?.attributeBlackboard || []) bonus[b.key] = (bonus[b.key] || 0) + b.value;
@@ -847,7 +892,7 @@ export function buildChess(ctx) {
     // Trait (character trait candidate + module trait override on golden).
     // Trait-effect range (e.g. 散射手 front row, 傀儡师 substitute area) — NOT the attack range.
     const rangeId = char.phases?.[phase]?.rangeId || null;
-    const traitDefault = traitRecord(ctx, char, phase, level, moduleParts.op, chessId);
+    const traitDefault = traitRecord(ctx, char, phase, level, moduleParts.op, chessId, OPERATOR_POTENTIAL);
     rec.trait = traitDefault.trait;
     rec.rangeId = rangeId;
     rec.rangeGrid = rangeGrid(ctx, rangeId);
@@ -877,16 +922,16 @@ export function buildChess(ctx) {
     }
     rec.skills = skillRecs.map((s) => ({ ...s, isDefault: s.index === sIdx }));
 
-    // Talents (module token parts excluded: they belong to the summons).
-    const talentList = baseTalentList(ctx, char, phase, level, `chess ${chessId}`);
-    rec.talents = mergeTalentChanges(talentList, moduleTalentChanges(ctx, moduleParts.op, phase, level, `chess ${chessId}`));
+    // Talents at full potential (module token parts excluded: they belong to the summons).
+    const talentList = baseTalentList(ctx, char, phase, level, `chess ${chessId}`, OPERATOR_POTENTIAL);
+    rec.talents = mergeTalentChanges(talentList, moduleTalentChanges(ctx, moduleParts.op, phase, level, `chess ${chessId}`, OPERATOR_POTENTIAL));
 
     // Selectable modules of the golden chess (DESIGN §16): every ADVANCED uniequip of the character
     // (INITIAL = "no module") at the chess equipLevel, plus the no-module base the choices apply to.
     const moduleAlts = [];
     if (isGolden && equipLevel > 0) {
       rec.statsBase = statsFrom(attrs, {});
-      rec.traitBase = traitRecord(ctx, char, phase, level, [], chessId).trait;
+      rec.traitBase = traitRecord(ctx, char, phase, level, [], chessId, OPERATOR_POTENTIAL).trait;
       rec.talentsBase = mergeTalentChanges(talentList, []);
       rec.modules = [];
       for (const id of uniequip.charEquip?.[shop.charId] || []) {
@@ -895,8 +940,8 @@ export function buildChess(ctx) {
         const ph = battleEquip[id]?.phases?.find((p) => p.equipLevel === equipLevel) || null;
         if (!ph) { warn(`chess ${chessId}: module ${id} has no level ${equipLevel} (not selectable)`); continue; }
         const parts = splitModuleParts(ph);
-        const hasTraitPart = parts.op.some((pt) => bestCandidate(pt.overrideTraitDataBundle?.candidates, phase, level));
-        const tr = hasTraitPart ? traitRecord(ctx, char, phase, level, parts.op, chessId) : null;
+        const hasTraitPart = parts.op.some((pt) => bestCandidate(pt.overrideTraitDataBundle?.candidates, phase, level, OPERATOR_POTENTIAL));
+        const tr = hasTraitPart ? traitRecord(ctx, char, phase, level, parts.op, chessId, OPERATOR_POTENTIAL) : null;
         if (tr && JSON.stringify(tr.classify) !== JSON.stringify(traitDefault.classify)) {
           warn(`chess ${chessId}: module ${id} changes the combat classification (not applied by loadouts)`);
         }
@@ -907,7 +952,7 @@ export function buildChess(ctx) {
           isDefault: id === modId, level: equipLevel,
           attr: moduleAttr(ph),
           traitOverride: tr ? tr.trait : null,
-          talentChanges: moduleTalentChanges(ctx, parts.op, phase, level, `chess ${chessId}`),
+          talentChanges: moduleTalentChanges(ctx, parts.op, phase, level, `chess ${chessId}`, OPERATOR_POTENTIAL),
         });
         if (id !== modId) moduleAlts.push({ id, modulePhase: ph, moduleTokenParts: parts.token });
       }
@@ -966,7 +1011,7 @@ export function buildChess(ctx) {
       });
       if (!tokenOwners.has(tokenId)) tokenOwners.set(tokenId, []);
       tokenOwners.get(tokenId).push({
-        chessId, charId: shop.charId, phase, level, skillIndex: sIdx, skillLevel,
+        chessId, charId: shop.charId, phase, level, skillIndex: sIdx, skillLevel, potRank: OPERATOR_POTENTIAL,
         count: defUse.count(tokenId), golden: isGolden, modulePhase, moduleTokenParts: moduleParts.token,
         // 'display' only = listed by the character but not produced by this chess's default skill or talents.
         sources: ['talent', 'skill', 'display'].filter((s) => src.has(s)),
@@ -1016,20 +1061,20 @@ function classifyToken(char, traitText) {
  * Build one owner-specific variant of a token / map character at (phase, level, skill level).
  * @returns {object}
  */
-function tokenVariant(ctx, tokenId, char, { phase, level, skillIndex, skillLevel, modulePhase, moduleTokenParts, label }) {
+function tokenVariant(ctx, tokenId, char, { phase, level, skillIndex, skillLevel, modulePhase, moduleTokenParts, label, potRank = 0 }) {
   const ph = Math.min(phase, (char.phases?.length || 1) - 1);
   const lv = Math.min(level, char.phases?.[ph]?.maxLevel || level);
   const bonus = {};
   const tokBonus = modulePhase?.tokenAttributeBlackboard?.[tokenId];
   for (const b of Array.isArray(tokBonus) ? tokBonus : []) bonus[b.key] = (bonus[b.key] || 0) + b.value;
   const attrs = interpolateAttrs(char, ph, lv);
-  const tc = bestCandidate(char.trait?.candidates, ph, lv);
+  const tc = bestCandidate(char.trait?.candidates, ph, lv, potRank);
   const tbb = flattenBB(tc?.blackboard);
   // The owner's module parts flagged isToken upgrade the token's trait/talents. Their unlock
   // conditions refer to the owner's phase/level (the token's own level may be clamped lower).
   const ownerPhase = phase, ownerLevel = level;
   const traitMod = applyModuleTraitParts(moduleTokenParts, ownerPhase, ownerLevel, tbb,
-    tc?.overrideDescripton || char.description || '', null, label);
+    tc?.overrideDescripton || char.description || '', null, label, potRank);
   const tp = textPair(traitMod.template, tbb.bb, tbb.bbStr, `${label} trait`);
   const moduleTrait = traitMod.moduleText ? textPair(traitMod.moduleText, tbb.bb, tbb.bbStr, `${label} module trait`) : null;
   // Token skill: same index as the owner's skill when present, else the first defined one.
@@ -1052,7 +1097,7 @@ function tokenVariant(ctx, tokenId, char, { phase, level, skillIndex, skillLevel
     },
     ...classifyToken(char, tp.desc),
     skill,
-    talents: buildTalents(ctx, char, ph, lv, moduleTokenParts, label, ownerPhase, ownerLevel),
+    talents: buildTalents(ctx, char, ph, lv, moduleTokenParts, label, ownerPhase, ownerLevel, potRank),
   };
 }
 
@@ -1199,7 +1244,7 @@ export function buildTokens(ctx, chess, tokenOwners, enemies) {
     if (!char) { warn(`map character ${charId} missing from character_table`); continue; }
     const v = tokenVariant(ctx, charId, char, {
       phase: phaseIdx(inst.inst.phase), level: inst.inst.level || 1, skillIndex: inst.skillIndex ?? 0,
-      skillLevel: inst.mainSkillLvl || 1, modulePhase: null, label: `mapChar ${charId}`,
+      skillLevel: inst.mainSkillLvl || 1, modulePhase: null, label: `mapChar ${charId}`, potRank: 0,
     });
     out[charId] = {
       tokenId: charId, kind: 'mapChar', name: char.name, appellation: char.appellation || null,
@@ -2906,7 +2951,13 @@ const DEFAULT_ENEMY_MULTIPLIERS = {
   abyssMoveSpeedMulFromRound3: 1.15,
 };
 
-/** Enemy stat multipliers {atk, hp, speed} of one round (research 01 A3; leader HP pools excluded). */
+/**
+ * Enemy stat multipliers {atk, hp, speed} of one round (research 01 A3; leader HP pools excluded). `supplyHp` (only
+ * when ≠ 1) = the share of `hp` that comes from 补给线 / 补给线II: the HP-only steps — 1.2^(kHp − kAtk), 补给线II "最大生命值
+ * +20%" with no ATK (攻坚装备 always brings ATK ×1.1, so kAtk counts its stacks) — times `extra` 1.08 (补给线). Those two
+ * effects leave out the 14 器物 hit-count keys (activity_table aceffect_enemy_2 / 2_2 `enemy_exclude`, data/effects.json),
+ * which take hp / supplyHp (server/sim/content/enemies/archetypes.js `times`).
+ */
 function enemyScaleFor(table, type, difficulty, round, isHidden) {
   const t = table?.[type === 'SINGLE' ? 'single' : 'multi']?.[difficulty];
   if (!t) return { atk: 1, hp: 1, speed: 1, assumed: true };
@@ -2916,8 +2967,10 @@ function enemyScaleFor(table, type, difficulty, round, isHidden) {
   const kHp = t.kHp ? pick(t.kHp, t.hiddenHp) : pick(t.k, t.hidden);
   const extra = t.hpExtra ? (isHidden ? t.hiddenHpExtra ?? 1 : t.hpExtra[Math.min(i, t.hpExtra.length - 1)] ?? 1) : 1;
   const speedMul = difficulty === 'ABYSS' && round >= 3 ? (table.abyssMoveSpeedMulFromRound3 ?? 1.15) : 1;
+  const supplyHp = cleanNum(1.2 ** Math.max(0, kHp - kAtk) * extra);
   return {
     atk: cleanNum(t.atkBase * 1.1 ** kAtk), hp: cleanNum(t.hpBase * 1.2 ** kHp * extra), speed: speedMul, kAtk, kHp,
+    ...(supplyHp !== 1 ? { supplyHp } : {}),
   };
 }
 

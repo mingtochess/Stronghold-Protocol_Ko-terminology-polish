@@ -340,7 +340,7 @@ test('concealed allies keep opaque bodies and textured mist; refraction draws on
  let clouds=0; v.stateFx.drawEllipse=()=>{clouds++;return v.stateFx;};
  v.update(1/60,cam(),0);
  await tick();v.update(1/60,cam(),.2);
- assert.equal(v.root.alpha,1);assert.equal(clouds,0,'no ellipse-based fog');assert.equal(v.stealthMist.length,3);assert.ok(v.stealthMist.every(sp=>sp.visible));
+ assert.equal(v.root.alpha,1);assert.equal(clouds,0,'no ellipse-based fog');assert.ok(v.stealthMist.length>=3);assert.ok(v.stealthMist.every(sp=>sp.alpha>=.5),'mist remains legible through its pulse');assert.ok(v.stealthMist.every(sp=>sp.visible));
  v.flags=0;v.update(1/60,cam(),.3);assert.ok(v.stealthMist.every(sp=>!sp.visible),'mist clears when stealth ends');
  const e=view({side:'enemy'}); e.statuses.add('ab:refraction');
  let arcs=0; e.stateFx.drawPolygon=()=>{arcs++;return e.stateFx;};
@@ -523,4 +523,13 @@ test('range fill keeps its original colour; saturated outlines are not recoloure
   if(sat>=.45)assert.equal(s.outlineColor,raw,'already saturated hue remains unchanged');
   else{assert.equal(Math.max(...a),Math.max(...b),'brightness remains unchanged');assert.ok((Math.max(...b)-Math.min(...b))/Math.max(...b)>.59);}
  }
+});
+
+ test('hit tint fades slightly longer but clears within a quarter second',()=>{
+ const v=view({side:'ally'});v.onHit();v.update(.18,cam(),.18);assert.ok(v.flash>0);v.update(.05,cam(),.23);assert.equal(v.flash,0);
+ });
+
+test('mystic charge count initializes a real HUD text and clears in preparation',()=>{
+ const v=view({energyMax:3});v.setEnergy(2);assert.equal(v.energyText.text,'●●○');assert.equal(v.energyText.visible,true);
+ v.prep=true;v.setEnergy(1);assert.equal(v.energyText.visible,false);
 });

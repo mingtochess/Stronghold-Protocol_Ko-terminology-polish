@@ -1,3 +1,4 @@
+import {FavoritesHost,FavoritesButton} from '../ui/favorites.js';
 import {loadoutRecord,resolveRecordLoadout} from '../../../shared/loadoutRecord.js';
 import {audio} from '../audio.js';
 import {checkLoadout} from '../../../shared/protocol.js';
@@ -530,9 +531,9 @@ function LoadoutScreen({ st }) {
       </div>
     </header>
     <p class=${cx('lo-note', locked && 'is-locked')}><${Icon} name="info" />${locked ? '本局的调配已锁定（确认本局信息后无法修改），修改将在下一局生效' : fromText}</p>
-    <nav class="lo-tabs lo-seg" role="tablist" aria-label="오퍼레이터 구성">
+    <div class="lo-toolbar"><nav class="lo-tabs lo-seg" role="tablist" aria-label="오퍼레이터 구성">
       ${[['standard', '기존 오퍼레이터'], ['recruits', '추가 선발']].map(([key, label]) => html`<button type="button" role="tab" id=${`lo-tab-${key}`} aria-controls="lo-roster-panel" aria-selected=${tab === key} class=${cx(tab === key && 'is-on')} onClick=${() => { setTab(key); setNarrowDetail(false); }}>${label}</button>`)}
-    </nav>
+    </nav><${FavoritesButton} view="editor"/></div>
     ${!ready ? html`<div class="lo-loading"><${Spinner} size="sm" />正在载入干员数据（打开页面后仅载入一次）…</div>` : html`<main class=${cx('lo-body', narrowDetail && 'is-detail')}>
       <section class="lo-roster" id="lo-roster-panel" role="tabpanel" aria-labelledby=${`lo-tab-${tab}`}>
         ${tab === 'standard' ? html`<${Filters} m=${m} filters=${st.filters} bonds=${bonds} onFilters=${(filters) => loadoutStore.set({ filters })} />` : html`<div class="lo-recruit-note"><div>${[5,6].map(t => html`<span>${t}단계 <b class="num">${candidates.filter(c => selectedTier(c) === t).length}/2</b></span>`)}</div><p>선발한 오퍼레이터만 본인의 모집·보상에 등장합니다. 특질은 없습니다.</p></div>`}
@@ -596,8 +597,7 @@ export function LoadoutHost() {
     if (st.open) document.documentElement.classList.add('sp-loadout-open');
     else document.documentElement.classList.remove('sp-loadout-open');
   }, [st.open]);
-  if (!st.open) return null;
-  return html`<${LoadoutScreen} st=${st} />`;
+  return html`<${Fragment}>${st.open ? html`<${LoadoutScreen} st=${st} />` : null}<${FavoritesHost}/><//>`;
 }
 
 /**

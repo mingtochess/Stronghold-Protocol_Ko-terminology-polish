@@ -14,7 +14,7 @@ export function localizeOperator(rec,source,status){
  const ch=source.chars[rec.charId];if(!ch)return;
  rec.name=ch.name||rec.name;
  const phase=Number(status.evolvePhase.replace('PHASE_','')),level=status.charLevel;
- const eligible=c=>{const p=Number((c.unlockCondition?.phase||'PHASE_0').replace('PHASE_',''));return (p<phase||(p===phase&&(c.unlockCondition?.level||0)<=level))&&(c.requiredPotentialRank||0)===0;};
+ const eligible=c=>{const p=Number((c.unlockCondition?.phase||'PHASE_0').replace('PHASE_',''));return (p<phase||(p===phase&&(c.unlockCondition?.level||0)<=level))&&(c.requiredPotentialRank||0)<=5;};
  const last=list=>list?.filter(eligible).at(-1);
  for(const m of rec.modules||[]){const meta=source.equip.equipDict[m.uniEquipId];if(meta)m.name=meta.uniEquipName;}if(rec.module?.id){const meta=source.equip.equipDict[rec.module.id];if(meta)rec.module.name=meta.uniEquipName;}
  const trait=last(ch.trait?.candidates);

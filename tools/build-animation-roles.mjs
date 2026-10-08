@@ -12,6 +12,10 @@ export async function buildAnimationRoles(root,dir){
   sp.anims=resolveRoles(Object.keys(sp.animations),{skillIndices:indices,durations:sp.animations});
   audit.push({id,side,skills:Object.fromEntries(Object.entries(sp.anims.skills||{}).map(([i,r])=>[i,{clip:(selectedSkillClip(sp,Number(i))||r).loop,via:(selectedSkillClip(sp,Number(i))||r).via||null}]))});
  }
+ for(const e of Object.values(assets.enemies||{})){
+  const sp=e.spine;
+  if(sp?.animations)sp.anims=resolveRoles(Object.keys(sp.animations),{skillIndices:[0],numberedSkills:true,durations:sp.animations});
+ }
  await writeFile(join(dir,'assets.json'),JSON.stringify(assets));
  await writeFile(join(root,'docs/SKILL-ANIMATION-AUDIT.json'),JSON.stringify(audit,null,2)+'\n');
  console.log(`Animation roles indexed: ${audit.length} Front/Back models.`);

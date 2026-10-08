@@ -276,16 +276,20 @@ function raidReach(u) {
 function raidTile(battle, u, e, reach) {
   const er = Math.round(e.y), ec = Math.round(e.x);
   const ranged = u.def?.position === 'RANGED';
-  let best = null, bd = Infinity, bo = null;
-  for (const k of bodyKeys(e)) {
+  const body = bodyKeys(e);
+  const path = !ranged && u.s.blockCnt > 0 ? battle.groundPathTiles() : null;
+  let best = null, bp = 2, bd = Infinity, bo = null;
+  for (const k of body) {
     const br = Math.floor(k / COLS), bc = k - br * COLS;
     for (let i = 0; i < reach.length; i += 2) {
       const r = br - reach[i], c = bc - reach[i + 1], dr = r - er, dc = c - ec;
       if (Math.abs(dr) > RAID_SEARCH || Math.abs(dc) > RAID_SEARCH) continue;
-      if (!battle.grid.inRect(r, c) || !battle.grid.canStand(r, c, { ranged }) || battle.isReservedTile(r, c)) continue;
+      if (!battle.grid.inRect(r, c) || !battle.onFieldBoard(r, c) || !battle.grid.canStand(r, c, { ranged }) || battle.isReservedTile(r, c)) continue;
+      const t = r * COLS + c;
+      const p = path && battle.grid.tile(r, c).pass === 'ALL' && (path.has(t) || body.includes(t)) ? 0 : 1;   // its block applies
       const d = Math.max(Math.abs(dr), Math.abs(dc)) + 0.01 * (Math.abs(dr) + Math.abs(dc));
       const o = localOrder(dr, dc, u.dir);
-      if (d < bd - 1e-9 || (Math.abs(d - bd) <= 1e-9 && localBefore(o, bo))) { best = [r, c]; bd = d; bo = o; }
+      if (p < bp || (p === bp && (d < bd - 1e-9 || (Math.abs(d - bd) <= 1e-9 && localBefore(o, bo))))) { best = [r, c]; bp = p; bd = d; bo = o; }
     }
   }
   return best;

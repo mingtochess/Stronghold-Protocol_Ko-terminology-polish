@@ -23,6 +23,8 @@
 // counter {id} · crit {id} · dp {n, id} · heal {id} · taunt {id} · summon {id, token} · pull {id} · sonic {radius} ·
 // shield {id} · overload {id} · takeoff {id} · sleep {id} · buff {id, kind} · reveal {id} · dodge (engine kind).
 
+import { isHpLoss } from '../../damage.js';
+import { TICK } from '../../constants.js';
 import { COLS, CHAIN_RADIUS } from '../../constants.js';
 import { absoluteRangeKeys, sortEnemyTargets } from '../../targeting.js';
 import { frontOf, offsetTile } from '../../dir.js';
@@ -63,7 +65,11 @@ export const cheb = (a, b) => (b.hitArea ? bodyTileReach(b, Math.round(a.y), Mat
 /** Normal attack hit on its primary target (no splash, no chain jump). */
 export const isMainHit = (dmg) => !!dmg && dmg.isAttack && !dmg.isSplash && !(dmg.tags && dmg.tags.includes('chain'));
 /** Damage ctx caused by an enemy's attack. */
-export const byEnemyAttack = (ctx) => !!ctx.source && ctx.source.side === 'enemy' && !!ctx.dmg && ctx.dmg.isAttack;
+export const byEnemyAttack = (ctx) => {
+  const s = ctx.source, d = ctx.dmg;
+  if (!s || s.side !== 'enemy' || !d || d.sourceless || ctx.type === 'element' || isHpLoss(d)) return false;
+  return !(Array.isArray(d.tags) && (d.tags.includes('counter') || d.tags.includes('reflect')));
+};
 /**
  * `damaged` ctx of a damage that removed HP and can give 受击回复 SP — the engine's rule (damage.js applyHpLoss: not a 流失
  * (`noSp`, Battle.loseHp), not an element 损伤), whatever its source: an attack, a zone, the 无来源 源石溶剂 tick.
@@ -273,6 +279,7 @@ export function tinmanKit(bb, chess, def) {
         const x = tgt ? tgt.x : unit.x + unit.fwd[1], y = tgt ? tgt.y : unit.y + unit.fwd[0];
         const atk = unit.s.atk;
         unit.mem.tinZones = (unit.mem.tinZones ?? 0) + 1;
+        const regenKey = `tinman:zone:${unit.id}:${unit.mem.tinZoneSeq = (unit.mem.tinZoneSeq ?? 0) + 1}`;
         makeZone(battle, unit, {
           x, y, radius, duration: dur, skill: 'tinman', onPulse(b) {
             for (const e of b.foesInRadius(x, y, radius)) {
@@ -280,7 +287,12 @@ export function tinmanKit(bb, chess, def) {
               if (wither > 1) b.addBuff(e, { key: witherKey, duration: 1.05, data: { mul: wither }, source: unit });
               b.dealDamage(unit, e, { amount: atk * dmgScale, type: 'arts', isSkill: true, canDodge: false, tags: ['dot', 'zone'] });
             }
-            if (healRatio > 0) for (const a of b.alliesInRadius(x, y, radius, null)) if (a.hp < a.s.maxHp) b.heal(unit, a, atk * healRatio, { tags: ['zone'] });
+            // pulses every second: the buff bridges to the next pulse (two ticks over), the last one ends with the unit
+            if (healRatio > 0) {
+              for (const a of b.alliesInRadius(x, y, radius, null)) {
+                if (b.allySelectable(a, unit)) b.addBuff(a, { key: regenKey, duration: 1 + 2 * b.dt, source: unit, mods: { hpRegen: atk * healRatio } });
+              }
+            }
           },
           onEnd() { unit.mem.tinZones = Math.max(0, (unit.mem.tinZones ?? 1) - 1); },
         });
@@ -411,8 +423,7 @@ export default {
     const s1 = skillBbOf(chess, 'skchr_udflow_1');
     return {
       skill: {
-        trigger: 'DEFAULT',
-        kind: 'duration', mods: { atkPct: num(bb.atk), aspd: num(bb.attack_speed) },
+        kind: 'duration', trigger: 'ACTIVE_RANGE', mods: { atkPct: num(bb.atk), aspd: num(bb.attack_speed) },
         targeting: { rangeGrid: def?.skill?.rangeGrid ?? null, maxTargets: num(bb['attack@max_target'], 1) },
         attack: { onHitStatus: { key: 'sluggish', duration: num(bb['attack@sluggish'], 1) } },
       },
@@ -477,14 +488,14 @@ export default {
       skills: { 'skcom_magic_rage[3]': { kind: 'duration', mods: { aspd: num(skillBbOf(chess, 'skcom_magic_rage[3]').attack_speed) } } },
       trait: {
         // 咒愈师 trait: EVERY damage she deals heals an ally for 50 % of it (professions.js `installIncantation`,
-        // buff_template_data `vendla_tr` = ON_AFTER_OUTPUT_DAMAGE) — while 荆藤庇荫 runs her S2 says "仅对该角色触发刺玫
-        // 特性", so her protégé is the target then; otherwise it is the lowest-HP ally in range.
+        // buff_template_data `vendla_tr` = ON_AFTER_OUTPUT_DAMAGE): the lowest-HP ally in range (herself included) — the
+        // S2 counter's damage names her protégé instead (`traitAlly`, talent install below), skill running or not
         install(battle, u) {
           battle.on('damaged', (c) => {
             const t = c.target;
             if (c.source !== u || !u.alive || !t || t.side !== 'enemy' || !(c.amount > 0)) return;
             if (c.type === 'element' || c.type === 'elemental') return;
-            const ally = (c.dmg && c.dmg.traitAlly) || protege(u) || battle.lowestHpAllyInRange(u);
+            const ally = (c.dmg && c.dmg.traitAlly) || battle.lowestHpAllyInRange(u);
             if (ally) battle.heal(u, ally, c.amount * (u.profile.healRatio ?? 0.5), { tags: ['incantation'] });
           }, { owner: u });
         },
@@ -602,19 +613,23 @@ export default {
       onStart({ battle, unit }) {
         battle.addDp(unit.ownerId, num(bb.cost));
         battle.fx('dp', { x: unit.x, y: unit.y, n: num(bb.cost), id: unit.id });
-        // Sword Rain releases after its cast wind-up; DP is granted at activation.
+        // The 2.167 s Skill clip includes recovery; it is not a 2 s damage wind-up.
+        // PRTS confirms two arts hits and air targeting, but does not publish their frame times.
+        // Align the impact to the casting gesture, keeping the remainder of the animation blocked.
         const seq=unit.deploySeq;
-        battle.applyStatus(unit,'disarm',{duration:2,source:unit});
-        battle.after(2,()=>{
-          if(!unit.alive || unit.deploySeq!==seq || unit.s.flags.stun || unit.s.flags.frozen) return;
-        const grid = def?.skill?.rangeGrid;
-        const foes = grid ? enemiesInGrid(battle, unit, grid) : battle.foesInRadius(unit.x, unit.y, RING1).filter((e) => !e.s.flags.untargetable);
-        battle.fx('aoe', { x: unit.x, y: unit.y, radius: 2, id: unit.id, skill: 'swordRain' });
-        for (const e of foes) {
-          for (let i = 0; i < 2 && e.alive; i++) battle.dealDamage(unit, e, { amount: unit.s.atk * num(bb.atk_scale), type: 'arts', isSkill: true, isSplash: true, tags: ['skill'] });
-          if (e.alive) battle.applyStatus(e, 'stun', { duration: num(bb.stun), source: unit });
-        }
-        },{owner:unit});
+        battle.applyStatus(unit,'disarm',{duration:2.167,source:unit});
+        const valid=()=>unit.alive&&unit.deployed&&unit.deploySeq===seq&&!unit.s.flags.stun&&!unit.s.flags.frozen&&!unit.s.flags.sleep;
+        const strike=()=>{
+          if(!valid())return;
+          const grid = def?.skill?.rangeGrid;
+          const foes = grid ? enemiesInGrid(battle, unit, grid) : battle.foesInRadius(unit.x, unit.y, RING1).filter((e) => !e.s.flags.untargetable);
+          battle.fx('aoe', { x: unit.x, y: unit.y, radius: 2, id: unit.id, skill: 'swordRain' });
+          for(const e of foes){
+            battle.dealDamage(unit,e,{amount:unit.s.atk*num(bb.atk_scale),type:'arts',isSkill:true,isSplash:true,tags:['skill','swordRain']});
+            if(e.alive)battle.applyStatus(e,'stun',{duration:num(bb.stun),source:unit});
+          }
+        };
+        battle.after(1,()=>{if(!valid())return;strike();battle.after(1/30,strike,{owner:unit});},{owner:unit});
       },
     },
     talents: [{ install(battle, unit) {
@@ -858,12 +873,11 @@ export default {
         },
       },
       trait: {
-        // with only bound enemies in range (or blocked by her — always her targets, Battle.blockedTargets) she holds her
-        // fire (the mystic trait stores the energy meanwhile)
+        // with only bound enemies in range (or blocked by her — always her targets, Battle.blockedTargets) she has no valid
+        // target: she holds her fire and the mystic trait stores an energy at the attack check (professions.js
+        // installMystic; a bind on her only target included)
         canAttack(battle, u) {
-          const ok = battle.enemiesInKeys(u.rangeKeys, u, u.profile).some((e) => !bound(e)) || battle.blockedTargets(u, u.profile).some((e) => !bound(e));
-          if (!ok) u.trait.hadTarget = false;
-          return ok;
+          return battle.enemiesInKeys(u.rangeKeys, u, u.profile).some((e) => !bound(e)) || battle.blockedTargets(u, u.profile).some((e) => !bound(e));
         },
         afterHit(battle, u, target) {
           if (!target || !target.alive || target.side !== 'enemy') return;
@@ -939,11 +953,14 @@ export default {
             battle.addBuff(unit, { key: 'utage:serious', mods: { aspd: v }, data: { v }, tags: ['talent'] });
           }, { owner: unit });
         }
-        // 庇护 (ba.protect): "受到的物理和法术伤害降低相应比例" — physical and arts damage only
+        // 庇护 (ba.protect "受到的物理和法术伤害降低相应比例（同名效果取最高）") while below hp_ratio HP: the shared 庇护 — the
+        // strongest of every source holds (holdProtect) —, refreshed every tick and at each hit on her (a hit that takes
+        // her below it: the next ones already have it)
         if (t.damage_resistance != null && t.hp_ratio != null) {
-          onHitOn(battle, unit, ({ dmg }) => {
-            if ((dmg.type === 'phys' || dmg.type === 'arts') && unit.hpRatio < num(t.hp_ratio)) dmg.mul *= 1 - num(t.damage_resistance);
-          });
+          const dr = num(t.damage_resistance), below = num(t.hp_ratio);
+          const keep = () => { if (up(unit) && unit.hpRatio < below) holdProtect(battle, unit, dr, PROTECT_TICK_HOLD, unit); };
+          battle.on('tick', keep, { owner: unit });
+          onHitOn(battle, unit, keep);
         }
       } }],
     };
@@ -1080,3 +1097,10 @@ export default {
   },
 };
 
+
+export const PROTECT = 'protect';
+export const protectMods = (v) => ({ physTakenMul: 1 - v, artsTakenMul: 1 - v });
+export const PROTECT_TICK_HOLD = 1.5 * TICK;
+export function holdProtect(battle, target, value, duration, source = null) {
+  if (value > 0) battle.applyStrongest(target, PROTECT, { duration, value, mods: protectMods, source });
+}

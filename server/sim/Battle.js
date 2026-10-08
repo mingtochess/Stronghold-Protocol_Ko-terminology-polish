@@ -248,6 +248,30 @@ export class Battle {
     return [r, c];
   }
 
+  onOwnBoard(ps, r, c) {
+    if (!ps) return false;
+    let keys = ps._boardKeys;
+    if (!keys) {
+      keys = ps._boardKeys = new Set();
+      for (let br = GEO.FIELD.r0; br <= GEO.FIELD.r1; br++) {
+        for (let bc = GEO.FIELD.c0; bc <= GEO.FIELD.c1; bc++) { const [fr, fc] = this.mapTile({ ...ps, coords: 'board' }, br, bc); keys.add(fr * COLS + fc); }
+      }
+    }
+    return keys.has(r * COLS + c);
+  }
+
+  /**
+   * Whether field tile (r, c) lies on the board of a player standing on this field: onOwnBoard of one of `players`,
+   * the players whose units this battle holds (a teammate eliminated before it or playing another field is not one).
+   * Both halves on the two-helper 联防 field and on a Final Assault / Hidden Core pair field; the own half only for a
+   * lone 联防 helper and on a solo boss field; never a boss field's hand / 临时整备区 rows. The 突袭 landing reads it
+   * (bonds/addon/battle.js raidTile — the owner's decision of 2026-10-07, DESIGN §26.1).
+   */
+  onFieldBoard(r, c) {
+    for (const ps of this.players) if (this.onOwnBoard(ps, r, c)) return true;
+    return false;
+  }
+
   /**
    * Board direction → field direction for a player (DESIGN §3): as given (default RIGHT) except on the mirrored Final
    * Assault right side, where RIGHT ↔ LEFT (UP / DOWN unchanged). `abs` / field coordinates are taken as they are.
@@ -355,12 +379,10 @@ export class Battle {
     if (this.started) return;
     this.started = true;
     this._safe(() => this._spawnStageDevices(), 'stageDevices');
-    // Operators retain prep placement order across moves and swaps. Each player's
-    // i-th operator deploys together on shared fields; summons still follow operators.
-    // Legacy inputs without an order retain the position-based fallback.
+    // Deploy column by column from the player-facing left, top to bottom.
+    // Each player's i-th operator deploys together; summons follow operators.
     const seq0 = this._deploySeq;
     const lists = this.players.map((ps) => ps.units.filter((u) => u.kind === 'op' || u.kind === 'token').slice().sort((a, b) =>
-      (a.kind === 'op' && b.kind === 'op' && a.placementOrder != null && b.placementOrder != null ? a.placementOrder - b.placementOrder : 0) ||
       (ps.mirror ? b.homeC - a.homeC : a.homeC - b.homeC) || b.homeR - a.homeR || a.id - b.id));
     // a summon piece flagged `deferDeploy` by content (one its owner's loadout does not make — 赫默 on S1 with a drone
     // piece —, or a skill's summon when shared/constants.js SKILL_SUMMON_START_DEPLOY is off: content/tokens.js
@@ -912,6 +934,7 @@ export class Battle {
     u.removed = false;
     u.hidden = false;
     u.body = null;
+    u.downAtHome = false;
     u.x = C0; u.y = R0; u.tileR = R0; u.tileC = C0;
     u.blocking = [];
     u.deploySeq = ++this._deploySeq;
@@ -1439,11 +1462,12 @@ export class Battle {
       const prev = target.findBuff('cold');
       const spans = [prev.timeLeft, duration].filter((t) => t === Infinity || (Number.isFinite(t) && t > 0));
       const freezeFor = spans.length ? Math.max(...spans) : COLD_FREEZE_DURATION;
-      this.applyStatus(target, 'freeze', {
+      const froze = this.applyStatus(target, 'freeze', {
         duration: freezeFor, source: opts.source, force: opts.force,
         ...(spans.length ? { resistApplied: true } : {}),
       });
       if (!target.alive) return false;
+      if (froze && target.side === 'enemy') { this.removeBuff(target, 'cold'); return true; }
     }
     const source = opts.source ?? null;
     let entered = true;
@@ -2191,7 +2215,7 @@ export class Battle {
     u.body = [r, c];
     // a skill-ending return that its death interrupted (乌尔比安's anchor, content/kits/tier5.js): the body lies on
     // the anchor tile — the marker has already retreated — so every redeploy path (restTile) brings him home
-    const anchor = u.mem?.anchorReturn;
+    const anchor = u.mem?.anchorReturn || (u.downAtHome ? { r: hr, c: hc } : null);
     if (anchor && Number.isInteger(anchor.r) && this.grid.inRect(anchor.r, anchor.c) && !this.isReservedTile(anchor.r, anchor.c)) {
       u.body = [anchor.r, anchor.c];
       u.mem.anchorReturn = null;
@@ -2292,7 +2316,7 @@ export class Battle {
     if (!(add > 0)) return 0;
     pp.layerGains[bondId] = (pp.layerGains[bondId] ?? 0) + add;
     if (ps && ps.bonds[bondId]) ps.bonds[bondId].layers = (ps.bonds[bondId].layers ?? 0) + add;
-    this._ev(['layer', playerId, bondId, add]);
+    this._ev(['layer', playerId, bondId, add, source?.id ?? null, source?.x ?? null, source?.y ?? null]);
     return add;
   }
 
@@ -2394,6 +2418,7 @@ export class Battle {
       fieldId: this.fieldId,
       t: Math.round(this.time * 1000) / 1000,
       units: snapshotUnits(this.units, this.time),
+      energy: Object.fromEntries(this.allyUnits.filter(u=>u.alive&&u.deployed&&u.profile?.storeEnergy).map(u=>[u.id,u.trait.stored||0])),
       dp: this.players.length ? Math.floor(this.players[0].dp) : 0,
       killed: this.killed,
       total: this.total,

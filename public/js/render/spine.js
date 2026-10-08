@@ -1,4 +1,4 @@
-import {skillIsContinuous,selectedSkillClip} from '../../../shared/attackTiming.js';
+import {skillIsContinuous,selectedSkillClip,fortressMeleeRole} from '../../../shared/attackTiming.js';
 // render/spine.js — Spine battle chibi wrapper + animation state machine (research 07 §5.4–5.5, ASSETS.md Roles).
 //
 // SpineActor owns one PIXI.spine.Spine built from cached skeleton data (assets.spine LRU; the instance never
@@ -95,7 +95,7 @@ export class SpineActor {
     if (!this.has(this.roles.stun?.loop)) {
       const find = (...names) => [...this.names].find(n => names.some(x => n.toLowerCase() === x.toLowerCase()));
       const idle=String(this.roles.idle || '');
-      const loop = find(idle.replace(/idle/i,'Stun'),idle.replace(/idle/i,'Stun_Loop'),'Stun', 'Stun_Loop', 'Stun_Idle', 'Stunned', 'Dizzy');
+      const loop = find(idle.replace(/idle/i,'Stun'),idle.replace(/idle/i,'Stun_Loop'),'Stun', 'Stun_Loop', 'Stun_Idle', 'Stun_1', 'Stunned', 'Dizzy', 'DizzyLoop');
       if (loop) this.roles = {...this.roles, stun:{begin:find('Stun_Begin','Stun_Start'),loop,end:find('Stun_End')}};
     }
     /**
@@ -406,9 +406,9 @@ export class SpineActor {
 
   _attackClip() {
     const sk = this.roles.skill;
-    if (this.skillOn && sk && this.has(sk.loop) && sk.via !== 'attack' && !this._skillIsBuffOnly()) return sk;
+    if (this.skillOn && sk && this.has(sk.loop) && sk.via !== 'attack' && !this._skillIsBuffOnly()) return this.fortressMelee?fortressMeleeRole(this.entry,sk):sk;
     const a = this.roles.attack;
-    if (a && this.has(a.loop)) return a;
+    if (a && this.has(a.loop)) return this.fortressMelee?fortressMeleeRole(this.entry,a):a;
     return null;
   }
 
@@ -441,6 +441,20 @@ export class SpineActor {
     const hits = this.entry.hits && this.entry.hits[anim];
     if (Array.isArray(hits) && hits.length && Number.isFinite(hits[0])) return clampN(hits[0], 0, dur);
     return dur * 0.5;
+  }
+
+  /** Mystic casters store an attack using the authored Attack_Charge clip, never the normal attack. */
+  chargeEnergy(interval) {
+    if(this.dead || this.mode==='stun' || this.mode==='die' || this.mode==='deploy' || this.mode==='skillCast' || this.mode==='skillBegin' || this.skillOn)return false;
+    const clip=[...this.names].find(n=>/^attack[_-]?charge$/i.test(n));
+    if(!clip)return false;
+    const dur=this.dur(clip);if(!(dur>0))return false;
+    this.mode='energyCharge';
+    this._play(clip,false,{mix:.1});
+    const speed=dur/Math.max(.08,interval);
+    if(this.spine.state.tracks[0])this.spine.state.tracks[0].timeScale=speed;
+    this.energyChargeUntil=this.clock+Math.max(.08,interval);
+    return true;
   }
 
   /** Skill active flag changed. */
@@ -629,6 +643,9 @@ export class SpineActor {
             this._play(this._baseName(), true);
           }
         }
+        break;
+      case 'energyCharge':
+        if(this.clock>=this.energyChargeUntil){this.mode='base';this._play(this._baseName(),true,{mix:.15});}
         break;
       case 'skillCast':
         if(this.clock >= this.skillCastUntil){this.mode='base';this._play(this._baseName(),true,{mix:.18});}

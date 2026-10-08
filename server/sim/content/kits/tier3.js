@@ -1,3 +1,4 @@
+import { isHpLoss } from '../../damage.js';
 // server/sim/content/kits/tier3.js — hand-authored kits for the 21 tier-3 chess (19 visible + 见行者/巫恋 hidden).
 //
 // export default { [baseChessId]: (bb, chess, def) => Kit } (docs/SIM.md §7.2). `bb` is the skill blackboard at the
@@ -33,7 +34,7 @@ import { absoluteRangeKeys, sortEnemyTargets, canTargetEnemy } from '../../targe
 import { COLS, PUSH_DIRECTIONAL_MIN_DIST } from '../../constants.js';
 import { bodyDist, bodyInKeys, bodyOnTile } from '../../body.js';
 import { normalizeChess, normalizeSkill } from '../../simdata.js';
-import { tacticalPoint as sharedTacticalPoint, releaseSkillSummon } from '../tokens.js';
+import { tacticalPoint as sharedTacticalPoint, releaseSkillSummon, installWolfTacticalPoint, wolfReturnNow, wolfShadowInterval, wolfTacticalPoint } from '../tokens.js';
 
 // ---------------------------------------------------------------------------------------------------------------
 // helpers
@@ -455,10 +456,13 @@ const KITS = {
      * 仗义疏财 — official text 「消耗一枚金币，下一次攻击会为周围八格内血量不足70%的一名友方单位恢复相当于攻击力40%的生命」: the heal rides on an
      * attack, so with no enemy around she never healed (community report #5 「琳琅诗怀雅1技能不会主动奶身边受伤的干员」). Owner's
      * decision 2026-10-04 (a deliberate deviation, like §21.29's 重装 casts): she heals an injured ally beside her whether
-     * she attacks or not. Same target (the lowest HP ratio below 70 % of the 8 surrounding tiles, no 禁疗 / 孤立 unit, no
+     * she attacks or not. Same target (the lowest HP ratio below 70 % of the 3×3 around her, no 禁疗 / 孤立 unit, no
      * device), coin and heal_scale × ATK. Cadence [ASSUMED]: at most one heal per attack cycle (her attack interval, ASPD
      * included) — while she attacks, on the attack as before; when her last attack attempt found no target, on her own
      * timer (the 'tick' hook runs after the attacks, so an attack due in the same tick takes it).
+     * 「周围八格」 includes herself: the client charpack (char_1033_swire2, mode S1, ability HealAlly) selects with range
+     * x-4 — the 3×3 with her own tile — ally side, `_excludeOwner` 0, max HP ratio 0.7, one target. Until 0.2.0 she was
+     * left out and never healed herself (community report of 2026-10-06 「琳琅诗怀雅不会治疗自己」).
      */
     const installS1 = (battle, unit) => {
       const hs = num(bb['attack@heal_scale'], num(bb.heal_scale, 0));
@@ -466,9 +470,10 @@ const KITS = {
       const healTarget = () => {
         let best = null;
         for (const a of battle.allyUnits) {
-          if (a === unit || !alive(a) || a.hidden || a.kind === 'device' || a.hpRatio >= healRatio) continue;
-          if (a.s.flags.noHeal || a.profile?.noHeal) continue; // 禁疗 / 孤立: never a heal target
-          if (Math.max(Math.abs(a.tileR - unit.tileR), Math.abs(a.tileC - unit.tileC)) !== 1) continue; // 周围八格
+          if (!alive(a) || a.hidden || a.kind === 'device' || a.hpRatio >= healRatio) continue;
+          if (a !== unit && (a.s.flags.noHeal || a.profile?.noHeal)) continue; // 禁疗 / 孤立: never a heal target
+          if (a === unit && a.s.flags.healFree) continue; // her own 禁疗 (HEAL_FREE) stops a heal of herself too
+          if (Math.max(Math.abs(a.tileR - unit.tileR), Math.abs(a.tileC - unit.tileC)) > 1) continue; // x-4: the 3×3, her tile too
           if (!best || a.hpRatio < best.hpRatio || (a.hpRatio === best.hpRatio && a.deploySeq < best.deploySeq)) best = a;
         }
         return best;
@@ -484,6 +489,53 @@ const KITS = {
       };
       battle.on('attack', (ctx) => { if (ctx.attacker === unit) tryHeal(); }, { owner: unit, priority: -10 });
       battle.on('tick', () => { if (unit.deployed && unit.canAct && !unit.trait?.hadTarget) tryHeal(); }, { owner: unit });
+    };
+    /**
+     * “见面礼” — 「消耗一枚金币在范围内一个可放置且可通行的地面放置香槟炸弹」. The client charpack (char_1033_swire2, mode S2)
+     * makes her attack a priority composite: first the SpawnToken ability (animation Skill_2) whose trigger needs BOTH a
+     * tile of its selector (range x-6; melee-buildable, walkable, low ground — the tile options of the selector) and her
+     * coin buff (swire2_can_use_gold), else her normal attack (which needs a target). So a bomb takes her attack's turn,
+     * enemies or not: with no enemy around she still spends her coins on the free tiles of x-6 (PRTS 备注 「否则随机放置香槟
+     * 至可部署的地块」), and only a full x-6 (or no coin) lets her coins pile up to the cap. Tile (PRTS 备注 「放置香槟动画进行
+     * 前若放置范围内存在敌人，则按攻击索敌规律放置香槟至其所在地块」; the selector's `_targetMotion` WALK): the ground enemies
+     * standing on a free tile of x-6, in her attack's target order (blocked first, …, nearest the goal) — the first one's
+     * tile; with none, a random free tile of x-6. A free tile: inside the field, nobody on it, no knocked-out operator's
+     * tile (freeTile; an enemy on it does not count), walkable ground a melee unit may stand on (groundTile).
+     * [ASSUMED] timing: the throw is instant and costs her attack one tick (PRTS 备注 「每次放置香槟时若正在攻击敌人，会短暂
+     * 延长攻击抬手间隔」 — the composite clears its cooldown when the throw ends; the length of the Skill_2 animation is in
+     * no table): `canAttack` holds her attack back while a throw is due and the 'tick' hook (after the attacks) throws
+     * when her attack is ready. Until 0.2.0 every attack also dropped a bomb on her 1-1 range, at random.
+     */
+    const bombTiles = (battle, unit) => {
+      const out = [];
+      for (const k of gridKeys(SWIRE2_BOMB_GRID, unit)) {
+        const r = (k / COLS) | 0, c = k % COLS;
+        if (freeTile(battle, r, c) && groundTile(battle, r, c)) out.push(k);
+      }
+      return out;
+    };
+    // (`bombHold`: a refused spawn — a tile freeTile let through — never holds her attack back for longer than one cycle)
+    const hasCoin = (battle, unit) => (unit.mem.coins ?? 0) >= coinCost && !(battle.time < (unit.mem.bombHold ?? -1));
+    const throwDue = (battle, unit) => hasCoin(battle, unit) && bombTiles(battle, unit).length > 0;
+    const installS2 = (battle, unit) => {
+      const switchT = num(battle.tokenDef(tokenId, unit)?.skill?.bb?.duration_switch, 3);
+      const ground = { ...unit.profile, canHitFly: false };
+      battle.on('tick', () => {
+        if (!alive(unit) || !unit.canAct || unit.atkCd > 1e-9 || unit.s.flags.disarm || !hasCoin(battle, unit)) return;
+        const keys = bombTiles(battle, unit);
+        if (!keys.length) return;
+        const free = new Set(keys);
+        let key = null;
+        for (const e of enemiesOn(battle, unit, keys, 0, ground)) {
+          const k = Math.round(e.y) * COLS + Math.round(e.x);
+          if (!e.isFlying && free.has(k)) { key = k; break; }
+        }
+        if (key == null) key = battle.rng.pick(keys);
+        const bomb = battle.spawnToken(unit, tokenId, (key / COLS) | 0, key % COLS, { untargetable: true, kit: bombKit(unit, switchT) });
+        if (!bomb) { unit.mem.bombHold = battle.time + unit.s.interval; return; }
+        unit.mem.coins -= coinCost;
+        fx(battle, 'summon', bomb, { src: unit.id, token: tokenId, coins: unit.mem.coins });
+      }, { owner: unit });
     };
     const installS3 = (battle, unit) => { // 千金一掷: "击倒敌人时获得一枚金币"
       battle.on('kill', (ctx) => {
@@ -538,35 +590,24 @@ const KITS = {
           };
         },
       }),
-      trait: { install: merchantInstall((battle, unit) => {
-        // MER-Y "每次特性消耗费用时攻击力+4%，最多可以叠加5次" (any time, not only during the skill)
-        if (modTal && num(modTal.atk) > 0) {
-          battle.addBuff(unit, { key: 'trait:swire2_module', refresh: 'stack', stacks: 1, maxStacks: Math.max(1, num(modTal.max_stack_cnt, 5)), mods: { atkPct: num(modTal.atk) } });
-        }
-        if (!unit.skill?.active) return; // "技能期间"
-        addCoins(battle, unit, num(t0.trait_sp, 1));
-        battle.addBuff(unit, { key: 'talent:swire2_buyer', refresh: 'stack', stacks: 1, maxStacks: Math.max(1, num(t0.max_stack_cnt, 8)), mods: { atkPct: num(t0.atk) } });
-      }) },
+      trait: {
+        // S2: a throw due takes her attack's turn (installS2)
+        ...(sel === S2 || sel == null ? { canAttack: (battle, unit) => !throwDue(battle, unit) } : {}),
+        install: merchantInstall((battle, unit) => {
+          // MER-Y "每次特性消耗费用时攻击力+4%，最多可以叠加5次" (any time, not only during the skill)
+          if (modTal && num(modTal.atk) > 0) {
+            battle.addBuff(unit, { key: 'trait:swire2_module', refresh: 'stack', stacks: 1, maxStacks: Math.max(1, num(modTal.max_stack_cnt, 5)), mods: { atkPct: num(modTal.atk) } });
+          }
+          if (!unit.skill?.active) return; // "技能期间"
+          addCoins(battle, unit, num(t0.trait_sp, 1));
+          battle.addBuff(unit, { key: 'talent:swire2_buyer', refresh: 'stack', stacks: 1, maxStacks: Math.max(1, num(t0.max_stack_cnt, 8)), mods: { atkPct: num(t0.atk) } });
+        }),
+      },
       install(battle, unit) {
         if (sel === S1) { installS1(battle, unit); return; }
         if (sel === S3) { installS3(battle, unit); return; }
         if (sel !== S2 && sel != null) return;
-        const switchT = num(battle.tokenDef(tokenId, unit)?.skill?.bb?.duration_switch, 3);
-        battle.on('attack', (ctx) => {
-          if (ctx.attacker !== unit || !alive(unit) || (unit.mem.coins ?? 0) < coinCost) return;
-          const tiles = [];
-          for (const k of gridKeys(skillGrid ?? unit.rangeGrid, unit)) {
-            const r = (k / COLS) | 0, c = k % COLS;
-            // (never on the home tile of a dead operator: it could not redeploy until an enemy triggers the bomb)
-            if (freeTile(battle, r, c) && groundTile(battle, r, c)) tiles.push([r, c]);
-          }
-          const tile = battle.rng.pick(tiles);
-          if (!tile) return;
-          const bomb = battle.spawnToken(unit, tokenId, tile[0], tile[1], { untargetable: true, kit: bombKit(unit, switchT) });
-          if (!bomb) return;
-          unit.mem.coins -= coinCost;
-          fx(battle, 'summon', bomb, { src: unit.id, token: tokenId, coins: unit.mem.coins });
-        }, { owner: unit, priority: -10 });
+        installS2(battle, unit);
       },
       talents: [
         { install(battle, unit) { // 大买家: "开启技能时获得1枚金币" (a passive starts at every deployment, S3 when cast)
@@ -578,6 +619,11 @@ const KITS = {
           battle.on('skillStart', (ctx) => { if (ctx.unit === unit && unit.skill?.kind !== 'passive') addCoins(battle, unit, num(t0.sp, 1)); }, { owner: unit });
         } },
         { install(battle, unit) { // 破财消灾
+          // the doubling cost restarts at 5 with every deployment: PRTS 备注 「再部署时重置本天赋费用消耗」 — the client buff
+          // swire2_t_2 keeps the doubled `cost` in its own blackboard, built anew when she is deployed (a battle start, 联防
+          // included — a new battle —, a redeploy, a 突袭 再部署). Until 0.2.0 a redeploy kept the doubled cost (community
+          // report of 2026-10-06 「正常对局中死亡之后再部署复活费用也应该重置」)
+          battle.on('deploy', (ctx) => { if (ctx.unit === unit) unit.mem.saveCount = 0; }, { owner: unit });
           battle.on('fatal', (ctx) => {
             if (ctx.unit !== unit || ctx.prevented) return;
             const n = unit.mem.saveCount ?? 0;
@@ -727,7 +773,11 @@ const KITS = {
             if (isS2 && sk && sk.active && !unit.findBuff('skill:philae_rage')) battle.addBuff(unit, { key: 'skill:philae_rage', mods: { atkPct: num(bb.atk) }, visible: true });
             return;
           }
-          if (!isS2 || !sk || !sk.active || !ctx.dmg?.isAttack || !ctx.source || ctx.source.side !== 'enemy') return;
+          // the official philae_s_2 (buff_template_data) fires on ON_TAKE_DAMAGE with no filter: any damage instance — an
+          // enemy's attack, a skill hit, 深溟巢涌者's pulse, a 无来源 hit — never a 流失 or an element 损伤 (above), nor a
+          // counter / reflection. Until 0.2.0 enemy attacks only (community report of 2026-10-06, item 30)
+          const d = ctx.dmg;
+          if (!isS2 || !sk || !sk.active || !d || isHpLoss(d) || (d.tags || []).some((t) => t === 'counter' || t === 'reflect')) return;
           if (battle.time < (unit.mem.philaeCd ?? -Infinity)) return;
           unit.mem.philaeCd = battle.time + cd;
           // "周围的地面敌人" = range x-4, the 3×3 tiles around her (PRTS 备注)
@@ -1095,6 +1145,19 @@ const KITS = {
         skchr_blemsh_2: (s) => {
           const grid = copyGrid(s.rangeGrid) ?? NINE;
           const ratio = num(s.bb['attack@atk_to_hp_recovery_ratio'], num(s.bb.atk_to_hp_recovery_ratio, 0));
+          // "周围的所有友方单位每秒恢复相当于攻击力N%的生命值": an hpRegen buff on every ally on the skill range's tiles (no
+          // device, no 孤立 unit), refreshed every REGEN_IV while the skill runs and removed at its end [ASSUMED: from the
+          // start of the skill — unlike 铃兰's, the note names no delay]
+          const regenKey = (unit) => `blemsh:regen:${unit.id}`;
+          const regen = (battle, unit) => {
+            if (!(ratio > 0)) return;
+            const keys = new Set(gridKeys(grid, unit));
+            const v = unit.s.atk * ratio;
+            for (const a of battle.allyUnits) {
+              if (!a.alive || !a.deployed || a.hidden || a.kind === 'device' || !onTiles(a, keys) || !battle.allySelectable(a, unit)) continue;
+              battle.addBuff(a, { key: regenKey(unit), duration: REGEN_IV * 2, source: unit, mods: { hpRegen: v } });
+            }
+          };
           return {
             kind: 'duration',
             heal: false,
@@ -1113,14 +1176,16 @@ const KITS = {
               }
               fx(battle, 'aoe', unit, { radius: 0.5, skill: 'blemsh_2', status: 'sleep', n });
               unit.mem.blemshRegen = 0;
+              regen(battle, unit);
             },
-            onTick({ battle, unit, dt }) { // "周围的所有友方单位每秒恢复相当于攻击力N%的生命值"
-              if (!(ratio > 0)) return;
+            onTick({ battle, unit, dt }) {
               unit.mem.blemshRegen = (unit.mem.blemshRegen ?? 0) + dt;
-              while (unit.mem.blemshRegen >= 1 - 1e-9) {
-                unit.mem.blemshRegen -= 1;
-                for (const a of battle.injuredAlliesInKeys(new Set(gridKeys(grid, unit)), unit)) battle.heal(unit, a, unit.s.atk * ratio);
-              }
+              if (unit.mem.blemshRegen < REGEN_IV - 1e-9) return;
+              unit.mem.blemshRegen = 0;
+              regen(battle, unit);
+            },
+            onEnd({ battle, unit }) {
+              for (const a of battle.allyUnits) if (a.findBuff(regenKey(unit))) battle.removeBuff(a, regenKey(unit));
             },
           };
         },
@@ -1152,7 +1217,8 @@ const KITS = {
     if (num(tb.damage_resistance) > 0) {
       kit.install = (battle, unit) => battle.addBuff(unit, { key: 'trait:blemsh_guard', mods: { dmgTakenMul: 1 - num(tb.damage_resistance) }, persist: true, allowDead: true });
     } else if (num(tb.heal_scale) > 0) {
-      // GUA-X "治疗生命值低于50%的友方单位时治疗量提升15%" (the HP before the heal)
+      // GUA-X "治疗生命值低于50%的友方单位时治疗量提升15%" (the HP before the heal; strictly below — the client's blemsh_e_trait
+      // is set_heal_scale_by_hpratio, FilterByTargetHpRatio LT, unlike 黍's heal_scale_up[hpratio][LE])
       kit.install = (battle, unit) => battle.on('heal', (ctx) => {
         if (ctx.source === unit && ctx.target && ctx.target.hpRatio < num(tb.hp_ratio, 0.5)) ctx.amount *= num(tb.heal_scale, 1);
       }, { owner: unit });
@@ -1442,7 +1508,13 @@ const KITS = {
     const hits = textNum(d.skill?.description, /(\d+|[一二两三四五])连击/, 3);
     const bonus = num(bb['attack@vigil_s_3.atk_scale'], 0);
     const pen = num(t1.def_penetrate_fixed, 0);
+    /** The standing pack (狼群天性, S3, the TAC-Y mark, S2). */
     const wolfOf = (u) => (u.trait.reinforcement && u.trait.reinforcement.alive ? u.trait.reinforcement : null);
+    /** The pack on the field in either form — standing, or in its 战术点形态 (only while 伺夜 stands: tokens.js). */
+    const packOf = (u) => {
+      const w = u.trait.reinforcement;
+      return w && (w.alive || wolfTacticalPoint(w)) ? w : null;
+    };
     const wolfKit = (vigil) => ({
       skill: null,
       trait: { hitsFn: (b, w) => Math.max(1, w.mem.wolves || 1) },
@@ -1450,11 +1522,10 @@ const KITS = {
         const tal = w.def.talents || [];
         const wb = tal[0]?.bb ?? {};
         const per = num(wb.block_cnt, num(wb['vigil_wolf_t_1_enhance[trigger].block_cnt'], 1));
-        const grow = num(wb.interval, num(wb['vigil_wolf_t_1_enhance[trigger].interval'], 25));
+        // the 狼影 interval from the data (tokens.js wolfShadowInterval): the growth cycle — and the 战术点形态's length
+        const grow = wolfShadowInterval(w.def);
         // (mem.shadows mirrors the count for content reading tokens.js wolfShadows())
         const apply = () => { w.mem.shadows = w.mem.wolves; battle.addBuff(w, { key: 'token:wolves', mods: { blockCnt: per * w.mem.wolves }, allowDead: true }); };
-        w.mem.wolves = Math.max(1, Math.min(maxWolves, initial));
-        apply();
         w.mem.addWolf = () => {
           if (!w.alive || w.mem.wolves >= maxWolves) return false;
           w.mem.wolves++;
@@ -1462,7 +1533,23 @@ const KITS = {
           fx(battle, 'summon', w, { src: vigil.id, wolves: w.mem.wolves });
           return true;
         };
-        battle.every(grow, () => w.mem.addWolf(), { owner: w });
+        // every deployment: the initial count — or one “狼影” back from the 战术点形态 (tokens.js wolfReturnNow: "持续时间
+        // 结束后狼影层数变回1层", S1 ①) — and a fresh growth cycle (the previous one stops at its next tick)
+        battle.on('deploy', (ctx) => {
+          if (ctx.unit !== w) return;
+          const back = w.mem.wolfReturn;
+          w.mem.wolves = back ? 1 : Math.max(1, Math.min(maxWolves, initial));
+          apply();
+          if (back && back.src == null) fx(battle, 'summon', w, { wolves: w.mem.wolves }); // (S1 ① shows its own)
+          const seq = w.deploySeq;
+          if (grow > 0) {
+            battle.every(grow, (b, sched) => {
+              if (!w.alive || w.deploySeq !== seq) { sched.cancel(); return; }
+              w.mem.addWolf();
+            }, { owner: w });
+          }
+        }, { owner: w, priority: 20 });
+        // fatal with more than one wolf: one is lost, full HP; on the last one the knock-out goes through — 战术点形态
         battle.on('fatal', (ctx) => {
           if (ctx.unit !== w || ctx.prevented || w.mem.wolves <= 1) return;
           w.mem.wolves--;
@@ -1471,6 +1558,13 @@ const KITS = {
           w.hp = w.s.maxHp;
           fx(battle, 'revive', w, { wolves: w.mem.wolves });
         }, { owner: w });
+        installWolfTacticalPoint(battle, w, {
+          onEnter: () => {
+            w.mem.wolves = 0;
+            apply();
+            fx(battle, 'wolfShadowLost', w, { wolves: 0 });
+          },
+        });
         const mod = tal.find((t) => t && t.bb && t.bb.damage_scale != null);
         if (mod) {
           battle.on('hit', (ctx) => {
@@ -1517,7 +1611,10 @@ const KITS = {
         cur = next;
       }, { owner: unit, immediate: true });
     };
-    /** One more “狼影” (S1): this kit's pack, or a 狼群 board piece run by content/tokens.js (same 'wolf:shadows' buff). */
+    /**
+     * One more “狼影” (S1 ②) on a standing pack: this kit's pack, or a 狼群 board piece run by content/tokens.js (same
+     * 'wolf:shadows' buff). False at the maximum. Neither pack's own growth cycle is touched ("与狼群本身的刷新周期互相独立").
+     */
     const addShadow = (battle, vigil, w) => {
       if (typeof w.mem.addWolf === 'function') return w.mem.addWolf();
       const n = Math.max(1, w.mem.shadows ?? 1);
@@ -1530,8 +1627,24 @@ const KITS = {
       return true;
     };
     const dpGain = (battle, unit, n) => { if (n > 0) { battle.addDp(unit.ownerId, n); fx(battle, 'dp', unit, { n }); } };
+    // S1: the cast — ready and the pack on the field in either form (PRTS 备注 「仅场上存在狼群时可触发技能」 with ① for its
+    // 战术点形态)
+    const installCall = (battle, unit) => {
+      battle.on('tick', () => {
+        const sk = unit.skill;
+        if (!alive(unit) || !sk || !sk.ready || sk.active || !unit.canAct || unit.s.flags.silence || !packOf(unit)) return;
+        sk.activate('SP_FULL');
+      }, { owner: unit });
+    };
     // S2: the pack's empowered next attack (armed by the cast; ×scale on its hits; a kill pays once)
     const installGift = (battle, unit) => {
+      // the cast: ready, the pack on the field in either form, no unused gift on it (PRTS 备注 「仅场上存在狼群，且狼群未获得此技能的
+      // 充能时可触发技能」 — the words of S1's, whose 备注 counts the 战术点形态 [ASSUMED the same for S2])
+      battle.on('tick', () => {
+        const sk = unit.skill, w = packOf(unit);
+        if (!alive(unit) || !sk || !sk.ready || sk.active || !unit.canAct || unit.s.flags.silence || !w || w.mem.vigilGift) return;
+        sk.activate('SP_FULL');
+      }, { owner: unit });
       battle.on('beforeAttack', (ctx) => {
         const w = wolfOf(unit);
         if (!w || ctx.attacker !== w || !w.mem.vigilGift) return;
@@ -1554,20 +1667,19 @@ const KITS = {
       trait: { install(battle, unit) {
         // The pack is the tactician's 援军. The match also hands the player the 狼群 token to place in the prep phase
         // (= choosing the tactical point): that board piece (tokens.js kit, owner-coupled effects left to this kit) is
-        // the pack when present — deployed early on its own tile if 伺夜 deploys first — never a second pack.
-        // GitHub #202: with no placed piece no pack comes at all — the pack deploys only through the player's
-        // deployment (nothing auto-deploys at the battle start, so a 联防 phase sees no pack re-deploy at a fresh,
-        // possibly different tactical point either). The tactical point below only brings the pack back when it left
-        // for good (its tactician was knocked out): it prefers the placed piece's tile, so the position stays.
+        // the pack when present — deployed early on its own tile if 伺夜 deploys first — never a second pack. Summoned at
+        // each deployment of 伺夜; a knocked-out pack is not summoned again: it sits in its 战术点形态 and comes back by
+        // itself (tokens.js installWolfTacticalPoint — both packs; until 0.2.0 it came back after the token's 10 s redeploy
+        // time with its initial wolves).
         const spawn = () => {
-          if (!alive(unit) || wolfOf(unit)) return;
+          if (!alive(unit) || packOf(unit)) return;
           const pieces = tokensOf(battle, unit, wolfId);
           const live = pieces.find((t) => alive(t));
           if (live) { unit.trait.reinforcement = live; return; }
           const waiting = pieces.find((t) => !t.alive && !t.removed);
           if (waiting && battle.redeploy(waiting, { free: true })) {
             unit.trait.reinforcement = waiting;
-            fx(battle, 'summon', waiting, { src: unit.id, token: wolfId });
+            fx(battle, 'summon', waiting, { src: unit.id, token: wolfId, wolves: waiting.mem.shadows });
             return;
           }
           const board = pieces.find((t) => t.uid != null);
@@ -1578,11 +1690,11 @@ const KITS = {
           unit.trait.reinforcement = w;
           if (!w) return;
           fx(battle, 'summon', w, { src: unit.id, token: wolfId, wolves: w.mem.wolves });
-          const again = Math.max(0, w.base.respawnTime || 0);
-          battle.on('death', (c) => { if (c.unit === w && c.reason === 'killed') battle.after(again, spawn, { owner: unit }); }, { owner: w });
         };
         battle.on('deploy', (c) => { if (c.unit === unit) spawn(); }, { owner: unit });
         installPackMark(battle, unit);
+        // "持有者离场后强制撤退场上的狼群（不触发上述效果）": a standing pack leaves with him ('expired': no 战术点形态); one in
+        // its 战术点形态 ends it there (tokens.js) and waits for his redeploy
         battle.on('death', (c) => {
           if (c.unit !== unit) return;
           const w = wolfOf(unit);
@@ -1611,37 +1723,61 @@ const KITS = {
         },
       },
       skills: altSkills(chess, d, bb, {
-        // (自动触发: an AUTO skill takes no 技能策略 — the 战术家 row is for MANUAL skills — and this DP skill fires as soon
-        // as it is ready, as before)
+        // (自动触发: an AUTO skill takes no 技能策略 — the 战术家 row is for MANUAL skills. PRTS 备注 「仅场上存在狼群时可触发技能」
+        // (the owner's decision of 2026-10-05): the kit casts it as soon as it is ready while the pack is on the field —
+        // standing, or in its 战术点形态 while 伺夜 stands (installCall, packOf); without a pack it waits at full SP — until
+        // 0.2.0 it fired at SP_FULL and paid its DP with no pack. The cast always pays +cost DP; its effect follows the
+        // pack's state (备注 ①②③): ① in its 战术点形态 the pack comes back at once with one 狼影 and a fresh 狼影 cycle (its
+        // pending return is cancelled — tokens.js wolfReturnNow), ② standing below the maximum: one more 狼影 (the pack's
+        // own cycle untouched), ③ at the maximum: the pack's HP to max — a reset like the talent's, not a heal (the pack
+        // holds 禁疗). Until 0.2.0 a knocked-out pack was waited for and the cast at the maximum only paid its DP.)
         skchr_vigil_1: (s) => ({
           kind: 'instant',
-          trigger: 'SP_FULL',
+          trigger: 'NEVER',
           onStart({ battle, unit }) {
             dpGain(battle, unit, num(s.bb.cost, 0));
-            const w = wolfOf(unit);
-            if (w) addShadow(battle, unit, w);
+            const w = packOf(unit);
+            if (!w) return;
+            if (!w.alive) { // ①
+              if (wolfReturnNow(battle, w, unit.id)) fx(battle, 'summon', w, { src: unit.id, wolves: w.mem.shadows });
+              return;
+            }
+            if (addShadow(battle, unit, w)) return; // ②
+            w.hp = w.s.maxHp; // ③
+            fx(battle, 'revive', w, { src: unit.id, wolves: w.mem.shadows });
           },
         }),
+        // (自动触发, PRTS 备注 「仅场上存在狼群，且狼群未获得此技能的充能时可触发技能」: no enemy needed — the kit casts it as soon
+        // as it is ready while the pack stands and holds no unused gift (installGift); until 0.2.0 the data's DEFAULT made it
+        // wait for 伺夜's own next attack, so it never fired with no enemy in his range. A pack in its 战术点形态 counts as on the
+        // field — S2's 备注 uses S1's words and S1's lists that form [ASSUMED for S2; the 0.2.0 follow-up's recommended
+        // reading]: the cast pays its DP at once and the gift waits on the pack, its next attack once it is back (until 0.2.0
+        // S2 waited for the pack); a gift the pack holds stays on it through the form [ASSUMED])
         skchr_vigil_2: (s) => ({
           kind: 'instant',
+          trigger: 'NEVER',
           onStart({ battle, unit }) {
             dpGain(battle, unit, num(s.bb.cost, 0));
-            const w = wolfOf(unit);
+            const w = packOf(unit);
             if (!w) return;
+            // (a pack in its 战术点形态 has no HP to restore: it comes back at full HP, the gift kept on it)
             const hr = num(s.bb['vigil_wolf_s_2.hp_ratio'], 0);
-            if (hr > 0) battle.heal(w, w, w.s.maxHp * hr, { self: true });
+            if (hr > 0 && w.alive) battle.heal(w, w, w.s.maxHp * hr, { self: true });
             w.mem.vigilGift = { scale: num(s.bb['vigil_wolf_s_2.atk_scale'], 1), dp: num(s.bb['vigil_wolf_s_2.cost'], 0), paid: false };
             fx(battle, 'buff', w, { src: unit.id, skill: 'vigil_2' });
           },
         }),
       }),
-      install(battle, unit) { if (sel === 'skchr_vigil_2') installGift(battle, unit); },
+      install(battle, unit) {
+        if (sel === 'skchr_vigil_1') installCall(battle, unit);
+        if (sel === 'skchr_vigil_2') installGift(battle, unit);
+      },
       talents: [
         { install() { /* 狼群领袖: the pack itself (trait.install / wolfKit) */ } },
         { install(battle, unit) {
           battle.on('hit', (ctx) => {
             const w = wolfOf(unit);
-            // "伺夜和狼群对其的攻击无视其175防御力": their attacks only (not item procs or other non-attack damage)
+            // "伺夜和狼群对其的攻击无视其175防御力" (200 at full potential): their attacks only (not item procs or other non-attack damage)
             if (!w || pen <= 0 || !ctx.dmg.isAttack || (ctx.source !== unit && ctx.source !== w) || ctx.target.blockedBy !== w) return;
             ctx.dmg.defIgnoreFlat += pen;
           }, { owner: unit });
@@ -1809,3 +1945,7 @@ const KITS = {
 };
 
 export default KITS;
+
+// Upstream 0.2.1 kit constants/helpers, retained in the existing tier layout.
+const SWIRE2_BOMB_GRID = Object.freeze([[2, 0], [1, 0], [0, -2], [0, -1], [0, 0], [0, 1], [0, 2], [-1, 0], [-2, 0]]);
+const REGEN_IV = 0.25;

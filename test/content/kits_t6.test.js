@@ -1,4 +1,4 @@
-// Content tests for the tier-6 kits (server/sim/content/kits/tier6.js) + 盟约·辅助干员 (chess_char_1_15).
+// Content tests for the tier-6 kits (server/sim/content/kits/ops/chess_char_6_*.js) + 盟约·辅助干员 (chess_char_1_15).
 // Every test runs a real battle through the harness and checks the signature effect of the kit.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -281,8 +281,8 @@ test('余: blocked enemies take 40 % ATK arts + 12 % burn per second, 庇护 whi
   assert.ok(dot.length >= 2);
   const burn = h.dmg.filter((d) => d.src === u.id && d.element === 'burn');
   assert.ok(burn.length >= 2);
-  // 庇护 (ba.protect): physical and arts damage only
-  assert.ok(u.findBuff('yu:shelter') && near(u.s.physTakenMul, 1 - t0.damage_resistance) && near(u.s.artsTakenMul, 1 - t0.damage_resistance));
+  // 庇护 (ba.protect): physical and arts damage only — the shared effect of every source (kits/shared/tier1.js holdProtect)
+  assert.ok(u.findBuff('protect')?.source === u && near(u.s.physTakenMul, 1 - t0.damage_resistance) && near(u.s.artsTakenMul, 1 - t0.damage_resistance));
   assert.equal(u.s.trueTakenMul, 1, '庇护 does not reduce true damage');
   assert.equal(u.s.dmgTakenMul, 1);
   const base = u.base.maxHp;
@@ -1151,6 +1151,7 @@ test('skill stat mods match the official text at both levels (normal Lv4 / elite
       const h = makeBattle({ units: [{ chessId: cid, row: 10, col: 4 }], timeLimit: 30 });
       h.step();
       const u = h.unit(cid);
+      h.runUntil(() => u.canAct && !(u.deployRemaining > 0), 5);
       assert.ok(u.skill.activate('test', { free: true }), `${cid} activates`);
       const m = String(u.def.skill.description).match(re);
       assert.ok(m, `${cid} text has ${re}`);
@@ -1192,6 +1193,7 @@ test('default skills: attack-interval rule of the AK calculator — a shortening
       const u = h.unit(cid);
       const v = u.def.skill.bb.base_attack_time;
       assert.ok(Number.isFinite(v) && v !== 0, `${cid} has base_attack_time`);
+      h.runUntil(() => u.canAct && !(u.deployRemaining > 0), 5);
       assert.ok(u.skill.activate('test', { free: true }), `${cid} activates`);
       const bat = rule === 'flat' ? u.base.bat + v : u.base.bat * (1 + v);
       assert.ok(near(u.s.interval, bat * 100 / u.s.aspd, 1e-9), `${cid} (${rule} ${v}): interval ${u.s.interval} ≠ ${bat * 100 / u.s.aspd}`);

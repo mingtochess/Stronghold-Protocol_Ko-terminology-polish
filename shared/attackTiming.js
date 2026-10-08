@@ -37,6 +37,14 @@ export function selectedSkillClip(sp, index) {
     return {...sp.anims.attack, begin:null, end:null, index, via:'attack'};
   return role;
 }
+
+export function fortressMeleeRole(sp, role) {
+ if(!role)return role;
+ const key=sp?.skel||'';
+ const name=key.includes('char_431_ashlok')?'Attack02':key.includes('char_4039_horn')?role.loop?.replace('_A','_B'):null;
+ return name&&sp?.animations?.[name]>0?{...role,loop:name}:role;
+}
+
 // Compact authoritative timing copied from Spine's OnAttack events at data-build time.
 const clipTiming = (sp, role) => {
   const clip = role?.loop, dur = sp?.animations?.[clip];
@@ -58,7 +66,7 @@ export function spineAttackTiming(sp) {
     const selected = selectedSkillClip(sp, sp.anims.skill.index) || sp.anims.skill;
     const timing = selected.via === 'attack' ? null : clipTiming(sp, selected); if (timing) skills[sp.anims.skill.index] = timing;
   }
-  return { attack: clipTiming(sp, sp.anims.attack), skills, deploy: sp.anims.deploy !== sp.anims.idle ? Math.max(0,sp.animations?.[sp.anims.deploy] || 0) : 0 };
+  return { attack: clipTiming(sp, sp.anims.attack), melee:clipTiming(sp,fortressMeleeRole(sp,sp.anims.attack)), meleeSkills:Object.fromEntries(Object.entries(sp.anims.skills||{}).map(([i,role])=>[i,clipTiming(sp,fortressMeleeRole(sp,role))])), skills, deploy: sp.anims.deploy !== sp.anims.idle ? Math.max(0,sp.animations?.[sp.anims.deploy] || 0) : 0 };
 }
 export function attachAttackTimings({ chess, enemies, tokens }, assets) {
   for (const [kind, records] of [['chars', chess], ['enemies', enemies], ['tokens', tokens]]) {
@@ -91,7 +99,8 @@ export function attachAttackTimings({ chess, enemies, tokens }, assets) {
 export function attackClipTiming(unit) {
   const all = unit.def?.attackTiming;
   const timing = (unit.form && all?.forms?.[unit.form]) || (unit.dir === 'UP' && all?.back) || all?.front;
-  const clip = (unit.skill?.active && timing?.skills?.[unit.def?.skill?.index]) || timing?.attack;
+  const melee=unit.profile?.fortress && unit.blocking?.length>0;
+  const clip = (unit.skill?.active && (melee?timing?.meleeSkills:timing?.skills)?.[unit.def?.skill?.index]) || (melee?timing?.melee||timing?.attack:timing?.attack);
   return clip || null;
 }
 export function attackWindup(unit) {

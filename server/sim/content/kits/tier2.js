@@ -85,7 +85,16 @@ export default {
     return {
       skill: {
         kind: 'instant', heal: true,
+        trigger: { rule: 'SP_FULL' },
         onStart({ battle, unit }) { releaseSkillSummon(battle, unit, tokId, { cap: cnt }); },
+      },
+      install(battle, unit) {
+        if (unit.def?.skill?.id !== 'skchr_silent_2') return;
+        // 阻回 while the stock is full (refreshed every tick; gone a tick after a drone takes the field)
+        battle.on('tick', () => {
+          if (!unit.alive || !unit.deployed || !((unit.mem.summonStock?.[tokId] ?? 0) >= cnt)) return;
+          battle.addBuff(unit, { key: 'silent:stockFull', duration: 2 * battle.dt, refresh: 'extend', flags: { noSp: true } });
+        }, { owner: unit });
       },
       skills: { 'skcom_heal_up[3]': { kind: 'duration', heal: true, mods: { atkPct: num(bb.atk) } } },
       talents: [{ install(battle, unit) {
@@ -546,6 +555,7 @@ export default {
   chess_char_2_12_a: (bb, chess) => {
     const t = talentBb(chess, 0);
     return {
+      trait: { hits: GRAVEL_HITS, hitDmgMul: GRAVEL_HIT_DMG_MUL },
       skill: {
         kind: 'duration', activateOnDeploy: true, duration: num(bb.duration, 10), spCost: 0, spType: 'none', trigger: 'NEVER',
         onStart({ battle, unit }) {
@@ -624,7 +634,7 @@ export default {
       },
       skills: {
         skchr_tippi_1: {
-          kind: 'duration', mods: { atkPct: num(bb.atk) }, flags: LIFTOFF_FLAGS,
+          kind: 'duration', trigger: 'ACTIVE_RANGE', mods: { atkPct: num(bb.atk) }, flags: LIFTOFF_FLAGS,
           targeting: { rangeGrid: def?.skill?.rangeGrid ?? null },
           onStart: tippiTakeOff,
           onEnd: tippiLand,
@@ -664,10 +674,12 @@ export default {
       talents: [{ install(battle, unit) {
         const r = num(t.atk_to_hp_recovery_ratio);
         if (!(r > 0)) return;
-        battle.every(1, () => {
+        // one buff per 调香师 (直接加算: two add up), refreshed while she is on the field; it lapses 0.5 s after she leaves
+        const key = `flower:lavender:${unit.id}`;
+        battle.every(0.25, () => {
           if (!up(unit)) return;
-          const amt = unit.s.atk * r;
-          for (const a of battle.alliesFor(unit)) if (a.hp < a.s.maxHp) battle.heal(unit, a, amt, { aura: true, tags: ['talent'] });
+          const v = unit.s.atk * r;
+          for (const a of battle.alliesFor(unit)) battle.addBuff(a, { key, duration: 0.5, source: unit, mods: { hpRegen: v }, tags: ['talent'] });
         }, { owner: unit });
       } }],
     };
@@ -864,3 +876,7 @@ export default {
     };
   },
 };
+
+// Upstream 0.2.1 kit constants/helpers, retained in the existing tier layout.
+const GRAVEL_HITS = 2;
+const GRAVEL_HIT_DMG_MUL = 0.5;

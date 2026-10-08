@@ -1023,9 +1023,9 @@ export class FxSystem {
     pr.shadow.visible = false;
     this.projs.push(pr);
     const rr = Math.max(0.5, r);
-    this.ring(x, y, gz, rr, rr * 0.22, 0xff5a3a, pr.dur, 'shock', 'in');
-    this.ring(x, y, gz, rr * 0.96, rr, 0xff7a4a, pr.dur, 'ring', 'pulse');
-    if(vertical){this.ring(x,y,gz,.45,.45,0xff3b30,pr.dur,'reticle','pulse');pr.warnRings=this.rings.slice(-3);}
+    this.ring(x, y, gz, rr, rr, 0xff5a3a, pr.dur, 'shock', 'warning');
+    this.ring(x, y, gz, rr * 0.96, rr, 0xff7a4a, pr.dur, 'ring', 'warning');
+    if(vertical){this.ring(x,y,gz,.45,.45,0xff3b30,pr.dur,'reticle','warning');pr.warnRings=this.rings.slice(-3);}
     if (src && this.rich && !vertical) {
       // the shot leaves her upwards: a muzzle flash and a streak climbing out of sight
       const p = this._bodyPt(src, SHOT_HEIGHT.launch, this._g);
@@ -1575,7 +1575,7 @@ export class FxSystem {
       const rx = p.s * rad, ry = Math.max(1, p.y - q.y);
       r.sp.position.set(p.x, p.y);
       r.sp.scale.set((rx * 2) / 128, (ry * 2) / 128);
-      r.sp.alpha = r.mode === 'in' ? 0.35 + 0.65 * u
+      r.sp.alpha = r.mode === 'warning' ? (.86 + .09*Math.abs(Math.sin(r.t*9))) * Math.min(1,r.t/.06,(r.dur-r.t)/.06) : r.mode === 'in' ? 0.35 + 0.65 * u
         : r.mode === 'pulse' ? (0.35 + 0.35 * Math.abs(Math.sin(r.t * 9))) * Math.min(1, (r.dur - r.t) / 0.06, r.t / 0.06)
           : 1 - u;
       this.rings[w++] = r;
@@ -2247,7 +2247,7 @@ export class FxSystem {
       // 1.4 s (user playtest #4 item 13) — so it is sized once its texture is valid, and hidden until then.
       const fit = () => {
         if (sp.destroyed) return;
-        sp.scale.set(46 / Math.max(1, icon.width, icon.height));
+        sp.scale.set((at ? 30 : 46) / Math.max(1, icon.width, icon.height));
         sp.visible = true;
       };
       if (icon.valid) fit();
@@ -2255,9 +2255,9 @@ export class FxSystem {
       c.addChild(glow, sp);
     }
     if (label) {
-      const t = new P.BitmapText(label, { fontName: DMG_STYLE.heal.font, fontSize: 26 });
+      const t = new P.BitmapText(label, { fontName: DMG_STYLE.heal.font, fontSize: at ? 22 : 26 });
       t.anchor.set(0, 0.5);
-      t.position.set(26, 0);
+      t.position.set(at ? 18 : 26, 0);
       if (tint === COLORS.gold) t.tint = 0xffe066;
       c.addChild(t);
     }

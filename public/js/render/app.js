@@ -306,6 +306,7 @@ export function renderInfo(u) {
     skillId:u.skillId,skillName:u.skillName,skillDescription:u.skillDescription,skillDuration:u.skillDuration,skillNextAttack:!!u.skillNextAttack,skillZoneGrid:u.skillZoneGrid,omnidirectional:!!u.omnidirectional,fixedFacing:!!u.fixedFacing,
     skinId: u.skinId, charId: u.charId,
     profession:u.profession,subProf:u.subProf,attackType:u.attackType,
+    optionalRecruit:!!u.optionalRecruit,energy:u.energy,energyMax:u.energyMax,
     moduleId: typeof u.moduleId === 'string' ? u.moduleId : undefined,
     // the ally's equipped item ids (UnitInfo.items, DESIGN §16 / §21.11): the detail card needs them for a teammate's
     // unit (resolveDetail `unitItems` → the read-only 装备 section and the 变形同构体 pairing chips); the owner's own
@@ -912,7 +913,7 @@ export async function createFieldView(host, options = {}) {
     const selected = resolveLoadout(lastPrep?.ps?.loadout,original,id=>data.chess(id));
     const rec = loadoutRecord(original,resolveRecordLoadout(original,selected));
     return {
-      kind: 'op', side: 'ally', defId: piece.id,
+      kind: 'op', side: 'ally', defId: piece.id, optionalRecruit:!!rec?.optionalRecruit,
       spine: piece.assets?.spine || rec?.assets?.spine || rec?.charId || null, avatar: piece.assets?.avatar || rec?.assets?.avatar || rec?.charId || null,
       skinId: piece.skinId ?? selected?.skinId, charId: piece.charId ?? rec?.charId,
       tier: rec?.tier || piece.tier || 1, golden: !!(piece.golden || rec?.isGolden), dir,
@@ -1568,6 +1569,7 @@ export async function createFieldView(host, options = {}) {
   function pushSnapshot(snap) {
     if (destroyed || mode !== 'battle') return false;
     if (battleMeta?.fieldId && snap && snap.fieldId && snap.fieldId !== battleMeta.fieldId) return false;
+    for (const [id,n] of Object.entries(snap?.energy || {})) views.get(Number(id))?.setEnergy?.(n);
     return interp.push(snap, performance.now() / 1000);
   }
 
@@ -1636,7 +1638,7 @@ export async function createFieldView(host, options = {}) {
       case 'atkStart': {
         const src = views.get(e[1]) || battleView(e[1]);
         const tgt = views.get(e[2]) || battleView(e[2]);
-        src?.onAttackStart?.(tgt, e[3], e[4], e[5]);
+        src?.onAttackStart?.(tgt, e[3], e[4], e[5], e[6]);
         break;
       }
       case 'atkRetarget': {
@@ -1666,6 +1668,7 @@ export async function createFieldView(host, options = {}) {
         break;
       }
       case 'heal': { const v = views.get(e[1]); if (v) fx.heal(v, Number(e[2]) || 0); break; }
+      case 'energy': { const v=views.get(e[1]);if(v){v.setEnergy?.(e[2]);if(e[3]>0)v.actor?.chargeEnergy?.(e[3]);}break; }
       case 'skill': { const v = views.get(e[1]); if (v) { v.setSkill?.(!!e[2]); fx.skill(v, !!e[2]); } break; }
       case 'die': {
         const v = views.get(e[1]);
@@ -1710,14 +1713,16 @@ export async function createFieldView(host, options = {}) {
       case 'layer': {
         const bondId = e[2], n = Number(e[3]) || 0;
         if (!(n > 0) || typeof bondId !== 'string') break;
-        const k = bondId;
+        const k = `${bondId}:${e[4] ?? e[1]}`;
         const cur = layerPops.get(k);
-        if (cur && now - cur.t < 0.8) { cur.n += n; break; }
+        if (!e[4] && cur && now - cur.t < 0.8) { cur.n += n; break; }
         layerPops.set(k, { t: now, n });
         const url = assets.bondIcon ? assets.bondIcon(bondId) : null;
         let tex = null;
         if (url) { try { tex = P.Texture.from(url); } catch { tex = null; } }
-        fx.pop(tex, `+${n}`, 0xffffff, layerPops.size);
+        const owner = e[4] != null ? infos.get(e[4]) : null;
+        const at = Number.isFinite(e[5]) && Number.isFinite(e[6]) ? [e[5],e[6]] : owner ? [owner.x,owner.y] : null;
+        fx.pop(tex, `+${n}`, 0xffffff, layerPops.size, at);
         break;
       }
       case 'bounty': {

@@ -70,7 +70,7 @@ export const PRIO_REVIVE = -100;
 /** A running 坚固 window (不死 held): before a 傀儡师's switch to its 替身 at −100 — see header. */
 export const PRIO_UNDYING_HELD = PRIO_REVIVE + 1;
 /** The items' 复活 (M3茧甲): acts on a knock-out, so after every 不死 (PRIO_REVIVE) — see header. */
-export const PRIO_RESPAWN = PRIO_REVIVE - 1;
+export const PRIO_RESPAWN = 13;
 const PRIO_FREE_UNDYING = 20;
 
 /** Stat keys of a stat buff → mods (直接乘算, see header). */
@@ -604,14 +604,11 @@ const BY_ITEM = {
     const max = p ? Math.floor(num(p.max_respawn_cnt, 1)) : 0;
     if (!(max > 0)) return;
     let used = 0;
-    S.on('fatal', (c) => {
-      if (c.unit !== u || c.prevented || used >= max) return;
+    S.on('death', (c) => {
+      if (c.unit !== u || used >= max || !reviveNow(battle, c, 'item')) return;
       used++;
-      c.prevented = true;
-      u.hp = u.s.maxHp;
-      revivedInPlace(u);
       fxOn(battle, 'revive', u, 'item:chess_item_4_12_e', rec.id, { left: max - used });
-    }, PRIO_RESPAWN); // after the hammer's 不死 lock, whatever the equip order (header)
+    }, PRIO_RESPAWN); // a knock-out: after every 不死 (the hammer's lock), whatever the equip order (header)
   },
   // 催泪瓦斯: on attack prob ⇒ 1 麻痹 stack
   chess_item_5_01_e(battle, u, rec, S) {
@@ -939,4 +936,12 @@ export function lendItemEffects(battle, fromUnit, toUnit, { maxTier = 5, duratio
 export function itemGrants(battle, u) {
   const g = runtime(battle).grants.get(u);
   return g ? [...g.values()].map((x) => ({ id: x.id, key: x.key, lent: x.lent, until: x.until })) : [];
+}
+
+export function reviveNow(battle, c, by) {
+  const u = c && c.unit;
+  if (!u || c.reason !== 'killed' || c.revivedBy || !isOp(u) || u.alive || u.removed) return false;
+  if (!battle.redeploy(u, { free: true })) return false;
+  c.revivedBy = by;
+  return true;
 }

@@ -68,6 +68,13 @@ export function effectiveProfile(u) {
 // ---------------------------------------------------------------------------------------------------------------
 // ally attack loop
 
+function storeEnergy(b, u, prof) {
+  if (prof.storeEnergy && prof.storeEnergy(b,u)) {
+    u.atkCd = Math.max(u.atkCd, u.s.interval);
+    b._ev(['energy',u.id,u.trait.stored || 0,u.s.interval]);
+  }
+}
+
 export function updateAlly(b, u, dt) {
   if (u.atkCd > 0 && u.canAct) u.atkCd = Math.max(0, u.atkCd - dt);
   if (u.blocking.length) enforceBlockCapacity(b, u);
@@ -110,9 +117,9 @@ export function updateAlly(b, u, dt) {
     return;
   }
   if (u.atkCd > 1e-9) return;
-  if (prof.canAttack && !prof.canAttack(b, u)) return;
+  if (prof.canAttack && !prof.canAttack(b, u)) { storeEnergy(b,u,prof); return; }
   let targets = acquireTargets(b, u, prof);
-  if (!targets.length && !prof.allowEmptyAttack) { u.trait.hadTarget = false; return; }
+  if (!targets.length && !prof.allowEmptyAttack) { u.trait.hadTarget = false; storeEnergy(b,u,prof); return; }
   u.trait.hadTarget = true;
   if (sk && sk.onAboutToAttack()) {
     if (u.atkCd > 1e-9 || b.time < (u.mem.skillCastUntil || 0)) return; // an independent cast owns its full animation
@@ -124,7 +131,7 @@ export function updateAlly(b, u, dt) {
   const wind = attackWindup(u);
   if (wind > 0) {
     u.mem.attackWindup = { until: b.time + wind, targets, profile: prof, seq: u.deploySeq, skillActive: !!sk?.active };
-    b._ev(['atkStart', u.id, targets[0]?.id ?? u.id, wind, u.s.interval, !!prof.allInRange || !targets.length]);
+    b._ev(['atkStart', u.id, targets[0]?.id ?? u.id, wind, u.s.interval, !!prof.allInRange || !targets.length, prof._fortressMelee ? 'melee' : 'ranged']);
   } else performAttack(b, u, prof, targets);
   u.atkCd = Math.max(u.atkCd, u.s.interval);
 }
@@ -172,10 +179,6 @@ export function acquireTargets(b, u, prof) {
     }
     prof._fortressMelee = false;
   }
-  if (prof.hitAllBlocked && u.blocking.length) {
-    const t = u.blocking.filter((e) => canTargetEnemy(u, e, prof));
-    if (t.length) return t;
-  }
   const cands = b.enemiesInKeys(u.rangeKeys, u, prof);
   // "可以选择且优先选择阻挡单位" (PRTS 选择器): the enemies a unit blocks are always selectable by it — the block radius
   // (0.7071) reaches past its own tile, so a blocked enemy may stand outside a short range or behind its facing (user
@@ -183,13 +186,15 @@ export function acquireTargets(b, u, prof) {
   if (u.blocking.length) for (const e of b.blockedTargets(u, prof)) if (!cands.includes(e)) cands.push(e);
   if (!cands.length) return cands;
   if (prof.allInRange) return cands;
-  const n = Math.max(1, Math.floor((prof.maxTargets || 1) + u.s.maxTargets));
+  const n = Math.max(1, Math.floor((prof.hitAllBlocked ? Math.max(1, u.s.blockCnt) : (prof.maxTargets || 1)) + u.s.maxTargets));
   sortEnemyTargets(b, u, cands, prof.priority);
   return n >= cands.length ? cands : cands.slice(0, n);
 }
 
 /** Perform an attack/heal with profile `prof` against `targets`. opts: { noAmmo } (Battle.forceAttack). */
 export function performAttack(b, u, prof, targets, opts = null) {
+  // Capture the branch per strike so splash cannot leak into a blocked melee hit.
+  if (prof.fortress) prof={...prof,_fortressMelee:!!targets[0] && targets[0].blockedBy===u,...(targets[0]?.blockedBy===u && !prof.fortressMeleeSplash?{splashRadius:0,allInRange:false}:{})};
   const isSkill = !!prof.isSkill;
   if (b._hooks.beforeAttack) {
     const ctx = { attacker: u, targets, isSkill, profile: prof };
@@ -209,12 +214,14 @@ export function performAttack(b, u, prof, targets, opts = null) {
   }
   const ranged = !prof._fortressMelee && prof.attack === 'ranged' && prof.projectile && prof.projectile !== 'none' && prof.projectile !== 'beam';
   const vis = prof._fortressMelee ? 'none' : (prof.projectile || 'none');
+  const energy = !isHeal && prof.releaseEnergy ? prof.releaseEnergy(b, u) : 0;
+  if (prof.releaseEnergy) b._ev(['energy',u.id,u.trait.stored || 0]);
   for (let i = 0; i < targets.length; i++) {
     const t = targets[i];
     b._ev(['atk', u.id, t.id, vis, !!prof.allInRange]);
     if (prof.deferHit) continue; // authored attacks schedule their own landing damage
     if (isHeal) { doHeal(b, u, prof, t); continue; }
-    const info = { isSkill, index: i, attackId, atk: prof.tags?.includes('wisdel-s3') ? u.s.atk : undefined };
+    const info = { isSkill, index: i, attackId, energy: i === 0 ? energy : 0, atk: prof.tags?.includes('wisdel-s3') ? u.s.atk : undefined };
     if (ranged && t.side === 'enemy' && prof.projectile === 'boomerang') {
       throwBoomerang(b, u, prof, t, info);
     } else if (ranged && t.side === 'enemy') {
@@ -277,10 +284,13 @@ export function resolveHit(b, u, prof, target, info, x, y) {
   if (target && target.alive) {
     let mulT = skillMul;
     if (prof.dmgMul) { const m = typeof prof.dmgMul === 'function' ? prof.dmgMul(b, u, target) : prof.dmgMul; if (Number.isFinite(m)) mulT *= m; }
-    const hits = prof.hitsFn ? prof.hitsFn(b, u) : Math.max(1, prof.hits || 1);
+    const hits = prof.hitsFn ? prof.hitsFn(b, u, info) : Math.max(1, (prof.hits || 1) + (info.energy || 0));
+    const split = Number.isFinite(prof.hitDmgMul) && prof.hitDmgMul > 0 ? prof.hitDmgMul : null;
     let dealtMain = 0;
     for (let h = 0; h < hits && target.alive; h++) {
-      dealtMain += b.dealDamage(u, target, { amount: atk * scale * mulT, expectedAmount: atk * scale, type: baseType, isAttack: true, isSkill: info.isSkill, tags: prof.tags || [], attackId });
+      const d = { amount: atk * scale * mulT, expectedAmount: atk * scale, type: baseType, isAttack: true, isSkill: info.isSkill, tags: prof.tags || [], attackId };
+      if (split != null) { d.mul = split; if (h > 0) d.noSp = true; }
+      dealtMain += b.dealDamage(u, target, d);
     }
     dealtTotal += dealtMain;
     if (prof.onHitStatus && target.alive) b.applyStatus(target, prof.onHitStatus.key, { duration: prof.onHitStatus.duration, source: u, value: prof.onHitStatus.value });
@@ -353,9 +363,9 @@ function doHeal(b, u, prof, t) {
       const n = Math.max(1, h.count || 3);
       for (let k = 1; k < n; k++) {
         let best = null, bd = Infinity;
-        for (const a of b.alliesInRadius(prev.x, prev.y, 2.5, null)) {
+        for (const a of b.alliesInRadius(prev.x, prev.y, 1.5, null)) {
           // 禁疗 / noHeal units are no heal target for the bounces either (as injuredAlliesInKeys; 史尔特尔's 余烬, GitHub #52)
-          if (seen.has(a.id) || a.hp >= a.s.maxHp || a.kind === 'device' || a.s.flags.noHeal || (a.profile && a.profile.noHeal)) continue;
+          if (seen.has(a.id) || Math.abs(a.tileR-prev.tileR)>1 || Math.abs(a.tileC-prev.tileC)>1 || a.kind === 'device' || a.s.flags.noHeal || (a.profile && a.profile.noHeal)) continue;
           const d = a.hpRatio;
           if (d < bd) { bd = d; best = a; }
         }

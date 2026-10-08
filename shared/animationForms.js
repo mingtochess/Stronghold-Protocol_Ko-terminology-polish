@@ -24,7 +24,19 @@ const JAKILL2 = clipSet('C2_Idle', 'C2_Move', 'C2_Die', 'C2_Attack');
 const dollRoles = (idle, die, attack = null) => Object.freeze({
   idle, deploy: idle, die, attack: attack ? Object.freeze({ begin: null, loop: attack, end: null }) : null, attackDown: null, skill: null,
 });
+const prisoner = (warn, free) => Object.freeze({
+  warning: Object.freeze({ change: null, roles: clipSet(`Idle${warn}`, `Move${warn}`, `Die${warn}`, `Attack${warn}`) }),
+  liberty: Object.freeze({ change: null, roles: clipSet(`Idle${free}`, `Move${free}`, `Die${free}`, `Attack${free}`) }),
+});
+const PRISONER = prisoner('2', '');
+const PRISONER_COLOURED = prisoner('_orange', '_red');
+
 export const FORMS = Object.freeze({
+  enemy_1116_liprr: PRISONER,
+  enemy_1116_liprr_2: PRISONER,
+  enemy_1118_lidbox_2: PRISONER_COLOURED,
+  enemy_1121_lifbos: PRISONER_COLOURED,
+  enemy_1121_lifbos_2: PRISONER_COLOURED,
   enemy_10001_trslim: Object.freeze({run:Object.freeze({change:'Skill_Begin',roles:clipSet('Idle_B','Move_B','Die_B','Attack_B')})}),
   char_1023_ghost2: Object.freeze({
     doll: Object.freeze({ change: 'Start_B', end: 'Die_B', leave: 'Start_2', roles: dollRoles('Idle_B', 'Die_B_2') }),

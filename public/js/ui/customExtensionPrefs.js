@@ -2,7 +2,7 @@ import { loadPref, savePref } from '../store.js';
 import { EXTENSION_CATEGORIES, extensionSelectionShape } from '../../../shared/customExtensions.js';
 
 const KEY = 'customExtensions';
-const copySelection = selection => Object.fromEntries(EXTENSION_CATEGORIES.map(({id}) => [id,[...(selection[id] || [])]]));
+const copySelection = selection => Object.fromEntries(EXTENSION_CATEGORIES.map(({id}) => [id,[...(selection[id] || [])]]).filter(([id,ids])=>!id.startsWith('disabled')||ids.length));
 export function loadCustomExtensionPrefs() {
   const saved=loadPref(KEY,null);
   return copySelection(extensionSelectionShape(saved) ? saved : {});

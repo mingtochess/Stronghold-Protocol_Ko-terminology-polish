@@ -256,8 +256,10 @@ export class Match {
     this.onEndFn = opts.onEnd;
     this.data = opts.data && typeof opts.data === 'object' ? opts.data : {};
     this.customExtensions = normalizeCustomExtensions(opts.customExtensions, this.data, opts.customFactions === true);
-    this.customFactions = this.customExtensions.bonds.includes('ursus');
+    this.customFactions = this.customExtensions.bonds.includes('ursus') && !(this.customExtensions.disabledBonds||[]).includes('ursusShip');
+    const unfilteredChess=this.data.chess||{};
     this.data = applyCustomExtensions(this.data, this.customExtensions);
+    this.excludedChessIds=new Set(Object.keys(unfilteredChess).filter(id=>!this.data.chess?.[id]));
     this.gd = new GameData(this.data, this.modeId);
     if (!this.difficulty) this.difficulty = this.gd.difficulty;
     this.isSolo = this.mode === 'solo' || this.gd.isSolo;
@@ -464,6 +466,7 @@ export class Match {
     this.guard(() => {
       if (!ps.setLoadout(loadout)) { res = fail(ERR.BAD_TARGET, 'loadout does not match the game data'); return; }
       this.markPrivate(ps);
+      this.markPublic(); // selected recruits are also part of the public roster
     });
     return res;
   }
@@ -3167,7 +3170,7 @@ export class Match {
         spawns: this._sanitizeSpawns(spawns),
         routes: wave.routes,
         sharedBoss: this.bossPool,
-        flags: { layerGainsEnabled: false, ...this.gd.dp, deploymentInterval:.2 },
+        flags: { layerGainsEnabled: false, ...this.gd.dp, deploymentInterval:.2, enemyScale:this.gd.enemyScale(this.round) },
         fieldId,
         enemyOverrides: wave.overrides,
         waveId: wave.templateId,

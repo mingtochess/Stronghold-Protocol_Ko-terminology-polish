@@ -503,6 +503,7 @@ test('layerGain ctx.tile: the source\'s tile — or where it was knocked out thi
   h.b.relocate(u, 11, 5);
   h.b.addLayers('p1', 'test', 1, 'garrison', { source: u });
   assert.deepEqual(h.hooksOf('layerGain').at(-1).tile, [11, 5]);
+  assert.deepEqual(h.eventsOf('layer').at(-1).slice(4), [u.id,u.x,u.y], 'gain popup carries the effect owner and current position');
   h.b.dealDamage(null, u, { amount: 1e9, type: 'true' });
   assert.deepEqual(h.hooksOf('layerGain').at(-1).tile, [11, 5], 'knocked out this instant');
   h.step();

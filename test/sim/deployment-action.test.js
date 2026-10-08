@@ -28,13 +28,13 @@ test('wave spawns wait for initial deployment while preserving their relative sp
  assert.equal(h.hooksOf('battleStart').length,1);
 });
 
-for (const kind of ['normal','unite','boss','hidden']) test(`${kind}: explicit prep order survives shuffled tiles and boss mirroring`,()=>{
+for (const kind of ['normal','unite','boss','hidden']) test(`${kind}: column order overrides prep chronology, including boss mirroring`,()=>{
  const op=chessRec({id:'ordered',skill:null});
  const units=[{chessId:'ordered',row:9,col:8,placementOrder:1,uid:11},{chessId:'ordered',row:12,col:3,placementOrder:3,uid:33},{chessId:'ordered',row:10,col:4,placementOrder:2,uid:22}];
  const h=makeBattle({kind,content:'generic',autoFinish:false,flags:{deploymentInterval:.2},defs:{chess:{ordered:op}},players:[{playerId:'p',side:'R',units}]});
  h.b.start();h.run(.6);
  const deployed=h.hooksOf('deploy').filter(e=>e.initial&&e.unit.kind==='op');
- assert.deepEqual(deployed.map(e=>e.unit.uid),[11,22,33]);
+ assert.deepEqual(deployed.map(e=>e.unit.uid),[33,22,11]);
  assert.ok(deployed[1].unit.deployedAt>=.2-1e-6);assert.ok(deployed[2].unit.deployedAt>=.4-1e-6);
 });
 
@@ -48,10 +48,18 @@ test('all selected deployment-window skills reactivate on a raid-style free rede
    h.b.start();const u=h.unit(raw.chessId);
    if(!u?.skill.spec.activateOnDeploy)continue;
    h.run(Math.max(.1,u.deployRemaining+.1));const first=u.skill.activations;
-   assert.equal(first,1,`${raw.name} S${s.index+1} initial deployment`);
+   // Ines S3 intentionally retreats and immediately redeploys on its first use.
+   assert.equal(first,(s.id||s.skillId)==='skchr_ines_3'?2:1,`${raw.name} S${s.index+1} initial deployment`);
    h.b.retreat(u,{reason:'raid'});assert.ok(h.b.redeploy(u,{free:true,tile:[10,6],keepSp:true}));
    h.run(Math.max(.1,u.deployRemaining+.1));assert.equal(u.skill.activations,first+1,`${raw.name} S${s.index+1} raid deployment`);checked++;
   }
  }
  assert.ok(checked>0,'real deployment skills were checked');
+});
+
+test('eight initial operators follow A E B F C G D H regardless of placement history',()=>{
+ const op=chessRec({id:'grid',skill:null});
+ const units=Array.from({length:8},(_,i)=>({chessId:'grid',uid:i+1,row:i<4?12:9,col:3+i%4,placementOrder:8-i}));
+ const h=makeBattle({content:'generic',autoFinish:false,flags:{deploymentInterval:.2},defs:{chess:{grid:op}},units});h.run(1.6);
+ assert.deepEqual(h.hooksOf('deploy').filter(e=>e.initial&&e.unit.kind==='op').map(e=>e.unit.uid),[1,5,2,6,3,7,4,8]);
 });

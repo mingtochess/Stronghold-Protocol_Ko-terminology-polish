@@ -1,3 +1,6 @@
+import { bardRegen } from '../../professions.js';
+import { startCountdown } from '../tokens.js';
+import { holdProtect, byEnemyAttack } from './tier1.js';
 // server/sim/content/kits/tier6.js — hand-authored kits for every tier-6 chess (阶 VI, DIY slots excluded) plus the
 // hidden chess granted by effects (盟约·辅助干员 chess_char_1_15, band Pith "优等生"; 妮芙 chess_char_6_10 is the hidden
 // tier-6 entry). `export default { [baseChessId]: (bb, chess, def) => Kit }` (docs/SIM.md §7.2).
@@ -532,6 +535,14 @@ function lemuen(bb, chess, def) {
   };
   return {
     skills,
+    // S3 礼炮·强制追思, the lock phase: one lock every aim_interval s on an enemy in her range (the least locked first,
+    // then the lowest DEF), one bullet each; the skill ends when the bullets are spent, then bombard. With nothing in
+    // range it waits — bullets and locks kept (the marks follow their enemies / stay where they left) — and locks the
+    // next enemy that comes at once: an ammo skill has no time limit ("攻击装有5发弹药，打完后结束（可随时停止技能）"; in
+    // the client data her S3 lock needs a target and only the spent bullets end the skill buff lemuen_s_3) and the 卫戍协议
+    // automation never stops a skill (PRTS 卫戍协议/帮助 技能操作: "通常不会自动关闭技能"). Until 0.2.0 the skill ended at
+    // the first lock tick with nothing in range (community report: 「蕾缪安3技能范围里没人好像会自动结束」). Its fx 'lock'
+    // carries `hold`: the renderer keeps those reticles up while her skill runs (render/fx/locks.js).
     skill: {
       kind: 'ammo',
       ammo: Math.max(1, Math.floor(num(bb['attack@trigger_time'], 5))),
@@ -544,11 +555,11 @@ function lemuen(bb, chess, def) {
         if (!unit.canAct) return;
         m.lemAcc += dt;
         if (m.lemAcc + 1e-9 < aim) return;
-        m.lemAcc -= aim;
         const e = pickLock(battle, unit, m.lemLocks);
-        if (!e) { if (m.lemLocks.length) skill.end('ammo'); return; }
+        if (!e) { m.lemAcc = aim; return; }   // nothing to lock: wait, the next lock ready the moment an enemy comes
+        m.lemAcc -= aim;
         m.lemLocks.push({ e, x: e.x, y: e.y });
-        battle.fx('lock', { x: e.x, y: e.y, id: e.id, src: unit.id });
+        battle.fx('lock', { x: e.x, y: e.y, id: e.id, src: unit.id, hold: 1 });
         skill.ammoLeft--;
         battle.emit('ammoUsed', { unit, left: skill.ammoLeft, skill });
         if (skill.active && skill.ammoLeft <= 0) skill.end('ammo');
@@ -830,8 +841,8 @@ function yu(bb, chess, def) {
   // "将第二天赋效果赋予全场所有干员" belongs to S3 (the default skill) only
   const s3On = (unit) => isDef && !!unit.skill?.active;
   const skills = {
-    // S1 今日做东 (TAKE_DAMAGE, hurt SP): passive taunt +taunt_level; active: HP / DEF +, every attack taken ⇒
-    // ep_damage_ratio × ATK 灼燃损伤 on the attacker (install below)
+    // S1 今日做东 (TAKE_DAMAGE, hurt SP): passive taunt +taunt_level; active: HP / DEF +, every enemy damage instance taken ⇒
+    // ep_damage_ratio × ATK 灼燃损伤 on its source (install below)
     skchr_yu_1: { kind: 'duration', mods: { hpPct: num(bb.max_hp), defPct: num(bb.def) } },
     // S2 厚礼上宾 (cast with an enemy on its x-1: the data's SKILL_RANGE, a deliberate deviation from the 重装 TAKE_DAMAGE
     // row — tools/build-data.mjs TRIGGER_DEVIATIONS, DESIGN §22.10): atk_scale × ATK arts on every enemy of the skill range
@@ -861,7 +872,8 @@ function yu(bb, chess, def) {
       battle.addBuff(unit, { key: 'yu:host', mods: { taunt: num(bb.taunt_level, 1) }, persist: true, allowDead: true });
       battle.on('damaged', (ctx) => {
         const s = ctx.source;
-        if (ctx.target !== unit || !unit.skill?.active || !s || s.side !== 'enemy' || !s.alive || !ctx.dmg?.isAttack) return;
+        // "每次受到攻击" = the official yu_s_1[inverse_damage]: every enemy damage instance (tier1 byEnemyAttack)
+        if (ctx.target !== unit || !unit.skill?.active || !byEnemyAttack(ctx) || !s.alive) return;
         elementDmg(battle, unit, s, 'burn', unit.s.atk * num(bb.ep_damage_ratio), ['skill']);
       }, { owner: unit });
     },
@@ -880,9 +892,10 @@ function yu(bb, chess, def) {
     talents: [
       { install(battle, unit) { // 礼尚往来: 庇护 while blocking + DoT on blocked enemies
         const dr = num(t0.damage_resistance), sc = bv(t0, 'atk_scale'), er = bv(t0, 'ep_damage_ratio'), iv = Math.max(0.1, bv(t0, 'interval', 1));
-        // 庇护 (ba.protect): 受到的物理和法术伤害降低相应比例 — true / element damage is not reduced
+        // 庇护 (ba.protect): 受到的物理和法术伤害降低相应比例（同名效果取最高）— true / element damage is not reduced; the shared
+        // 庇护 (holdProtect: the strongest of every source holds)
         aura(battle, unit, 0.1, () => {
-          if (dr > 0 && unit.blocking.length) battle.addBuff(unit, { key: 'yu:shelter', mods: { physTakenMul: 1 - dr, artsTakenMul: 1 - dr }, duration: 0.2, refresh: 'replace' });
+          if (dr > 0 && unit.blocking.length) holdProtect(battle, unit, dr, 0.2, unit);
         });
         aura(battle, unit, iv, () => {
           for (const e of unit.blocking.slice()) {
@@ -949,7 +962,8 @@ function skadi2(bb, chess, def) {
   const sid = selectedSkill(chess, def);
   const tokId = def?.talents?.[0]?.tokenKey || (chess?.tokens || [])[0] || 'token_10017_skadi2_dedant';
   const auraRatio = num(tb['attack@atk_to_hp_recovery_ratio'], 0.1);
-  // S1 / S2 raise the trait heal ("特性效果提高至N%") while they run; S3 (default) turns it into the tide
+  // S1 / S2 raise the trait ("特性效果提高至N%") while they run; S3 (default) turns it into the tide. The trait is a
+  // 生命回复速度 buff on the allies, not a heal (PRTS 分支特性信息 吟游者; professions.js bardRegen)
   const skillRatio = num(bb['attack@atk_to_hp_recovery_ratio'], auraRatio);
   const seaborns = (battle, unit) => battle.allyUnits.filter((t) => isTok(t, tokId, unit) && live(t));
   const covered = (battle, unit, toks) => { // allies inside her range ∪ the seaborns' ranges
@@ -964,7 +978,7 @@ function skadi2(bb, chess, def) {
     return seaborns(battle, unit).some((t) => t.rangeKeySet?.has(k));
   };
   const skills = {
-    // S1 同归殊途之吟 (SP_FULL): full self heal, max HP +max_hp, trait heal attack@atk_to_hp_recovery_ratio, and
+    // S1 同归殊途之吟 (SP_FULL): full self heal, max HP +max_hp, trait attack@atk_to_hp_recovery_ratio, and
     // damage_resistance of the damage taken by every ally of her (+ 海嗣) range is transferred to her (install)
     skchr_skadi2_1: {
       kind: 'duration',
@@ -972,8 +986,10 @@ function skadi2(bb, chess, def) {
       onStart({ battle, unit }) { unit.hp = unit.s.maxHp; battle.fx('heal', { x: unit.x, y: unit.y, id: unit.id }); },
     },
     // S2 同葬无光之愿 (toggle): 鼓舞 ATK / DEF = atk / def × her ATK / DEF on every other ally of her (+ 海嗣) range,
-    // trait heal attack@atk_to_hp_recovery_ratio (trait pulse)
-    skchr_skadi2_2: { kind: 'toggle' },
+    // trait attack@atk_to_hp_recovery_ratio (trait pulse). 自动触发 with effects on her allies only (nothing to target):
+    // on as soon as it is ready (SP_FULL, like 魔王 S1 往昔萦绕身旁); until 0.2.0 the data's DEFAULT left it off until an
+    // enemy came into her (or a 海嗣's) range.
+    skchr_skadi2_2: { kind: 'toggle', trigger: 'SP_FULL' },
   };
   return {
     skills,
@@ -982,14 +998,15 @@ function skadi2(bb, chess, def) {
       onStart({ battle, unit }) { battle.fx('tide', { x: unit.x, y: unit.y, id: unit.id }); },
     },
     trait: {
-      install(battle, unit) { // replaces the bard aura: heal normally, tide (true damage + 鼓舞 + self drain) during S3
+      install(battle, unit) { // replaces the bard aura: 生命回复速度 normally, tide (true damage + 鼓舞 + self drain) during S3
         unit.mem.noInspire = true; // 自身不受鼓舞影响
         const isInspire = (b) => b.key === 'inspire' || b.status === 'inspire' || b.key.startsWith('inspire:') || b.key.endsWith(':inspire');
         // "海嗣的攻击范围视为自身攻击范围的延伸": an enemy in a 海嗣's range also satisfies her DEFAULT trigger
         if (unit.skill) unit.skill.addTriggerRange(() => seaborns(battle, unit));
         let n = 0;
         battle.every(0.5, () => {
-          if (!unit.canAct) return;
+          // Bard regeneration and inspiration are passive, including their skill-modified effects.
+          if (!live(unit) || unit.deployRemaining > 1e-9) return;
           for (let i = unit.buffs.length - 1; i >= 0; i--) if (isInspire(unit.buffs[i])) battle.removeBuff(unit, unit.buffs[i]);
           n++;
           const toks = seaborns(battle, unit);
@@ -1013,10 +1030,9 @@ function skadi2(bb, chess, def) {
             const va = unit.s.atk * num(bb.atk), vd = unit.s.def * num(bb.def);
             for (const a of allies) if (a !== unit) { inspire(battle, a, va, unit); inspire(battle, a, vd, unit, 'def'); }
           }
-          if (n % 2 === 0) {
-            const amount = unit.s.atk * (on ? skillRatio : num(unit.profile?.auraRatio, auraRatio));
-            for (const a of allies) if (a.hp < a.s.maxHp) battle.heal(unit, a, amount, { aura: true });
-          }
+          // the trait over her range ∪ the 海嗣' ranges, refreshed every pulse (it lapses 0.75 s after the last one)
+          const v = unit.s.atk * (on ? skillRatio : num(unit.profile?.auraRatio, auraRatio));
+          for (const a of allies) bardRegen(battle, unit, a, v, 0.75);
         }, { owner: unit });
       },
     },
@@ -1056,7 +1072,8 @@ function skadi2(bb, chess, def) {
           if (!isTok(t, tokId, unit)) return;
           if (t.profile) t.profile.noAttack = true;
           const dur = num(t.def?.talents?.[0]?.bb?.duration, parseN(tdesc(def, 0), /持续(\d+(?:\.\d+)?)秒/, 25));
-          const seq = t.deploySeq;
+          const seq = t.deploySeq, r = t.tileR, c = t.tileC;
+          startCountdown(battle, t, dur); // a countdown summon: 无敌, 禁疗, its bar = the life left (content/tokens.js)
           battle.after(dur, () => {
             if (!t.alive || t.deploySeq !== seq) return;
             battle.retreat(t, { reason: 'expired', permanent: true });
@@ -1868,7 +1885,9 @@ function mlyss(bb, chess, def) {
             const ranged = !!(m && m.ranged);
             t.profile.hits = on && ranged && live(t) ? t.mem.mlyssHits * 2 : t.mem.mlyssHits; // 二连击
             if (on && m && !ranged && live(t)) {
-              battle.addBuff(t, { key: 'mlyss:eco', duration: 0.4, refresh: 'replace', visible: true, mods: { hpRegenRatio: regen, physTakenMul: 1 - dr, artsTakenMul: 1 - dr } });
+              battle.addBuff(t, { key: 'mlyss:eco', duration: 0.4, refresh: 'replace', visible: true, mods: { hpRegenRatio: regen } });
+              // "获得15%的庇护": the shared 庇护 (holdProtect — 同名效果取最高 with every other source)
+              holdProtect(battle, t, dr, 0.4, unit);
             }
           }
         }, { owner: unit });
@@ -2382,7 +2401,7 @@ function lumen(bb, chess, def) {
         const res = -num(t0.one_minus_status_resistance, -0.5), thr = num(t0.hp_ratio, 0.75);
         battle.on('heal', (ctx) => {
           const t = ctx.target;
-          if (ctx.source !== unit || !t || !(res > 0) || !(base > 0)) return;
+          if (ctx.source !== unit || ctx.opts?.regen || !t || !(res > 0) || !(base > 0)) return; // "治疗的目标": not her own 生命回复速度 tick
           const after = Math.min(t.s.maxHp, t.hp + ctx.amount);
           battle.applyStatus(t, 'resist', { duration: after / t.s.maxHp > thr ? special : base, value: Math.min(1, res), source: unit });
         }, { owner: unit, priority: -10 });
@@ -3201,10 +3220,13 @@ function agoat2(bb, chess, def) {
   const elemLoad = (a) => (a.elem ? a.elem.burn + a.elem.neural + a.elem.necrosis + a.elem.apoptosis + a.elem.erosion : 0);
   const skills = {
     // S1 无声润物 (toggle, heal): ATK +atk, one extra heal target, every ally of her range recovers ep_heal_ratio × ATK
-    // 元素损伤 per second
+    // 元素损伤 per second. 自动触发 with effects on allies only (nothing to target): on as soon as its SP is full (SP_FULL,
+    // the owner's decision of 2026-10-05, like 浊心斯卡蒂 S2 / 引星棘刺 S1); until 0.2.0 the data's DEFAULT heal rule kept
+    // it off until an ally of her range was injured, so its 元素损伤 recovery never ran on a field without HP damage
     skchr_agoat2_1: {
       kind: 'toggle',
       heal: true,
+      trigger: 'SP_FULL',
       mods: { atkPct: num(bb.atk) },
       targeting: { maxTargets: 2 },
       onStart({ unit }) { unit.mem.agoatAcc = 0; },

@@ -679,3 +679,5 @@ button.bpop__harmony:hover { border-style: solid; color: #fff; }
 .dhp--sp i { background: #afd52e; }
 .dhp--sp.is-ready i { background: #ffdf31; }
 .dhp--sp.is-active i { background: #f39b26; }
+.dhp__ammo { position:absolute; inset:0; pointer-events:none; background-image:linear-gradient(90deg,transparent calc(100% - 1px),#0a0d0c calc(100% - 1px)); }
+.dhp--sp .num { z-index:1; }

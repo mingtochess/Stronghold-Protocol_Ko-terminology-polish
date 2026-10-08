@@ -1,3 +1,5 @@
+import {favoritesStore,isFavorite,FavoritesButton} from './favorites.js';
+import {useStore} from '../store.js';
 import { PROF_NAME } from './loadoutModel.js';
 import { store } from '../store.js';
 // Bottom shop bar (research 06 §11.2 / D3): LEVEL card (upgrade price hex, 升级), 3–5 operator cards
@@ -64,9 +66,12 @@ function ArmedTag({ reason, free }) {
  *   onTap?:(idx:number)=>void, onBuy:Function, onDetail:Function }} props
  */
 export function ChessCard({ slot, idx, priv, frozen = false, reason = null, free = false, armed = false, onTap = null, onBuy, onDetail, offBonds = null }) {
+  useStore(x=>x,Object.is,favoritesStore);
   const c = data.lookup('chess', slot.id);
   const m = data.get('assets');
   const tier = c?.tier ?? 1;
+  const recruit = !!c?.optionalRecruit;
+  const favorite = !recruit && isFavorite('chess',slot.id);
   const prog = mergeProgress(priv, slot.id, (id) => data.lookup('chess', id));
   const hint = mergeHint(priv, slot.id);
   const willMerge = !!hint;
@@ -75,10 +80,12 @@ export function ChessCard({ slot, idx, priv, frozen = false, reason = null, free
   const lo = c ? chessLoadout(c, priv?.loadout, LOOKUPS.getChess) : null;
   const mod=lo?.module && !lo.module.none ? lo.module : null;
   const tap = () => { if (onTap) onTap(idx); else if (!disabled) onBuy(idx); else onDetail(slot.id, 'chess', hint); };
-  const card = html`<button type="button" class=${cx('scard', `scard--t${tier}`, frozen && 'is-frozen', disabled && 'is-disabled', willMerge && 'is-merge', armed && 'is-armed')}
+  const card = html`<button type="button" class=${cx('scard', `scard--t${tier}`, favorite && 'is-favorite', recruit && 'is-recruit', frozen && 'is-frozen', disabled && 'is-disabled', willMerge && 'is-merge', armed && 'is-armed')}
       onClick=${tap} onContextMenu=${(e) => { e.preventDefault(); onDetail(slot.id, 'chess', hint); }}
       aria-label=${`${c?.name || '干员'}，价格 ${slot.price}${armed ? (disabled ? '，无法购买' : '，再次点击确认') : ''}`} aria-pressed=${onTap ? String(!!armed) : undefined}>
     <span class="scard__bg" aria-hidden="true"></span>
+    ${favorite?html`<span class="scard__favorite" title="선호 오퍼레이터" aria-label="선호 오퍼레이터">★</span>`:null}
+    ${recruit?html`<span class="scard__recruit" title="선발 오퍼레이터">선발</span>`:null}
     <span class="scard__water" aria-hidden="true">${bonds[0] ? html`<${BondGlyph} bondId=${bonds[0]} />` : null}</span>
     <${Img} src=${chessPortraitUrl(m, {...(lo?.record || c),appearanceResolved:!!priv?.loadout})} class="scard__art" />
     <span class="scard__top">
@@ -113,15 +120,17 @@ export function ChessCard({ slot, idx, priv, frozen = false, reason = null, free
  *   onBuy:Function, onDetail:Function }} props
  */
 export function ItemCard({ slot, idx, frozen = false, reason = null, free = false, armed = false, onTap = null, onBuy, onDetail }) {
+  useStore(x=>x,Object.is,favoritesStore);
   const it = data.lookup('items', slot.id);
   const m = data.get('assets');
   const disabled = !!reason;
   const tap = () => { if (onTap) onTap(idx); else if (!disabled) onBuy(idx); else onDetail(slot.id, 'item'); };
-  const card = html`<button type="button" class=${cx('scard', 'scard--item', frozen && 'is-frozen', disabled && 'is-disabled', armed && 'is-armed')}
+  const card = html`<button type="button" class=${cx('scard', 'scard--item', isFavorite('item',slot.id) && 'is-favorite', frozen && 'is-frozen', disabled && 'is-disabled', armed && 'is-armed')}
       onClick=${tap} onContextMenu=${(e) => { e.preventDefault(); onDetail(slot.id, 'item'); }}
       aria-label=${`${it?.name || '装备'}，价格 ${slot.price}${armed ? (disabled ? '，无法购买' : '，再次点击确认') : ''}`}
       aria-pressed=${onTap ? String(!!armed) : undefined}>
     <span class="scard__bg" aria-hidden="true"></span>
+    ${isFavorite('item',slot.id)?html`<span class="scard__favorite" title="선호 장비" aria-label="선호 장비">★</span>`:null}
     <span class="scard__top">
       <${TierChip} tier=${it?.tier ?? 1} size="md" />
       <${PriceHex} slot=${slot} free=${free} poor=${reason === '资金不足'} />
@@ -295,7 +304,8 @@ export function ShopBar({ priv, editable, collapsed, onCollapse, onBuy, onLevel,
   return html`<section class=${cx('shopbar', frozen && 'is-frozen', !editable && 'is-locked', showReward && 'has-reward', armed && 'has-armed')} ref=${barRef} aria-label="调度中心">
     <div class="shopbar__tools">
       <span class="shopbar__remain">剩余可放置角色：<b class=${cx('num', remaining === 0 && 't-orange')}>${remaining}</b></span>
-      <button type="button" class="toolbtn toolbtn--collapse" title="상점 접기" aria-label="상점 접기" onClick=${() => onCollapse(true)}><${Icon} name="chevronLeft" /><span>접기</span></button>
+      <button type="button" class="toolbtn toolbtn--collapse toolbtn--icon" title="상점 접기" aria-label="상점 접기" onClick=${() => onCollapse(true)}><${Icon} name="chevronLeft" /></button>
+      <${FavoritesButton}/>
       <button type="button" class=${cx('toolbtn', 'toolbtn--ice', frozen && 'is-on')} disabled=${!!frzReason} onClick=${onFreeze}
         title=${frzReason || (frozen ? '解冻商店 · F' : '冻结商店（下回合保留） · F')}>
         <${Img} src=${uiUrl(data.get('assets'), frozen ? 'shopPanel/frozen_icon2' : 'shopPanel/frozen_icon')} class="toolbtn__img" fallback=${html`<${Icon} name="snow" />`} />

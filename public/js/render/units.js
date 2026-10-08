@@ -867,17 +867,27 @@ export class UnitView {
       this.visFacing = target.x<this.x ? -1 : 1;
   }
 
-  onAttackStart(target, lead, interval, allInRange=false) {
+  onAttackStart(target, lead, interval, allInRange=false, attackMode) {
     this.atkInterval = interval;
     this.hasAttackInterval = true;
     if(!allInRange)this.faceTarget(target);
-    if (this.actor) this.actor.beginAttack(interval, lead);
+    if (this.actor) {this.actor.fortressMelee=attackMode==='melee';this.actor.beginAttack(interval, lead);}
     if (this.imp) this.imp.dirty = true;
   }
 
   onAttackCancel() {
     this.actor?.cancelAttack();
     if (this.imp) this.imp.dirty = true;
+  }
+
+  setEnergy(n) {
+    this.energy=Math.max(0,Math.floor(Number(n)||0));
+    if(!this.energyText){
+      this.energyText=new this.P.Text('',{fontFamily:'Bender, Oxanium, sans-serif',fontSize:17,fontWeight:'700',fill:'#ba9bff',stroke:'#080a10',strokeThickness:3});
+      this.energyText.anchor.set(.5);this.hud.addChild(this.energyText);
+    }
+    this.energyText.text='●'.repeat(this.energy)+'○'.repeat(Math.max(0,(this.info.energyMax||3)-this.energy));
+    this.energyText.visible=this.alive&&!this.prep;
   }
 
   onHit() { this.flash = 1; }
@@ -1108,7 +1118,7 @@ export class UnitView {
     const mistOn = this.alive && !this.down && !!(this.flags & UF.STEALTH);
     const mistTexture = mistOn ? stealthMistTexture(this.ctx.assets) : null;
     if (mistTexture && !this.stealthMist) {
-      this.stealthMist = Array.from({length:3}, () => {
+      this.stealthMist = Array.from({length:4}, () => {
         const sp = new this.P.Sprite(mistTexture);sp.anchor.set(.5);this.root.addChild(sp);return sp;
       });
     }
@@ -1116,9 +1126,9 @@ export class UnitView {
       sp.visible = mistOn;
       if (!mistOn) return;
       sp.position.set(Math.sin(t*.55+i*2.1)*s*.18, -s*(.23+i*.22)+Math.sin(t*.4+i)*s*.035);
-      sp.width=s*(1.12+i*.1);sp.height=s*(.66+i*.07);
+      sp.width=s*(1.7+i*.08);sp.height=s*(.92+i*.04);
       sp.rotation=Math.sin(t*.16+i)*.16;
-      sp.alpha=.34+.07*Math.sin(t*.65+i);
+      sp.alpha=.82+.07*Math.sin(t*.65+i);
     });
 
     // body placement
@@ -1216,7 +1226,14 @@ export class UnitView {
     if(this.attackRange){
       const g=this.attackRange,r=Number(this.info.rangeRadius);g.clear();g.visible=this.alive&&!this.down;
       if(g.visible&&this.info.hitArea){const a=this.info.hitArea;placeOnGround(this.ctx,g,this.ctx.layers.groundFx,this.y,this.z);g.lineStyle(2,0xff9c33,.8*alpha);const x=this.x+(a.dx||0),y=this.y+(a.dy||0);for(const [i,p]of [[x-a.w/2,y-a.h/2],[x+a.w/2,y-a.h/2],[x+a.w/2,y+a.h/2],[x-a.w/2,y+a.h/2],[x-a.w/2,y-a.h/2]].entries()){const q=cam.project(p[0],p[1],this.z+.015);if(!i)g.moveTo(q.x,q.y);else g.lineTo(q.x,q.y)}}
-      else if(g.visible){placeOnGround(this.ctx,g,this.ctx.layers.groundFx,this.y,this.z);g.lineStyle(1.5,0x4ed8af,.65*alpha);for(let i=0;i<=64;i++){const a=i/64*Math.PI*2,q=cam.project(this.x+Math.cos(a)*r,this.y+Math.sin(a)*r,this.z+.015);if(i===0)g.moveTo(q.x,q.y);else g.lineTo(q.x,q.y)}}
+      else if(g.visible){placeOnGround(this.ctx,g,this.ctx.layers.groundFx,this.y,this.z);
+        const drone=/emppnt|ursus_drone/.test(this.info.spine||this.info.defId||'');
+        const color=this.info.side==='enemy'?0xff654a:0x4ed8af;
+        for(const pass of drone?[[1.5,color,.95]]:[[1.5,0x4ed8af,.65]]){
+          g.lineStyle(pass[0],pass[1],pass[2]*alpha);
+          for(let i=0;i<=96;i++){const a=i/96*Math.PI*2,q=cam.project(this.x+Math.cos(a)*r,this.y+Math.sin(a)*r,this.z+.015);if(i===0)g.moveTo(q.x,q.y);else g.lineTo(q.x,q.y)}
+        }
+      }
     }
     // model / fallback
     const spineShown = this.actor && this.spineReady;
@@ -1272,7 +1289,7 @@ export class UnitView {
       this.fallback.tint = this.down ? DOWN_LOOK.tint : this.flash > 0 ? mixTint(0xffffff, 0xff8a80, this.flash) : (this.flags & UF.FROZEN ? 0x9fd4ff : 0xffffff);
       if (!this.alive) this.fallback.alpha = Math.max(0, this.fallback.alpha);
     }
-    this.flash = Math.max(0, this.flash - dt * 6);
+    this.flash = Math.max(0, this.flash - dt * 4.5);
 
     // facing chevron on the ground, like the original's orange › (research 09 §1.2: prep and combat): own prep pieces
     // on the board (app.js sets _showFacing; bench pieces have none); battle / scouting allies whose dir is known
@@ -1344,6 +1361,13 @@ export class UnitView {
   _updateHud(dt, s, x, y, alpha, t) {
     const prep = this.prep;
     const showBars = !prep && this.alive && this.info.kind !== 'item';
+    if(this.info.energyMax && !this.energyText)this.setEnergy(this.info.energy || 0);
+    if(this.energyText){this.energyText.visible=showBars;this.energyText.scale.set(clamp(s/90,.65,1));this.energyText.position.set(x,y-s*.16);}
+    if(this.info.optionalRecruit && !this.recruitText){
+      this.recruitText=new P.Text('선발',{fontFamily:'sans-serif',fontSize:13,fontWeight:'700',fill:'#53e3c2',stroke:'#07120e',strokeThickness:3});
+      this.recruitText.anchor.set(.5);this.hud.addChild(this.recruitText);
+    }
+    if(this.recruitText){this.recruitText.visible=this.alive;this.recruitText.scale.set(clamp(s/90,.65,1));this.recruitText.position.set(x+s*.34,y-s*.08);}
     const damaged = this.hp < this.maxHp - 0.5;
     const showHp = showBars && (!this.isEnemy || damaged || this.isBoss);
     const bw = clamp(s * (this.isBoss ? UNIT.bossBarWidth : UNIT.barWidth), 24, this.isBoss ? 260 : 96);

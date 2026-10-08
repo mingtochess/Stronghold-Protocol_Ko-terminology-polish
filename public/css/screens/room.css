@@ -328,3 +328,7 @@
 .custom-ext__card small { display: block; color: #9aaca5; line-height: 1.6; }
 .custom-ext__empty { color: #91a49d; padding: 0.1rem 0; }
 .custom-ext .modal__actions { gap: 0.065rem; }
+.custom-ext__tabs { flex-wrap:wrap; }
+.custom-ext__tabs button { white-space:nowrap; }
+.custom-ext__card.is-excluded { border-color:var(--red); background:rgba(231,49,24,.09); }
+.custom-ext__card.is-excluded input { accent-color:var(--red); }

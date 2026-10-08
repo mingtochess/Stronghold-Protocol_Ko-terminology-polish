@@ -417,3 +417,16 @@
 .lo-skin.is-on { border-color: var(--mint-400); color: var(--mint-400); }
 .lo-skin img { width: 44px; height: 44px; object-fit: contain; }
 .lo-sec--garrison { line-height: 1.6; }
+
+/* Preset management belongs beside the roster tabs, using this screen's buttons. */
+.lo-toolbar {flex:none;display:flex;align-items:center;justify-content:space-between;gap:.16rem;margin:.08rem .3rem .12rem;flex-wrap:wrap;}
+.lo-toolbar .lo-tabs {margin:0;}
+.lo-toolbar .lo-favorites {height:max(.42rem,32px);padding:0 .16rem;font-size:max(.16rem,12px);white-space:nowrap;}
+.lo-favorites .btn__icon {fill:currentColor;}
+@media(max-width:760px){.lo-toolbar{margin-inline:.16rem;gap:8px;}.lo-toolbar .lo-favorites{margin-left:auto;}}
+@media(max-width:760px){
+ .lo-top {height:auto;min-height:48px;padding-block:8px;row-gap:8px;}
+ .lo-top__left {grid-column:1;grid-row:1;}
+ .lo-top__center {grid-column:2;grid-row:1;}
+ .lo-top__right {grid-column:1/-1;grid-row:2;justify-self:stretch;justify-content:flex-end;flex-wrap:wrap;gap:8px;}
+}

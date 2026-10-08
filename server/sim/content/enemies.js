@@ -719,7 +719,11 @@ const unblockable = () => ({ spawn(b, e) { b.addBuff(e, { key: 'ab:unblockable',
  */
 const runWhenHit = (v) => ({ taken(c, b, e, a) { if (a.on || !(v > 0)) return; a.on = true; b.addBuff(e, { key: 'ab:duckRun', persist: true, mods: { moveMul: 1 + v } }); } });
 /** 频次: maxHp = hits. */
-const times = (artsOnly = false) => ({ spawn(b, e) { setHits(e, e.def.maxHp); hitCount(b, e, true, artsOnly); } });
+const times = (artsOnly = false) => ({ spawn(b, e) {
+  const supply = Number(e.mods?.supplyHpMul);
+  setHits(e, e.base.maxHp / (Number.isFinite(supply) && supply > 0 ? supply : 1));
+  hitCount(b, e, true, artsOnly);
+} });
 /** "只能被阻挡数大于等于N的单位阻挡". */
 const blockWeight = (n) => ({ spawn(b, e) { e.blockWeight = n; } });
 const taunt = (n) => ({ spawn(b, e) { if (n) b.addBuff(e, { key: 'ab:taunt', mods: { taunt: n }, persist: true }); } });
@@ -912,7 +916,7 @@ function prisoner(ab, { freeAll = false } = {}) {
     b.removeBuff(e, 'ab:confined');
     b.addBuff(e, { key: 'ab:liberty', persist: true, visible: true, mods: {
       atkPct: t('liberty.atk'), defIgnorePct: t('liberty.def_penetrate'), resFlat: t('liberty.magic_resistance'), hpRegen: t('liberty.hp_recovery_per_sec') } });
-    b.fx('liberate', { x: e.x, y: e.y, id: e.id });
+    setForm(b, e, 'liberty', 'liberate');
     if (freeAll && !stOf(b).freedAll) {
       // "第一次解放时同时解放全场敌人"
       stOf(b).freedAll = true;
@@ -925,7 +929,12 @@ function prisoner(ab, { freeAll = false } = {}) {
       a.n = 0; a.free = false;
       b.addBuff(e, { key: 'ab:confined', persist: true, visible: true, mods: { aspd: t('confinement.attack_speed'), defFlat: t('confinement.def') } });
     },
-    attack(c, b, e, a) { if (!a.free && ++a.n >= (T(ab, 'confinement.times') ?? 4)) liberate(b, e, a); },
+    before(c, b, e, a) {
+      if (a.free) return;
+      const times = Math.max(1, Math.round(T(ab, 'confinement.times') ?? 4));
+      if (++a.n >= times) liberate(b, e, a);
+      else if (a.n === times - 1) setForm(b, e, 'warning');
+    },
   };
 }
 
@@ -1984,7 +1993,7 @@ function kitBombd(ab) {
  */
 function kitShell() {
   return [{
-    spawn(b, e) { e.profile.deferHit = true; e.profile.shot = 'mortar'; },
+    spawn(b, e) { e.profile.deferHit = true; e.profile.shot = 'mortar'; e.profile.visibleRangeRadius = e.s.rangeRadius || 2; },
     attack(c, b, e) {
       const atk = e.s.atk * (e.profile.atkScale ?? 1);
       for (const t of c.targets) {

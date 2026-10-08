@@ -8,6 +8,7 @@ import { toastError } from './toasts.js';
 import { store } from '../store.js';
 import { data } from '../data.js';
 import { audio } from '../audio.js';
+import { flushPendingLoadout } from './loadoutSync.js';
 
 const SUCCESS_SFX = {
   'g.buy': 'buy', 'g.sell': 'sell', 'g.refresh': 'refresh', 'g.freeze': 'freeze', 'g.levelUp': 'levelup',
@@ -33,6 +34,7 @@ export async function act(t, fields = {}, opts = {}) {
   inflight += 1;
   emitBusy();
   try {
+    if (t === 'g.band' || t === 'g.infoReady') await flushPendingLoadout();
     const priv = store.get().match?.private;
     const bought = t === 'g.buy' ? priv?.shop?.slots?.[fields.slot] : null;
     const moved = t === 'g.move' && fields.to?.area === 'board' ? [...(priv?.board || []), ...(priv?.hand || []), ...(priv?.temp || [])].find(p => p?.uid === fields.uid) : null;

@@ -362,7 +362,10 @@ export function ChessDetail({ chess, piece, unit, snapHp, editable, onSell, bond
   const hp = hpOf(live, snapHp);
   const sp = live?.src === 'battle' && Number.isFinite(live.spMax) ? live : snapHp;
   const spActive = !!(sp?.flags & UF.SKILL);
-  const spRatio = sp?.spMax > 0 ? Math.max(0, Math.min(1, sp.sp / sp.spMax)) : 0;
+  const ammoActive = spActive && sp?.ammoMax > 0;
+  const barValue = ammoActive ? sp.ammoLeft : sp?.sp;
+  const barMax = ammoActive ? sp.ammoMax : sp?.spMax;
+  const spRatio = barMax > 0 ? Math.max(0, Math.min(1, barValue / barMax)) : 0;
   const lo = chessLoadout(chess, loadout, (id) => data.lookup('chess', id));
   const c = chess;
   // stats / talents the unit fights with: the chosen module's (or none — statsBase) for an elite (DESIGN §16)
@@ -394,6 +397,7 @@ export function ChessDetail({ chess, piece, unit, snapHp, editable, onSell, bond
           <${TierChip} tier=${c.tier} golden=${golden} size="lg" />
           ${golden ? html`<span class="dtag-elite">精锐</span>` : null}
           ${piece?.kind === 'token' ? html`<span class="dtag-token">召唤物</span>` : null}
+          ${c.optionalRecruit ? html`<span class="dtag-recruit">선발</span>` : null}
         </div>
         <h3 class="dhead__name">${c.name}</h3>
         <span class="dhead__en">${c.appellation || ''}</span>
@@ -406,7 +410,7 @@ export function ChessDetail({ chess, piece, unit, snapHp, editable, onSell, bond
           <span class="dhead__pos">${c.position === 'MELEE' ? '近战位' : '远程位'}</span>
         </div>
         ${hp ? html`<div class="dhp"><i style=${`width:${Math.max(0, Math.min(100, (hp.hp / Math.max(1, hp.max)) * 100))}%`}></i><span class="num">${fmtNum(hp.hp)} / ${fmtNum(hp.max)}</span></div>` : null}
-        ${sp?.spMax > 0 ? html`<div class=${cx('dhp', 'dhp--sp', spActive && 'is-active', !spActive && spRatio >= .999 && 'is-ready')} role="progressbar" aria-label=${spActive ? '스킬 잔여량' : 'SP'} aria-valuenow=${sp.sp} aria-valuemax=${sp.spMax} aria-valuemin="0"><i style=${`width:${spRatio * 100}%;${sp?.flags & UF.OVERHEATED ? 'background:#f04444' : ''}`}></i><span class="num">${spActive ? '스킬' : 'SP'} ${fmtNum(sp.sp)} / ${fmtNum(sp.spMax)}</span></div>` : null}
+        ${sp?.spMax > 0 ? html`<div class=${cx('dhp', 'dhp--sp', spActive && 'is-active', !spActive && spRatio >= .999 && 'is-ready')} role="progressbar" aria-label=${ammoActive ? '잔여 탄약' : spActive ? '스킬 잔여량' : 'SP'} aria-valuenow=${barValue} aria-valuemax=${barMax} aria-valuemin="0"><i style=${`width:${spRatio * 100}%;${sp?.flags & UF.OVERHEATED ? 'background:#f04444' : ''}`}></i><span class="num">${ammoActive ? '탄약' : spActive ? '스킬' : 'SP'} ${fmtNum(barValue)} / ${fmtNum(barMax)}</span>${ammoActive ? html`<b class="dhp__ammo" aria-hidden="true" style=${`background-size:${100 / sp.ammoMax}% 100%`}></b>` : null}</div>` : null}
         <${BondChips} bondIds=${bondIds} bonds=${bonds} off=${offBonds} onBond=${onBond} granted=${grantedIds} />
       </div>
     </div>`;

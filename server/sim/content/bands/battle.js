@@ -37,12 +37,12 @@ import {
   num, buffsOf, bandRecord, isOp, onField, isElite, tierOf, unitBonds, activeBondIds, playerOps, passiveBuff, fxOn,
   matchBands, gainLayers, alliesAround, N4, baseChessId, isGroundOp, directMods,
 } from '../support/index.js';
-import { weaknessRetype, addShieldLayer, PRIO_REVIVE, revivedInPlace } from '../items/battle.js';
+import { weaknessRetype, addShieldLayer, PRIO_REVIVE, reviveNow } from '../items/battle.js';
 import { spawnMapChar } from '../tokens.js';
 
 export const AMEDIC_BAND = 'band_amedic';
 /** 'fatal' priority of 埃芒加德: after the operators' own items (PRIO_REVIVE / PRIO_RESPAWN) and every talent / skill saver. */
-export const PRIO_BAND_REVIVE = PRIO_REVIVE - 10;
+export const PRIO_BAND_REVIVE = 12;
 
 const keyOf = (bandId, part = '') => `band:${bandId}${part ? `:${part}` : ''}`;
 const deployedOps = (battle, pid) => playerOps(battle, pid, { fieldOnly: true });
@@ -68,13 +68,10 @@ const BY_KEY = {
     const max = Math.floor(num(p.max_respawn_cnt, 3));
     if (!(max > 0)) return;
     let used = 0;
-    battle.on('fatal', (c) => {
+    battle.on('death', (c) => {
       const u = c.unit;
-      if (c.prevented || used >= max || !isOp(u) || u.ownerId !== ps.playerId || !u.alive) return;
+      if (used >= max || !isOp(u) || u.ownerId !== ps.playerId || !reviveNow(battle, c, 'band')) return;
       used++;
-      c.prevented = true;
-      u.hp = u.s.maxHp;
-      revivedInPlace(u); // in place for PRTS's 0-time / 0-cost redeploy: a new deployment for 坚固维式重锤's lock (items)
       fxOn(battle, 'revive', u, keyOf(bandId), bandId, { left: max - used });
     }, { priority: PRIO_BAND_REVIVE });
   },

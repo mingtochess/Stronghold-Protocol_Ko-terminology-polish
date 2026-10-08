@@ -21,7 +21,7 @@
 import { useEffect, useReducer } from '../vendor/hooks.module.js';
 import { store } from './store.js';
 import { customFactionData } from '../../shared/customFactions.js';
-import { isCustomStage } from '../../shared/customExtensions.js';
+import { applyCustomExtensions, isCustomStage } from '../../shared/customExtensions.js';
 
 /** Known data files (name → URL basename). Unknown names are allowed too (`/data/<name>.json`). */
 export const DATA_FILES = Object.freeze({
@@ -278,14 +278,16 @@ function matchIndex(name, raw) {
 export const matchData = {
   get(name) {
     const raw = data.get(name), pub = store.get().match?.public;
-    if (raw && pub && name === 'stages') {
-      const chosen = new Set(pub.customExtensions?.stages || []);
-      return Object.fromEntries(Object.entries(raw).filter(([id,s]) => !isCustomStage(id,s) || chosen.has(id)));
-    }
-    if (!raw || !pub || pub.customFactions === true || !['chess','bonds','items','bands'].includes(name)) return raw;
-    let cached = matchViews.get(raw);
-    if (!cached) { cached = customFactionData({[name]:raw},false)[name]; matchViews.set(raw,cached); }
-    return cached;
+    if (!raw || !pub || !['chess','bonds','items','bands','bosses','stages','config','enemies'].includes(name)) return raw;
+    const selection={bonds:pub.customFactions?['ursus']:[],stages:[],...pub.customExtensions};
+    const names=['chess','bonds','items','bands','bosses','stages','config','enemies'];
+    const all=Object.fromEntries(names.map(k=>[k,data.get(k)||{}]));
+    // Cache by table identities and selection so roster updates never erase saved preferences.
+    const key=JSON.stringify(selection);
+    const prior=matchViews.get(raw);
+    if(prior?.key===key && names.every(k=>prior.sources[k]===all[k]))return prior.value;
+    const value=applyCustomExtensions(all,selection)[name];
+    matchViews.set(raw,{key,sources:all,value});return value;
   },
   lookup(name,id) { return id == null ? null : matchIndex(name,this.get(name)).get(String(id)) || null; },
   list(name) { return [...matchIndex(name,this.get(name)).values()]; },

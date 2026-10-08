@@ -1,3 +1,4 @@
+import { byEnemyAttack } from './tier1.js';
 // server/sim/content/kits/tier5.js — hand-authored kits for every tier-5 chess (DESIGN §7, docs/SIM.md §7.2).
 //
 // export default { [baseChessId]: (bb, chess, def) => Kit }. `bb` = skill blackboard at the chess's level (normal Lv4 /
@@ -211,12 +212,13 @@ function burstDamageUp(battle, unit, mul) {
 }
 
 /** Modules PHY-X / GUA-X: heals on allies below hp_ratio ×heal_scale. */
-function lowHpHealUp(battle, unit, tb) {
+function lowHpHealUp(battle, unit, tb, { atOrBelow = false } = {}) {
   const mul = num(tb.heal_scale), thr = num(tb.hp_ratio);
   if (!(mul > 1) || !(thr > 0)) return;
+  const low = atOrBelow ? (t) => t.hpRatio <= thr + 1e-9 : (t) => t.hpRatio < thr;
   battle.on('heal', (c) => {
     if (c.source !== unit || c.opts?.regen || !c.target || c.target.side !== 'ally') return;
-    if (c.target.hpRatio < thr) c.amount *= mul;
+    if (low(c.target)) c.amount *= mul;
   }, { owner: unit });
 }
 
@@ -765,13 +767,13 @@ const KITS = {
           c.amount = 0;
         }, { owner: unit, priority: 100 });
         battle.on('heal', (c) => { // merged into the same heal
-          if (c.source !== unit || !unit.mem.bldskBonus || c.target !== unit.mem.bldskBonus) return;
+          if (c.source !== unit || c.opts?.regen || !unit.mem.bldskBonus || c.target !== unit.mem.bldskBonus) return; // (not her own 生命回复速度 tick)
           unit.mem.bldskBonus = null;
           // the bonus is part of the same heal: the healer's and the target's healing multipliers apply to it too
           c.amount += c.target.s.maxHp * ratio * num(unit.s.healingDealtMul, 1) * num(c.target.s.healingTakenMul, 1);
           battle.fx('healAoe', { x: c.target.x, y: c.target.y, id: c.target.id, r: 0.5 });
         }, { owner: unit, priority: 10 });
-        lowHpHealUp(battle, unit, tb);
+        lowHpHealUp(battle, unit, tb, { atOrBelow: true });   // PHY-X: heal_scale_up[hpratio][LE] (≤)
       },
     };
   },
@@ -856,8 +858,13 @@ const KITS = {
           // anchor on his own tile leaves him where he stands, no marker, nothing to return from [ASSUMED: the "tile one
           // beyond the landing" is not tried when the landing is his own tile]
           if (stop === 0 || !unit.alive) return;
-          // PRTS 备注: landing tile > the tile one beyond it > his own tile (a deployable, free, unreserved melee tile)
-          const ok = ([r, c]) => (r !== unit.tileR || c !== unit.tileC) && battle.grid.inRect(r, c) && battle.grid.canStand(r, c) && !battle.grid.isObstacle(r, c) && !battle.isReservedTile(r, c);
+          // PRTS 备注: landing tile > the tile one beyond it > his own tile (a deployable, free, unreserved melee tile).
+          // "可部署" is a tile his player may deploy on: his own board (Battle.onOwnBoard) — never the other half of a 联防 or
+          // boss field nor a boss field's hand / 临时整备区 rows; a teammate's half stays closed to him even where the 突袭
+          // landing may take it (Battle.onFieldBoard, DESIGN §26.1). Community report of 2026-10-06 (item 27) 「乌尔比安使用3技能会在
+          // 联防阶段跳到红门后」: in a one-helper 联防 (escaped_single's enemies come out of the middle gate at col 10) an anchor
+          // that met no enemy flew on to the right half, where no enemy ever walks, and he moved there for the whole skill
+          const ok = ([r, c]) => (r !== unit.tileR || c !== unit.tileC) && battle.grid.inRect(r, c) && battle.onOwnBoard(unit.player, r, c) && battle.grid.canStand(r, c) && !battle.grid.isObstacle(r, c) && !battle.isReservedTile(r, c);
           const dest = [[sr, sc], frontOf(unit.tileR, unit.tileC, unit.dir, stop + 1)].find(ok);
           if (dest == null) return;
           const home = [unit.tileR, unit.tileC];
@@ -865,6 +872,11 @@ const KITS = {
           // no exit) that keeps the running skill — "【移动】后仅继承下列效果：技能进度、第二天赋叠加层数"; the rest of
           // his buffs are kept too (owner's deviation, DESIGN §22.3). The marker is deployed after the move (备注 ③)
           if (!battle.moveRedeploy(unit, dest[0], dest[1]) || !unit.alive || !unit.skill?.active) return;
+          // knocked out while moved, he lies and redeploys on his deployment tile (Battle._layBody) — the owner's decision
+          // of 2026-10-07 (community report 28 「乌尔比安3技能期间死亡…应回到初始部署位复活」), a deliberate deviation from
+          // PRTS's "where it fell" (帮助 「原地留下一个“倒地干员”」), for this 【移动】 only; the return or his next
+          // deployment clears it
+          unit.downAtHome = true;
           const marker = battle.spawnToken(unit, tokenId, home[0], home[1], { untargetable: true, kit: { skill: null, trait: { noAttack: true } } });
           unit.mem.anchorHome = { r: home[0], c: home[1], marker };
           battle.fx('teleport', { x: unit.x, y: unit.y, id: unit.id, fromX, fromY });
@@ -872,6 +884,8 @@ const KITS = {
         onEnd({ battle, unit }) {
           const h = unit.mem.anchorHome;
           unit.mem.anchorHome = null;
+          // the skill over with him standing: no longer moved by it (knocked out, the flag stays for Battle._layBody)
+          if (unit.alive) unit.downAtHome = false;
           if (!h) return;
           if (h.marker && h.marker.alive) battle.retreat(h.marker, { reason: 'expired', permanent: true });
           // knocked out mid-skill counts as the skill ending (GitHub #199): the card "技能结束时乌尔比安会返回到初始的
@@ -1146,7 +1160,8 @@ const KITS = {
           // noHeal (no heal pick, no heal from others) + healFree (her own heals too; S3's start heal "无视禁疗"), shown as
           // the status 'healFree' until she leaves. "强制退出战场视为撤回干员": a retreat (Battle.retreat drops the buff) — she
           // lies down where she stood and redeploys there, like every operator that leaves the field (PRTS 卫戍协议/帮助
-          // "干员退场后…原地留下一个“倒地干员”…自动部署至该位置"; Battle.isDown, GitHub #60).
+          // "干员退场后…原地留下一个“倒地干员”…自动部署至该位置"; Battle.isDown, GitHub #60). With her death animation
+          // (`dying`): PRTS Touch(卫戍协议) 超脱 备注 counts it as a knock-out ("如史尔特尔的天赋效果").
           const wait = num(t1['surtr_t_2[withdraw].interval'], 8);
           battle.on('deploy', (c) => { if (c.unit === unit) unit.mem.ember = false; }, { owner: unit });
           battle.on('fatal', (c) => {
@@ -1157,7 +1172,7 @@ const KITS = {
             const dep = unit.deploySeq;
             battle.addBuff(unit, { key: 'surtr:ember', status: 'healFree', flags: { noHeal: true, healFree: true } });
             battle.fx('ember', { x: unit.x, y: unit.y, id: unit.id });
-            battle.after(wait, () => { if (unit.alive && unit.deploySeq === dep) battle.retreat(unit, { reason: 'retreat' }); }, { owner: unit });
+            battle.after(wait, () => { if (unit.alive && unit.deploySeq === dep) battle.retreat(unit, { reason: 'retreat', dying: true }); }, { owner: unit });
           }, { owner: unit, priority: -60 });
         } },
       ],
@@ -1226,7 +1241,7 @@ const KITS = {
         }),
         skchr_horn_2: () => ({
           kind: 'ammo', ammo: s2Ammo,
-          attack: { atkScale: num(bb['attack@s2.atk_scale'], 1) },
+          attack: { atkScale: num(bb['attack@s2.atk_scale'], 1), fortressMeleeSplash:true },
           onStart({ unit }) { unit.mem.hornS2Over = false; },
           onEnd({ unit }) { unit.mem.hornS2Over = false; },
         }),
@@ -1402,10 +1417,11 @@ const KITS = {
               battle.fx('mote', { x: hit.x, y: hit.y, id: hit.id });
             }
           });
-          battle.on('heal', (c) => {
-            if (c.source !== unit || !c.opts?.aura) return;
+          // "受到魔王特性效果提升至1.5倍": his trait's 生命回复速度 on that operator (professions.js bardRegen hook)
+          battle.on('bardRegen', (c) => {
+            if (c.unit !== unit) return;
             const b = c.target.findBuff('cetsyr:mote');
-            if (b) c.amount *= num(b.data.mul, 1);
+            if (b) c.value *= num(b.data.mul, 1);
           }, { owner: unit });
         } },
         { install(battle, unit) { // 魔王残响
@@ -1441,6 +1457,7 @@ const KITS = {
     const boost = num(bb.scale_delta_to_one, 1);
     const healRatio = num(bb['attack@atk_to_hp_recovery_ratio']);
     const fragile = num(t1.damage_scale, 1) - 1;
+    const foxKey = (unit) => `lisa:fox:${unit.id}`;
     return {
       // S1 全力以赴 (duration): ATK +, ASPD +. S2 儿时的舞乐 (toggle, 持续时间无限): ATK +, 2 targets.
       skills: lazySkills({
@@ -1462,8 +1479,13 @@ const KITS = {
           if (unit.mem.foxHeal >= 1) {
             unit.mem.foxHeal -= 1;
             if (!(healRatio > 0)) return;
-            for (const a of battle.alliesInGrid(unit)) if (a.hp < a.s.maxHp) battle.heal(unit, a, unit.s.atk * healRatio, { aura: true });
+            // until the next refresh (a little longer, so it never lapses in between; onEnd takes it off)
+            const v = unit.s.atk * healRatio;
+            for (const a of battle.alliesInGrid(unit)) battle.addBuff(a, { key: foxKey(unit), duration: 1.25, source: unit, mods: { hpRegen: v } });
           }
+        },
+        onEnd({ battle, unit }) {
+          for (const a of battle.allyUnits) if (a.findBuff(foxKey(unit))) battle.removeBuff(a, foxKey(unit));
         },
       },
       talents: [
@@ -2320,7 +2342,9 @@ const KITS = {
           if (!(scale > 0)) return;
           battle.on('damaged', (c) => {
             const a = c.target, src = c.source;
-            if (a.side !== 'ally' || !isOp(a) || !isKazimierz(a) || !src || src.side !== 'enemy' || !src.alive || !c.dmg?.isAttack) return;
+            // the official mlynar_t_2[inverse] (ON_TAKE_DAMAGE, InverseDamage from an enemy source): every enemy damage instance
+            // a Kazimierz operator takes, not its attacks only (tier1 byEnemyAttack)
+            if (a.side !== 'ally' || !isOp(a) || !isKazimierz(a) || !byEnemyAttack(c) || !src.alive) return;
             if (!on(unit) || leaderOf(battle, unit) !== unit) return;
             battle.dealDamage(unit, src, { amount: unit.s.atk * scale, type: 'true', canDodge: false, tags: ['talent', 'reflect'] });
           }, { owner: unit });

@@ -663,3 +663,8 @@
 .edrawer .brief-banned__group h4 { display: flex; align-items: center; gap: .06rem; margin-bottom: .04rem; }
 .edrawer__body > * { flex-shrink: 0; }
 .edrawer .ibanned__one { display: inline-flex; align-items: flex-start; }
+
+/* Center the phase label independently of the asymmetric icon and capsule padding. */
+.capsule:not(.capsule--combat):not(.capsule--boss) { position:relative; padding:0 .22rem; justify-content:center; }
+.capsule:not(.capsule--combat):not(.capsule--boss) .capsule__icon { position:absolute; left:.12rem; }
+.capsule__label { text-align:center; }

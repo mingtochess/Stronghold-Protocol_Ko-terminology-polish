@@ -17,3 +17,7 @@ test('extension preferences persist including an explicit empty selection and le
   storage.set('sp.pref.customExtensions','{"bonds":"ursus"}');assert.deepEqual(loadCustomExtensionPrefs(),{bonds:[],stages:[]});
  }finally{if(previous===undefined)delete globalThis.localStorage;else globalThis.localStorage=previous;}
 });
+test('content exclusions persist with extension selections',()=>{
+ const previous=globalThis.localStorage,storage=new Map();globalThis.localStorage={getItem:k=>storage.get(k)??null,setItem:(k,v)=>storage.set(k,v)};
+ try{const value={bonds:['ursus'],stages:[],disabledBonds:['yanShip'],disabledStages:['act1autochess_m01'],disabledBosses:['boss_1'],disabledBands:['band_bldsk']};saveCustomExtensionPrefs(value);assert.deepEqual(loadCustomExtensionPrefs(),value);}finally{if(previous===undefined)delete globalThis.localStorage;else globalThis.localStorage=previous;}
+});

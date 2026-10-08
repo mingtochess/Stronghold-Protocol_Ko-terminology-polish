@@ -220,7 +220,7 @@ export class PlayerState {
         // Session preferences include custom operators even in rooms that disable
         // them. Ignore only those unavailable entries; keep the saved catalogue
         // preferences and validate all operators available in this match normally.
-        if (!this.m.customFactions && /custom_ursus/.test(id) && !this.gd.chess(id)) continue;
+        if (this.m.excludedChessIds?.has(id) || (!this.m.customFactions && /custom_ursus/.test(id) && !this.gd.chess(id))) continue;
         if (!e || typeof e !== 'object') continue;
         const x = {};
         if (Number.isInteger(e.skill)) x.skill = e.skill;
@@ -881,6 +881,20 @@ export class PlayerState {
     this.dirty();
   }
 
+  _openLevelSlots() {
+    const { chess: nChess, item: nItem } = this.gd.shopSlots(this.shop.level);
+    const old = this.shop.slots;
+    const layout = this.shop.layout || { chess: old.length, item: 0 };
+    if (nChess <= layout.chess && nItem <= layout.item) return;
+    const chess = old.slice(0, layout.chess);
+    const items = old.slice(layout.chess);
+    const fresh = (s) => { if (s) s.frozen = this.shop.frozen; return s; };
+    while (chess.length < nChess) chess.push(fresh(this._rollChessSlot()));
+    while (items.length < nItem) items.push(fresh(this._rollItemSlot()));
+    this.shop.slots = [...chess, ...items];
+    this.shop.layout = { chess: chess.length, item: items.length };
+  }
+
   /** Combat start: unfrozen slots are emptied (research 01 A1). */
   clearUnfrozenShop() {
     this.shop.slots = this.shop.slots.map((s) => (s && s.frozen && !s.sold ? s : null));
@@ -916,13 +930,13 @@ export class PlayerState {
       const base = this.gd.baseIdOf(slot.id);
       const need = rec.isGolden ? this.gd.goldenCopies : 1;
       if (this.m.pool.has(base) && this.m.pool.left(base) < need) return fail(ERR.SOLD_OUT);
-      if (handFull && !this.completesChessMerge(slot.id)) return fail(ERR.HAND_FULL);
+      if (handFull) return fail(ERR.HAND_FULL);
       this.spend(price);
       slot.sold = true;
       piece = this.acquireChess(slot.id, { source: 'buy' });
     } else {
       if (!this.gd.item(slot.id)) return fail(ERR.BAD_TARGET);
-      if (handFull && !this.completesItemMerge(slot.id)) return fail(ERR.HAND_FULL);
+      if (handFull) return fail(ERR.HAND_FULL);
       this.spend(price);
       slot.sold = true;
       piece = this.acquireItem(slot.id, { source: 'buy' });
@@ -966,6 +980,7 @@ export class PlayerState {
     if (this.funds < price) return fail(ERR.NO_FUNDS);
     this.spend(price);
     this.shop.level++;
+    this._openLevelSlots();
     this.shop.upgradePrice = this.gd.upgradeBase(this.shop.level) ?? 0;
     this.m.tickerFor('SHOP_LEVEL', [this.name, String(this.shop.level)], { playerId: this.playerId, param: String(this.shop.level) });
     this.m.dispatch(this, 'onLevelUp', { level: this.shop.level, price });
@@ -1314,9 +1329,15 @@ export class PlayerState {
     if (consume) {
       const key = 'item:' + itemKey(item.id);
       if (!this.m.registry.has(key)) return fail(ERR.BAD_TARGET, 'effect not available');
+      // Consumables obey the same two-slot replacement rule. Restore on refusal; destroy only after success.
+      const off = this._takeReplaced(target, replaceUid);
       const ev = { item, target, golden: !!rec.isGolden, keep: false, error: null, consumed: true };
       this.m.dispatchItem(this, item, target, 'onEquip', ev);
-      if (ev.error) return fail(ERR[ev.error] ? ev.error : ERR.BAD_TARGET, typeof ev.detail === 'string' ? ev.detail : undefined);
+      if (ev.error) {
+        if (off) target.items.splice(Math.min(off.idx, target.items.length), 0, off.piece);
+        return fail(ERR[ev.error] ? ev.error : ERR.BAD_TARGET, typeof ev.detail === 'string' ? ev.detail : undefined);
+      }
+      if (off) this.m.dispatchItem(this, off.piece, target, 'onDestroy', { item: off.piece, holder: target, reason: 'replace' });
       // the handler may have destroyed the target (信标) — resolve the item again
       const again = this.find(item.uid);
       if (again && again.area !== 'equipped') this._detach(again);
@@ -1357,6 +1378,15 @@ export class PlayerState {
       this.m.dispatchItem(this, old, target, 'onDestroy', { item: old, holder: target, reason: 'replace' });
     }
     target.items.push(item);
+  }
+
+  _takeReplaced(target, replaceUid = null) {
+    target.items = target.items || [];
+    if (target.items.length < this.gd.equipPerChess) return null;
+    const i = replaceUid != null ? target.items.findIndex((x) => x.uid === replaceUid) : -1;
+    const idx = i >= 0 ? i : 0;
+    const [piece] = target.items.splice(idx, 1);
+    return { piece, idx };
   }
 
   /** g.art {itemUid, row, col, dir?}: the Art's range grid is rotated by `dir` (absent ⇒ RIGHT). */
@@ -1416,14 +1446,14 @@ export class PlayerState {
     const handFull = freeSlot(this.hand) < 0;
     if (slot.kind === 'item') {
       if (!this.gd.item(slot.id)) return fail(ERR.BAD_TARGET);
-      if (handFull && !this.completesItemMerge(slot.id)) return fail(ERR.HAND_FULL);
+      if (handFull) return fail(ERR.HAND_FULL);
     } else {
       const rec = this.gd.chess(slot.id);
       if (!rec) return fail(ERR.BAD_TARGET);
       const base = this.gd.baseIdOf(slot.id);
       const need = rec.isGolden ? this.gd.goldenCopies : 1;
       if (this.m.pool.has(base) && this.m.pool.left(base) < need) return fail(ERR.SOLD_OUT);
-      if (handFull && !this.completesChessMerge(slot.id)) return fail(ERR.HAND_FULL);
+      if (handFull) return fail(ERR.HAND_FULL);
     }
     const price = Number.isFinite(slot.price) && slot.price > 0 ? Math.trunc(slot.price) : 0;
     if (price > this.funds) return fail(ERR.NO_FUNDS);
@@ -1537,7 +1567,22 @@ export class PlayerState {
     this.recompute();
   }
 
+  _fillHandFromTemp() {
+    let moved = 0;
+    for (let j = this.temp.length - 1; j >= 0; j--) {
+      const p = this.temp[j];
+      if (!p) continue;
+      const i = freeSlot(this.hand);
+      if (i < 0) break;
+      this._detach({ piece: p, area: 'temp', idx: j });
+      this.hand[i] = p;
+      moved++;
+    }
+    return moved;
+  }
+
   recompute() {
+    this._fillHandFromTemp();
     this.deployMap(); // a change of the deploy field (a boss round's prep) marks the legality stale
     if (this._legalityStale) this._evictIllegal();
     this._liftOutOfRange();

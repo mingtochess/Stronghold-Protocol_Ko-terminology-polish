@@ -317,7 +317,10 @@ export class Grid {
       next[k] = use;
       cost[k] = best;
     }
-    return Object.assign(f, { dist, parent: pref.parent, pen: pref.pen, next, official: nextO, cost });
+    // Flooded boss arenas use the official upper lane. The optional blockable-ground
+    // preference must not pull moving leaders down around the central water tiles.
+    const floodedBoss = this.rect.r1 <= 5 && Object.values(this.stage.legend || {}).some(t => t.tileKey === 'tile_deepsea');
+    return Object.assign(f, { dist, parent: floodedBoss ? official.parent : pref.parent, pen: pref.pen, next: floodedBoss ? nextO : next, official: nextO, cost });
   }
 
   /**

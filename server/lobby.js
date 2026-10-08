@@ -1,5 +1,5 @@
 // server/lobby.js — rooms, seats, host, AI seats, ready/start, reconnect, and room → Match wiring
-import { customExtensionCatalog, extensionSelectionShape, normalizeCustomExtensions } from '../shared/customExtensions.js';
+import { customExtensionCatalog, extensionSelectionShape, normalizeCustomExtensions, validateExtensionMinimums } from '../shared/customExtensions.js';
 // (DESIGN §2, §6.1 LOBBY, §8.1). Implements the handler interface consumed by server/net.js.
 //
 // Rules (the choices where DESIGN is silent are marked ▸):
@@ -381,6 +381,9 @@ export class Lobby {
     }
     const code = this.genCode();
     if (!code) return fail(ERR.INTERNAL, 'no room code available');
+    const initialSelection=normalizeCustomExtensions(customExtensions,this.safeData());
+    const minimumErrors=validateExtensionMinimums(this.safeData(),initialSelection,{mode,difficulty});
+    if(minimumErrors.length)return fail(ERR.BAD_MSG,minimumErrors.join(' '));
     if (cur) this.removeMember(cur, session.playerId);
     // The host's spectator cap (room.create {spectators}, optional): solo rooms never seat spectators, so only a co-op
     // room keeps the choice — an absent / non-integer value falls back to the default MAX_SPECTATORS.
@@ -388,7 +391,7 @@ export class Lobby {
     const room = new Room(code, mode, difficulty, this.now(), cap);
     room.customExtensionCatalog = customExtensionCatalog(this.safeData());
     room.customExtensions = normalizeCustomExtensions(customExtensions, this.safeData());
-    room.customFactions = room.customExtensions.bonds.includes('ursus');
+    room.customFactions = room.customExtensions.bonds.includes('ursus') && !(room.customExtensions.disabledBonds||[]).includes('ursusShip');
     room.ownerKey = key;
     room.seats[0] = this.humanSeat(0, session);
     room.hostId = session.playerId;
@@ -509,9 +512,11 @@ export class Lobby {
     if (!extensionSelectionShape(selection)) return fail(ERR.BAD_MSG);
     const selected = normalizeCustomExtensions(selection, this.safeData());
     if (Object.keys(selection).some(k => selection[k].some(id => !selected[k].includes(id)))) return fail(ERR.BAD_MSG);
+    const errors=validateExtensionMinimums(this.safeData(),selected,{mode:room.mode,difficulty:room.difficulty});
+    if(errors.length)return fail(ERR.BAD_MSG,errors.join(' '));
     this.dropReplay(room, session.playerId);
     room.customExtensions = selected;
-    room.customFactions = selected.bonds.includes('ursus');
+    room.customFactions = selected.bonds.includes('ursus') && !(selected.disabledBonds||[]).includes('ursusShip');
     if (!room.customFactions) for (const member of room.chatMembers.values()) if (member.faction === '우르수스') member.faction = null;
     for (const s of room.seats) if (s && !s.isBot && s.playerId !== room.hostId) s.ready = false;
     this.broadcastState(room);
@@ -524,6 +529,8 @@ export class Lobby {
     if (!room) return fail(ERR.NOT_IN_ROOM);
     if (room.hostId !== session.playerId) return fail(ERR.NOT_HOST);
     if (room.match) return fail(ERR.ROOM_STARTED);
+    const minimumErrors=validateExtensionMinimums(this.safeData(),room.customExtensions,{mode:room.mode,difficulty});
+    if(minimumErrors.length)return fail(ERR.BAD_MSG,minimumErrors.join(' '));
     this.dropReplay(room, session.playerId);
     if (room.difficulty !== difficulty) {
       room.difficulty = difficulty;
@@ -593,6 +600,8 @@ export class Lobby {
     if (!room) return fail(ERR.NOT_IN_ROOM);
     if (room.hostId !== session.playerId) return fail(ERR.NOT_HOST);
     if (room.match) return fail(ERR.ROOM_STARTED);
+    const minimumErrors=validateExtensionMinimums(this.safeData(),room.customExtensions,{mode:room.mode,difficulty:room.difficulty});
+    if(minimumErrors.length)return fail(ERR.BAD_MSG,minimumErrors.join(' '));
     const humans = room.activeHumans();
     for (const s of humans) {
       if (s.playerId !== room.hostId && (!s.connected || !s.ready)) return fail(ERR.NOT_READY);

@@ -1418,7 +1418,7 @@ const kits = {
           attack: { hitAllBlocked: true },
           onStart({ battle, unit }) {
             unit.mem.mudS3 = { awake: false, t: 0 };
-            battle.addBuff(unit, { key: 'mudrok:dormant', duration: sleep + 1, flags: { invulnerable: true, disarm: true }, visible: true });
+            battle.addBuff(unit, { key: 'mudrok:dormant', duration: sleep + 1, flags: { invulnerable: true, disarm: true, unblockable: true, noBlock: true }, visible: true });
             battle.fx('stone', { x: unit.x, y: unit.y, id: unit.id });
           },
           onTick({ battle, unit, dt }) {
@@ -2036,8 +2036,8 @@ const kits = {
               battle.fx('mote', { x: a.x, y: a.y, id: a.id });
             }
           });
-          battle.on('heal', (c) => {
-            if (c.source === unit && c.opts?.aura && c.target.findBuff(`cetsyr:mote:${unit.id}`)) c.amount *= num(t0['attack@trait_mul'], 1.5);
+          battle.on('bardRegen', (c) => {
+            if (c.unit === unit && c.target.findBuff(`cetsyr:mote:${unit.id}`)) c.value *= num(t0['attack@trait_mul'], 1.5);
           }, { owner: unit });
         } },
         { install(battle, unit) { // 魔王残响: every ally takes −10 % damage from 萨卡兹 enemies (while she is in the squad)
@@ -2096,7 +2096,7 @@ const kits = {
         }, { owner: unit });
       } }],
       install(battle, unit) {
-        installLowHpHealBonus(battle, unit, tb);
+        installLowHpHealBonus(battle, unit, tb, true);
         if (!S1) return;
         battle.on('beforeAttack', (c) => {
           if (c.attacker !== unit) return;
@@ -2119,10 +2119,10 @@ const kits = {
 };
 
 /** Physician module trait (录武官, 华法琳 elites): heals on allies below hp_ratio are ×heal_scale. */
-function installLowHpHealBonus(battle, unit, tb) {
+function installLowHpHealBonus(battle, unit, tb, atOrBelow = false) {
   const s = num(tb.heal_scale, 0), r = num(tb.hp_ratio, 0);
   if (!(s > 0) || !(r > 0)) return;
-  battle.on('heal', (c) => { if (c.source === unit && c.target !== unit && c.target.hpRatio < r) c.amount *= s; }, { owner: unit });
+  battle.on('heal', (c) => { if (c.source === unit && c.target !== unit && (atOrBelow ? c.target.hpRatio <= r + 1e-9 : c.target.hpRatio < r)) c.amount *= s; }, { owner: unit });
 }
 
 // DESIGN §5.6 documents `(bb, chess)`; content/index.js also passes the normalised def — rebuild it when absent.

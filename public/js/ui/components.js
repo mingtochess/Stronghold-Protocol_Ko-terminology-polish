@@ -41,6 +41,8 @@ const cx = (...parts) => parts.flat().filter(Boolean).join(' ');
 
 /** 24×24 glyph paths (original, simple geometric shapes). `eo` = even-odd fill rule. */
 export const ICONS = {
+  map: {d:"M2 5l6-3 8 3 6-3v17l-6 3-8-3-6 3zm2 1v13l3-1.5v-13zm5-1v12l6 2V7zm8 2v12l3-1V5z",eo:true},
+  star: { d: "M12 2l3.1 6.3 6.9 1-5 4.9 1.2 6.9L12 17.8l-6.2 3.3L7 14.2 2 9.3l6.9-1z" },
   patchNotes: {d:'M5 2h10l4 4v16H5zm2 2v16h10V7h-4V4zm8 0v1h1zM9 9h6v2H9zm0 4h6v2H9zm0 4h4v2H9z',eo:true},
   check: { d: 'M9.5 16.2 5.3 12l-1.4 1.4 5.6 5.6L20.1 8.4 18.7 7z' },
   close: { d: 'M6.4 5 5 6.4 10.6 12 5 17.6 6.4 19 12 13.4 17.6 19 19 17.6 13.4 12 19 6.4 17.6 5 12 10.6z' },

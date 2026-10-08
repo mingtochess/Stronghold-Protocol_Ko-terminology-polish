@@ -502,3 +502,23 @@ test('entry badge (review fix): counts like the screen once chess.json is loaded
   assert.equal(badgeCount(entries, get), changedCount(entries, get));
   assert.equal(badgeCount({}, get), 0);
 });
+
+test('match-locking action waits for the pending configuration acknowledgement', async () => {
+  const { flushPendingLoadout } = await import('../../public/js/ui/loadoutSync.js');
+  const before = loadoutStore.get();
+  const net = fakeNet(), T = fakeTimers();
+  let acknowledge;
+  net.request = (t, fields) => { net.sent.push({t, ...fields}); return new Promise(resolve => { acknowledge = resolve; }); };
+  loadoutStore.set({entries:{[INSIDE]:{skill:0}},sync:'idle'});
+  const sync = installLoadoutSync({net,timers:T,getChessReady:async()=>CHESS,lookupChess:get});
+  try {
+    let finished = false;
+    const pending = flushPendingLoadout().then(()=>{finished=true;});
+    await Promise.resolve(); await Promise.resolve();
+    assert.equal(net.sent[0].t,'room.loadout');
+    assert.equal(finished,false);
+    acknowledge({t:'ok'});await pending;
+    assert.equal(finished,true);
+    assert.equal(loadoutStore.get().sync,'synced');
+  } finally { sync.dispose();loadoutStore.set(before); }
+});

@@ -19,6 +19,13 @@ import { toast } from './toasts.js';
 
 export const SYNC_DEBOUNCE_MS = 500;
 export const RETRY_MS = 1500;
+let activeFlush = null;
+/** Finish pending settings before an action can lock this match's configuration. */
+export async function flushPendingLoadout() {
+  if (!activeFlush) return;
+  await activeFlush();
+  if (loadoutStore.get().sync !== 'synced') throw new Error('오퍼레이터 설정 동기화가 완료되지 않았습니다. 다시 시도해주세요.');
+}
 
 function readStored() {
   try { return parseStored(loadPref(LOADOUT_PREF, null)); } catch { return {}; }
@@ -159,9 +166,11 @@ export function installLoadoutSync({ net, getChessReady, lookupChess, timers, ta
   // a match leaving INFO_CHECK locks the loadout; a new match (the room back in LOBBY / a new INFO_CHECK) accepts it again
   const offRoom = net.on('room.state', (msg) => { if (msg && !msg.inMatch && target.get().sync === 'locked') { lastSent = null; schedule(); } });
 
+  if (target === loadoutStore) activeFlush = flush;
   return {
     flush,
     dispose() {
+      if (activeFlush === flush) activeFlush = null;
       disposed = true;
       T.clearTimeout(timer);
       offWelcome?.();
