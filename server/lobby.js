@@ -104,6 +104,7 @@ import { randomBytes, randomInt } from 'node:crypto';
 import { ERR, MAX_SEATS, MAX_SPECTATORS, isSpectatorCap, ROOM_CODE_LEN, modeIdFor } from '../shared/constants.js';
 import { normalizeChatText, chatFaction, CHAT_COOLDOWN_MS, CHAT_HISTORY_LIMIT } from '../shared/chat.js';
 import { checkLoadout, checkLoadoutOps, cultivationCharIds } from '../shared/protocol.js';
+import { handleRestart, cancelVote, sendVotes, voteFrame } from './restartVote.js';
 import { encode, isDroppable, isErrCode, sendRaw, sendSession } from './net.js';
 import { getData as defaultGetData, lookup } from './data.js';
 import { Match as DefaultMatch } from './match/Match.js';
@@ -256,6 +257,7 @@ export class Room {
       customExtensions: structuredClone(this.customExtensions),
       customExtensionCatalog: this.customExtensionCatalog,
       aiPicksLast: this.aiPicksLast,
+      restartMatchNo: this.restartMatchNo || null,
       inMatch: !!this.match,
       // the host's spectator cap, so the client can label the 观战席 strip "n/cap" (0 = spectating off)
       spectatorCap: this.spectatorCap,
@@ -376,6 +378,7 @@ export class Lobby {
       case 'room.kick': return this.kick(session, msg);
       case 'room.setRerollLimit': return this.setRerollLimit(session, msg);
       case 'room.reroll': return this.reroll(session, msg);
+      case 'room.requestRestart': case 'room.answerRestart': return handleRestart(this, session, msg);
       case 'room.start': return this.start(session);
       case 'room.loadout': return this.loadout(session, msg);
       case 'room.spectate': return this.spectate(session, msg);
@@ -824,6 +827,7 @@ export class Lobby {
   /** onEnd callback: return the room to LOBBY and dispose the match on the next macrotask. */
   onMatchEnd(room, ctx, summary) {
     if (ctx.ended || !ctx.live || room.matchCtx !== ctx || room.disposed) return;
+    cancelVote(this, room);
     ctx.ended = true;
     room.lastSummary = summary ?? null;
     room.match = null;
@@ -925,6 +929,7 @@ export class Lobby {
     const room = this.roomOf(session);
     if (!room) return;
     session.resyncAt = this.now();
+    sendSession(session, voteFrame(room, session.playerId, this.now()));
     if (room.match) {
       this.callMatch(room, room.spectatorOf(session.playerId) ? 'addSpectator' : 'onReconnect', session.playerId);
       this.sendChatHistory(room, session);
@@ -1083,6 +1088,7 @@ export class Lobby {
    * @param {Room} room @param {string} playerId
    */
   removeMember(room, playerId) {
+    if (room.seatOf(playerId)) cancelVote(this, room);
     const session = this.registry.byId(playerId);
     if (session && session.roomCode === room.code) session.roomCode = null;
     this.clearGrace(playerId);
@@ -1158,6 +1164,7 @@ export class Lobby {
    */
   disposeRoom(room, reason) {
     if (room.disposed) return;
+    cancelVote(this, room);
     room.disposed = true;
     if (this.rooms.get(room.code) === room) this.rooms.delete(room.code);
     const ctx = room.matchCtx;
@@ -1214,10 +1221,12 @@ export class Lobby {
     if (room.disposed) return;
     const data = encode(room.toState());
     for (const session of this.memberSessions(room)) sendRaw(session.ws, data);
+    sendVotes(this, room);
   }
 
   sendState(room, session) {
     sendSession(session, room.toState());
+    sendSession(session, voteFrame(room, session.playerId, this.now()));
   }
 
   /** Match broadcast: encode once, send to every connected member. @returns {string | null} the encoded frame */

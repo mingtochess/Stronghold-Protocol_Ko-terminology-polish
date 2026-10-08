@@ -409,6 +409,8 @@ export const C2S = {
   'room.kick': { seat: (v) => isInt(v, 0, MAX_SEATS - 1), playerId: isId },
   'room.setRerollLimit': { limit: (v) => [0, 1, 3, 5, -1].includes(v) },
   'room.reroll': { matchNo: (v) => isInt(v, 1) },
+  'room.requestRestart': { matchNo: (v) => isInt(v, 1) },
+  'room.answerRestart': { matchNo: (v) => isInt(v, 1), voteId: (v) => isInt(v, 1), agree: (v) => typeof v === 'boolean' },
   'room.start': {},
   // operator loadout (DESIGN §16): stored per session/seat; accepted until the match leaves INFO_CHECK — `ops` (0.2.2):
   // the per-operator 潜能 / 练度 (absent = none set: every operator at 潜能 6, 精英2 Lv.60)

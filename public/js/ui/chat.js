@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from '../../vendor/hooks.module.js';
 import { data, useData } from '../data.js';
 import { bondIconUrl } from './assetUrls.js';
+import { RestartVoteControls } from './restartVote.js';
 import { html } from './components.js';
 import { store, useStore, loadPref, savePref } from '../store.js';
 import { net } from '../net.js';
@@ -119,6 +120,7 @@ export function ChatPanel({room = false}) {
       ${!open && unread ? html`<span class="game-chat__badge" aria-label=${`읽지 않은 메시지 ${unread}개`}>${unread > 99 ? '99+' : unread}</span>` : null}
     </button>`;
   return [html`<aside class=${room ? 'game-chat game-chat--room' : 'game-chat'} aria-label="게임 채팅" onKeyDown=${keyboard} onPointerDown=${(e) => e.stopPropagation()}>
+    <${RestartVoteControls} requestVisible=${open} />
     ${room ? html`<header class="game-chat__room-header"><strong>대기실 채팅</strong></header>` : null}
     ${open ? html`<section class="game-chat__panel" id="game-chat-panel" aria-label="게임 채팅창">
       <header><strong hidden=${room}>게임 채팅</strong><button type="button" class="game-chat__faction-toggle"
