@@ -1,3 +1,16 @@
+import { PUSH_UNBALANCE, PULL_UNBALANCE, PULL_UNBALANCE_WEAK, UNBALANCE_MIN } from './constants.js';
+import { hypot } from './detmath.js';
+function pushUnbalance(level) {
+  const l = Math.round(fin(level, -99));
+  return l <= -3 ? 0 : PUSH_UNBALANCE[Math.min(3, l)];
+}
+function pullUnbalance(level) {
+  const l = Math.round(fin(level, -99));
+  return l <= -3 ? 0 : l < -1 ? PULL_UNBALANCE_WEAK : PULL_UNBALANCE;
+}
+import { wolfView, negView } from './snapshot.js';
+import { isPotential, isCultivate } from '../../shared/potential.js';
+import { installTraitAttackSpeed } from './content/traitMods.js';
 // server/sim/Battle.js — one field simulation (normal / unite / boss / hidden). Public API: DESIGN §5.1.
 //
 //   const b = new Battle({ seed, kind, modeId, round, stage|stageId, rect, timeLimit, players, spawns, routes,
@@ -26,7 +39,7 @@
 // battle continues. After MAX_INTERNAL_ERRORS the battle force-ends as a timeout.
 
 import {visibleSkillAreaKeys} from './skillArea.js';
-import { TICK, ROWS, COLS, BLOCK_RADIUS_SQ, DP_DEFAULTS, DOWN_STATE, FORCED_EXIT, MAX_BATTLE_TIME, MAX_INTERNAL_ERRORS, COLD_FREEZE_DURATION, OBSTACLE_DEVICES, EVENT_BUFFER_CAP, BOSS_ROW_OFFSET, MAX_HOOK_DEPTH, MAX_ALIVE_ENEMIES, LEVITATE_HALF_WEIGHT, RESIST_DEFAULT, RESIST_PALSY_DECAY, PUSH_TILES, PUSH_TILES_EFFECT, PULL_WEAK_SHARE, PULL_CRAWL, PULL_ORIGIN, PULL_STOP_RADIUS, PUSH_DIRECTIONAL_MIN_DIST, AUTO_OP_COOLDOWN, STEALTH_RESTORE } from './constants.js';
+import { TICK, ROWS, COLS, BLOCK_RADIUS_SQ, DP_DEFAULTS, DOWN_STATE, FORCED_EXIT, MAX_BATTLE_TIME, MAX_INTERNAL_ERRORS, COLD_FREEZE_DURATION, OBSTACLE_DEVICES, EVENT_BUFFER_CAP, BOSS_ROW_OFFSET, MAX_HOOK_DEPTH, MAX_ALIVE_ENEMIES, LEVITATE_HALF_WEIGHT, RESIST_DEFAULT, PUSH_TILES, PUSH_TILES_EFFECT, PULL_WEAK_SHARE, PULL_CRAWL, PULL_ORIGIN, PULL_STOP_RADIUS, PUSH_DIRECTIONAL_MIN_DIST, AUTO_OP_COOLDOWN, STEALTH_RESTORE } from './constants.js';
 import { GEO, layerGainRoom } from '../../shared/constants.js';
 import { createRng } from './rng.js';
 import { Grid } from './grid.js';
@@ -155,6 +168,8 @@ export class Battle {
     this.killed = 0;
     this.total = 0;
     this.leakedCount = 0;
+    this.killedInTotal = 0;
+    this.leakedInTotal = 0;
     this.errors = [];
     this.errorCount = 0;
     this._errKeys = new Set();
@@ -208,8 +223,11 @@ export class Battle {
     };
     this.players.push(ps);
     this._perPlayer[ps.playerId] = {
-      killed: 0, total: 0, leaked: [], perfect: true, layerGains: {}, coins: 0,
-      damageDealt: 0, bossDamage: 0, healingDone: 0, deaths: 0, unitsEnd: [], unitStats: [],
+      // `killed` / `total` / `leaked` / `perfect` keep the official `counted` reading (DESIGN §5.1); `killedInTotal` /
+      // `leakedInTotal` are the HUD capsule's counters of this player's own field (only enemies the round scheduled:
+      // spawns.js `_queueSpawn` / `inTotal`, deploy.js), `resolved` is derived from them at result time.
+      killed: 0, total: 0, leaked: [], perfect: true, killedInTotal: 0, leakedInTotal: 0,
+      layerGains: {}, coins: 0, damageDealt: 0, bossDamage: 0, healingDone: 0, deaths: 0, unitsEnd: [], unitStats: [],
     };
     const late = [];
     for (const u of p.units ?? []) {
@@ -291,13 +309,28 @@ export class Battle {
       return u;
     }
     // the unit's own loadout (DESIGN §16): an entry without loadout fields is the DEFAULT — never another player's
-    // choice for the same chess id in a multi-player field (the per-battle data view maps id-only lookups)
-    const def = this.data.getChess(inp.chessId, { skillIndex: inp.skillIndex ?? null, moduleId: inp.moduleId ?? null, ...(inp.skinId ? {skinId: inp.skinId} : {}) });
-    if (!def) { this.log(`unknown chess ${inp.chessId}`); return null; }
+    // choice for the same chess id in a multi-player field (the per-battle data view maps id-only lookups); `standIn:
+    // true` fields the chess as its 补位 stand-in (simdata getStandIn: the stand-in's body, the chess's identity); `diy`
+    // fills a 自选 slot with its pick (simdata getDiy: the slot's identity, the operator's body, skill and module);
+    // `potential` (潜能 1–6, 0.2.2) composes the def at it (never a stand-in's)
+    const lo = { ...(inp.skinId ? {skinId:inp.skinId} : {}), skillIndex: inp.skillIndex ?? null, moduleId: inp.moduleId ?? null };
+    if (inp.standIn === true) lo.standIn = true;
+    if (inp.diy && typeof inp.diy === 'object') lo.diy = inp.diy;
+    if (inp.standIn !== true && isPotential(inp.potential)) lo.potential = inp.potential;
+    const def = this.data.getChess(inp.chessId, lo);
+    if (!def) { this.log(`unknown chess ${inp.chessId}${lo.diy ? ' (illegal 自选 pick)' : ''}`); return null; }
+    // a DIY slot has no body of its own (甄选干员): it fights only as a 自选 piece (its `diy` pick)
+    if (def.raw?.isDiy && !def.diyFor) { this.log(`自选 slot ${inp.chessId} without a pick`); return null; }
     const u = this._makeAlly(ps, def, 'op', r, c, { uid: inp.uid, dir });
     u.placementOrder = Number.isFinite(inp.placementOrder) ? inp.placementOrder : null;
     u.items = [...(inp.items ?? [])];
     u.carry = inp.carryState ?? null;
+    // 练度 (自持有, 0.2.2): the owned operator's ×ATK / ×DEF / ×max HP (units.js Πmul) — never a 补位 stand-in's nor a
+    // prototype 自选 pick's (another character than the one the player owns)
+    if (isCultivate(inp.cultivate) && !def.standInFor && !def.raw?.diyProto && !def.raw?.recruitPrototype && !def.raw?.recruitReserve) {
+      const mul = typeof this.data.cultivateMul === 'function' ? this.data.cultivateMul(inp.cultivate) : null;
+      if (mul) { u.cultivate = inp.cultivate; u.cultMul = Object.freeze({ ...mul }); u.markDirty(); }
+    }
     return u;
   }
 
@@ -365,6 +398,13 @@ export class Battle {
       if (t && typeof t.install === 'function') this._safe(() => t.install(this, u), 'talent.install', u);
     }
     if (typeof u.kit.install === 'function') this._safe(() => u.kit.install(this, u), 'kit.install', u);
+    // trait lines the ENGINE owns for every operator (content/traitMods.js: the module attack-speed riders whose
+    // condition is a pure function of the field — 「攻击范围内存在N名及以上敌人时攻击速度+X」). Runs after kit.install:
+    // a kit that implements its own line for this trait is never double-counted — traitMods.js refuses every condition
+    // shape a kit already owns (`reason: 'kit'`), and the kits whose line it DOES take over (the two REA-Y ones) had
+    // their hand-written copy deleted in the same change. Calling it before kit.install would let a kit's own buff and
+    // this rule both land on the same unit.
+    this._safe(() => installTraitAttackSpeed(this, u), 'traitMods.attackSpeed', u);
     return u.kit;
   }
 
@@ -497,7 +537,7 @@ export class Battle {
     this.finished = true;
     this.reason = reason === 'timeout' ? 'timeout' : 'forced';
     this._endReq = null;
-    try { this._result = this._buildResult(); } catch { this._result = { time: this.time, reason: this.reason, perPlayer: {}, killed: this.killed, total: this.total, errors: this.errorCount }; }
+    try { this._result = this._buildResult(); } catch { this._result = { time: this.time, reason: this.reason, perPlayer: {}, killed: this.killed, total: this.total, resolved: this.resolved, errors: this.errorCount }; }
     this.projectiles.clear();
   }
 
@@ -585,6 +625,9 @@ export class Battle {
     for (const ps of this.players) {
       const pp = this._perPlayer[ps.playerId];
       pp.perfect = !pp.leaked.some((l) => l.counted !== false);
+      // the HUD capsule's numerator of this field (DESIGN §14): this player's own scheduled enemies resolved — knocked
+      // down or leaked (`counted` keeps the LP / 完美作战 reading, runtime splits and summons included)
+      pp.resolved = Math.min(pp.total, pp.killedInTotal + pp.leakedInTotal);
       // the operators and the board's summon pieces (a board uid): 联防 carries an operator's HP ratio and SP, a summon's
       // SP only (match/unite.js). `sp` is the official 技力 — stored charges included (PRTS 技能 "可充能X次…当前技力上限等于该
       // 技能技力需求的X倍"); a running skill spent its SP at activation, so it reports what was left (0 for one charge).
@@ -609,7 +652,7 @@ export class Battle {
       }));
       perPlayer[ps.playerId] = pp;
     }
-    const res = { time: Math.round(this.time * 1000) / 1000, reason: this.reason, perPlayer, killed: this.killed, total: this.total, errors: this.errorCount };
+    const res = { time: Math.round(this.time * 1000) / 1000, reason: this.reason, perPlayer, killed: this.killed, total: this.total, resolved: this.resolved, errors: this.errorCount };
     if (this.unspawned && this.unspawned.length) res.unspawned = this.unspawned;
     if (this.sharedBoss) res.bossHpLeft = Math.max(0, this.sharedBoss.hp);
     return res;
@@ -774,7 +817,11 @@ export class Battle {
         ownerPlayerId: s.ownerPlayerId ?? null, pos: s.pos ?? null, seq: ++this._spawnSeq, countInTotal: s.countInTotal,
       };
       p.counted = p.countInTotal ?? (!(def && def.notCountInTotal) && p.tag !== 'boss' && p.tag !== 'part');
-      if (precount && p.counted) {
+      // inTotal: the enemies THIS STAGE scheduled that count — the HUD capsule's own set (DESIGN §14 "顶栏胶囊"). A
+      // runtime spawn (a split child, a summon, a part, a form change) is never in it, so the capsule's denominator stays
+      // the stage's own enemies while `counted` (LP, 破坏完美作战 and the kill counters) keeps counting them all.
+      p.inTotal = !!p.counted;
+      if (precount && p.inTotal) {
         this.total++;
         const owner = p.ownerPlayerId ?? this._ownerForTile(p.pos ?? this._routeFor(p.routeIndex, p.route)?.start);
         const pp = this._pp(owner);
@@ -876,6 +923,8 @@ export class Battle {
     e.atkCd = 0;
     e.pauseUntil = -Infinity;      // content holds (暴鸰's drop)
     e.atkStandUntil = -Infinity;   // standing for its attack clip (ai.js attackStand)
+    e.unbalanceUntil = -Infinity;  // 失衡 (UNBALANCE) after a push / pull (battle/displacement.js _unbalance, ai.js)
+    e.atkStandCutAt = -Infinity;   // display metadata: when its stand was last cut or ignored (snapshot standCut)
     e.swing = false;               // a normal attack swung, its damage frame not reached yet (ai.js enemyAttack)
     // every enemy profile starts with the same fields (stable object shapes keep the hot loop's property reads fast);
     // `dmgType` null = the data's (content may arm a data-unarmed enemy: ai.js enemyAttack); `blockFree` = its 索敌不受阻挡
@@ -887,7 +936,12 @@ export class Battle {
       if (end) e.route.legs.push({ t: 'move', r: end[0], c: end[1], final: true });
     }
     e.counted = opts.countInTotal ?? (!def.notCountInTotal && e.tag !== 'boss' && e.tag !== 'part');
-    if (e.counted && !opts._precounted) {
+    // inTotal (the HUD capsule's own counter, DESIGN §14): only an enemy the stage scheduled (`_queueSpawn`, which
+    // pre-counts it) — or, for future content, an explicit `opts.inTotal: true` — and that counts. Everything spawned
+    // while the battle runs (a split child, a summon — bosses included —, a part, a 变身 copy) stays out of the capsule's
+    // numerator and denominator, while `counted` (LP, 破坏完美作战, `killed`) keeps counting it as before.
+    e.inTotal = opts.inTotal === true && e.counted;
+    if (e.inTotal && !opts._precounted) {
       this.total++;
       const pp = this._pp(e.ownerId);
       if (pp) pp.total++;
@@ -997,6 +1051,7 @@ export class Battle {
   }
 
   _remove(unit, reason, killer = null, permanent = false, dying = false) {
+    this._cutAttackStand(unit);
     unit.alive = false;
     unit.removeReason = reason;
     unit.deployed = false;
@@ -1036,10 +1091,16 @@ export class Battle {
       this._unblock(unit);
       this._enemiesDirty = true;
       if (reason === 'killed') {
+        const pp = this._pp(unit.ownerId);
         if (unit.counted) {
           this.killed++;
-          const pp = this._pp(unit.ownerId);
           if (pp) pp.killed++;
+        }
+        // the HUD capsule's numerator (DESIGN §14): only the enemies the stage itself scheduled (`inTotal`) — a split
+        // child / summon / part knocked down here is no 已解决 of the stage's own list and moves the capsule not at all
+        if (unit.inTotal) {
+          this.killedInTotal++;
+          if (pp) pp.killedInTotal++;
         }
         if (killer) killer.stats.kills++;
         if (unit.bounty && unit.bounty.coins > 0) {
@@ -1156,6 +1217,13 @@ export class Battle {
       if (e.counted || e.isBoss) pp.perfect = false;
     }
     if (e.counted) this.leakedCount++;
+    // the HUD capsule's leak counter (DESIGN §14): only the stage's own enemies (`inTotal`) — a leaked split child or
+    // summon still costs LP through `counted`/`leakedCount` and still breaks 完美作战, but it is no 漏掉 of the stage's
+    // own list, so the capsule's numerator does not move for it
+    if (e.inTotal) {
+      this.leakedInTotal++;
+      if (pp) pp.leakedInTotal++;
+    }
   }
 
   // =============================================================================================================
@@ -1541,16 +1609,31 @@ export class Battle {
   _applyValuedStatus(target, key, tpl, duration, value, source, stackAs = null) {
     const as = Number.isFinite(stackAs) ? stackAs : null;
     const strength = (v, s = null) => Math.abs(Number.isFinite(s) ? s : Number.isFinite(v) ? v : tpl.valued);
-    // (no stackAs: the very objects of before — data { value, tail }, tails { value, until })
     const entry = (v, s, extra) => (Number.isFinite(s) ? { value: v, stackAs: s, ...extra } : { value: v, ...extra });
+    const after = (tail, until) => {
+      while (tail && tail.until <= until) tail = tail.tail;
+      return tail || null;
+    };
+    const insertTail = (tail, incoming) => {
+      if (!tail) return incoming;
+      const diff = strength(incoming.value, incoming.stackAs) - strength(tail.value, tail.stackAs);
+      if (diff > 1e-12) return { ...incoming, tail: after(tail, incoming.until) };
+      if (diff < -1e-12) {
+        if (incoming.until <= tail.until) return tail;
+        return { ...tail, tail: insertTail(tail.tail, incoming) };
+      }
+      // Equal-priority waiting effects keep the longest-lived application's value, including its stackAs.
+      const kept = incoming.until > tail.until ? incoming : tail;
+      return { ...kept, tail: after(tail.tail, kept.until) };
+    };
     const make = (v, dur, tail, s = null) => ({
       ...(tpl.buff || null),   // extra buff fields of the status (抵抗: the 麻痹 decay tick)
       key, duration: dur, refresh: 'replace', mods: tpl.mods(v), flags: tpl.flags || null, status: tpl.plain ? null : key,
       visible: !tpl.plain, source,
       data: entry(v, s, { tail }),
       onExpire: ({ battle, unit, buff }) => {
-        const t = buff.data.tail;
-        if (t && t.until - battle.time > 1e-6 && unit.alive) battle.addBuff(unit, make(t.value, t.until - battle.time, null, t.stackAs));
+        const t = after(buff.data.tail, battle.time + 1e-6);
+        if (t && unit.alive) battle.addBuff(unit, make(t.value, t.until - battle.time, t.tail || null, t.stackAs));
       },
     });
     const old = target.buffs.find((b) => b.key === key && (tpl.plain || b.status === key));
@@ -1559,17 +1642,17 @@ export class Battle {
     const oldAs = old.data && Number.isFinite(old.data.stackAs) ? old.data.stackAs : null;
     const oldEnd = this.time + old.timeLeft, newEnd = this.time + duration;
     const oldTail = old.data && old.data.tail;
-    const longerTail = (a, b) => (!a ? b : !b ? a : (b.until > a.until ? b : a));
     if (strength(value, as) > strength(oldV, oldAs) + 1e-12) {
-      // stronger: takes over now; the weaker old one (or its tail) resumes if it lasts longer
-      const tail = longerTail(oldEnd > newEnd ? entry(oldV, oldAs, { until: oldEnd }) : null, oldTail && oldTail.until > newEnd ? oldTail : null);
+      // Stronger: take over now, retaining every old effect that can still become active afterwards.
+      const tail = after(entry(oldV, oldAs, { until: oldEnd, tail: oldTail }), newEnd);
       this.addBuff(target, make(value, duration, tail, as));
     } else if (strength(value, as) < strength(oldV, oldAs) - 1e-12) {
-      // weaker: never overrides; remembered as the tail when it outlasts the running one
-      if (newEnd > oldEnd && (!oldTail || newEnd > oldTail.until)) old.data = { ...old.data, value: oldV, tail: entry(value, as, { until: newEnd }) };
+      // Weaker: insert among the waiting effects instead of replacing the one with the latest expiry.
+      if (newEnd > oldEnd) old.data = { ...old.data, value: oldV, tail: insertTail(oldTail, entry(value, as, { until: newEnd })) };
     } else if (duration > old.timeLeft) {
       old.timeLeft = duration;
       old.duration = Math.max(old.duration, duration);
+      old.data.tail = after(oldTail, newEnd);
     }
   }
 
@@ -2054,13 +2137,13 @@ export class Battle {
    * Returns the tiles moved.
    */
   push(e, force, { from = null, dir = null, fixed = false, fixedAngle = false, inward = false, effect = false } = {}) {
-    if (!this._displaceable(e)) return 0;
+    if (!this._displaceable(e)) { this._staticForce(e, force, false); return 0; }
     let level = this.forceLevel(e, force);
     const fx0 = fin(from?.x, e.x), fy0 = fin(from?.y, e.y);
-    const vx = e.x - fx0, vy = e.y - fy0, d = Math.hypot(vx, vy);
+    const vx = e.x - fx0, vy = e.y - fy0, d = hypot(vx, vy);
     let ux = 0, uy = 0;
     const dirX = dir ? fin(dir.x, 0) : 0, dirY = dir ? fin(dir.y, 0) : 0;
-    const dl = Math.hypot(dirX, dirY);
+    const dl = hypot(dirX, dirY);
     if (dl > 0) {
       ux = dirX / dl; uy = dirY / dl;
       if (from && !fixed && (d < PUSH_DIRECTIONAL_MIN_DIST || (!fixedAngle && vx * ux + vy * uy < d * Math.SQRT1_2))) {
@@ -2072,7 +2155,12 @@ export class Battle {
     else return 0;
     let dist = pushTiles(level, effect);
     if (inward && !(dl > 0)) { ux = -ux; uy = -uy; dist = Math.min(dist, Math.max(0, d - PULL_STOP_RADIUS)); }
-    return this.displace(e, { x: ux, y: uy }, dist);
+    // 失衡 for the row's 位移时间 — also when the 特效 column or a wall shortens the slide [ASSUMED for the wall]; a slide a
+    // wall stops at the first step gets the 0.1 s floor, like a body that cannot move [ASSUMED: 碰撞、停止 is 待补充]
+    const hold = pushUnbalance(level);
+    const moved = this.displace(e, { x: ux, y: uy }, dist, { dur: hold });
+    if (hold > 0) this._unbalance(e, moved > 0 ? hold : UNBALANCE_MIN);
+    return moved;
   }
 
   /**
@@ -2082,12 +2170,17 @@ export class Battle {
    * the official 拉力起点 in front of an operator. Returns the tiles moved.
    */
   pull(e, force, { to, center = null, stop = PULL_STOP_RADIUS } = {}) {
-    if (!this._displaceable(e) || !to) return 0;
+    if (!to) return 0;
     // an enemy the puller itself blocks already stands in front of it (at contact) [ASSUMED: no pull, no unblocking]
-    if (center && center.side === 'ally' && e.blockedBy === center) return 0;
+    if (e && center && center.side === 'ally' && e.blockedBy === center) return 0;
+    if (!this._displaceable(e)) { this._staticForce(e, force, true); return 0; }
+    const level = this.forceLevel(e, force);
+    // 失衡 for the force window, whatever the travel: the 急停 zeroes the movement, the state lasts to the window's end
+    const hold = pullUnbalance(level);
+    if (!(hold > 0)) return 0;
     const tx = fin(to.x, e.x), ty = fin(to.y, e.y);
-    const dx = tx - e.x, dy = ty - e.y, d0 = Math.hypot(dx, dy);
-    if (!(d0 > 1e-6)) return 0;
+    const dx = tx - e.x, dy = ty - e.y, d0 = hypot(dx, dy);
+    if (!(d0 > 1e-6)) { this._unbalance(e, hold); return 0; }
     const ux = dx / d0, uy = dy / d0;
     // travel until inside the stop circle around `center` (smaller root of |e + t·u − c| = stop), else up to `to`
     let full = d0;
@@ -2098,9 +2191,10 @@ export class Battle {
       const disc = wu * wu - w2 + r * r;
       if (disc >= 0) { const t = -wu - Math.sqrt(disc); if (t >= 0) full = Math.min(full, t); }
     }
-    const level = this.forceLevel(e, force);
-    const dist = level >= 0 ? full : level === -1 ? Math.min(full, PULL_WEAK_SHARE * d0) : level === -2 ? Math.min(full, PULL_CRAWL) : 0;
-    return dist > 1e-6 ? this.displace(e, { x: ux, y: uy }, dist) : 0;
+    const dist = level >= 0 ? full : level === -1 ? Math.min(full, PULL_WEAK_SHARE * d0) : Math.min(full, PULL_CRAWL);
+    const moved = dist > 1e-6 ? this.displace(e, { x: ux, y: uy }, dist, { dur: hold }) : 0;
+    this._unbalance(e, hold);
+    return moved;
   }
 
   /** Official distance (tiles) a push of 力度 `force` would move `e` on open ground (0 when it cannot be displaced). */
@@ -2134,10 +2228,10 @@ export class Battle {
    * ⇒ no movement (_displaceable). The tiles it may cross follow its movement (`motion`): a hovering enemy walks the
    * ground, so it stays on ground-passable tiles.
    */
-  displace(e, dir, distance) {
+  displace(e, dir, distance, { dur = 0 } = {}) {
     if (!this._displaceable(e) || !dir) return 0;
     const dxv = fin(dir.x, 0), dyv = fin(dir.y, 0);
-    const len = Math.hypot(dxv, dyv);
+    const len = hypot(dxv, dyv);
     if (!(len > 0)) return 0;
     const eff = Math.min(fin(distance, 0), 2 * COLS);
     if (!(eff > 0)) return 0;
@@ -2156,17 +2250,13 @@ export class Battle {
     if (moved > 0) {
       this._unblock(e);
       // 失衡 ends the attack clip it stood for (PRTS 状态机: the states are exclusive — UNBALANCE, then DEFAULT → MOVE)
+      this._cutAttackStand(e);
       e.atkStandUntil = -Infinity;
       if (e.route) e.route.pts = null;
-      const prev = e.mem.visualShift;
-      const k = prev ? Math.max(0, Math.min(1,(this.time-prev[4])/prev[5])) : 1;
-      const sx = prev && k<1 ? prev[0]+(prev[2]-prev[0])*k : fromX;
-      const sy = prev && k<1 ? prev[1]+(prev[3]-prev[1])*k : fromY;
-      e.mem.visualShift = [sx,sy,e.x,e.y,this.time,Math.max(.12,Math.min(.5,moved/12))];
-      e.mem.displacedUntil = this.time + e.mem.visualShift[5];
+      // `dur` (game s): the 失衡 the push / pull gives — the client's slide takes that long (render/units.js slideTo)
+      this.fx('displace', dur > 0 ? { x: e.x, y: e.y, id: e.id, dur } : { x: e.x, y: e.y, id: e.id });
       if(e.mem.attackWindup){delete e.mem.attackWindup;this._ev(['atkCancel',e.id]);}
-      e.atkStandUntil=-Infinity;e.moving=false;
-      this.fx('displace', { x: e.x, y: e.y, id: e.id });
+      e.moving=false;
     }
     return moved;
   }
@@ -2435,6 +2525,9 @@ export class Battle {
       dp: this.players.length ? Math.floor(this.players[0].dp) : 0,
       killed: this.killed,
       total: this.total,
+      // the HUD capsule's numerator (DESIGN §14): the field's own scheduled enemies that are 已解决 (down or leaked).
+      // `killed` above counts every counted knock-out (runtime splits / summons too) and may exceed `total`.
+      resolved: this.resolved,
     };
     if (this.players.length > 1) {
       snap.dps = {};
@@ -2448,16 +2541,25 @@ export class Battle {
       (down || (down = [])).push([u.id, r2(u.respawnAt), r2(Math.max(0, u.respawnAt - u.deathAt)), this._downState(u), ...this.restTile(u)]);
     }
     if (down) snap.down = down;
-    let elem = null;
+    let elem = null, ammo = null, wolves = null, neg = null, stand = null, standCut = null;
+    let listed = null;   // the ids in snap.units, built for the first enemy with a cut to report
     for (const u of this.units) {
+      if (u.side === 'enemy' && u.atkStandCutAt >= 0) {
+        const cutAt = Math.round(u.atkStandCutAt * 1000) / 1000;
+        if (cutAt <= snap.t && (listed || (listed = new Set(snap.units.map((x) => x[0])))).has(u.id)) (standCut || (standCut = [])).push([u.id, cutAt]);
+      }
       if (!u.alive || !u.deployed || u.hidden) continue;
+      const until = Math.round(u.atkStandUntil * 1000) / 1000;
+      if (u.side === 'enemy' && !u.s.flags.fear && !u.s.flags.stun && Number.isFinite(until) && until > snap.t) {
+        (stand || (stand = [])).push([u.id, until]);
+      }
       const v = elementView(u, this.time);
       if (v) (elem || (elem = [])).push([u.id, v[0], v[1], v[2], v[3], r2(u.elem[v[0]] || 0)]);
     }
     if (elem) snap.elem = elem;
-    const ammo = this.units.filter(u => u.alive && u.deployed && !u.hidden && u.skill?.active && u.skill.kind === 'ammo')
+    const ammoList = this.units.filter(u => u.alive && u.deployed && !u.hidden && u.skill?.active && u.skill.kind === 'ammo')
       .map(u => [u.id, Math.max(0, u.skill.ammoLeft), Math.max(1, u.skill.ammoMax || u.skill.ammo || 0, u.skill.ammoLeft)]);
-    if (ammo.length) snap.ammo = ammo;
+    if (ammoList.length) snap.ammo = ammoList;
     const shields = this.units.filter(u => u.alive && u.deployed && !u.hidden && u.s.shield > 0)
       .map(u => [u.id, Math.ceil(u.s.shield)]);
     if (shields.length) snap.shields = shields;
@@ -2476,6 +2578,12 @@ export class Battle {
     snap.snow = this.allyUnits.filter(u=>u.alive&&u.deployed&&u.mem.snow instanceof Map).map(u=>[u.id,[...u.mem.snow].map(([k,n])=>[Math.floor(k/COLS),k%COLS,n])]);
     snap.states = this.units.filter(u => u.alive && u.deployed && !u.hidden).map(u => [u.id,
       [...new Set(u.buffs.filter(b => b.visible).map(b => b.key))]]);
+    if (stand) snap.stand=stand;
+    if (standCut) snap.standCut=standCut;
+    const wolfList=this.units.map(u=>[u.id,wolfView(u)]).filter(([,w])=>w).map(([id,w])=>[id,...w]);
+    if(wolfList.length)snap.wolves=wolfList;
+    const negList=this.units.map(u=>[u.id,negView(u)]).filter(([,n])=>n);
+    if(negList.length)snap.neg=negList;
     return snap;
   }
 
@@ -2572,7 +2680,7 @@ export class Battle {
   allyTargetsInKeys(keys, attacker) {
     const set = this._allyTargets;
     if (!set || !set.size || !keys || !attacker || set.has(attacker)) return [];
-    const ks = keys === attacker.rangeKeys && attacker.rangeKeySet ? attacker.rangeKeySet : new Set(keys);
+    const ks = keys instanceof Set ? keys : (keys === attacker.rangeKeys && attacker.rangeKeySet ? attacker.rangeKeySet : new Set(keys));
     const out = [];
     for (const a of set) if (a.alive && a.deployed && !a.hidden && ks.has(a.tileR * COLS + a.tileC)) out.push(a);
     return out;
@@ -2621,6 +2729,34 @@ export class Battle {
       if (!b.length) this._ebUsed.push(k);
       b.push(e);
     }
+  }
+  _staticForce(e, force, pull = false) {
+    if (!(e && e.alive && e.side === 'enemy' && !e.isBoss && !e.s.flags.noDisplace && e.def && e.def.staticBody)) return;
+    const level = this.forceLevel(e, force);
+    if (level >= -2) this._unbalance(e, pull ? Math.max(UNBALANCE_MIN, pullUnbalance(level)) : UNBALANCE_MIN);
+  }
+
+  _unbalance(e, dur) {
+    if (!(dur > 0) || !e || !e.alive) return;
+    const until = this.time + dur;
+    if (!(e.unbalanceUntil >= until)) e.unbalanceUntil = until;
+    this._cutAttackStand(e);
+    e.atkStandUntil = -Infinity;
+  }
+
+  _cutAttackStand(unit) {
+    if (unit.side === 'enemy' && Number.isFinite(unit.atkStandUntil) && unit.atkStandUntil > this.time) {
+      unit.atkStandCutAt = this.time;
+    }
+  }
+
+  allyTargetsInRadius(x, y, r, attacker) {
+    const set = this._allyTargets;
+    if (!set || !set.size || !attacker || set.has(attacker)) return [];
+    const r2 = r * r + 1e-9;
+    const out = [];
+    for (const a of set) if (a.alive && a.deployed && !a.hidden && (a.x - x) * (a.x - x) + (a.y - y) * (a.y - y) <= r2) out.push(a);
+    return out;
   }
 }
 

@@ -1,3 +1,4 @@
+import { hypot } from '../../detmath.js';
 // server/sim/content/kits/tier2.js — Tier 2 operator kits.
 //
 // export default { [baseChessId]: (bb, chess, def) => Kit } (docs/SIM.md §7.2). Shared helpers live in tier1.js (named
@@ -714,7 +715,7 @@ export default {
           const mn = num(tb.min_dist), mx = num(tb.max_dist, 4), ds = num(tb.damage_scale);
           onHitBy(battle, unit, ({ target, dmg }) => {
             if (!dmg.isAttack) return;
-            const d = Math.hypot(target.x - unit.x, target.y - unit.y);
+            const d = hypot(target.x - unit.x, target.y - unit.y);
             dmg.amount *= 1 + ds * (mx > mn ? Math.max(0, Math.min(1, (d - mn) / (mx - mn))) : 1);
           });
         }

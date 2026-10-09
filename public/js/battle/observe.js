@@ -1,3 +1,4 @@
+
 // Observing rules and labels of client-side combat (research 09 §3.1 / §6.3, DESIGN §14 "Spectating") — pure helpers
 // for the game screen, the team panel and the combat HUD (mirror of server/match/Match.js _watchClient):
 //   * prep (休整期): tap a teammate → 前往查看 → their board (read-only);

@@ -1,7 +1,8 @@
+import { hypot } from '../../detmath.js';
 // Ursus operators: explicit specs for every selectable skill; values come from each loadout's official record.
 import {num,talentBb,traitBb,batMod} from './tier1.js';
 import {performAttack,effectiveProfile,acquireTargets} from '../../ai.js';
-import {sortEnemyTargets} from '../../targeting.js';
+
 import * as S from '../support/index.js';
 const STUDENTS=new Set(['char_196_sunbr','char_195_glassb','char_197_poca','char_194_leto','char_115_headbr','char_1051_headb2']);
 export const student=u=>STUDENTS.has(u.def?.raw?.charId);
@@ -39,7 +40,7 @@ export function ukusikChain({battle:b,unit:u,target,amount}){
 export function imperialPlatforms(b,u,x,y,{radius=1,depth=0,multiplier=1,bind=0,sp=0}={}){
  const t=talentBb(u.def.raw),queue=[],seen=new Set();
  const high=(r,c)=>b.grid.inRect(r,c)&&b.grid.tile(r,c).height==='HIGH';
- for(let r=Math.floor(y-radius);r<=Math.ceil(y+radius);r++)for(let c=Math.floor(x-radius);c<=Math.ceil(x+radius);c++)if(Math.hypot(c-x,r-y)<=radius+1e-9&&high(r,c))queue.push([r,c,0]);
+ for(let r=Math.floor(y-radius);r<=Math.ceil(y+radius);r++)for(let c=Math.floor(x-radius);c<=Math.ceil(x+radius);c++)if(hypot(c-x,r-y)<=radius+1e-9&&high(r,c))queue.push([r,c,0]);
  let hits=0;
  for(let i=0;i<queue.length;i++){
   const [r,c,d]=queue[i],key=r*S.COLS+c;if(seen.has(key))continue;seen.add(key);hits++;

@@ -1,3 +1,10 @@
+import { lanUrls as dualStackLanUrls } from './http/boot.js';
+
+
+
+
+
+
 // server/index.js — process entry & boot (DESIGN §1, §2).
 //
 //   * node:http static server:  /        → public/      (index.html for directories)
@@ -613,7 +620,7 @@ function makeLogger(quiet) {
  */
 export async function startServer(opts = {}) {
   const port = opts.port ?? (process.env.PORT != null && process.env.PORT !== '' ? Number(process.env.PORT) : 3000);
-  const host = opts.host ?? process.env.HOST ?? '0.0.0.0';
+  let host = opts.host ?? process.env.HOST ?? '::';
   if (!Number.isInteger(port) || port < 0 || port > 65535) throw new RangeError(`invalid PORT ${port}`);
   const log = opts.log || makeLogger(!!opts.quiet);
   const publicDir = opts.publicDir || path.join(ROOT, 'public');
@@ -706,13 +713,23 @@ export async function startServer(opts = {}) {
   });
 
   try {
-    await new Promise((resolve, reject) => {
-      const onError = (e) => { server.off('listening', onListening); reject(e); };
-      const onListening = () => { server.off('error', onError); resolve(); };
-      server.once('error', onError);
-      server.once('listening', onListening);
-      server.listen(port, host);
-    });
+    const candidates = opts.host == null && process.env.HOST == null ? ['::', '0.0.0.0'] : [host];
+    for (const candidate of candidates) {
+      host = candidate;
+      try {
+        await new Promise((resolve, reject) => {
+          const onError = (e) => { server.off('listening', onListening); reject(e); };
+          const onListening = () => { server.off('error', onError); resolve(); };
+          server.once('error', onError);
+          server.once('listening', onListening);
+          server.listen(port, host);
+        });
+        break;
+      } catch (error) {
+        if (candidate !== candidates.at(-1) && ['EAFNOSUPPORT', 'EADDRNOTAVAIL', 'EINVAL'].includes(error.code)) continue;
+        throw error;
+      }
+    }
   } catch (e) {
     network.close(); // stop heartbeat/sweep timers of the half-built server
     throw e;
@@ -769,7 +786,7 @@ async function main() {
   console.log(`\n  卫戍协议：盟约 · Stronghold Protocol: Alliance v${APP_VERSION}`);
   console.log(`  Local:   ${srv.url}`);
   if (srv.host === '0.0.0.0' || srv.host === '::') {
-    for (const u of lanUrls(srv.port)) console.log(`  LAN:     ${u}`);
+    for (const u of dualStackLanUrls(srv.port)) console.log(`  LAN:     ${u}`);
   }
   console.log('  Internet: cloudflared tunnel --url ' + `http://localhost:${srv.port}` + '\n');
 

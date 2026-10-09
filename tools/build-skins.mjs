@@ -1,5 +1,5 @@
 // Local costume catalog: metadata up front, images/models lazily cached by the preview server.
-import {readFile,writeFile,mkdir} from 'node:fs/promises';
+import {readFile,writeFile,mkdir,statfs} from 'node:fs/promises';
 import {join} from 'node:path';
 import {RAW} from './assets/sources.mjs';
 import {parseSkel} from './assets/skel.mjs';
@@ -9,11 +9,11 @@ import {spineAttackTiming} from '../shared/attackTiming.js';
 export async function buildSkins(root,dir){
  const read=async p=>JSON.parse(await readFile(p,'utf8'));
  const zh=await read(join(root,'.cache/skins/zh.json')),ko=await read(join(root,'.cache/skins/ko.json'));
- const chess=await read(join(dir,'chess.json')),assets=await read(join(dir,'assets.json'));const chars=new Set(Object.values(chess).map(c=>c.charId));
+ const chess=await read(join(dir,'chess.json')),assets=await read(join(dir,'assets.json'));const chars=new Set(Object.values(chess).filter(c=>c.globalReleased!==false).map(c=>c.charId));
  const candidates=Object.values(zh.charSkins).filter(s=>chars.has(s.charId)&&s.displaySkin?.skinName);
  const files=[],catalog=new Map();let done=0,missing=0;
  await mkdir(join(root,'.cache/skin-metadata'),{recursive:true});
- async function cached(url){const path=join(root,'.cache/skin-metadata',Buffer.from(url).toString('base64url'));try{return await readFile(path)}catch{}const r=await fetch(url,{signal:AbortSignal.timeout(12000)});if(!r.ok)throw Error(`${r.status}`);const b=Buffer.from(await r.arrayBuffer());await writeFile(path,b);return b;}
+ async function cached(url){const path=join(root,'.cache/skin-metadata',Buffer.from(url).toString('base64url'));try{return await readFile(path)}catch{}const r=await fetch(url,{signal:AbortSignal.timeout(12000)});if(!r.ok)throw Error(`${r.status}`);const b=Buffer.from(await r.arrayBuffer());const disk=await statfs(root);if(disk.bavail*disk.bsize>b.length+16*1024*1024)await writeFile(path,b);return b;}
  async function model(s,id,side,folder=side){
   const file=s.battleSkin.skinOrPrefabId.replace(/#/g,'_'),base=`${RAW.fexli}spine/${s.charId}/${file}/${folder}/`;
   const [bytes,atlas]=await Promise.all([cached(base+file+'.skel'),cached(base+file+'.atlas')]);

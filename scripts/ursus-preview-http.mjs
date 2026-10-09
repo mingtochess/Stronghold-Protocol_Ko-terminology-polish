@@ -22,7 +22,7 @@ export async function previewHandler(root,port){
  const handle=async(req,res)=>{
   const path=new URL(req.url,'http://localhost').pathname;
   if(path==='/dev/patch-resources.json'){json(res,{paths:[...files.keys()]});return true}
-  if(path==='/dev/ursus-config.json'){json(res,{httpTransport:true,lazyResources:true});return true}
+  if(path==='/dev/ursus-config.json'){json(res,{httpTransport: !/^(127\.0\.0\.1|localhost)(:\d+)?$/.test(req.headers.host || ''),lazyResources:true});return true}
   if(path==='/dev/ursus-transport'){
    if(req.method!=='POST'){json(res,{error:'POST required'},405);return true}
    let size=0,body='';for await(const chunk of req){size+=chunk.length;if(size>131072){json(res,{error:'Too large'},413);return true}body+=chunk}

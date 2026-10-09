@@ -1,3 +1,63 @@
+
+import { checkLoadoutOps, cultivationCharIds } from '../../shared/protocol.js';
+import { cultivationOf } from '../../shared/potential.js';
+const OPS_IDS = new WeakMap();
+function opsCharIds(raw) {
+  if (!raw || typeof raw !== 'object') return new Set();
+  let ids = OPS_IDS.get(raw);
+  if (!ids) { ids = cultivationCharIds(raw.chess, raw.backups); OPS_IDS.set(raw, ids); }
+  return ids;
+}
+
+
+import { diyTokenOwner } from '../../shared/diy.js';
+import { atPotential } from '../../shared/potential.js';
+const posIntOr = (v, d) => (Number.isInteger(v) && v > 0 ? v : d);
+const isObj = (v) => !!v && typeof v === 'object' && !Array.isArray(v);
+function diyGameData(gd, records) {
+  const view = Object.create(gd);
+  const backups = isObj(gd.raw && gd.raw.backups) ? gd.raw.backups : null;
+  const diyTokens = backups && isObj(backups.tokens) ? backups.tokens : {};
+  const tokenOf = (id) => (typeof id === 'string' && Object.hasOwn(diyTokens, id) && isObj(diyTokens[id]) ? diyTokens[id] : null);
+  Object.defineProperties(view, {
+    /** the match's own GameData (the view is per player) */
+    matchData: { value: gd },
+    chess: { value: (id) => (typeof id === 'string' && records.has(id) ? records.get(id) : gd.chess(id)) },
+    token: { value: (id) => gd.token(id) || tokenOf(id) },
+    /**
+     * GameData.placeableTokens for a slotted slot: the summons its record lists (the pick's skill and talents) that are
+     * placeable, by the variant of the owner form (`bySkill[skillIndex]` sources) — the deploy limit as the count (PRTS
+     * 卫戍协议/帮助 "根据召唤物部署数量上限（非初始持有量）"), the active module's own when its variant has one (`byModule`:
+     * 望's TRP-X "可同时部署的陷阱数量提升", 6 → 7 棋子; SUM-Y stage 2+ 4 drones / summons). The data's deploy limit holds the
+     * token's own talent additions (tools/build-data.mjs tokenTalentDeckBonus, 0.2.0): 麦哲伦 / 令 / 电弧 3, 白铁 2, 夜莺 3 幻影 —
+     * at the owner's potential (`loadout.potential`, PlayerState.loadoutFor; 0.2.2: 望's 棋子 6 below 潜能3, 7 from it).
+     */
+    placeableTokens: {
+      value: (chessId, loadout = null) => {
+        const rec = typeof chessId === 'string' && records.has(chessId) ? records.get(chessId) : null;
+        if (!rec) return gd.placeableTokens(chessId, loadout);
+        const owner = diyTokenOwner(rec.charId, rec.status);
+        const out = [];
+        for (const tid of Array.isArray(rec.tokens) ? rec.tokens : []) {
+          const t = tokenOf(tid);
+          if (!t || t.kind !== 'summon' || t.placeable !== true) continue;
+          const v = isObj(t.variants) ? atPotential(t.variants[owner] ?? null, loadout?.potential) : null;
+          if (v) {
+            const alt = loadout && Number.isInteger(loadout.skillIndex) && v.bySkill ? v.bySkill[loadout.skillIndex] : null;
+            const src = Array.isArray(alt?.sources) ? alt.sources : Array.isArray(v.sources) ? v.sources : [];
+            if (!src.includes('talent') && !src.includes('skill')) continue;
+          }
+          const mid = rec.module && rec.module.active ? rec.module.id : null;
+          const vm = v && mid && isObj(v.byModule) ? v.byModule[mid] ?? null : null;
+          out.push({ tokenId: tid, count: Math.min(posIntOr(vm?.stats?.deployLimit, posIntOr(v?.stats?.deployLimit, posIntOr(t.deployLimit, 1))), 9) });
+        }
+        return out;
+      },
+    },
+  });
+  return view;
+}
+import { bountyCard } from './choices.js';
 // server/match/PlayerState.js — authoritative per-player state + every prep intent handler (DESIGN §6.2).
 //
 // Handlers validate → mutate → recompute bonds → mark the private view dirty. They never throw on bad input; they
@@ -115,7 +175,9 @@ export class PlayerState {
     this.chatFaction = null;
     /** operator loadout (DESIGN §16): frozen { [baseChessId]: { skill, module } }, {} = every chess on its defaults */
     this.loadout = Object.freeze({});
-    if (!this.isBot && seat.loadout) this.setLoadout(seat.loadout);
+    this.ops = Object.freeze({});
+    this.personalChoice = null;
+    if (!this.isBot && (seat.loadout || seat.ops)) this.setLoadout(seat.loadout ?? null, seat.ops ?? null);
     this.shop = { level: 1, upgradePrice: this.gd.upgradeBase(1) ?? 0, slots: [], frozen: false, freeRefreshes: 0 };
     /** reward offers queue (merge rewards, special refreshes): { tier, source, label, slots: [{ kind, id, price, sold }] } */
     this.offers = [];
@@ -213,8 +275,27 @@ export class PlayerState {
    * @param {any} loadout
    * @returns {boolean}
    */
-  setLoadout(loadout) {
+  setLoadout(loadout, ops = undefined) {
     if (this.isBot) return false;
+    let opsRes = null;
+    if (ops !== undefined) {
+      const raw = {};
+      if (ops && typeof ops === 'object' && !Array.isArray(ops)) {
+        for (const [id, e] of Object.entries(ops)) {
+          if (!e || typeof e !== 'object') continue;
+          const x = {};
+          if (Number.isInteger(e.potential)) x.potential = e.potential;
+          if (Number.isInteger(e.cultivate)) x.cultivate = e.cultivate;
+          if (Object.keys(x).length) raw[id] = x;
+        }
+      }
+      const ids = opsCharIds(this.gd.raw);
+      opsRes = checkLoadoutOps(raw, (id) => ids.has(id));
+      if (!opsRes || !opsRes.ok) {
+        this.m.log?.warn?.(`[match ${this.m.roomCode}] operator settings of ${this.playerId} ignored: ${opsRes && opsRes.detail}`);
+        return false;
+      }
+    }
     const entries = {};
     if (loadout && typeof loadout === 'object' && !Array.isArray(loadout)) {
       for (const [id, e] of Object.entries(loadout)) {
@@ -239,6 +320,11 @@ export class PlayerState {
     const out = {};
     for (const [id, e] of Object.entries(res.loadout)) out[id] = Object.freeze({ skill: e.skill, module: e.module ?? null, ...(e.selected ? {selected:true} : {}), ...(e.skin ? {skin:e.skin} : {}) });
     this.loadout = Object.freeze(out);
+    if (opsRes) {
+      const o = {};
+      for (const [id, e] of Object.entries(opsRes.ops)) o[id] = Object.freeze({ potential: e.potential, cultivate: e.cultivate });
+      this.ops = Object.freeze(o);
+    }
     return true;
   }
 
@@ -255,7 +341,8 @@ export class PlayerState {
   }
 
   loadoutFor(chessRecord) {
-    return resolveLoadout(this.loadout, chessRecord, (id) => this.gd.chess(id));
+    const cv = this.cultivationFor(chessRecord);
+    return { ...resolveLoadout(this.loadout, chessRecord, (id) => this.gd.chess(id)), potential: cv?.potential ?? null, cultivate: cv?.cultivate ?? null };
   }
 
   /**
@@ -895,9 +982,8 @@ export class PlayerState {
     if (nChess <= layout.chess && nItem <= layout.item) return;
     const chess = old.slice(0, layout.chess);
     const items = old.slice(layout.chess);
-    const fresh = (s) => { if (s) s.frozen = this.shop.frozen; return s; };
-    while (chess.length < nChess) chess.push(fresh(this._rollChessSlot()));
-    while (items.length < nItem) items.push(fresh(this._rollItemSlot()));
+    while (chess.length < nChess) chess.push(null);
+    while (items.length < nItem) items.push(null);
     this.shop.slots = [...chess, ...items];
     this.shop.layout = { chess: chess.length, item: items.length };
   }
@@ -1003,7 +1089,9 @@ export class PlayerState {
     if (loc.piece.kind !== 'chess') return fail(ERR.BAD_TARGET, loc.piece.kind === 'item' ? 'items cannot be sold' : 'tokens cannot be sold');
     const piece = loc.piece;
     // its equipment returns to the hand (overflow temp): refuse rather than destroy it when there is no room
-    const room = this.hand.filter((x) => x == null).length + this.temp.filter((x) => x == null).length + (loc.area === 'hand' || loc.area === 'temp' ? 1 : 0);
+    // Removing the owner's summon stacks frees one slot per stack, regardless of its summon count.
+    const freed = (x) => x == null || (x.kind === 'token' && x.ownerUid === piece.uid);
+    const room = this.hand.filter(freed).length + this.temp.filter(freed).length + (loc.area === 'hand' || loc.area === 'temp' ? 1 : 0);
     if ((piece.items || []).length > room) return fail(ERR.HAND_FULL, 'no room for the equipment');
     this._detach(loc);
     this.removeTokensOf(piece.uid);
@@ -1477,6 +1565,7 @@ export class PlayerState {
   setReady(on) {
     if (!this.alive) return fail(ERR.ELIMINATED);
     if (this.m.phase !== PHASE.PREP) return fail(ERR.WRONG_PHASE);
+    if (on && this.personalChoice) return fail(ERR.BAD_TARGET, '请先完成教鞭选择'); // i18n-ignore: developer error detail
     if (on && !this.tempEmpty) return fail(ERR.TEMP_NOT_EMPTY);
     if (this.ready === !!on) return OK;
     this.ready = !!on;
@@ -1568,6 +1657,7 @@ export class PlayerState {
     this._tempDue.clear();
     this.offers = [];
     this.bounties = [];
+    this.personalChoice = null;
     this.shop.slots = [];
     this.funds = 0;
     this.pendingFunds = 0;
@@ -1627,6 +1717,8 @@ export class PlayerState {
         u.skillIndex = lo.skillIndex;
         u.moduleId = lo.moduleId;
         if(lo.skinId)u.skinId=lo.skinId;
+        const cv = this.cultivationFor(this.gd.chess(piece.id));
+        if (cv) {u.potential=cv.potential;u.cultivate=cv.cultivate;}
         if (carry && carry.has(piece.uid)) u.carryState = carry.get(piece.uid);
         units.push(u);
       } else if (piece.kind === 'token') {
@@ -1708,7 +1800,13 @@ export class PlayerState {
       funds: this.funds,
       bandId: this.bandId,
       ready: this.ready,
-      canReady: this.alive && this.tempEmpty && this.m.phase === PHASE.PREP,
+      canReady: this.alive && this.tempEmpty && !this.personalChoice && this.m.phase === PHASE.PREP,
+      personalChoice: this.personalChoice ? {
+        id: this.personalChoice.id,
+        round: this.personalChoice.round,
+        sourceItemId: this.personalChoice.sourceItemId,
+        cards: this.personalChoice.cards.map((c) => bountyCard(this.gd, c)),
+      } : null,
       shop: {
         level: this.shop.level,
         maxLevel: this.gd.maxShopLevel,
@@ -1732,11 +1830,17 @@ export class PlayerState {
       nextEnemies: this.m.nextEnemiesFor(this),
       // DESIGN §16: the effective operator loadout ({ [baseChessId]: { skill, module } }; chess not listed use defaults)
       loadout: this.loadout,
+      ops: this.ops,
       stats: {
         dmgDealt: Math.round(this.stats.dmgDealt), kills: this.stats.kills, leaks: this.stats.leaks, gold: this.stats.gold,
         refreshes: this.stats.refreshes, merges: this.stats.merges,
       },
     };
+  }
+  cultivationFor(chessRecord) {
+    if (!chessRecord || chessRecord.recruitPrototype || chessRecord.recruitReserve) return null;
+    const rec = chessRecord.isDiy && typeof chessRecord.chessId === 'string' ? this.gd.chess(chessRecord.chessId) || chessRecord : chessRecord;
+    return cultivationOf(rec, this.ops);
   }
 }
 

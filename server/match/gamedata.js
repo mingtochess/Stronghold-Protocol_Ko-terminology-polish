@@ -1,3 +1,4 @@
+import { atPotential } from '../../shared/potential.js';
 // server/match/gamedata.js — typed, defaulted view of data/*.json for the match engine.
 //
 // Every lookup is an own-property lookup (ids come from client intents) that never throws and returns null for
@@ -495,7 +496,7 @@ export class GameData {
       const t = this.token(tid);
       if (!t || t.kind !== 'summon' || t.placeable !== true) continue;
       const vs = t.variants && typeof t.variants === 'object' ? t.variants : {};
-      const v = vs[chessId] ?? vs[String(chessId).replace(/_b$/, '_a')] ?? null;
+      const v = atPotential(vs[chessId] ?? vs[String(chessId).replace(/_b$/, '_a')] ?? null, loadout?.potential);
       if (v) {
         const alt = loadout && Number.isInteger(loadout.skillIndex) && v.bySkill ? v.bySkill[loadout.skillIndex] : null;
         const src = Array.isArray(alt?.sources) ? alt.sources : Array.isArray(v.sources) ? v.sources : [];

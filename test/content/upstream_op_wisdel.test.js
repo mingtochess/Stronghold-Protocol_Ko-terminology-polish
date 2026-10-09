@@ -137,13 +137,16 @@ test('T1 好礼: each aftershock on a marked enemy goes off 15 % of the time —
     h.b.addBuff(u, { key: 'test:disarm', flags: { disarm: true } });
     h.run(2);
     main.buffs = main.buffs.filter((b) => b.key !== markKey(u));
-    const e = h.spawn('enemy_dummy', { pos: [10, 7] });
+    // Keep this target outside the earlier targets' 1.1-tile explosions: its own mark must be consumed.
+    const e = h.spawn('enemy_dummy', { pos: [10, 5] });
     h.b.addBuff(e, { key: markKey(u), source: u });
+    let markSpentAtExplosion = false;
+    h.b.on('damaged', c => { if(c.source===u && c.target===e && tag(c,'wisdel:bomb')) markSpentAtExplosion ||= !e.findBuff(markKey(u)); });
     h.b.removeBuff(u, 'test:disarm');
     assert.ok(h.runUntil(() => on(h, e).some((c) => tag(c, 'wisdel:bomb')), 200), `${label(f)}: it goes off on a marked one`);
     const b = on(h, e).find((c) => tag(c, 'wisdel:bomb'));
     approx(b.amount, u.s.atk * t0['attack@bomb_atk_scale'], `${label(f)}: ×${t0['attack@bomb_atk_scale']}`);
-    assert.ok(!e.findBuff(markKey(u)) || on(h, e).filter((c) => c.t > b.t && !tag(c, 'wisdel:bomb')).length > 0, `${label(f)}: spent (or re-marked by a later attack)`);
+    assert.ok(markSpentAtExplosion, `${label(f)}: the explosion spends its mark before a shadow can reapply it`);
     h.b.addBuff(e, { key: markKey(u), source: u });
     h.b.retreat(u);
     assert.ok(!e.findBuff(markKey(u)) && !main.findBuff(markKey(u)), `${label(f)}: her 残影 leave with her`);

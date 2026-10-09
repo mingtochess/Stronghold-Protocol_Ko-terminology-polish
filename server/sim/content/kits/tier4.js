@@ -1,3 +1,4 @@
+import { hypot } from '../../detmath.js';
 // server/sim/content/kits/tier4.js — hand-authored kits for every tier-4 chess (26: 22 visible + 4 hidden).
 // export default { [baseChessId]: (bb, chess, def) => Kit }  (docs/SIM.md §7.2). The same kit serves the elite
 // (精锐 `_b`) id: `bb` is the Lv4 / Lv7 skill blackboard, talent/trait blackboards come from `def` (module talent and
@@ -233,7 +234,7 @@ const kits = {
               const n = num(bb.charge, 1);
               const cand = battle.alliesInRadius(unit.x, unit.y, 1.5, unit.ownerId)
                 .filter((a) => a !== unit && a.kind === 'op' && nationOf(a) === 'laterano' && a.skill && a.skill.active && a.skill.kind === 'ammo')
-                .sort((a, b) => Math.hypot(a.x - unit.x, a.y - unit.y) - Math.hypot(b.x - unit.x, b.y - unit.y) || a.id - b.id);
+                .sort((a, b) => hypot(a.x - unit.x, a.y - unit.y) - hypot(b.x - unit.x, b.y - unit.y) || a.id - b.id);
               if (!cand[0] || !(n > 0)) return;
               cand[0].skill.addAmmo(n);
               battle.fx('reload', { x: cand[0].x, y: cand[0].y, id: cand[0].id, n });
@@ -661,7 +662,7 @@ const kits = {
           for (const k of unit.rangeKeys || []) {
             const r = (k / COLS) | 0, c = k % COLS;
             if (!freeTile(battle, r, c)) continue;
-            const d = Math.hypot(c - ref.x, r - ref.y) + (battle.grid.groundPassable(r, c) ? 0 : 5);
+            const d = hypot(c - ref.x, r - ref.y) + (battle.grid.groundPassable(r, c) ? 0 : 5);
             if (d < bd - 1e-9) { bd = d; best = [r, c]; }
           }
           if (!best) return;
@@ -936,7 +937,7 @@ const kits = {
           const lo = num(tb.min_dist, 0), hi = num(tb.max_dist, 4);
           battle.on('hit', (c) => {
             if (c.source !== unit || !c.dmg.isAttack) return;
-            const d = Math.hypot(c.target.x - unit.x, c.target.y - unit.y);
+            const d = hypot(c.target.x - unit.x, c.target.y - unit.y);
             c.dmg.mul *= 1 + ds * Math.max(0, Math.min(1, (d - lo) / Math.max(1e-6, hi - lo)));
           }, { owner: unit });
         }
@@ -992,7 +993,7 @@ const kits = {
     };
     // module HOK-Y: "向自身拖拽较远的敌人时力度提升一个等级"
     const farR = num(mb['skill@range_radius'], num(mb['attack@range_radius'], 0)), farF = num(mb['skill@delta_force'], num(mb['attack@delta_force'], 0));
-    const selfForce = (unit, e, f) => (farR > 0 && farF > 0 && Math.hypot(e.x - unit.x, e.y - unit.y) > farR + 1e-9 ? f + farF : f);
+    const selfForce = (unit, e, f) => (farR > 0 && farF > 0 && hypot(e.x - unit.x, e.y - unit.y) > farR + 1e-9 ? f + farF : f);
     const pullSelf = (battle, unit, e, f) => { if (e && e.alive) dragDmg(battle, unit, e, pullToFront(battle, unit, e, selfForce(unit, e, f))); };
     return {
       skills: alt(def, {
@@ -1670,7 +1671,7 @@ const kits = {
         battle.on('hit', (c) => {
           if (c.source !== unit || !c.dmg.isAttack) return;
           if (S3 && skillActive(unit) && unit.baseRangeKeys && !bodyInKeys(c.target, unit.baseRangeKeys)) c.dmg.mul *= num(bb.damage_scale, 1.25);
-          if (ds > 0) { const d = Math.hypot(c.target.x - unit.x, c.target.y - unit.y); c.dmg.mul *= 1 + ds * Math.max(0, Math.min(1, (d - lo) / Math.max(1e-6, hi - lo))); }
+          if (ds > 0) { const d = hypot(c.target.x - unit.x, c.target.y - unit.y); c.dmg.mul *= 1 + ds * Math.max(0, Math.min(1, (d - lo) / Math.max(1e-6, hi - lo))); }
         }, { owner: unit });
       },
     };

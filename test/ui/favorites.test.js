@@ -23,3 +23,12 @@ test('optional recruits never appear in favorite filters or receive a favorite m
  assert.deepEqual(filterFavoriteOperators([{name:'선발',optionalRecruit:true},{name:'일반'}]),[{name:'일반'}]);
  const old=favoritesStore.get();try{favoritesStore.set({active:'p',presets:[{id:'p',operators:['recruit'],items:[]}]});assert.equal(isFavorite('chess','recruit',()=>({optionalRecruit:true})),false);}finally{favoritesStore.set(old);}
 });
+
+
+test('global unreleased operators stay out of selection lists without changing loadout validity',async()=>{
+ const {rosterOf,isLoadoutSlot}=await import('../../public/js/ui/loadoutModel.js');
+ const {filterFavoriteOperators}=await import('../../public/js/ui/favorites.js');
+ const released={chessId:'released',baseId:'released',name:'출시',visible:true};
+ const unreleased={chessId:'unreleased',baseId:'unreleased',name:'미출시',visible:true,globalReleased:false};
+ assert.deepEqual(rosterOf([released,unreleased]),[released]);assert.deepEqual(filterFavoriteOperators([released,unreleased]),[released]);assert.ok(isLoadoutSlot(unreleased),'existing battle/loadout records remain valid');
+});

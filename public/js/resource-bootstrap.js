@@ -14,8 +14,8 @@ async function message(type, onProgress) {
 
 async function boot() {
   const preview=await fetch('/dev/ursus-config.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).catch(()=>null);
-  if(preview?.httpTransport){
-    const [{net},{PreviewSocket}]=await Promise.all([import('./net.js'),import('../dev/ursus-http-socket.js')]);net.WS=PreviewSocket;
+  if(preview?.lazyResources){
+    const [{net},{PreviewSocket}]=await Promise.all([import('./net.js'),import('../dev/ursus-http-socket.js')]);if(preview.httpTransport)net.WS=PreviewSocket;
     if('serviceWorker' in navigator){const reg=await navigator.serviceWorker.register('/dev/ursus-resource-worker.js',{scope:'/'});if(reg.installing)await new Promise(resolve=>{const worker=reg.installing;worker.addEventListener('statechange',()=>{if(worker.state==='activated'||worker.state==='redundant')resolve();});});await navigator.serviceWorker.ready;if(!navigator.serviceWorker.controller||!navigator.serviceWorker.controller.scriptURL.endsWith('/dev/ursus-resource-worker.js'))await new Promise(resolve=>navigator.serviceWorker.addEventListener('controllerchange',resolve,{once:true}));}
     document.getElementById('resource-fonts').href='/fonts/fonts.css';await import('./main.js');navigator.serviceWorker?.controller?.postMessage({type:'warmPatch'});return;
   }

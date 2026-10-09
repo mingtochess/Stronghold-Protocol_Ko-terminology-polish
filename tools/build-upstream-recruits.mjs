@@ -1,3 +1,4 @@
+import {withPotentialData} from './build-data.mjs';
 // Compose upstream DIY forms into stable local recruit identities; the existing per-player editor and draft sync remain intact.
 import {buildRecruitResources} from './build-recruit-resources.mjs';
 import {readFile,writeFile} from 'node:fs/promises';
@@ -24,7 +25,9 @@ export async function buildUpstreamRecruits(root,dir){
    const lock=prototype?backups.diy.locked[tier][cid]:null;
    const index=lock?.skillIndex??legacy.find(o=>o.charId===cid)?.skillIndex??form.skills.at(-1)?.index;
    const moduleId=lock?.uniEquipId??form.modules?.find(isDiyModule)?.uniEquipId??null;
-   const rec=composeUnitRecord(slot,unit,form,{skillIndex:index,moduleId,bonds:backups.diy.operators[cid].bonds});if(!rec?.skill)throw Error(`Missing upstream recruit ${cid}/${tier}`);
+   const errors=[];
+   const rec=withPotentialData(Array.from({length:6},(_,rank)=>composeUnitRecord(slot,unit,form,{skillIndex:index,moduleId,potential:rank+1,bonds:backups.diy.operators[cid].bonds})),cid,errors);
+   if(errors.length)throw Error(errors.join('\n'));if(!rec?.skill)throw Error(`Missing upstream recruit ${cid}/${tier}`);
    const base=`chess_custom_recruit_${key}_${tier}_a`,id=base.replace(/_a$/,elite?'_b':'_a');
    Object.assign(rec,{chessId:id,baseId:base,goldenId:base.replace(/_a$/,'_b'),upgradeChessId:elite?null:base.replace(/_a$/,'_b'),identifier:20000+ids.indexOf(cid)*4+(tier-5)*2+Number(elite),isDiy:false,chessType:'NORMAL',visible:true,isHidden:false,optionalRecruit:true,recruitSource:'upstream-0.2.1',recruitSlot:slot.baseId,recruitPrototype:prototype,recruitReserve:prototype&&tier===5&&!backups.diy.prototypes[6].includes(cid),garrisonIds:[],shopSortId:200+ids.indexOf(cid)});
 

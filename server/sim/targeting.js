@@ -193,7 +193,12 @@ const PRIORITY_FNS = {
 };
 
 /**
- * Sort candidate enemies for an attacker (in place) and return them.
+ * Sort candidate enemies for an attacker (in place) and return them: the enemies it blocks first (the user's rule after
+ * playtest #6, "阻挡了就一定要能打到", for every blocker — DESIGN §20.3), then the special priority, taunt, the remaining
+ * route, the spawn order. One exception, the owner's decision of 2026-10-08 (GitHub #220 by TsangAsuna, #205): the 速射手 air priority
+ * (trait 优先攻击空中单位 — priority 'fly', a skill's too) comes before its own blocked enemy, so a 速狙 on a melee tile
+ * blocking a ground enemy shoots the flyer in its range (PRTS 索敌的概念 「阻挡（近战限定）→特殊优先级→…」); every other
+ * priority keeps the blocked enemy first.
  * @param {object} attacker ally unit
  * @param {object[]} cands enemies
  * @param {string|null} priority profile/skill priority key
@@ -201,6 +206,7 @@ const PRIORITY_FNS = {
 export function sortEnemyTargets(battle, attacker, cands, priority) {
   if (cands.length <= 1) return cands;
   const pf = priority ? (PRIORITY_FNS[priority] || (priority === 'nearest' || priority === 'farthest' ? null : null)) : null;
+  const airFirst = priority === 'fly';
   const ax = attacker.x, ay = attacker.y;
   // a SPECIAL priority (优先攻击空中单位 … — PRTS 索敌: 特殊优先级 first) outranks the attacker's own blocked
   // enemy: a 速狙 blocking a ground enemy still shoots the drone flying past (GitHub #205). nearest / farthest are

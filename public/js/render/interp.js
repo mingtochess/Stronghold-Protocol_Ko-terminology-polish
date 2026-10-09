@@ -1,4 +1,3 @@
-import { UF } from '../../../shared/constants.js';
 import { DamageEventGate } from '../../../shared/damageDisplay.js';
 // render/interp.js — snapshot interpolation buffer for battle rendering (pure logic, no PIXI / DOM).
 //
@@ -10,7 +9,8 @@ import { DamageEventGate } from '../../../shared/damageDisplay.js';
 //     advancing at `rate` and gently steered back when network jitter pushes it off target (hard snap when it
 //     is more than `snapAfter` real seconds off),
 //   * extrapolation guard: renderT never runs more than `maxExtrapolate` real seconds past the newest snapshot;
-//     positions are extrapolated along the last velocity for at most that long, then freeze,
+//     positions are extrapolated along the last velocity for at most that long, then freeze — never for a unit the
+//     newest snapshot shows dead, stunned (frozen, asleep) or blocked, nor for an enemy it shows standing (`stand`),
 //   * sample(): per unit, lerps x/y/hp/sp between the two snapshots bracketing renderT; flags/anim come from
 //     the older one. A unit missing from the newer snapshot (died/left mid-buffer) holds its last position
 //     until renderT reaches the newer snapshot; a unit that only exists in the newer one (spawned mid-buffer)
@@ -29,11 +29,24 @@ import { DamageEventGate } from '../../../shared/damageDisplay.js';
 //     snapshot, like flags);
 //   * `down` [[id, respawnAt, respawnTime, state, row?, col?]] — knocked-out operators waiting to redeploy (they are no
 //     longer in `units`) and the tile they lie on (where they fell, or their home — sim Battle._layBody; kept only when
-//     both are integers): downAt(time) returns the list of the snapshot at `time`.
-// Game times in both (`cooldownEnd`, `respawnAt`) are on the snapshots' clock, so a view compares them with renderT.
+//     both are integers): downAt(time) returns the list of the snapshot at `time`;
+//   * three HP-bar readouts, kept per snapshot beside the tuples (the tuple layout is unchanged) and handed out by sample()
+//     from the older snapshot like flags, so they step with the skill flag instead of sliding:
+//       `ammo`   [[id, rounds left, rounds in the magazine]]  → sample().ammo   [left, magazine] | null (whole numbers only)
+//       `wolves` [[id, 狼影 left, the talent's maximum]]      → sample().wolves [left, maximum]  | null
+//       `neg`    [[id, fill]] (0.01–1: the negative-HP pool's share of its cap) → sample().neg  number (0: none)
+//     An entry that is malformed, or names a unit the snapshot does not list, is dropped; a snapshot without the list
+//     clears the readout (render/units.js: the segmented ammo bar, the wolf pips, the red bar of 斩业星熊's 我执).
+//   * `stand` [[id, until]] — the game time an enemy's attack recovery ends (sim atkStandUntil, PR #381): the position
+//     holds until then and interpolates the rest of the interval; nothing is inferred from the attack animation, and a
+//     snapshot without it interpolates linearly;
+//   * `standCut` [[id, at]] — the latest time that enemy's recovery was cut or ignored: an interval with a cut inside
+//     it stays linear.
+// Game times in all of them (`cooldownEnd`, `respawnAt`, `until`, `at`) are on the snapshots' clock, so a view compares
+// them with renderT.
 
 import { fxForm } from '../../../shared/protocol.js';
-import { ANIM } from '../../../shared/constants.js';
+import { ANIM, UF } from '../../../shared/constants.js';
 
 export const TUPLE = Object.freeze({ ID: 0, X: 1, Y: 2, HP: 3, MAXHP: 4, SP: 5, SPMAX: 6, FLAGS: 7, ANIM: 8, EL: 9, EL_FILL: 10, EL_UNTIL: 11, EL_DUR: 12 });
 /** The unit was (re)deployed between tuples `a` and the newer `b`: `b` plays the deploy animation, `a` did not (sim snapshot animOf). */
@@ -44,6 +57,15 @@ const ELEMENT_KEYS = new Set(['neural', 'erosion', 'burn', 'apoptosis', 'necrosi
 const MAX_EVENTS = 6000;
 const finite = (v, d = 0) => (typeof v === 'number' && Number.isFinite(v) ? v : d);
 const clamp = (v, lo, hi) => (v < lo ? lo : v > hi ? hi : v);
+
+/**
+ * Game time unit `id` starts moving between snapshot `a` and the newer `b` (interpolation and extrapolation share it):
+ * the end of `a`'s stand when it falls inside the interval and `b` records no cut there, else `a.t`.
+ */
+function movementStart(a, b, id) {
+  const until = a.stand?.get(id), cutAt = b.standCut?.get(id);
+  return until > a.t && until <= b.t && !(cutAt >= a.t && cutAt <= b.t) ? until : a.t;
+}
 
 /** Cosmetic event kinds that may be dropped when far behind (never state-changing). */
 export const COSMETIC_EVENTS = new Set(['atkStart', 'atkRetarget', 'atkCancel', 'atk', 'dmg', 'heal', 'fx', 'layer', 'bounty']);
@@ -68,8 +90,11 @@ export function frameTime(msg) {
 
 /**
  * Validate & normalise a b.snap payload. Returns `{ t, units: Map<id, tuple>, down: [[id, respawnAt, respawnTime,
- * state, row?, col?]] | null, raw }` or null when unusable. Tuples with a non-finite id/x/y are skipped; other numbers default
- * to 0; a unit's `elem` entry (see header) is appended to its tuple; malformed `elem` / `down` entries are dropped.
+ * state, row?, col?]] | null, ammo, wolves: Map id → [left, max] | null, neg: Map id → fill | null, stand: Map<id, until> | null,
+ * standCut: Map<id, at> | null, raw }` or null when unusable. Tuples with a non-finite id/x/y are skipped; other numbers
+ * default to 0; a unit's `elem` entry (see header) is appended to its tuple; malformed `elem` / `down` / `ammo` / `wolves` /
+ * `neg` entries are dropped. `stand` keeps finite end times after `t` of units in the snapshot; `standCut` keeps finite
+ * times in [0, t] of units in it.
  */
 export function normalizeSnapshot(snap) {
   if (!snap || typeof snap !== 'object') return null;
@@ -117,6 +142,14 @@ export function normalizeSnapshot(snap) {
   }
   if(Array.isArray(snap.snow))for(const [id,tiles]of snap.snow){const tu=units.get(id);if(tu&&Array.isArray(tiles))tu[17]=tiles.filter(p=>Array.isArray(p)&&p.length===3&&p.every(Number.isFinite));}
   if(Array.isArray(snap.skillRanges))for(const [id,tiles]of snap.skillRanges){const tu=units.get(id);if(tu&&Array.isArray(tiles))tu[18]=tiles.filter(p=>Array.isArray(p)&&p.length===2&&p.every(Number.isFinite));}
+  const ammo = countList(snap.ammo, units), wolves = countList(snap.wolves, units);
+  let neg = null;
+  if (Array.isArray(snap.neg)) {
+    for (const e of snap.neg) {
+      if (!Array.isArray(e) || !units.has(e[0]) || !(typeof e[1] === 'number' && e[1] > 0)) continue;
+      (neg || (neg = new Map())).set(e[0], Math.min(1, e[1]));
+    }
+  }
   let down = null;
   if (Array.isArray(snap.down)) {
     for (const d of snap.down) {
@@ -126,7 +159,36 @@ export function normalizeSnapshot(snap) {
       (down || (down = [])).push(e);
     }
   }
-  return { t, units, down, raw: snap };
+  let stand = null;
+  if (Array.isArray(snap.stand)) {
+    for (const e of snap.stand) {
+      if (!Array.isArray(e) || !units.has(e[0]) || !Number.isFinite(e[1]) || e[1] <= t) continue;
+      (stand || (stand = new Map())).set(e[0], e[1]);
+    }
+  }
+  let standCut = null;
+  if (Array.isArray(snap.standCut)) {
+    for (const e of snap.standCut) {
+      if (!Array.isArray(e) || !units.has(e[0]) || !Number.isFinite(e[1]) || e[1] < 0 || e[1] > t) continue;
+      (standCut || (standCut = new Map())).set(e[0], e[1]);
+    }
+  }
+  return { t, units, down, ammo, wolves, neg, stand, standCut, raw: snap };
+}
+
+/**
+ * `[[id, left, max]]` → Map id → [left, max] for the ids in `units`: whole numbers with 0 ≤ left ≤ max and max ≥ 1 (the
+ * `ammo` and `wolves` lists); null without a valid entry.
+ */
+function countList(list, units) {
+  if (!Array.isArray(list)) return null;
+  let m = null;
+  for (const e of list) {
+    if (!Array.isArray(e) || !units.has(e[0]) || !Number.isSafeInteger(e[1]) || !Number.isSafeInteger(e[2])
+      || e[1] < 0 || e[2] < 1 || e[1] > e[2]) continue;
+    (m || (m = new Map())).set(e[0], [e[1], e[2]]);
+  }
+  return m;
 }
 
 export class SnapshotBuffer {
@@ -281,6 +343,16 @@ export class SnapshotBuffer {
   }
 
   /**
+   * Game time of the first snapshot after `time` (default renderT) — the newer end of the interval sample() interpolates
+   * — or NaN when there is none (extrapolating). render/app.js starts a push's slide while that interval is shown.
+   */
+  nextSnapT(time = this.renderT) {
+    const s = this.snaps;
+    const i = this._indexAt(time) + 1;
+    return Number.isFinite(time) && i < s.length ? s[i].t : NaN;
+  }
+
+  /**
    * The `down` list (knocked-out operators waiting to redeploy, see header) of the snapshot shown at `time` (default
    * renderT) — the same snapshot sample() reads flags from — or null.
    */
@@ -301,8 +373,9 @@ export class SnapshotBuffer {
 
   /**
    * Interpolated state at `time` (default renderT). Fills and returns `out` (a Map id → sample object reused
-   * across calls: `{ id, x, y, hp, maxHp, sp, spMax, flags, anim, vx, vy, seen, el, elFill, elUntil, elDur }` —
-   * `el` = the shown element gauge (null: none), see header). Samples of units no longer present are deleted from `out`.
+   * across calls: `{ id, x, y, hp, maxHp, sp, spMax, flags, anim, vx, vy, seen, el, elFill, elUntil, elDur, ammo, wolves,
+   * neg }` — `el` = the shown element gauge (null: none), `ammo` / `wolves` / `neg` the HP-bar readouts (null / null / 0:
+   * none), see header). Samples of units no longer present are deleted from `out`.
    */
   sample(time = this.renderT, out = new Map()) {
     const s = this.snaps;
@@ -330,22 +403,30 @@ export class SnapshotBuffer {
         const dx = b[1] - a[1], dy = b[2] - a[2];
         // (a deployment in between — the newer snapshot starts its deploy animation — lands on its tile, no slide)
         const tele = dx * dx + dy * dy > this.teleport * this.teleport || redeployed(a, b);
-        o.x = tele ? (alpha < 1 ? a[1] : b[1]) : a[1] + dx * alpha;
-        o.y = tele ? (alpha < 1 ? a[2] : b[2]) : a[2] + dy * alpha;
-        o.vx = !tele && span > 0 ? dx / span : 0;
-        o.vy = !tele && span > 0 ? dy / span : 0;
+        const start = movementStart(A, B, id);
+        const moveSpan = B.t - start;
+        const moveAlpha = moveSpan > 0 ? clamp((time - start) / moveSpan, 0, 1) : 0;
+        o.x = tele ? (alpha < 1 ? a[1] : b[1]) : a[1] + dx * moveAlpha;
+        o.y = tele ? (alpha < 1 ? a[2] : b[2]) : a[2] + dy * moveAlpha;
+        o.vx = !tele && moveSpan > 0 && (start === A.t || time >= start) ? dx / moveSpan : 0;
+        o.vy = !tele && moveSpan > 0 && (start === A.t || time >= start) ? dy / moveSpan : 0;
         o.hp = a[3] + (b[3] - a[3]) * alpha;
         o.maxHp = b[4] || a[4];
         o.sp = ((a[7] ^ b[7]) & (UF.SKILL | UF.OVERHEATED)) ? a[5] : a[5] + (b[5] - a[5]) * alpha;
         o.spMax = b[6] || a[6];
       } else {
         let vx = 0, vy = 0;
-        if (P && ext > 0) {
+        // a stand in the newest snapshot: the old velocity cannot predict the walk after it, even once the clock passes
+        // `until` — the next snapshot confirms the position
+        if (P && ext > 0 && a[8] !== ANIM.DIE && a[8] !== ANIM.STUN && !(a[7] & UF.BLOCKED) && !A.stand?.has(id)) {
           const p = P.units.get(id);
           const dtp = A.t - P.t;
-          if (p && dtp > 0) {
-            vx = (a[1] - p[1]) / dtp; vy = (a[2] - p[2]) / dtp;
-            if (vx * vx + vy * vy > (this.teleport / dtp) ** 2 || redeployed(p, a) || (a[16] && a[16][4]>=P.t)) { vx = 0; vy = 0; }
+          const moveSpan = A.t - movementStart(P, A, id);
+          if (p && dtp > 0 && moveSpan > 0) {
+            const dx = a[1] - p[1], dy = a[2] - p[2];
+            if (dx * dx + dy * dy <= this.teleport * this.teleport && !redeployed(p, a) && !(a[16] && a[16][4]>=P.t)) {
+              vx = dx / moveSpan; vy = dy / moveSpan;
+            }
           }
         }
         o.x = a[1] + vx * ext;
@@ -371,6 +452,10 @@ export class SnapshotBuffer {
       o.anim = a[8];
       o.moveAnimRate = a[20] ?? 1;
       if (a.length > 9) { o.elValue=Number.isFinite(a[19])?a[19]:null; o.el = a[9] ?? null; o.elFill = a[10] || 0; o.elUntil = a[11] || 0; o.elDur = a[12] || 0; } else if (o.el !== null) { o.elValue=null; o.el = null; o.elFill = 0; o.elUntil = 0; o.elDur = 0; }
+      // the HP-bar readouts come with the older snapshot, like flags (whole rounds step with the skill flag)
+      o.ammo = A.ammo ? A.ammo.get(id) || null : null;
+      o.wolves = A.wolves ? A.wolves.get(id) || null : null;
+      o.neg = A.neg ? A.neg.get(id) || 0 : 0;
       o.seen = stamp;
     }
     for (const id of out.keys()) if (!A.units.has(id)) out.delete(id);

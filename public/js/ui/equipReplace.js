@@ -1,3 +1,4 @@
+import { t } from '../../../shared/i18n.js';
 // Equip-replace dialog (research 04 §"Replacement" / 09 §1.2 UseEquipUp { charChessInstId, equipChessInstId,
 // isChangeEquip, unloadInstId }; PRTS 帮助 "达到上限强行佩戴会改为替换装备"): an item dropped on an operator whose two
 // equipment slots are used opens this dialog. It shows the operator, the incoming item and the two equipped items

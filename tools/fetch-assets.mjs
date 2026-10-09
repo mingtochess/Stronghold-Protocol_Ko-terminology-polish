@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { restartForEnvProxy } from './assets/env-proxy.mjs';
 // Downloads, post-processes and indexes every art/audio/font asset the game
 // needs, from community dumps of the official client (research 07):
 //   public/assets/**   images, Spine models, audio   (git-ignored)
@@ -380,7 +381,7 @@ async function main() {
 
 // run only as a script (tests import parseArgs / shrinkGuard)
 const invoked = (() => { try { return pathToFileURL(realpathSync(process.argv[1] || '')).href; } catch { return null; } })();
-if (invoked === import.meta.url) {
+if (invoked === import.meta.url && !restartForEnvProxy()) {
   main().then((code) => { process.exitCode = code; }, (e) => {
     console.error(`[assets] FAILED: ${process.env.DEBUG ? e?.stack || e : e?.message || e}`);
     process.exitCode = 1;

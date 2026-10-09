@@ -1,3 +1,6 @@
+import { openStats } from './stats.js';
+
+import { t } from '../../../shared/i18n.js';
 // Lobby screen: pick 独立模拟 / 同盟模拟 and a difficulty (标准/险境/绝境/终极), create a room,
 // or join one with a 同盟密钥 (recent codes remembered) — as a player (加入同盟) or in one of its MAX_SPECTATORS
 // spectator seats (观战: room.spectate, also while its match runs; community report #26, a remake feature — the
@@ -329,7 +332,7 @@ export function LobbyScreen() {
       </div>
       <div class="topbar__right">
         <${LangButton} class="lobby-lang" variant="secondary" />
-        <${PatchNotesButton} autoOpen=${true} /><${SettingsButton} />
+        <${Button} variant="secondary" size="sm" onClick=${openStats}>통계<//><${PatchNotesButton} autoOpen=${true} /><${SettingsButton} />
         <${GuideButton} class="lobby-guide" variant="secondary" />
         <${LoadoutButton} from="lobby" size="sm" class="lobby-loadout" />
         <div class="me-chip">

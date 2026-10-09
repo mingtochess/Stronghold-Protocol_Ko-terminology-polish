@@ -19,7 +19,7 @@ export function PatchNotesButton({class:cls='',autoOpen=false}) {
  return html`<span class=${`patch-entry ${cls}`}>
   <${Button} variant="secondary" size="sm" icon="patchNotes" class="patch-entry__button" aria-label="패치노트" title="패치노트" onClick=${()=>{setVersion(APP_VERSION);setOpen(true);}}>패치노트<//>
   <${Modal} open=${open} title="패치노트" micro="PATCH NOTES" width="min(9rem,94vw)" class="patch-notes" onClose=${()=>setOpen(false)} actions=${html`<${Button} variant="secondary" onClick=${()=>setOpen(false)}>닫기<//>`}>
-   <p class="patch-notes__hint">a·b는 기존 운영 업데이트를 구분하기 위해 붙인 표기입니다. 새 버전의 변경 내용을 확인할 수 있습니다.</p>
+   <p class="patch-notes__hint">버전을 선택하면 해당 변경 내용을 확인할 수 있습니다.</p>
    <nav class="patch-notes__versions" aria-label="패치 버전">
     ${PATCH_NOTES.map(n=>html`<button key=${n.version} type="button" class=${n.version===entry.version?'is-active':''} aria-pressed=${n.version===entry.version} onClick=${()=>setVersion(n.version)}>v${n.version}<small>${n.status==='testing'?'테스트 중':'운영 업데이트'}</small></button>`)}
    </nav>

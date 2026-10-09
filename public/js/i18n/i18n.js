@@ -1,3 +1,4 @@
+import { addMessages, setLang as setSharedLang } from '../../../shared/i18n.js';
 // 한글 패치: 화면 표시용 번역 계층 (Korean patch — display-only translation layer).
 //
 // 게임 데이터(data/*.json)와 코드 안의 문자열은 중국어 그대로 둔다. 전투 로직이 중국어 설명문을 파싱하기
@@ -248,6 +249,11 @@ function installDom() {
 
 async function load() {
   const base = '/i18n/ko/';
+  const upstream = await fetch('/i18n/ko.json').then(r => r.ok ? r.json() : {}).catch(() => ({}));
+  for (const [zh, ko] of Object.entries(upstream)) {
+    if (!zh.startsWith('_') && typeof ko === 'string') { dict.set(zh, ko); if (/\{\d+\}/.test(zh)) addPattern(zh, ko); }
+  }
+  addMessages('ko', upstream);
   const res = await Promise.all(FILES.map((f) => fetch(`${base}${f}.json`).then((r) => (r.ok ? r.json() : {})).catch(() => ({}))));
   res.forEach((obj, k) => {
     for (const [zh, ko] of Object.entries(obj || {})) {
@@ -259,6 +265,8 @@ async function load() {
   // 고정 문자열이 긴 패턴부터 (더 구체적인 패턴 우선)
   patterns.sort((a, b) => b.n - a.n);
   active = dict.size > 0;
+  addMessages('ko', Object.fromEntries(dict));
+  setSharedLang(lang);
 }
 
 if (hasDom && lang === 'ko') {

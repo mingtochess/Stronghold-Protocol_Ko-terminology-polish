@@ -1,3 +1,5 @@
+import { t } from '../../../shared/i18n.js';
+
 // 机变 draft overlay (research 06 §4.4 / §11.5): family title | description, "倒计时结束后仍未选定将自动分配",
 // whose turn ("当前轮到你决策" / "{name} 正在决策…") with countdown, pick order with ✓ / ⌛ / … / door,
 // and a 3×2 grid (solo: 3 cards) of cards in the official layout (the official 悬赏 / 机密商店 / 战术 screenshots): a
@@ -122,7 +124,7 @@ export function armedCard(armed, sp, o) {
 
 /**
  * The overlay: keeps the two-tap selection and renders ChoiceView. `onPick(idx)` sends the confirmed card (g.choice).
- * @param {{ pub:any, sp:any, myId:string, solo:boolean, onPick:(idx:number)=>void, busyIdx?:number|null, total?:number|null }} props
+ * @param {{ pub:any, sp:any, myId:string, solo:boolean, personal?:boolean, onPick:(idx:number)=>void, busyIdx?:number|null, total?:number|null }} props
  */
 export function ChoiceOverlay(props) {
   const { sp, myId, solo, busyIdx = null, onPick } = props;
@@ -149,10 +151,10 @@ export function ChoiceOverlay(props) {
 
 /**
  * The overlay's view (pure: no hooks — test/ui renders it as a function).
- * @param {{ pub:any, sp:any, myId:string, solo:boolean, busyIdx?:number|null, total?:number|null, armed?:number|null,
+ * @param {{ pub:any, sp:any, myId:string, solo:boolean, personal?:boolean, busyIdx?:number|null, total?:number|null, armed?:number|null,
  *   onTap?:(idx:number)=>void, onConfirm?:()=>void, onDisarm?:()=>void }} props
  */
-export function ChoiceView({ pub, sp, myId, solo, busyIdx = null, total = null, armed = null, onTap = () => {}, onConfirm = () => {}, onDisarm = () => {} }) {
+export function ChoiceView({ pub, sp, myId, solo, personal = false, busyIdx = null, total = null, armed = null, onTap = () => {}, onConfirm = () => {}, onDisarm = () => {} }) {
   if (!sp) return null;
   const fam = data.get('choices')?.families?.[sp.family] || null;
   const players = new Map(sortedPlayers(pub).map((p) => [p.playerId, p]));
@@ -160,8 +162,8 @@ export function ChoiceView({ pub, sp, myId, solo, busyIdx = null, total = null, 
   const mine = sp.pickOf.get(myId);
   const turnName = players.get(sp.turnPid)?.name || '队友';
   const special = /_s$/.test(String(sp.family || ''));
-  const order = solo ? [] : sp.order;
-  const timed = !solo && !sp.untimed;
+  const order = personal || solo ? [] : sp.order;
+  const timed = personal ? pub?.deadline > 0 : !solo && !sp.untimed;
   const armedCardRec = armed != null ? sp.cards.find((c) => c && c.idx === armed) : null;
   const armedName = armedCardRec ? resolveSpCard(armedCardRec, sp.family).name : null;
   // a press anywhere but a card or the confirm button drops the selection

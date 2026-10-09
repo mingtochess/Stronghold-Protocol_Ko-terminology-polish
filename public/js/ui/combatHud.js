@@ -1,3 +1,4 @@
+
 // Combat HUD (research 06 §11.3/§11.7, research 09 §3.1 / §6.3): DP counter at the right edge and the bottom-centre
 // pills.
 //   Client-side combat (`client` prop, DESIGN §14 — the official behaviour):
@@ -24,7 +25,7 @@ function ProgressList({ list }) {
       <b>${p.name}</b>
       ${p.done
         ? html`<span class="chud__prog__ok" aria-label="作战结束">✓</span>`
-        : html`<span class="num">${p.killed != null && p.total != null ? `${p.killed}/${p.total}` : '•••'}</span>`}
+        : html`<span class="num">${(p.resolved ?? p.killed) != null && p.total != null ? `${p.resolved ?? p.killed}/${p.total}` : '•••'}</span>`}
     </span>`)}
   </div>`;
 }

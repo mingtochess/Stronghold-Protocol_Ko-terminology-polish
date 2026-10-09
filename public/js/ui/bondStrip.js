@@ -1,3 +1,5 @@
+
+
 // Bond strip (active-bond discs under the top bar) and the bond detail popup: the key facts first (user playtest #2
 // item 9: name, members in play / next threshold, layers, reached tier and its threshold row, the current effect with
 // layer-resolved numbers), then the full description and the member list with owned / on-board state — operators that

@@ -1,3 +1,4 @@
+import { hypot } from '../detmath.js';
 // Local experiment: inert unless the explicitly selected data directory contains the drone token.
 import * as S from './support/index.js';
 import {attackClipTiming} from '../../../shared/attackTiming.js';
@@ -15,7 +16,7 @@ export function droneCenter(battle,pid){
 export function droneTile(battle,pid){
  const R=battle.rect,[centerR,centerC]=droneCenter(battle,pid),tiles=[];
  for(let r=R.r0;r<=R.r1;r++)for(let c=R.c0;c<=R.c1;c++)if(tileFree(battle,r,c)&&(battle.players.length===1||(battle.getPlayer(pid)?.half==='R'?c>=11:c<=10)))tiles.push([r,c]);
- return tiles.sort((a,b)=>Math.hypot(a[0]-centerR,a[1]-centerC)-Math.hypot(b[0]-centerR,b[1]-centerC)||a[0]-b[0]||a[1]-b[1])[0]||null;
+ return tiles.sort((a,b)=>hypot(a[0]-centerR,a[1]-centerC)-hypot(b[0]-centerR,b[1]-centerC)||a[0]-b[0]||a[1]-b[1])[0]||null;
 }
 export const DRONE_FALL=.44;
 export function installDroneBombardment(battle,u){
@@ -71,7 +72,7 @@ export function installDroneFlight(battle,u){
  u.profile.attackSpeedDebuffImmune=true;u.markDirty();
  u.profile.acquireTargets=(b,unit)=>droneTargets(b,unit,true).slice(0,1);
  const radius=DRONE_RANGE,speed=(u.def.raw.stats.moveSpeed??.5)*MOVE_SCALE*1.5;
- const refresh=()=>{const keys=[];for(let r=Math.max(0,Math.floor(u.y-radius));r<=Math.min(ROWS-1,Math.ceil(u.y+radius));r++)for(let c=Math.max(0,Math.floor(u.x-radius));c<=Math.min(COLS-1,Math.ceil(u.x+radius));c++)if(Math.hypot(c-u.x,r-u.y)<=radius+1e-9)keys.push(r*COLS+c);u.rangeKeys=keys;u.rangeKeySet=new Set(keys);u.baseRangeKeys=keys;};
+ const refresh=()=>{const keys=[];for(let r=Math.max(0,Math.floor(u.y-radius));r<=Math.min(ROWS-1,Math.ceil(u.y+radius));r++)for(let c=Math.max(0,Math.floor(u.x-radius));c<=Math.min(COLS-1,Math.ceil(u.x+radius));c++)if(hypot(c-u.x,r-u.y)<=radius+1e-9)keys.push(r*COLS+c);u.rangeKeys=keys;u.rangeKeySet=new Set(keys);u.baseRangeKeys=keys;};
  u.motion='FLY';u.ground=false;for(const key of ['terrain:mire','terrain:smog','terrain:deepsea','terrain:infection'])battle.removeBuff(u,key);u.mem.terrain=0;refresh();
  battle.on('tick',({dt})=>{
   if(!u.alive||!u.deployed)return;
@@ -82,7 +83,7 @@ export function installDroneFlight(battle,u){
   if(u.mem.attackWindup || battle.time-u.lastAttackAt<recovery-1e-9){refresh();return;}
   const target=droneTargets(battle,u)[0];
   if(target&&u.canAct&&!u.s.flags.noMove&&!u.s.flags.bind&&speed>0){
-   const dx=target.x-u.x,dy=target.y-u.y,d=Math.hypot(dx,dy),stop=radius-.25;
+   const dx=target.x-u.x,dy=target.y-u.y,d=hypot(dx,dy),stop=radius-.25;
    if(d>stop){const step=Math.min(d-stop,speed*dt),R=battle.rect;u.x=Math.max(R.c0,Math.min(R.c1,u.x+dx/d*step));u.y=Math.max(R.r0,Math.min(R.r1,u.y+dy/d*step));}
   }
   refresh();

@@ -20,7 +20,7 @@ if(!availability||process.argv.includes('--refresh')||!availability.checkedAt||D
 const krFiles=availability?new Set(availability.files):null;
 const records=JSON.parse(await readFile('.cache/ursus-data/chess.json','utf8'));
 const manifest=JSON.parse(await readFile('.cache/ursus-data/assets.json','utf8'));
-const index=indexVoice(table,'CN',VOICE_BATTLE_SLOTS),ids=new Set(Object.values(records).map(c=>c.charId).filter(Boolean));
+const index=indexVoice(table,'CN',VOICE_BATTLE_SLOTS),ids=new Set(Object.values(records).filter(c=>c.globalReleased!==false).map(c=>c.charId).filter(Boolean));
 const files=[],voice={kr:{},jp:{}},audit=[];
 for(const lang of ['kr','jp'])for(const id of ids){
  const slots=index.get(id);if(!slots)continue;

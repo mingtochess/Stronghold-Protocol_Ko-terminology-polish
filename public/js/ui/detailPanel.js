@@ -1,3 +1,9 @@
+
+
+
+import { t } from '../../../shared/i18n.js';
+
+import { tokenVariantFor } from './gameLogic/loadout.js';
 // Detail panel (click / right-click a piece, shop card, bond member, battle unit or previewed enemy):
 // operators — portrait, name, tier, elite, class/subclass and, right under them in the header's right column (no
 // scrolling, user playtest #2 item 9), the unit's bonds (阵营 / 盟约: icon, name, member count / next threshold,
@@ -32,10 +38,10 @@
 // screen's 局内数值 section draws the same ones for the chosen skill / module, without a live entry (GitHub issue #64).
 
 import { UF } from '../../../shared/constants.js';
-import { useEffect } from '../../vendor/hooks.module.js';
+
 import { html, Icon, TierChip, MicroLabel, Button, confirmDialog, useTicker } from './components.js';
 import { Img, RichText, UnitThumb, BondGlyph, GIcon } from './gameComponents.js';
-import { attackInterval, rangeGridBox, fmtNum, tileKey, chessLoadout, nextThreshold, bondTier, briefingBondTip, pieceBondIds, grantedBonds, morphPairings } from './gameLogic.js';
+import { attackInterval, rangeGridBox, fmtNum, tileKey, chessLoadout, nextThreshold, bondTier, briefingBondTip, pieceBondIds, grantedBonds, morphPairings, unitCultivation } from './gameLogic.js';
 import { chessPortraitUrl, skillIconUrl, skillRecordIconUrl, profIconUrl, subProfIconUrl, itemIconUrl, enemyIconUrl, tokenAvatarUrl, factionIconUrl, uiUrl, moduleTypeIconUrl } from './assetUrls.js';
 import { abilityRows } from './abilityLines.js';
 import { matchData as data } from '../data.js';
@@ -357,7 +363,7 @@ export function chessStatsBlock({ rec, chess, live = null }) {
     </div>`;
 }
 
-export function ChessDetail({ chess, piece, unit, snapHp, editable, onSell, bonds, offBonds = null, loadout, onBond, live = null, hint = null, unitItems = null }) {
+export function ChessDetail({ chess, piece, unit, snapHp, editable, onSell, bonds, offBonds = null, loadout, ops = null, onBond, live = null, hint = null, unitItems = null, cultOpts = null }) {
   const m = data.get('assets');
   const hp = hpOf(live, snapHp);
   const sp = live?.src === 'battle' && Number.isFinite(live.spMax) ? live : snapHp;
@@ -366,7 +372,7 @@ export function ChessDetail({ chess, piece, unit, snapHp, editable, onSell, bond
   const barValue = ammoActive ? sp.ammoLeft : sp?.sp;
   const barMax = ammoActive ? sp.ammoMax : sp?.spMax;
   const spRatio = barMax > 0 ? Math.max(0, Math.min(1, barValue / barMax)) : 0;
-  const lo = chessLoadout(chess, loadout, (id) => data.lookup('chess', id));
+  const lo = chessLoadout(chess, loadout, (id) => data.lookup('chess', id), { ...(cultOpts || {ops}), effects: data.get('effects') });
   const c = chess;
   // stats / talents the unit fights with: the chosen module's (or none — statsBase) for an elite (DESIGN §16)
   const fr = lo?.record || c;
@@ -557,21 +563,6 @@ export function summonDeployHint(token, startDeploy = SKILL_SUMMON_START_DEPLOY)
     : '所属干员发动技能时才在摆放的位置出现（未摆放则不会出现）';
 }
 
-/**
- * The token variant of the summon's owner (tokens.json `variants`, keyed by owner chess id): a golden owner's `_b`
- * entry (精锐 赫默's drone ATK 114, 精锐 巫恋's doll −30%), else its normal `_a` entry, else the first one.
- * @param {any} token tokens.json record
- * @param {string|null} ownerId the owner's chess id (null: unknown, e.g. a teammate's summon)
- */
-export function tokenVariantFor(token, ownerId = null) {
-  const vs = token?.variants || {};
-  if (typeof ownerId === 'string') {
-    const v = vs[ownerId] || vs[ownerId.replace(/_b$/, '_a')];
-    if (v) return v;
-  }
-  return Object.values(vs)[0] || null;
-}
-
 /** Chess id of the operator owning a token piece (`ownerUid`), from the player's own pieces (indexPieces). */
 function tokenOwnerId(piece, pieces) {
   if (!piece || piece.kind !== 'token' || !Number.isInteger(piece.ownerUid)) return null;
@@ -635,13 +626,41 @@ function TerrainDetail({ terrain }) {
 }
 
 /**
+ * A stage device's tip (GitHub #228, PR #229: 阻隔工事 / “双眼皮” / 射击台 / 源石流发生装置 — the terrain tip's sibling). Opened
+ * by a tap on the device itself: the game screen resolves it with `gameLogic.deviceInfo` (prep) or `deviceTipAt` (a battle)
+ * from the stage the board on screen is built from, so the lines carry that stage's own numbers. In a battle the
+ * crate / turret is a device unit: its live HP (`live` from the battle's own sim, else `snapHp` — the screen reads the latest
+ * snapshot tuple through `unitId`) draws a HP bar like a unit card's.
+ * @param {{ name:string, tag:string, lines:string[], facts?:string[], stats?:{k:string,v:any}[] }} device
+ * @param {{ hp:number, max:number }|null} snapHp
+ */
+function DeviceDetail({ device, snapHp = null, live = null }) {
+  const hp = hpOf(live, snapHp);
+  return html`
+    <div class="dhead">
+      <div class="dhead__icon"><${Icon} name="info" /></div>
+      <div class="dhead__info">
+        <div class="dhead__chips"><span class="dtag-kind">${device.tag}</span></div>
+        <h3 class="dhead__name">${device.name}</h3>
+        ${hp ? html`<div class="dhp"><i style=${`width:${Math.max(0, Math.min(100, (hp.hp / Math.max(1, hp.max)) * 100))}%`}></i><span class="num">${fmtNum(hp.hp)} / ${fmtNum(hp.max)}</span></div>` : null}
+      </div>
+    </div>
+    <${Section} title=${t('装置机制')} micro="DEVICE">
+      ${device.lines.map((line, i) => html`<p class="dtext" key=${i}>${line}</p>`)}
+    <//>
+    ${Array.isArray(device.stats) && device.stats.length ? html`<div class="dstats">${device.stats.map((x) => html`<${Stat} key=${x.k} k=${x.k} v=${x.v} />`)}</div>` : null}
+    ${Array.isArray(device.facts) && device.facts.length ? html`<${Section} title=${t('这一格')}><p class="dtext">${device.facts.join(' · ')}</p><//>` : null}`;
+}
+
+/**
  * Resolve what a detail target shows.
- * @param {{ kind:'piece'|'chess'|'item'|'enemy'|'unit'|'token'|'terrain', id?:string, uid?:number, unit?:any, count?:number }} target
+ * @param {{ kind:'piece'|'chess'|'item'|'enemy'|'unit'|'token'|'terrain'|'device', id?:string, uid?:number, unit?:any, count?:number }} target
  * @param {Map<number, any>} pieces indexPieces(priv)
  */
 export function resolveDetail(target, pieces) {
   if (!target) return null;
   // a special terrain tile (issue #184): the screen resolved the stage's own numbers already (gameLogic.terrainInfo)
+  if (target.kind === 'device') return target.device ? {type:'device',device:target.device,...(Number.isInteger(target.device.unitId)?{unitId:target.device.unitId}:{})} : null;
   if (target.kind === 'terrain') return target.terrain && typeof target.terrain === 'object' ? { type: 'terrain', terrain: target.terrain } : null;
   if (target.kind === 'piece') {
     const e = pieces?.get(target.uid);
@@ -668,7 +687,7 @@ export function resolveDetail(target, pieces) {
     // a hand item on a scouted prep board (m.field units, kind 'item'): the item's own card
     if (u.kind === 'item') { const it = data.lookup('items', u.defId); return it ? { type: 'item', item: it } : null; }
     const c = data.lookup('chess', u.defId);
-    if (c) return { type: 'chess', chess: c, piece: own?.piece || null, unitId: u.id, unitItems: Array.isArray(u.items) ? u.items : null };
+    if (c) return { type: 'chess', chess: c, piece: own?.piece || null, unitId: u.id, unitItems: Array.isArray(u.items) ? u.items : null, cultOpts:{cultivation:unitCultivation(u)} };
     const t = data.lookup('tokens', u.defId);
     if (t) return { type: 'token', token: t, unitId: u.id, ownerId: tokenOwnerId(own?.piece, pieces) };
     const en = data.lookup('enemies', u.defId);
@@ -678,19 +697,34 @@ export function resolveDetail(target, pieces) {
 }
 
 /**
+ * The 选中干员 key of a resolved detail (null: nothing to say). The panel says the line once per opened operator and stays
+ * mounted while its target changes, so the key carries what identifies the opening: the chess record, the piece / battle
+ * unit, and the card tap (`tap`, game.js) — two shop / reward cards of one operator (the pool deals duplicates) carry the
+ * same chess id and no piece, so without it the second card's tap said nothing, nor replaced the first one's line.
+ * @param {any} detail resolveDetail's result
+ * @returns {string|null}
+ */
+export function selectVoiceKey(detail) {
+  return detail?.type === 'chess' ? `${detail.chess?.chessId || ''}:${detail.unitId ?? detail.piece?.uid ?? ''}:${detail.tap ?? ''}` : null;
+}
+
+/**
  * The panel.
  * @param {{ detail:any, editable:boolean, snapHp?:{hp:number,max:number}|null, onClose:Function, onSell:(piece:any)=>void, onDestroy:(piece:any)=>void,
  *   bonds?: any[], offBonds?: Set<string>|null, loadout?: any, onBond?: (bondId:string)=>void, side?: 'left'|'right', shopOpen?: boolean }} props
  *   bonds: the owner's m.private.bonds (counts / tiers of the bond chips); offBonds: the bonds this mode never activates
  *   (gameLogic modeOffBonds — their chips and the 变形同构体 pairing lines read 本局禁用); loadout: m.private.loadout (DESIGN §16) for
  *   the player's own operators and shop cards; a teammate's unit gets its owner's choice (gameLogic unitLoadout); null
- *   = the defaults
+ *   = the defaults; ops: m.private.ops (0.2.2 潜能 / 练度 of the player's own operators and cards — a unit the detail
+ *   resolved as another player's carries its own, `detail.cultOpts`)
  *   live: the unit's live stats (unitStatsEntry + src 'battle' | 'prep') — an object, or a getter the panel re-reads 4×
  *   a second (the battle's own sim, battle/runner.js unitStats); null ⇒ the record's numbers
- *   voice: whether the panel may speak — 选中干员 (audio.voice 'select') plays only while a battle runs (user request:
- *   整备期不播干员语音), so the game screen passes its combat flag
+ *   voice: whether the panel may speak — 选中干员 (audio.voice 'select') when it opens on an operator the player tapped:
+ *   a piece on the field or in the hand, a shop / reward card, a bond member. The game screen passes true in every phase
+ *   (the owner's request of 2026-10-08 「添加一下干员点击上去的语气一样的语音」 lifted 2026-10-03's 「整备阶段不需要干员语音」
+ *   for this line only; [ASSUMED] the official prep tap says 选中干员 like the battle's FOCUS_CHAR)
  */
-export function DetailPanel({ detail, editable, snapHp, onClose, onSell, onDestroy, bonds = [], offBonds = null, loadout = null, onBond = null, side = 'left', shopOpen = false, live = null, voice = false }) {
+export function DetailPanel({ detail, editable, snapHp, onClose, onSell, onDestroy, bonds = [], offBonds = null, loadout = null, ops = null, onBond = null, side = 'left', shopOpen = false, live = null, voice = false }) {
   const getter = typeof live === 'function' ? live : null;
   useTicker(detail && getter ? 250 : 0);
   // Selection voices belong to direct click handlers, never panel refreshes.
@@ -713,11 +747,12 @@ export function DetailPanel({ detail, editable, snapHp, onClose, onSell, onDestr
     <button type="button" class="dpanel__close" aria-label="关闭" onClick=${onClose}><${Icon} name="close" /></button>
     <div class="dpanel__scroll">
       ${detail.type === 'chess' ? html`<${ChessDetail} chess=${detail.chess} piece=${detail.piece} snapHp=${snapHp} editable=${editable} onSell=${sellIt}
-        bonds=${bonds} offBonds=${offBonds} loadout=${loadout} onBond=${onBond} live=${liveNow} hint=${detail.hint || null} unitItems=${detail.unitItems || null} />` : null}
+        bonds=${bonds} offBonds=${offBonds} loadout=${loadout} ops=${ops} cultOpts=${detail.cultOpts} onBond=${onBond} live=${liveNow} hint=${detail.hint || null} unitItems=${detail.unitItems || null} />` : null}
       ${detail.type === 'item' ? html`<${ItemDetail} item=${detail.item} piece=${detail.piece} editable=${editable} onDestroy=${destroyIt} offBonds=${offBonds} />` : null}
       ${detail.type === 'enemy' ? html`<${EnemyDetail} enemy=${detail.enemy} snapHp=${snapHp} count=${detail.count} live=${liveNow} />` : null}
       ${detail.type === 'token' ? html`<${TokenDetail} token=${detail.token} piece=${detail.piece} ownerId=${detail.ownerId ?? null} snapHp=${snapHp} live=${liveNow} />` : null}
       ${detail.type === 'terrain' ? html`<${TerrainDetail} terrain=${detail.terrain} />` : null}
+      ${detail.type === 'device' ? html`<${DeviceDetail} device=${detail.device} snapHp=${snapHp} live=${liveNow} />` : null}
     </div>
   </aside>`;
 }

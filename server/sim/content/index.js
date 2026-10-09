@@ -1,3 +1,4 @@
+
 // server/sim/content/index.js — installs all content into a Battle (DESIGN §7).
 //
 // installContent(battle, { mode }) — applies the per-battle loadout data view (simdata withUnitLoadouts; DESIGN §16),
@@ -21,6 +22,7 @@
 
 import { genericKit } from './generic.js';
 import { withUnitLoadouts } from '../simdata.js';
+import { isPotential } from '../../../shared/potential.js';
 
 // Content files are loaded with guarded dynamic imports: a module that fails to load (syntax error, throwing
 // top-level code, missing file) is logged and replaced by an empty module instead of breaking the server.
@@ -38,6 +40,7 @@ const TIERS = await Promise.all([
   safeImport('./kits/ursus.js'),
   safeImport('./kits/recruits.js'),
   safeImport('./kits/upstreamRecruits.js'),
+  safeImport('./kits/upstream022.js'),
 ]);
 const DOMAIN_NAMES = ['tokens', 'devices', 'enemies', 'bosses', 'bonds', 'garrisons', 'items', 'bands', 'choices', 'ursus'];
 const DOMAINS = await Promise.all(DOMAIN_NAMES.map((n) => safeImport(`./${n}.js`)));
@@ -94,13 +97,21 @@ function inputEntry(unit) {
 /**
  * The loadout `{ skillIndex, moduleId }` a unit's PlayerBattleInput entry gives; an entry without loadout fields means
  * the DEFAULT loadout (`{}`), never "whatever the data view maps this chess id to" (another player's choice in a
- * multi-player field). Null when the unit has no input entry.
+ * multi-player field). `standIn: true` rides along (补位: the stand-in def whatever the skill / module fields say), as
+ * do `diy` (自选: the pick of a DIY slot's piece) and `potential` (0.2.2: 1–6, never a stand-in's). Null when the unit
+ * has no input entry.
  */
 function inputLoadout(unit) {
   const x = inputEntry(unit);
   if (!x) return null;
-  if (x.skillIndex == null && x.moduleId == null && x.skinId == null) return {};
-  return { skillIndex: x.skillIndex ?? null, moduleId: x.moduleId ?? null, ...(x.skinId ? {skinId: x.skinId} : {}) };
+  const extra = {
+    ...(x.skinId ? {skinId:x.skinId} : null),
+    ...(x.standIn === true ? { standIn: true } : null),
+    ...(x.diy && typeof x.diy === 'object' ? { diy: x.diy } : null),
+    ...(x.standIn !== true && isPotential(x.potential) ? { potential: x.potential } : null),
+  };
+  if (x.skillIndex == null && x.moduleId == null) return extra;
+  return { skillIndex: x.skillIndex ?? null, moduleId: x.moduleId ?? null, ...extra };
 }
 
 /** Put a def on a not-yet-deployed ally (the fields Battle._makeAlly takes from the def). */

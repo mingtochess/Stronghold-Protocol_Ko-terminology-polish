@@ -1,3 +1,6 @@
+
+
+import { t } from '../../../shared/i18n.js';
 // Direction step of a board placement — the standard Arknights 4-direction deploy wheel (research 09 §1.2 / §6.1 5).
 //
 // After a legal drop of an operator / summon on a board tile (also its own tile: re-orient in place) — or of a
@@ -13,7 +16,8 @@
 //     LEFT, facing.js boardDir): the chevrons follow the finger, the range / model / intent use the board direction;
 //   * release outside the centre commits (g.move {uid, to, dir} / g.art {…, dir}); release inside the centre, a tap
 //     on ✕, a press outside the diamond or Esc cancels (the piece returns to where it came from). Arrow keys preview a
-//     direction and Enter commits it (keyboard alternative). Mouse, pen and touch all use pointer events.
+//     direction and Enter commits it (keyboard alternative) — Enter on a focused ✕ cancels, on any other focused
+//     button does nothing while the wheel is open (GitHub #394). Mouse, pen and touch all use pointer events.
 //
 // View bridge: the field view (render/app.js or the DOM fallback) may implement `tileScreen(row, col)`,
 // `holdPiece(uid, tile|null)` and `setPieceDir(uid, dir)` (render/app.js does, DESIGN §9); a view without them falls
@@ -233,7 +237,12 @@ export function FacingWheel({ view, row, col, grid, name = '', onPreview, onComm
   };
   const onPointerCancel = () => { setDrag(null); setDir(null); };
 
-  // keyboard: arrows preview, Enter commits, Esc cancels (capture: the game's own shortcuts must not see them)
+  // keyboard: arrows preview, Enter commits, Esc cancels (capture: the game's own shortcuts must not see them). Enter
+  // follows the focus (gameLogic facingEnter, GitHub #394): on ✕ it cancels, on any other button (Tab reaches the HUD
+  // behind the wheel) it does nothing, elsewhere it commits the previewed direction. The wheel takes the focus when it
+  // opens, so a button focused before the drop (a click leaves it focused) cannot swallow the confirming Enter; Tab then
+  // reaches ✕ first. Nothing gives the focus back when it closes (a restored 准备 would take the next Enter / Space).
+  const rootRef = useRef(null);
   useEffect(() => {
     const onKey = (e) => {
       const L = live.current;
@@ -244,6 +253,7 @@ export function FacingWheel({ view, row, col, grid, name = '', onPreview, onComm
       if (e.key === ' ' || /^Key[RFD]$/.test(e.code || '')) { e.preventDefault(); e.stopImmediatePropagation(); } // no ready / shop while choosing
     };
     window.addEventListener('keydown', onKey, true);
+    try { rootRef.current?.focus({ preventScroll: true }); } catch { /* no focus: Enter still follows whatever has it */ }
     return () => window.removeEventListener('keydown', onKey, true);
   }, []);
 

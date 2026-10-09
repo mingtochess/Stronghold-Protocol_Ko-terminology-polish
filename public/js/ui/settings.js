@@ -1,3 +1,11 @@
+const cx = (...parts) => parts.flat().filter(Boolean).join(' ');
+import { useRef } from '../../vendor/hooks.module.js';
+import { store } from '../store.js';
+
+
+import { t, N_ } from '../../../shared/i18n.js';
+import { errorCount, currentBattle, diagnosticsText } from '../diag.js';
+import { copyText } from './clipboard.js';
 // Player settings (BGM/SFX/voice volume, mute, damage numbers, render quality): a tiny observable store
 // persisted in localStorage (`sp.pref.settings`), applied to the audio manager on every change, plus
 // the settings modal.
@@ -19,9 +27,11 @@ export const settingsStore = createStore(migrateSavedSettings(loadPref('settings
 settingsStore.subscribe((s) => {
   savePref('settings', sanitizeSettings(s));
   audio.setVolumes(s);
+  audio.setVoiceLang(s.voiceLang);
 });
 savePref('settings', settingsStore.get());
 audio.setVolumes(settingsStore.get());
+audio.setVoiceLang(settingsStore.get().voiceLang);
 
 /** @param {Partial<ReturnType<typeof sanitizeSettings>>} patch */
 export function updateSettings(patch) {
@@ -55,6 +65,55 @@ function Toggle({ label, micro, value, onChange, id }) {
 }
 
 const QUALITY = [['high', '高'], ['medium', '中'], ['low', '低']];
+
+/** Where a report goes: the upstream issue tracker (shown as text the player can select; a link may open nothing). */
+export const ISSUES_URL = 'https://github.com/sganggs/Stronghold-Protocol/issues';
+
+/**
+ * 问题反馈: copy the diagnostics of this page (diag.js) for a GitHub issue — the errors recorded since the page opened,
+ * this browser and device, where the player is, and, switched on by default while a battle is on screen, that battle's
+ * spec (the dev tools replay it). Player names, the room code and the token are replaced; nothing is uploaded. Laid out
+ * like 快捷键 above it (a head with its button, a hint, the result line); the battle switch is the settings' Toggle, and
+ * when the clipboard refuses (some in-app browsers), the report is shown selected in a box styled like 干员调配's 导出.
+ */
+/** The result line of 复制诊断信息, by outcome (msgids: translated when shown, so a language switch reaches it). */
+const DIAG_NOTES = { copied: N_('已复制诊断信息，可以粘贴到 GitHub issue 中'), refused: N_('无法写入剪贴板，请手动复制下面的内容') };
+
+function DiagSection() {
+  const [attach, setAttach] = useState(true);
+  const [note, setNote] = useState(null);       // 'copied' | 'refused' | null: the result line
+  const [manual, setManual] = useState(null);   // the report, when the clipboard refused it
+  const boxRef = useRef(null);
+  // the box opens selected for a manual copy, scrolled to its first line (select() leaves it at the end)
+  useLayoutEffect(() => {
+    const el = boxRef.current;
+    if (manual && el) { el.focus(); el.select(); el.scrollTop = 0; }
+  }, [manual]);
+  const n = errorCount();
+  const battle = currentBattle();
+  const copy = async () => {
+    const text = diagnosticsText({ state: store.get(), settings: settingsStore.get(), attachBattle: attach && !!battle });
+    const ok = await copyText(text);
+    setManual(ok ? null : text);
+    setNote(ok ? 'copied' : 'refused');
+  };
+  return html`<section class="set-diag" aria-labelledby="set-diag-title">
+    <div class="set-keys__head">
+      <span class="set-row__label" id="set-diag-title">${t('问题反馈')}<${MicroLabel}>DIAGNOSTICS<//></span>
+      <${Button} variant="ghost" size="sm" icon="copy" class="set-diag__copy" data-testid="diag-copy" onClick=${copy}>${t('复制诊断信息')}<//>
+    </div>
+    <p class="set-hint">${t('遇到问题时，复制诊断信息并粘贴到 GitHub issue 中，开发者就能看到出错时的情况。诊断信息只在本机生成，不会自动上传；玩家名和房间号会被替换。')}</p>
+    <div class="set-diag__meta">
+      <span class="set-diag__stat">${t('已记录的错误')}<b class=${cx('set-diag__count num', n > 0 && 'is-warn')} data-testid="diag-count">${n}</b></span>
+      <span class="set-diag__url">${ISSUES_URL.replace(/^https:\/\//, '')}</span>
+    </div>
+    ${battle ? html`<${Toggle} label=${t('附上本场战斗')} micro="BATTLE DATA" value=${attach} onChange=${setAttach} />
+      <p class="set-hint set-diag__battle-hint">${t('开发者可以用附上的战斗数据重现这场战斗。')}</p>` : null}
+    ${note ? html`<p class=${cx('set-keys__note', note === 'refused' && 'is-warn')} role="status" aria-live="polite">${t(DIAG_NOTES[note])}</p>` : null}
+    ${manual ? html`<textarea ref=${boxRef} class="set-diag__text" data-testid="diag-text" spellcheck=${false} readOnly
+      aria-label=${t('诊断信息')} value=${manual}></textarea>` : null}
+  </section>`;
+}
 
 /**
  * Settings modal.
@@ -122,6 +181,7 @@ export function SettingsModal({ open, onClose }) {
       ${touchUi
         ? html`<p class="set-hint">触屏操作：点击单位选中（撤退 / 出售）· 长按单位或卡牌查看详情 · 拖动部署后滑动选择朝向</p>`
         : html`<p class="set-hint">快捷键：<kbd>R</kbd> 刷新 · <kbd>F</kbd> 冻结 · <kbd>D</kbd> 升级 · <kbd>Q</kbd> 撤退选中干员 · <kbd>X</kbd> 出售选中干员 · <kbd>Space</kbd> 准备就绪 · <kbd>Esc</kbd> 关闭弹窗 · 右键查看详情</p>`}
+      <${DiagSection} />
     </div>
   <//>`;
 }

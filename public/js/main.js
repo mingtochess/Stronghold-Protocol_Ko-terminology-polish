@@ -1,3 +1,9 @@
+import { StatsHost } from './screens/stats.js';
+import { recordResult, installStatsRecorder } from './ui/stats.js';
+
+
+import { t } from '../../shared/i18n.js';
+import { recordError } from './diag.js';
 // Client entry: boot (fonts, identity, socket), net → store wiring, router, global overlays.
 //
 // Router (derived from the store, no URL routes):
@@ -216,7 +222,13 @@ function wireNet() {
   net.on('m.public', (msg) => { matchAt = Date.now(); store.patch('match', { public: payload(msg) }); maybeFinishRestore(); });
   net.on('m.private', (msg) => { matchAt = Date.now(); store.patch('match', { private: payload(msg) }); });
   net.on('m.field', (msg) => store.patch('match', { field: payload(msg) }));
-  net.on('m.result', (msg) => store.patch('match', { result: payload(msg) }));
+  net.on('m.result', (msg) => {
+    const res = payload(msg);
+    store.patch('match', { result: res });
+    // 本机统计 (PR #323): every arrival, including the lobby's result replay after a reconnect / reload —
+    // replays dedupe by content id inside recordResult (spectator seats' copies build no record at all)
+    recordResult(res, { myId: store.get().me.playerId, roomMode: store.get().room?.mode ?? null, now: Date.now() });
+  });
   net.on('m.toast', (msg) => {
     const kind = ['info', 'success', 'warn', 'error'].includes(msg.kind) ? msg.kind : 'info';
     toast(msg.text, kind);
@@ -290,6 +302,7 @@ function App() {
     <${UiHosts} />
     <${GuideHost} />
     <${LoadoutHost} />
+    <${StatsHost} />
   </div>`;
 }
 
@@ -314,12 +327,14 @@ function installGlobalErrorHandlers() {
     // expected browser behaviour, not app errors: log quietly, never toast.
     if (err && (err.name === 'NotAllowedError' || err.name === 'AbortError')) { console.warn('[app] ignored rejection', err.name); return; }
     console.error('[app] unhandled rejection', err);
+    recordError('rejection', err);
     if (err instanceof NetError) toastError(err);
     else toast(`发生意外错误：${describeError(err)}`.slice(0, 120), 'error');
   });
   window.addEventListener('error', (ev) => {
     if (!(ev instanceof ErrorEvent)) return; // resource load errors are not script errors
     console.error('[app] uncaught error', ev.error || ev.message);
+    recordError('error', ev.error || ev.message, ev.error ? null : `${ev.filename || '?'}:${ev.lineno || 0}:${ev.colno || 0}`);
   });
 }
 
@@ -342,6 +357,7 @@ async function boot() {
   }));
 
   wireNet();
+  installStatsRecorder(store); // follows the match on screen, so a 放弃模拟 can be recorded (ui/stats.js)
   installLoadoutSync({ net });
   net.attachBrowserHooks();
   // Audio: unlock on first gesture, BGM follows the route / match phase (js/audio.js).

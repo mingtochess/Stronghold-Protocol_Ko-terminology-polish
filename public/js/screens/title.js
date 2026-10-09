@@ -1,3 +1,8 @@
+import { openStats } from './stats.js';
+
+
+
+
 // Title screen: season-style backdrop, big title 卫戍协议：盟约, remembered nickname, 开始.
 //
 // Pressing 开始 validates the nickname (1..NAME_MAX_LEN chars, no control characters), stores it,
@@ -14,6 +19,7 @@ import { html, Button, Icon, MicroLabel, TextField, PingPill } from '../ui/compo
 import { SettingsButton } from '../ui/settings.js';
 import { PatchNotesButton } from '../ui/patchNotes.js';
 import { GuideButton } from '../ui/guide.js';
+
 import { toast } from '../ui/toasts.js';
 import { net, identity } from '../net.js';
 import { store, useStore, shallowEqual } from '../store.js';
@@ -214,7 +220,7 @@ export function TitleScreen() {
   // touch screens: no autofocus (it would pop the on-screen keyboard over a landscape phone's whole view)
   const touchUi = useMemo(() => detectFeatures().coarse, []);
   return html`<div class="screen title-screen">
-    <div class="title-tools"><${PatchNotesButton} /><${SettingsButton} /></div>
+    <div class="title-tools"><${Button} variant="secondary" size="sm" onClick=${openStats}>통계<//><${PatchNotesButton} /><${SettingsButton} /></div>
     <div class=${`title-bg${bgLoaded ? ' has-art' : ''}${ridgesLoaded ? ' has-ridges' : ''}`} aria-hidden="true">
       ${backdrop ? html`<img class="title-bg__art" src=${backdrop} alt="" draggable=${false}
         onLoad=${() => setBgLoadedUrl(backdrop)} />` : null}

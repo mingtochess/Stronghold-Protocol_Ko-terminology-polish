@@ -1082,6 +1082,419 @@
       "metadataKR": true,
       "krLines": 14,
       "jpFallback": []
+    },
+    {
+      "charId": "char_003_kalts",
+      "metadataKR": true,
+      "krLines": 14,
+      "jpFallback": []
+    },
+    {
+      "charId": "char_010_chen",
+      "metadataKR": true,
+      "krLines": 14,
+      "jpFallback": []
+    },
+    {
+      "charId": "char_017_huang",
+      "metadataKR": true,
+      "krLines": 14,
+      "jpFallback": []
+    },
+    {
+      "charId": "char_112_siege",
+      "metadataKR": true,
+      "krLines": 14,
+      "jpFallback": []
+    },
+    {
+      "charId": "char_113_cqbw",
+      "metadataKR": true,
+      "krLines": 14,
+      "jpFallback": []
+    },
+    {
+      "charId": "char_134_ifrit",
+      "metadataKR": true,
+      "krLines": 14,
+      "jpFallback": []
+    },
+    {
+      "charId": "char_147_shining",
+      "metadataKR": true,
+      "krLines": 14,
+      "jpFallback": []
+    },
+    {
+      "charId": "char_179_cgbird",
+      "metadataKR": true,
+      "krLines": 14,
+      "jpFallback": []
+    },
+    {
+      "charId": "char_180_amgoat",
+      "metadataKR": true,
+      "krLines": 14,
+      "jpFallback": []
+    },
+    {
+      "charId": "char_225_haak",
+      "metadataKR": true,
+      "krLines": 14,
+      "jpFallback": []
+    },
+    {
+      "charId": "char_248_mgllan",
+      "metadataKR": true,
+      "krLines": 14,
+      "jpFallback": []
+    },
+    {
+      "charId": "char_250_phatom",
+      "metadataKR": true,
+      "krLines": 14,
+      "jpFallback": []
+    },
+    {
+      "charId": "char_293_thorns",
+      "metadataKR": true,
+      "krLines": 14,
+      "jpFallback": []
+    },
+    {
+      "charId": "char_300_phenxi",
+      "metadataKR": true,
+      "krLines": 14,
+      "jpFallback": []
+    },
+    {
+      "charId": "char_322_lmlee",
+      "metadataKR": true,
+      "krLines": 14,
+      "jpFallback": []
+    },
+    {
+      "charId": "char_340_shwaz",
+      "metadataKR": true,
+      "krLines": 14,
+      "jpFallback": []
+    },
+    {
+      "charId": "char_362_saga",
+      "metadataKR": true,
+      "krLines": 14,
+      "jpFallback": []
+    },
+    {
+      "charId": "char_377_gdglow",
+      "metadataKR": true,
+      "krLines": 14,
+      "jpFallback": []
+    },
+    {
+      "charId": "char_400_weedy",
+      "metadataKR": true,
+      "krLines": 14,
+      "jpFallback": []
+    },
+    {
+      "charId": "char_416_zumama",
+      "metadataKR": true,
+      "krLines": 14,
+      "jpFallback": []
+    },
+    {
+      "charId": "char_450_necras",
+      "metadataKR": true,
+      "krLines": 14,
+      "jpFallback": []
+    },
+    {
+      "charId": "char_479_sleach",
+      "metadataKR": true,
+      "krLines": 14,
+      "jpFallback": []
+    },
+    {
+      "charId": "char_485_pallas",
+      "metadataKR": true,
+      "krLines": 14,
+      "jpFallback": []
+    },
+    {
+      "charId": "char_1013_chen2",
+      "metadataKR": true,
+      "krLines": 14,
+      "jpFallback": []
+    },
+    {
+      "charId": "char_1031_slent2",
+      "metadataKR": true,
+      "krLines": 14,
+      "jpFallback": []
+    },
+    {
+      "charId": "char_1034_jesca2",
+      "metadataKR": true,
+      "krLines": 14,
+      "jpFallback": []
+    },
+    {
+      "charId": "char_1042_phatm2",
+      "metadataKR": true,
+      "krLines": 14,
+      "jpFallback": []
+    },
+    {
+      "charId": "char_1043_leizi2",
+      "metadataKR": true,
+      "krLines": 14,
+      "jpFallback": []
+    },
+    {
+      "charId": "char_1044_hsgma2",
+      "metadataKR": true,
+      "krLines": 14,
+      "jpFallback": []
+    },
+    {
+      "charId": "char_1502_crosly",
+      "metadataKR": true,
+      "krLines": 14,
+      "jpFallback": []
+    },
+    {
+      "charId": "char_2012_typhon",
+      "metadataKR": true,
+      "krLines": 14,
+      "jpFallback": []
+    },
+    {
+      "charId": "char_2013_cerber",
+      "metadataKR": true,
+      "krLines": 14,
+      "jpFallback": []
+    },
+    {
+      "charId": "char_2014_nian",
+      "metadataKR": true,
+      "krLines": 14,
+      "jpFallback": []
+    },
+    {
+      "charId": "char_2023_ling",
+      "metadataKR": true,
+      "krLines": 14,
+      "jpFallback": []
+    },
+    {
+      "charId": "char_2024_chyue",
+      "metadataKR": true,
+      "krLines": 14,
+      "jpFallback": []
+    },
+    {
+      "charId": "char_2025_shu",
+      "metadataKR": true,
+      "krLines": 14,
+      "jpFallback": []
+    },
+    {
+      "charId": "char_2027_wang",
+      "metadataKR": true,
+      "krLines": 14,
+      "jpFallback": []
+    },
+    {
+      "charId": "char_4009_irene",
+      "metadataKR": true,
+      "krLines": 14,
+      "jpFallback": []
+    },
+    {
+      "charId": "char_4011_lessng",
+      "metadataKR": true,
+      "krLines": 14,
+      "jpFallback": []
+    },
+    {
+      "charId": "char_4027_heyak",
+      "metadataKR": true,
+      "krLines": 14,
+      "jpFallback": []
+    },
+    {
+      "charId": "char_4037_demetr",
+      "metadataKR": false,
+      "krLines": 0,
+      "jpFallback": [
+        {
+          "slot": "start",
+          "asset": "char_4037_demetr/CN_019",
+          "actual": "jp"
+        },
+        {
+          "slot": "faceEnemy",
+          "asset": "char_4037_demetr/CN_020",
+          "actual": "jp"
+        },
+        {
+          "slot": "select",
+          "asset": "char_4037_demetr/CN_021",
+          "actual": "jp"
+        },
+        {
+          "slot": "select",
+          "asset": "char_4037_demetr/CN_022",
+          "actual": "jp"
+        },
+        {
+          "slot": "place",
+          "asset": "char_4037_demetr/CN_023",
+          "actual": "jp"
+        },
+        {
+          "slot": "place",
+          "asset": "char_4037_demetr/CN_024",
+          "actual": "jp"
+        },
+        {
+          "slot": "skill1",
+          "asset": "char_4037_demetr/CN_025",
+          "actual": "jp"
+        },
+        {
+          "slot": "skill2",
+          "asset": "char_4037_demetr/CN_026",
+          "actual": "jp"
+        },
+        {
+          "slot": "skill3",
+          "asset": "char_4037_demetr/CN_027",
+          "actual": "jp"
+        },
+        {
+          "slot": "skill4",
+          "asset": "char_4037_demetr/CN_028",
+          "actual": "jp"
+        },
+        {
+          "slot": "resultFour",
+          "asset": "char_4037_demetr/CN_029",
+          "actual": "jp"
+        },
+        {
+          "slot": "resultThree",
+          "asset": "char_4037_demetr/CN_030",
+          "actual": "jp"
+        },
+        {
+          "slot": "resultTwo",
+          "asset": "char_4037_demetr/CN_031",
+          "actual": "jp"
+        },
+        {
+          "slot": "resultLose",
+          "asset": "char_4037_demetr/CN_032",
+          "actual": "jp"
+        }
+      ]
+    },
+    {
+      "charId": "char_4046_ebnhlz",
+      "metadataKR": true,
+      "krLines": 14,
+      "jpFallback": []
+    },
+    {
+      "charId": "char_4048_doroth",
+      "metadataKR": true,
+      "krLines": 14,
+      "jpFallback": []
+    },
+    {
+      "charId": "char_4055_bgsnow",
+      "metadataKR": true,
+      "krLines": 14,
+      "jpFallback": []
+    },
+    {
+      "charId": "char_4065_judge",
+      "metadataKR": true,
+      "krLines": 14,
+      "jpFallback": []
+    },
+    {
+      "charId": "char_4072_ironmn",
+      "metadataKR": true,
+      "krLines": 14,
+      "jpFallback": []
+    },
+    {
+      "charId": "char_4080_lin",
+      "metadataKR": true,
+      "krLines": 14,
+      "jpFallback": []
+    },
+    {
+      "charId": "char_4088_hodrer",
+      "metadataKR": true,
+      "krLines": 14,
+      "jpFallback": []
+    },
+    {
+      "charId": "char_4098_vvana",
+      "metadataKR": true,
+      "krLines": 14,
+      "jpFallback": []
+    },
+    {
+      "charId": "char_4117_ray",
+      "metadataKR": true,
+      "krLines": 14,
+      "jpFallback": []
+    },
+    {
+      "charId": "char_4121_zuole",
+      "metadataKR": true,
+      "krLines": 14,
+      "jpFallback": []
+    },
+    {
+      "charId": "char_4133_logos",
+      "metadataKR": true,
+      "krLines": 14,
+      "jpFallback": []
+    },
+    {
+      "charId": "char_4179_monstr",
+      "metadataKR": true,
+      "krLines": 14,
+      "jpFallback": []
+    },
+    {
+      "charId": "char_4195_radian",
+      "metadataKR": true,
+      "krLines": 14,
+      "jpFallback": []
+    },
+    {
+      "charId": "char_4202_haruka",
+      "metadataKR": true,
+      "krLines": 14,
+      "jpFallback": []
+    },
+    {
+      "charId": "char_4204_mantra",
+      "metadataKR": true,
+      "krLines": 14,
+      "jpFallback": []
+    },
+    {
+      "charId": "char_4212_nasti",
+      "metadataKR": true,
+      "krLines": 14,
+      "jpFallback": []
     }
   ]
 }

@@ -1,3 +1,4 @@
+export const STEALTH_FORMS = Object.freeze({ enemy_9008_acbunn: 'revealed' });
 import { unlimitedSkillRange } from '../../../shared/skillRangeDisplay.js';
 // render/units.js — per-unit views for battle units and prep pieces (DESIGN §9).
 //
@@ -216,6 +217,16 @@ export function dieClipDur(entry) {
   const d = Object.hasOwn(durs, name) ? Number(durs[name]) : NaN;
   return Number.isFinite(d) && d > 0 ? d : 0;
 }
+/**
+ * render/app.js syncBattle's step for one view and its interpolated sample `s` at render time `t`: a living view (or a
+ * device) takes the whole sample; a dying one only the position — its DIE window in the snapshots; one shown alive
+ * again (redeployed without an event) stands up first.
+ */
+export function syncView(v, s, t) {
+  if (v.alive || v.info?.kind === 'device') v.sync(s, t);
+  else if (v.dying > 0) { if (typeof v.followSample === 'function') v.followSample(s, t); else { v.x = s.x; v.y = s.y; } }
+  else if (s.anim !== ANIM.DIE && s.hp > 0) { v.revive?.(); v.sync(s, t); }
+}
 /** World step (x = col, y = row) of a direction. */
 export const DIR_STEP = Object.freeze({ UP: [0, 1], RIGHT: [1, 0], DOWN: [0, -1], LEFT: [-1, 0] });
 const nowMs = () => (globalThis.performance ? globalThis.performance.now() : Date.now());
@@ -223,6 +234,12 @@ const nowMs = () => (globalThis.performance ? globalThis.performance.now() : Dat
  *  无头像; data/assets.json has no avatar or model for it, so the token fallback showed 圣聆初雪's own face) — the marker of a
  *  frozen gate. */
 const ICE_TOKENS = new Set(['token_10058_sbell2_icetgt']);
+/**
+ * Units that never show an HP bar: 琳琅诗怀雅's 香槟炸弹 — PRTS 香槟炸弹 备注 "即使自身生命值未满，模型下方也不会显示生命值槽"
+ * (the owner's report of 2026-10-08, 「香槟会掉血，会被治疗」: the bar showed every change). Only the bar: its HP, the
+ * damage it takes (活性源石 hurts what stands on it) and healing are unchanged — no source makes it invulnerable.
+ */
+const NO_HP_BAR = new Set(['token_10031_swire2_gdtrap']);
 const ICE_FRAME = 0x9fe6ff;
 /** How long a view waits for its avatar before showing the image-less placeholder diamond. */
 const PIC_WAIT_MS = 400;
@@ -242,8 +259,59 @@ export const SPINE_STUCK_MS = 5000;
 
 /** Heights above this count as standing on a raised top (bench pads are the lowest raised tiles, 0.16). */
 const RAISED_Z = 0.12;
-/** Flying units hover this many tiles above the ground they cross. */
-export const FLY_HOVER = 0.32;
+/**
+ * Flying units hover this many tiles up (PR #211 by @xcdoge; the owner's decision of 2026-10-06;
+ * docs/research/12-flying-visuals-official.md): an enemy flyer above the road (z 0) whatever tile it crosses — a raised
+ * block under it is no step (GitHub #277) —, an operator or summon above its tile.
+ *
+ * The official client's fly offset is a **single constant, `Vector3(0, 0.35f, 0)`**: `Torappu.Battle.CharacterAnimator`'s
+ * constructor stores it in the instance field at +0x114 (`GameAssembly.dll` 0x180600555 reads the constant at 0x186a78a50 =
+ * 0x3EB33333; x and z are 0), and `_SetFlyMountPointOffset` / `_SetFlyHitOffset` add it to the mount / hit transforms
+ * while the unit flies and add its negation when it lands (the sign flips through the −0.0 mask at 0x186a77e00). It is
+ * model-independent: no store to that field exists anywhere in the binary except the constructor.
+ *
+ * `0.35` is that constant in the client's own (character) space, whose unit is the standard battle-prefab scale **0.27**
+ * (our `enemies.json modelScale` is a multiple of it — units.js `enemyModelScale`), so the lift is **0.35 / 0.27 ≈ 1.3
+ * tiles** [ASSUMED: the hierarchy that yields the 1 / 0.27 factor]. An official screenshot (帝国炮火先兆者 over a tile)
+ * measures the same: the drone's art bottom sits 1.2–1.4 tiles above the ground it crosses.
+ *
+ * **No per-model term** — (a) the binary never rewrites the offset; (b) the battle prefabs carry no per-model vertical
+ * correction for flyers (their `Graphic` node sits at local (0,0,0), or at the (0,−0.2,−0.06) their ground-unit prefab
+ * family shares — unrelated to how far each model's art hangs below its pivot). So a model whose art hangs below its
+ * origin keeps that hang in the official too: 妖怪 flies with its rotors ≈ 0.9 tiles up, 帝国炮火先兆者 with its art
+ * bottom ≈ 1.3. It replaced a flat 0.32 (player report 2026-10-05: 无人机等飞行单位位置明显偏低 — every flyer was ~1 tile
+ * too low). The shadow stays on the ground under the unit; the HP bar, damage numbers, projectile hits and skill rings
+ * ride the body (`hover`); range highlights are tiles.
+ */
+export const FLY_HOVER = 1.3;
+/**
+ * A push / pull slide (推拉, PR #380 by @xcdoge). The sim displaces at once — server/sim/battle/displacement.js walks its
+ * 0.1-tile steps inside one call — and then holds the enemy in its 失衡 (UNBALANCE) state (PR #392's idea): a push for the
+ * 位移时间 of its 受力等级 (PRTS 游戏数据基础 推力-位移近似对应表: 0.2 … 35/30 game s), a pull for its force window (推与拉:
+ * 0.5 / 1 s). The snapshots only ever show the destination, so the view slides there under a constant deceleration
+ * (UnitView.slideTo) for that same span: the `displace` fx carries it (`dur`, game seconds) and the view divides it by the
+ * playback rate (ctx.animRate — 2 game s per real second by default: a 0.8 s push slides 0.4 real s) — it lands as the
+ * sim's state ends. v0 = 2D/T, a = v0/T then run the distance in exactly T. DISPLACE_SLIDE (real s per √tile, kept in
+ * 0.12–0.45 s) is only the fallback for an fx without `dur` (a recording made before 0.2.2) [ASSUMED].
+ */
+export const DISPLACE_SLIDE = 0.14;
+/**
+ * Terrain friction factor of a slide: 1 = normal land, < 1 = slippery (ICE_LAND) slides longer. Every tile of this mode
+ * is normal land (its 11 maps have no ice or slime), so it is always 1.
+ */
+export const SLIDE_FRICTION = 1;
+/**
+ * Seconds of the death fade that follows the Die clip in `dying` (die(): the clip, then this tail). A flying unit keeps
+ * its lift for the whole clip and drops only inside this tail (PR #380: the official client removes its fly offset in
+ * `CharacterAnimator.OnFinish`, when the finish state ends — docs/research/14-death-animations.md).
+ */
+const DIE_FADE_TAIL = 0.55;
+/**
+ * Longest Die clip a death plays out (s): the longest enemy Die clip of data/assets.json is 盐风主教昆图斯's 7.97 s (234
+ * enemy Die clips; the old 1.6 s cap cut 25 of them short — the bosses' most), and the official client plays its clip
+ * out (PR #380). It only bounds a view whose data lies.
+ */
+export const DIE_CLIP_MAX = 8;
 
 /** b.snap `down` entry states (server/sim/constants.js DOWN_STATE). */
 export const DOWN_STATE = Object.freeze({ COUNTING: 0, WAIT_DP: 1, WAIT_TILE: 2 });
@@ -267,12 +335,26 @@ export const ALIAS_TINT = Object.freeze({ enemy_1305_mhslim: 0xffc48a, enemy_130
  * between `pulse` and 1 at `pulseHz` (real time).
  */
 export const EL_BAR = Object.freeze({ icon: 0.15, min: 8, max: 15, enemy: 0.8, gap: 1, pulse: 0.45, pulseHz: 1.5 });
+/**
+ * The HP-bar readouts under the bars (b.snap `ammo`, `wolves`, `neg`; render/interp.js header):
+ *  - AMMO_BAR — the ammo skill's segmented bar replaces the SP bar: a cell per round, `height` of the HP bar's thickness
+ *    (the SP bar's is 0.6), cells drawn only while they are at least `minCell` px wide;
+ *  - WOLF_PIPS — 伺夜's 狼影 count as `size` (tiles) wide diamonds, clamped to `min`…`max` px, `gap` px apart, `pad` px
+ *    below the rows above; a lit diamond is a 狼影 left, a dim one a spent slot (`dim` alpha).
+ * [ASSUMED] the look: the count is data (skill_table `attack@trigger_time` 14 for 隐现's S2; the talent text 「至多3只」), the
+ * official HUD art of neither is in the game data.
+ */
+export const AMMO_BAR = Object.freeze({ height: 0.85, minCell: 2 });
+export const WOLF_PIPS = Object.freeze({ size: 0.1, min: 5, max: 9, gap: 2, pad: 1.5, dim: 0.25 });
 
 /**
  * Enemy modes drawn with another clip set of the same skeleton (the `form` of a sim fx — shared/protocol.js fxForm —
  * → UnitView.setForm), per Spine id; the mode's roles override the manifest's (data/assets.json anims), `change` plays
  * once first:
  * - 掠海漂移体 (PRTS: 受晕眩/沉睡/冻结影响后进入爬行模式 — for good) crawls on its *_02 clips after 'Change';
+ * - 假想敌：骨刺 (GitHub #296, PR #365): not an fx — its form follows the snapshot's stealth bit (STEALTH_FORMS): the
+ *   manifest's *_A (the three-headed snake) while its 隐匿 is on, 'revealed' *_B the moment it is blocked or revealed, *_A
+ *   again when the 隐匿 is back; no change clip, a running attack / stun pose carried over (SpineActor.syncFormPose);
  * - 暴鸰 flies on its bomb-less *_2 clips once its one bomb left (the official prefab's mode S1: Move→Move_2, Idle→Idle_2,
  *   Die→Die_2; user feedback after 0.1.0, D4: the bomb used to stay under the drone — no change clip, the drop is its
  *   Attack clip);
@@ -391,10 +473,15 @@ export class UnitView {
     this.golden = !!info.golden;
     this.tier = clamp(Number(info.tier) || 1, 1, 6);
     this.x = Number(info.x) || 0; this.y = Number(info.y) || 0; this.z = 0;
-    this.zTarget = null;          // battle: standing height the feet ease towards (tile top under the unit)
+    this.zTarget = null;          // battle: standing height the feet ease towards (tile top under the unit; 0 for enemies)
+    this.slide = null;            // a push / pull slide (slideTo): held, then easing into the sim's position (update)
+    /** @type {number|null} */
+    this.shadowZ = null;          // an enemy flyer's shadow height (the tile top under it), else null: the shadow is at z
+    /** @type {number|null} */
+    this.shadowZTarget = null;
     this.flying = !!info.flying || info.motion === 'FLY';
     this.flightBaseZ = this.flying ? 0 : null;
-    this.hover = this.flying ? FLY_HOVER : 0; // native flyers enter at flight height, including field switches
+    this.hover = this.flying ? FLY_HOVER : 0;               // flying: body height above the road / the ground under it
     this.dir = this.isEnemy ? null : unitDir(info);
     // whether the direction is known (UnitInfo / piece `dir`), not just the legacy ±1: battle and scouting views show
     // the ground wedge only then (a derived RIGHT would mislabel an UP / DOWN operator)
@@ -403,6 +490,9 @@ export class UnitView {
     this.visFacing = this.isEnemy ? -1 : this.facing;
     this.hp = Number(info.maxHp) || 1; this.maxHp = Number(info.maxHp) || 1; this.ghostHp = this.hp;
     this.sp = 0; this.spMax = 0;
+    this.ammo = null;             // [rounds left, rounds in the magazine] while an ammo skill runs (sync; b.snap `ammo`)
+    this.wolves = null;           // [狼影 left, the talent's maximum] of a 狼群 (sync; b.snap `wolves`)
+    this.neg = 0;                 // the share of its cap a negative-HP pool holds, 0 = none (sync; b.snap `neg`, 斩业星熊's 我执)
     this.flags = 0; this.anim = ANIM.IDLE;
     this.statuses = new Set();
     this.alive = true;
@@ -413,6 +503,8 @@ export class UnitView {
     this.gameT = 0;               // battle game time of the frame (render clock), for the redeploy ring's countdown and the element bar's refill
     this.el = null; this.elFill = 0; this.elUntil = 0; this.elDur = 0;   // shown element gauge (sync)
     this._elBar = null;           // { root, disc, bg, fill } sprites of the element gauge row, built on first use
+    this._wolfPips = null;        // { root, back[], lit[] } diamonds of the 狼影 row, built on first use
+    this.ammoCuts = [];           // the thin separators between the ammo bar's cells (_updateAmmoCuts)
     this._downRing = null;        // { disc, track, arc, text } sprites, built on first use
     this.alpha = 1; this.fadeIn = this.prep ? 1 : 0;
     this.lunge = 0; this.lungeDir = { x: 1, y: 0 };
@@ -616,6 +708,7 @@ export class UnitView {
         if (deployElapsed != null && deployElapsed < this.actor.dur(this.actor.roles.deploy)) {
           this.actor.deploy(); if (deployElapsed > 0) this.actor.update(deployElapsed);
         }
+        if (STEALTH_FORMS[id]) this.actor.syncFormPose();
       }
     }, () => {
       if (req === this._spineReq) { this._spineBusy = false; this._stuckAt = 0; }
@@ -665,6 +758,7 @@ export class UnitView {
     this.hpBg = bar(P, h, COLORS.hpBack, 1);
     this.hpGhost = bar(P, h, COLORS.hpGhost, 0.9);
     this.hpFill = bar(P, h, this.isEnemy ? (this.isBoss ? COLORS.hpBoss : COLORS.hpEnemy) : COLORS.hpAlly);
+    this.negFill = bar(P, h, COLORS.hpNeg);
     this.shieldBar = bar(P, h, 0xffffff, 1);
     this.spBg = bar(P, h, COLORS.hpBack, 1);
     this.spFill = bar(P, h, COLORS.sp);
@@ -675,7 +769,7 @@ export class UnitView {
     this.spGlow.blendMode = P.BLEND_MODES.ADD;
     h.addChild(this.spGlow);
     // nothing shows until the first HUD update decides (a culled or prep view never draws bars)
-    for (const b of [this.hpBg, this.hpGhost, this.hpFill, this.shieldBar, this.spBg, this.spFill, this.spGlow]) b.visible = false;
+    for (const b of [this.hpBg, this.hpGhost, this.hpFill, this.negFill, this.shieldBar, this.spBg, this.spFill, this.spGlow]) b.visible = false;
     this.chip = null;
     // operators only: summon tokens have no tier (hand and field alike)
     if (!this.isEnemy && !this.isToken && this.info.kind !== 'device') {
@@ -744,7 +838,7 @@ export class UnitView {
     this.el = typeof s.el === 'string' ? s.el : null;
     this.elValue=Number.isFinite(s.elValue)?s.elValue:null;
     this.elFill = this.el ? s.elFill || 0 : 0; this.elUntil = this.el ? s.elUntil || 0 : 0; this.elDur = this.el ? s.elDur || 0 : 0;
-    this.x = s.x; this.y = s.y;
+    this.followSample(s,t);
     // Snapshots carry the current airborne state, including temporary flight and landing.
     const wasFlying = this.flying;
     this.flying = !!(s.flags & UF.FLYING);
@@ -774,12 +868,72 @@ export class UnitView {
     this.anim = s.anim | 0;
     this.moveAnimRate = this.isEnemy && Number.isFinite(s.moveAnimRate) ? Math.max(0,s.moveAnimRate) : 1;
     if (this.isEnemy && this.anim===ANIM.MOVE && !['attack','skillCast'].includes(this.actor?.mode) && Math.abs(s.vx) > 0.08) this.visFacing = s.vx < 0 ? -1 : 1;
+    this.ammo = s.ammo || null; this.wolves = s.wolves || null; this.neg = s.neg > 0 ? Math.min(1, s.neg) : 0;
+    // a stealth-driven form (STEALTH_FORMS: 假想敌：骨刺) follows this snapshot's stealth bit at once — before a DIE in the
+    // same snapshot, so it dies in the form it had
+    const stealthForm = this.isEnemy && this.alive ? STEALTH_FORMS[this.info.spine || this.info.defId] : null;
+    if (stealthForm) {
+      const form = this.flags & UF.STEALTH ? null : stealthForm;
+      if (form !== this.form) {
+        this.setForm(form);
+        this.actor?.syncFormPose();
+        if (this.imp) this.imp.dirty = true;
+      }
+    }
+    if (this.isEnemy && Math.abs(s.vx) > 0.08) this.visFacing = s.vx < 0 ? -1 : 1;
     if ((prevFlags ^ this.flags) & UF.SKILL) this.setSkill(!!(this.flags & UF.SKILL));
     if (this.anim === ANIM.DIE && this.alive) this.die();
     if (this.actor && this.alive && !(this.flags & UF.FROZEN)) this.actor.setBase(this._baseFromAnim());
   }
 
   setWorld(x, y, z = 0) { this.x = x; this.y = y; this.z = z; }
+
+  /**
+   * The sampled position: the view's — unless a push / pull slide owns it (slideTo), which only anchors where it eases
+   * to on it, from the snapshot that carries the destination on (`at`; before that the sample is still sliding or
+   * snapping there). sync() starts with it; a dying view gets nothing else (syncView: the DIE window of the snapshots),
+   * so a unit killed on the step of its push still lands where the sim put the body (Grok's review of fb7-render).
+   */
+  followSample(s, t) {
+    const sl = this.slide;
+    if (!sl) { this.x = s.x; this.y = s.y; }
+    else if (!(t < sl.at)) { sl.lx = s.x; sl.ly = s.y; sl.live = true; }
+  }
+
+  /**
+   * Slide to a displacement's destination (推拉, the `displace` fx at (x, y)) instead of appearing there: `opts.dur` = the
+   * fx's 失衡 time in game seconds (real seconds = dur / ctx.animRate), else the DISPLACE_SLIDE·√D fallback.
+   * `at` (game s): the time of the snapshot that carries the destination — render/app.js starts the slide as soon as the
+   * interpolator shows the interval before it, and until the render clock reaches `at` the view holds where it stood
+   * (the sample in between is a lerp or a snap towards the destination). From then on it eases from there into the
+   * sampled position — the destination, and the walk the enemy resumes from it —, so it lands without a jump. Without
+   * `at` the destination counts as shown. A unit that dies on the way finishes the slide: its body lies where the push
+   * put it (the sim's position); a dead one is placed there, a knocked-down one is left to setDown.
+   */
+  slideTo(x, y, opts = {}) {
+    if (!Number.isFinite(x) || !Number.isFinite(y)) return;
+    // already on the way there: app.js starts the slide ahead of the event, then the event itself asks again
+    if (this.slide && this.slide.x1 === x && this.slide.y1 === y) return;
+    if (this.down) { this.slide = null; return; }
+    const dx = x - this.x, dy = y - this.y;
+    const D = Math.hypot(dx, dy);
+    if (!this.alive || !(D > 0.05)) { this.x = x; this.y = y; this.slide = null; return; }
+    const f = Number.isFinite(opts.friction) && opts.friction > 0 ? opts.friction : SLIDE_FRICTION;
+    // the sim's 失衡 time (game s) at the playback rate; a slippery tile (f < 1) slides longer
+    const rate = this.ctx.animRate?.() || 1;
+    const T = Math.max(0.05, (opts.dur > 0 ? opts.dur / rate : clamp(DISPLACE_SLIDE * Math.sqrt(D), 0.12, 0.45)) / f);
+    // v0 = 2D/T and a = v0/T run the distance in exactly T with the velocity reaching 0 there, integrated in update().
+    // The official turns a displaced unit towards the force (its _dontChangeFaceByDirection is an opt-in flag), while
+    // our facing comes from the snapshot's vx — which points back down the route the enemy resumes after the
+    // displacement, i.e. against the push. The slide therefore owns the facing until it lands.
+    if (this.isEnemy) this.visFacing = dx < 0 ? -1 : 1;
+    const v0 = 2 * D / T;
+    const at = Number.isFinite(opts.at) ? opts.at : -Infinity;
+    this.slide = {
+      x1: x, y1: y, sx: this.x, sy: this.y, ux: dx / D, uy: dy / D, D, done: 0, v: v0, a: v0 / T, t: 0, dur: T,
+      at, live: at === -Infinity, lx: x, ly: y, ox: 0, oy: 0, run: false, wait: 0,
+    };
+  }
 
   setFacing(f) {
     if (this.isEnemy) { this.facing = f === -1 ? -1 : 1; return; }
@@ -960,7 +1114,7 @@ export class UnitView {
     if (this.actor && !d) d = this._fallDur();
     const rate = this.ctx.animRate?.() || 1;
     this.dieT = 0;
-    this.dying = clamp(d / rate, 0.35, 1.6) + 0.55;
+    this.dying = clamp(d / rate, 0.35, DIE_CLIP_MAX) + DIE_FADE_TAIL;
     this.dieDur = this.dying;
     if (instant) { this.dieT = 30; if (this.actor) this.actor.update(30); }
   }
@@ -999,7 +1153,7 @@ export class UnitView {
     if (!d) {
       if (!this.down) return;
       this.down = null;
-      if (!this.alive) { this.dying = 0.55; this.dieDur = 0.55; }
+      if (!this.alive) { this.dying = DIE_FADE_TAIL; this.dieDur = DIE_FADE_TAIL; }
       return;
     }
     if (this.alive) this.die(instant);
@@ -1021,6 +1175,32 @@ export class UnitView {
   update(dt, cam, t) {
     if (this.destroyed) return;
     if(this.pendingDeployElapsed != null)this.pendingDeployElapsed += dt*(this.ctx.animRate?.() || 1);
+    // a displacement's slide (slideTo): held where it stood until the snapshot with the destination is shown, then
+    // eased into the sampled position (sync keeps `lx, ly` current) under a constant deceleration
+    if (this.slide) {
+      const sl = this.slide;
+      if (this.down) this.slide = null;   // a knocked-down view lies on its tile (setDown)
+      else if (!sl.live) {
+        this.x = sl.sx; this.y = sl.sy;
+        // the destination's snapshot never shown (the unit left the snapshots, a stalled stream): it slides to the
+        // destination the fx named
+        if ((sl.wait += dt) > 0.5) sl.live = true;
+      } else {
+        if (!sl.run) { sl.run = true; sl.ox = sl.sx - sl.lx; sl.oy = sl.sy - sl.ly; }
+        const step = Math.min(dt, 0.1);                // a hidden tab's catch-up frame must not overshoot
+        const v0 = sl.v;
+        sl.v = Math.max(0, sl.v - sl.a * step);        // friction: the velocity decays every frame
+        // the step's mean velocity — exact under a constant deceleration (the end-of-step speed fell ~D·dt/T short:
+        // 9 % of a 0.18 s slide at 60 fps, then a jump onto the end)
+        sl.done = Math.min(sl.D, sl.done + (v0 + sl.v) / 2 * step);
+        sl.t += step;
+        if (this.isEnemy) this.visFacing = sl.ux < 0 ? -1 : 1;
+        const k = 1 - sl.done / sl.D;                  // the share of the way still to go
+        this.x = sl.lx + sl.ox * k; this.y = sl.ly + sl.oy * k;
+        // the clock or the spent velocity lands it on the sampled position
+        if (sl.t >= sl.dur - 1e-9 || sl.done >= sl.D - 1e-9 || sl.v <= 1e-9) { this.x = sl.lx; this.y = sl.ly; this.slide = null; }
+      }
+    }
     const P = this.P;
     // Ground overlays have their own layer: invalidate before any off-screen early return.
     if (this.skillZone && (!this.alive || this.down || (!this.statuses.has('skill') && !this.skillTiles?.length))) { this.skillZone.clear(); this.skillZone.visible = false; }
@@ -1039,7 +1219,13 @@ export class UnitView {
       const d = this.zTarget - this.z;
       this.z = Math.abs(d) < 1e-3 ? this.zTarget : this.z + d * Math.min(1, dt * 12);
     }
-    const hoverTo = this.flying && this.alive ? FLY_HOVER : 0;
+    if (this.shadowZTarget != null && this.shadowZ !== this.shadowZTarget) {
+      const d = this.shadowZTarget - this.shadowZ;
+      this.shadowZ = Math.abs(d) < 1e-3 ? this.shadowZTarget : this.shadowZ + d * Math.min(1, dt * 12);
+    }
+    // a flyer keeps its lift through the Die clip and drops only as it fades out: the client removes the fly offset in
+    // CharacterAnimator.OnFinish, when the finish state ends; a knocked-down flyer lies on the ground
+    const hoverTo = this.flying && (this.alive || (this.dying > DIE_FADE_TAIL && !this.down)) ? FLY_HOVER : 0;
     if (this.hover !== hoverTo) this.hover = Math.abs(hoverTo - this.hover) < 1e-3 ? hoverTo : this.hover + (hoverTo - this.hover) * Math.min(1, dt * 6);
     const submerged = submergedVisual(this.ctx, this);
     const sinkTo = submerged ? -.18 : 0;
@@ -1134,7 +1320,7 @@ export class UnitView {
     } else if (this.dying > 0) {
       this.dieT += dt;
       this.dying -= dt;
-      const tail = 0.55;
+      const tail = DIE_FADE_TAIL;
       if (this.dying < tail) alpha *= Math.max(0, this.dying / tail);
       if (this.dying <= 0) { this.dying = 0; this.remove = true; alpha = 0; }
     }
@@ -1394,7 +1580,7 @@ export class UnitView {
     if(this.energyText){this.energyText.visible=showBars;this.energyText.scale.set(clamp(s/90,.65,1));this.energyText.position.set(x,y-s*.16);}
 
     const damaged = this.hp < this.maxHp - 0.5;
-    const showHp = showBars && (!this.isEnemy || damaged || this.isBoss || this.shieldHp > 0);
+    const showHp = showBars && (!this.isEnemy || damaged || this.isBoss || this.shieldHp > 0) && !NO_HP_BAR.has(this.info.defId);
     const bw = clamp(s * (this.isBoss ? UNIT.bossBarWidth : UNIT.barWidth), 24, this.isBoss ? 260 : 96);
     const bh = clamp(s * (this.isBoss ? 0.09 : 0.065), 3, this.isBoss ? 9 : 6);
     // a knocked-down operator's HUD is its redeploy ring alone, drawn at full strength over the greyed model
@@ -1415,6 +1601,10 @@ export class UnitView {
       this.hpFill.position.set(x0, cy); this.hpFill.width = bw * k; this.hpFill.height = bh;
       if (!this.isEnemy) this.hpFill.tint = COLORS.hpAlly;
     }
+    // 业火 我执: her HP sits on the 1-HP floor and the damage past it fills a pool — the red bar over the drained green one
+    const neg = showHp ? this.neg : 0;
+    this.negFill.visible = neg > 0;
+    if (neg > 0) { this.negFill.position.set(x0, cy); this.negFill.width = bw * neg; this.negFill.height = bh; }
     const shielded = showHp && this.shieldHp > 0;
     this.shieldBar.visible = !!shielded;
     if (shielded) {
@@ -1425,20 +1615,22 @@ export class UnitView {
       this.shieldBar.height = shieldH;
     }
     // SP
-    const showSp = showBars && !this.isEnemy && this.spMax > 0;
+    const ammo = !this.isEnemy ? (this.ammo || ((this.flags & UF.SKILL) && this.ammoMax > 0 ? [this.ammoLeft, this.ammoMax] : null)) : null;
+    const showSp = showBars && !this.isEnemy && (this.spMax > 0 || !!ammo);
     this.spBg.visible = this.spFill.visible = showSp;
-    this.ammoDividers.clear(); this.ammoDividers.visible = showSp && this.ammoMax > 0;
+    this.ammoDividers.clear(); this.ammoDividers.visible = showSp && !!ammo;
     const spH = Math.max(2, bh * 0.55);
     let ready = false;
+    let sy = 0;
     if (showSp) {
       const active = !!(this.flags & UF.SKILL);
-      const k = clamp(this.sp / this.spMax, 0, 1);
+      const k = ammo ? ammo[0] / ammo[1] : clamp(this.sp / this.spMax, 0, 1);
       ready = !active && k >= 0.999;
-      const sy = cy + bh / 2 + spH / 2 + 1.5;
+      sy = cy + bh / 2 + spH / 2 + 1.5;
       this.spBg.position.set(x0 - 1, sy); this.spBg.width = bw + 2; this.spBg.height = spH + 2;
       this.spFill.position.set(x0, sy); this.spFill.width = bw * k; this.spFill.height = spH;
-      this.spFill.tint = (this.flags & UF.OVERHEATED) ? 0xf04444 : active ? COLORS.spActive : ready ? COLORS.spReady : COLORS.sp;
-      const shownAmmo = this.flags & UF.OVERDRIVE ? this.ammoMax / 2 : this.ammoMax;
+      this.spFill.tint = (this.flags & UF.OVERHEATED) ? 0xf04444 : ammo ? COLORS.ammo : active ? COLORS.spActive : ready ? COLORS.spReady : COLORS.sp;
+      const shownAmmo = ammo ? ((this.flags & UF.OVERDRIVE) ? ammo[1] / 2 : ammo[1]) : 0;
       if (shownAmmo > 1) {
         this.ammoDividers.lineStyle(Math.min(.7, bw / shownAmmo * .3), COLORS.hpBack, .9);
         for (let i = 1; i < shownAmmo; i++) {
@@ -1478,8 +1670,11 @@ export class UnitView {
       ic.width = ic.height = isz;
       ic.position.set(x - ((icons.length - 1) * (isz + 2)) / 2 + i * (isz + 2), iy);
     }
-    // element gauge row under the bars (b.snap `elem`); redeploy ring above a knocked-down operator (b.snap `down`)
-    this._updateElementBar(showBars && !!this.el, x0, bw, cy + bh / 2 + (showSp ? spH + 1.5 : 0) + 1, spH, s, t);
+    // 狼影 pips under the bars (b.snap `wolves`), then the element gauge row under them (b.snap `elem`); redeploy ring above a
+    // knocked-down operator (b.snap `down`)
+    const rowsTop = cy + bh / 2 + (showSp ? spH + 1.5 : 0);
+    const wolfH = this._updateWolfPips(showBars && !this.isEnemy && !!this.wolves, x0, rowsTop, s);
+    this._updateElementBar(showBars && !!this.el, x0, bw, rowsTop + wolfH + 1, spH, s, t);
     this._updateDownRing(!prep && !!this.down && !this.alive, x, this.screen.y - DOWN_LOOK.height * s, s, t);
     // blocked marker at the feet (enemies held by a blocker)
     const blocked = !prep && this.alive && this.isEnemy && (this.flags & UF.BLOCKED);
@@ -1502,6 +1697,62 @@ export class UnitView {
       pip.position.set(this.screen.x - s * 0.36 + i * (ps + 1), this.screen.y - s * 0.05);
       pip.visible = this.alive;
     }
+  }
+
+  /**
+   * The thin dark separators between the ammo bar's cells (see _updateHud): one at every round boundary of the `n`-round
+   * magazine across the bar `x0` … `x0 + bw` at height `y`, `h` tall; none while a cell would be under AMMO_BAR.minCell px
+   * (the fill keeps its exact width). Sprites are built as the magazines need them and hidden when not in use.
+   */
+  _updateAmmoCuts(show, ammo, x0, y, bw, h) {
+    const cuts = this.ammoCuts;
+    const n = show ? ammo[1] : 0;
+    const step = n > 1 ? bw / n : 0;
+    const want = step >= AMMO_BAR.minCell ? n - 1 : 0;
+    while (cuts.length < want) cuts.push(bar(this.P, this.hud, COLORS.hpBack, 0.9));
+    for (let i = 0; i < cuts.length; i++) {
+      const c = cuts[i];
+      c.visible = i < want;
+      if (c.visible) { c.position.set(x0 + (i + 1) * step - 0.5, y); c.width = 1; c.height = h; }
+    }
+  }
+
+  /**
+   * 伺夜's 狼群 count (b.snap `wolves`, [left, maximum]): a row of diamonds from `x0`, its top at `top`, one per 狼影 the
+   * talent allows, the first `left` of them lit. Built on the first count, hidden without one. Returns the height the row
+   * takes (0 while hidden) so the element gauge row can sit below it.
+   */
+  _updateWolfPips(show, x0, top, s) {
+    let r = this._wolfPips;
+    if (!show) { if (r) r.root.visible = false; return 0; }
+    const P = this.P;
+    const [left, max] = this.wolves;
+    if (!r) {
+      r = this._wolfPips = { root: new P.Container(), back: [], lit: [] };
+      this.hud.addChild(r.root);
+    }
+    const mk = (list, color, alpha) => {
+      const d = new P.Sprite(white());
+      d.anchor.set(0.5); d.rotation = Math.PI / 4; d.tint = color; d.alpha = alpha;
+      r.root.addChild(d);
+      list.push(d);
+    };
+    while (r.lit.length < max) { mk(r.back, COLORS.hpBack, 0.85); mk(r.lit, COLORS.wolf, 1); }
+    const d = clamp(s * WOLF_PIPS.size, WOLF_PIPS.min, WOLF_PIPS.max);   // a diamond's diagonal
+    const side = d / Math.SQRT2;
+    const cy = top + WOLF_PIPS.pad + d / 2 + 1;
+    for (let i = 0; i < r.lit.length; i++) {
+      const on = i < max;
+      const b = r.back[i], l = r.lit[i];
+      b.visible = l.visible = on;
+      if (!on) continue;
+      const cx = x0 + d / 2 + 1 + i * (d + 2 + WOLF_PIPS.gap);
+      b.position.set(cx, cy); b.width = b.height = side + 2;
+      l.position.set(cx, cy); l.width = l.height = side;
+      l.alpha = i < left ? 1 : WOLF_PIPS.dim;
+    }
+    r.root.visible = true;
+    return d + 2 + WOLF_PIPS.pad;
   }
 
   /** True while the shown gauge is in its 爆发冷却 (b.snap `elem` carries the cooldown's end and length). */
@@ -1639,12 +1890,17 @@ export class UnitView {
       if (this.actor.spine.parent) this.actor.spine.parent.removeChild(this.actor.spine);
       if (atlas) atlas.park(this.actor.spine);
       this.body.addChild(sprite);
-      this.imp = { sprite, slot: null, rt: null, sc: 0, acc: 0, phase: (Math.random() * 64) | 0, dirty: true };
+      this.imp = { sprite, slot: null, rt: null, sc: 0, acc: 0, phase: (Math.random() * 64) | 0, dirty: true, last: 0 };
     }
     const imp = this.imp;
     imp.acc += animDt;
     const frame = this.ctx.frameNo ? this.ctx.frameNo() : 0;
-    const due = imp.dirty || interval <= 1 || (frame + imp.phase) % interval === 0 || Math.abs(sc - imp.sc) > imp.sc * 0.12;
+    // the view's slot in this frame's update order (app.js impostorSlot) spreads the refreshes evenly over the interval;
+    // a context without slots keeps the random phase. A unit whose slot keeps moving with the frame (the units before it
+    // culled on and off in step) is still refreshed after 2 intervals at the latest.
+    const turn = this.ctx.impostorSlot ? this.ctx.impostorSlot() : imp.phase;
+    const due = imp.dirty || interval <= 1 || (frame + turn) % interval === 0 || frame - imp.last >= 2 * interval
+      || Math.abs(sc - imp.sc) > imp.sc * 0.12;
     if (due) {
       this.actor.update(imp.acc);
       imp.acc = 0;

@@ -1,8 +1,9 @@
+import {applyGlobalOperatorList} from './apply-global-operator-list.mjs';
 // Opt-in local overlay. Never writes the committed data/ directory.
 import {readFile, writeFile, mkdir, readdir, copyFile} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
 import {dirname, resolve, join} from 'node:path';
-import {loadContext, buildChess} from './build-data.mjs';
+import {loadContext, buildChess, withPotentialData} from './build-data.mjs';
 import {buildRecruits} from './build-recruits.mjs';
 import {buildUpstreamRecruits} from './build-upstream-recruits.mjs';
 import {loadKorean,localizeOperator} from './ursus-korean.mjs';
@@ -36,7 +37,10 @@ export async function buildUrsus(){
  }
  try{await copyFile(join(ROOT,'.cache/ursus-local-assets.json'),join(URSUS_DIR,'local-assets.json'))}catch(e){if(e.code!=='ENOENT')throw e}
  const bands=await json(join(URSUS_DIR,'bands.json'));
- const generated=buildChess(ctx).chess;
+ const rankBuilds=Array.from({length:6},(_,potRank)=>buildChess({...ctx,potRank}).chess);
+ const generated=rankBuilds[5],potentialErrors=[];
+ for(const id of Object.keys(generated))generated[id]=withPotentialData(rankBuilds.map(c=>c[id]),id,potentialErrors);
+ if(potentialErrors.length)throw Error(potentialErrors.join('\n'));
  const korean=await loadKorean(ROOT);
  const chess=await json(join(URSUS_DIR,'chess.json')), bonds=await json(join(URSUS_DIR,'bonds.json')),garrisons=await json(join(URSUS_DIR,'garrisons.json')),tokens=await json(join(URSUS_DIR,'tokens.json')),assets=await json(join(URSUS_DIR,'assets.json')),items=await json(join(URSUS_DIR,'items.json'));
  for(const o of ops)for(const suffix of ['a','b']){
@@ -108,6 +112,7 @@ export async function buildUrsus(){
  for(const [key,value]of Object.entries({chess,bonds,garrisons,tokens,assets,items,bands}))await writeFile(join(URSUS_DIR,`${key}.json`),JSON.stringify(value));
  await buildRecruits(ROOT,URSUS_DIR);
  await buildUpstreamRecruits(ROOT,URSUS_DIR);
+ await applyGlobalOperatorList(ROOT,URSUS_DIR);
  console.log(`Ursus overlay generated: ${members.length} operators, ${URSUS_DIR}`);return {dir:URSUS_DIR,ops};
 }
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url))await buildUrsus();

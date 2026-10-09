@@ -869,3 +869,11 @@ test('skill combat sounds follow activation and preserve the mode until impact',
  a.handleBattleEvents([['skill',1,true],['atk',1,2,'none'],['skill',1,false],['dmg',2,100,'phys'],['atk',1,2,'none']]);
  assert.deepEqual(played,['/player/p_atk/p_atk_test_s.mp3','/player/p_imp/p_imp_test_s.mp3','/normal.mp3']);
 });
+
+
+test('selected KR/JP bank passes its actual URL to playback, including Korean fallback',()=>{
+ const voice={kr:{char_test:{select:['/assets/audio/voice/voice_kr/char_test/cn_019.mp3']}},jp:{char_test:{select:['/assets/audio/voice/voice/char_test/cn_019.mp3']}}};
+ const a=new AudioManager({getManifest:()=>({audio:{voice}})});a.ctx={};a.voiceGain={};const played=[];a._playVoice=(...args)=>played.push(args);
+ for(const language of ['kr','jp']){a.setVolumes({voiceLanguage:language});assert.equal(a.voice('char_test','select'),true);assert.equal(played.at(-1)[0],voice[language].char_test.select[0]);}
+ assert.equal(played[0][3],voice.jp.char_test.select[0]);
+});

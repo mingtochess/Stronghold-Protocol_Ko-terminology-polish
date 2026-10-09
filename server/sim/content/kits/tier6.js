@@ -1,3 +1,4 @@
+import { hypot, sin, cos, atan2, powi } from '../../detmath.js';
 import { bardRegen } from '../../professions.js';
 import { startCountdown } from '../tokens.js';
 import { holdProtect, byEnemyAttack } from './tier1.js';
@@ -270,7 +271,7 @@ function bestTile(battle, tiles) {
   let best = tiles[0], bd = Infinity;
   for (const t of tiles) {
     let d = Infinity;
-    for (const e of en) d = Math.min(d, Math.hypot(e.x - t[1], e.y - t[0]));
+    for (const e of en) d = Math.min(d, hypot(e.x - t[1], e.y - t[0]));
     if (d < bd - 1e-9) { bd = d; best = t; }
   }
   return best;
@@ -825,7 +826,7 @@ function lureGoal(battle, unit, e) {
   for (const [dr, dc] of AROUND8) {
     const r = unit.tileR + dr, c = unit.tileC + dc;
     if (!battle.grid.groundPassable(r, c)) continue;
-    const d = Math.hypot(e.x - c, e.y - r);
+    const d = hypot(e.x - c, e.y - r);
     if (d < bd - 1e-9) { bd = d; goal = [r, c]; }
   }
   return goal;
@@ -1123,7 +1124,7 @@ function pasngr(bb, chess, def) {
     for (let i = 0; i < count && prev; i++) {
       hit.add(prev.id);
       battle.fx('lightning', { x: prev.x, y: prev.y, id: prev.id, src: unit.id });
-      battle.dealDamage(unit, prev, { amount: unit.s.atk * scale * Math.pow(1 - num(ch.falloff, 0.15), i), type: 'arts', isSkill: true, isAttack: true, tags: ['skill', 'storm'] });
+      battle.dealDamage(unit, prev, { amount: unit.s.atk * scale * powi(1 - num(ch.falloff, 0.15), i), type: 'arts', isSkill: true, isAttack: true, tags: ['skill', 'storm'] });
       if (slug > 0 && prev.alive) battle.applyStatus(prev, 'sluggish', { duration: slug, source: unit });
       let best = null, bd = Infinity;
       for (const x of battle.foesInRadius(prev.x, prev.y, ch.radius || CHAIN_RADIUS)) {
@@ -2820,10 +2821,10 @@ function whitw2(bb, chess, def) {
   // ① `k` drones leave her evenly spread, the first along her facing (row 0 is the bottom row: angles in the (col, row)
   // plane, counter-clockwise)
   const releaseDrones = (unit, k) => {
-    const a0 = Math.atan2(unit.fwd[0], unit.fwd[1]);
+    const a0 = atan2(unit.fwd[0], unit.fwd[1]);
     for (let i = 0; i < k; i++) {
       const a = a0 + (2 * Math.PI * i) / k;
-      unit.mem.drones.push({ x: unit.x, y: unit.y, hx: Math.cos(a), hy: Math.sin(a), v: WHITW2_SPREAD.v0, age: 0, phase: 'spread', t: null, cd: 0, rampId: null, ramp: 0, orbit: null });
+      unit.mem.drones.push({ x: unit.x, y: unit.y, hx: cos(a), hy: sin(a), v: WHITW2_SPREAD.v0, age: 0, phase: 'spread', t: null, cd: 0, rampId: null, ramp: 0, orbit: null });
     }
   };
   // speed v → v + acc·dt (capped); the distance covered at the mean of the two (exact under constant acceleration)
@@ -2837,7 +2838,7 @@ function whitw2(bb, chess, def) {
     let best = null, bd = Infinity, bh = Infinity;
     for (const e of battle.enemies) {
       if (!ok(e)) continue;
-      const de = Math.hypot(e.x - d.x, e.y - d.y), dh = Math.hypot(e.x - unit.x, e.y - unit.y);
+      const de = hypot(e.x - d.x, e.y - d.y), dh = hypot(e.x - unit.x, e.y - unit.y);
       if (de < bd - 1e-9 || (de <= bd + 1e-9 && dh < bh - 1e-9)) { best = e; bd = de; bh = dh; }
     }
     return best;
@@ -2846,9 +2847,9 @@ function whitw2(bb, chess, def) {
   const circle = (d, dt) => {
     const { r, v } = WHITW2_ORBIT;
     if (!d.orbit) d.orbit = { cx: d.x - d.hy * r, cy: d.y + d.hx * r };
-    const a = Math.atan2(d.y - d.orbit.cy, d.x - d.orbit.cx) + (v / r) * dt;
-    d.x = d.orbit.cx + r * Math.cos(a); d.y = d.orbit.cy + r * Math.sin(a);
-    d.hx = -Math.sin(a); d.hy = Math.cos(a);
+    const a = atan2(d.y - d.orbit.cy, d.x - d.orbit.cx) + (v / r) * dt;
+    d.x = d.orbit.cx + r * cos(a); d.y = d.orbit.cy + r * sin(a);
+    d.hx = -sin(a); d.hy = cos(a);
   };
   // one tick of one drone: spread → (pick) → chase → on the target, attacking like a normal drone. [ASSUMED] its attack
   // clock runs all the time (one attack per interval of hers at most, whatever it chased in between) and its first hit
@@ -2884,7 +2885,7 @@ function whitw2(bb, chess, def) {
     if (d.phase === 'chase') {
       const s = accelerate(d, WHITW2_CHASE, dt);
       if (bodyDist(t, d.x, d.y) > s + 1e-9) {
-        const dx = t.x - d.x, dy = t.y - d.y, L = Math.hypot(dx, dy);
+        const dx = t.x - d.x, dy = t.y - d.y, L = hypot(dx, dy);
         if (L > 1e-9) { d.hx = dx / L; d.hy = dy / L; }
         d.x += d.hx * s; d.y += d.hy * s;
         return;

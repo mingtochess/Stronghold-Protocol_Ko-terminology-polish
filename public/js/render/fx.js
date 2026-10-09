@@ -186,6 +186,7 @@ export const FX_KINDS = Object.freeze({
   scorchBurst: { a: 'blast', c: 0xff6a2a }, champagneBomb: { a: 'blast', c: 0xffd27a }, shockBlast: { a: 'blast', c: 0x9fd4ff, smoke: 0x1c2630 },
   frostNova: { a: 'blast', c: 0x9fe6ff, smoke: 0x1c2630 }, sunBurst: { a: 'blast', c: 0xffe28a }, meltdown: { a: 'blast', c: 0xff5a2a, r: 1.5, heavy: true },
   iceSpike: { a: 'blast', c: 0xbfeeff, smoke: 0x1c2630 }, rockfall: { a: 'blast', c: 0xc8a878, smoke: 0x4a3f33 }, rockslide: { a: 'blast', c: 0xc8a878, smoke: 0x4a3f33 },
+  chen3Wave: { a: 'qi', c: 0xdfe8ff, pt: true },
   finale: { a: 'blast', c: 0xffd45a, r: 1.5 }, swordStorm: { a: 'blast', c: 0xdfe8ff }, swordRain: { a: 'blast', c: 0xdfe8ff }, liberate: { a: 'blast', c: 0xffffff },
   quadShot: { a: 'volley', c: 0xfff2d0 }, featherArrow: { a: 'counter', c: 0xfff2d0 },
   burst: { a: 'element', c: 0xd0a0ff },
@@ -1600,6 +1601,7 @@ export class FxSystem {
 
   /** A persistent hexagon on the tile marks skill activity without a large flare. */
   _aura(view, on) {
+    if (on && view.info?.ammoSkill) return;
     let a=this.auras.get(view.id);
     if(on){
       if(!a){const sp=new this.P.Graphics();sp.alpha=0;this.ctx.layers.fxNormal.addChild(sp);
@@ -1834,7 +1836,7 @@ export class FxSystem {
         else this.zone(at.x, at.y, at.z, r, col, d, 'ring', true);
         break;
       }
-      case 'chill': this.flashScreen(col, 0.35, 0.8); this.snowfall(col); break;
+      case 'chill': if (ex.id == null) { this.flashScreen(col, 0.45, 1); this.snowfall(col, true); } else { this.flashScreen(col, 0.35, 0.8); this.snowfall(col); } break;
       case 'heal': this.heal(at.v || { x: at.x, y: at.y, z: at.z }, 0); break;
       case 'healAoe': {
         this.ring(at.x, at.y, at.z, 0.2, r, col, 0.6);
@@ -1900,6 +1902,24 @@ export class FxSystem {
         for (let i = 0; i < (this.quality === 'low' ? 2 : 5); i++) {
           this.particle('smoke', g.x + (Math.random() - 0.5) * g.s * 0.5, g.y, { add: false, tint: 0x6b6358, vx: (Math.random() - 0.5) * g.s * 0.6, vy: -g.s * 0.2, drag: 2, life: 0.5, s0: g.s / 128 * 0.25, s1: g.s / 128 * 0.55, a0: 0.45, a1: 0 });
         }
+        break;
+      }
+      case 'qi': {
+        const z = at.z + 0.35;
+        const fx0 = num(ex.fromX, NaN), fy0 = num(ex.fromY, NaN);
+        if (Number.isFinite(fx0) && Number.isFinite(fy0)) this.streak(fx0, fy0, at.x, at.y, z, col, 0.34);
+        const h = cam.project(at.x, at.y, z, this._p), hx = h.x, hy = h.y, hs = h.s;
+        const dr = num(ex.dr, NaN), dc = num(ex.dc, NaN);
+        let rot = 0;
+        if (Number.isFinite(dr) && Number.isFinite(dc) && (dr || dc)) {
+          const q = cam.project(at.x + dc * 0.5, at.y + dr * 0.5, z, this._q);
+          // the `slash` sprite's crescent bulges along its local −y, so this turns that edge onto the travel direction
+          rot = Math.atan2(q.x - hx, -(q.y - hy));
+        }
+        this._anchored(at.x,at.y,z,()=>{
+        this.particle('slash', hx, hy, { tint: col, life: 0.3, s0: hs / 128 * 1.3, s1: hs / 128 * 2.0, a0: 0.9, a1: 0, rot });
+        this.particle('glow', hx, hy, { tint: col, life: 0.26, s0: hs / 128 * 0.8, s1: hs / 128 * 1.5, a0: 0.55, a1: 0 });
+        });
         break;
       }
       case 'wave': {
@@ -2218,10 +2238,24 @@ export class FxSystem {
   }
 
   /** A short flurry of snow over the field (cold wind). */
-  snowfall(tint) {
+  snowfall(tint, gust = false) {
     const size = this.ctx.screenSize();
-    for (let i = 0; i < (this.quality === 'low' ? 10 : 26); i++) {
-      this.particle('dot', Math.random() * size.width, Math.random() * size.height * 0.7, { screen:true, tint, vx: 30 + Math.random() * 40, vy: 60 + Math.random() * 60, life: 1 + Math.random() * 0.6, s0: 0.25 + Math.random() * 0.3, s1: 0.1, a0: 0.8, a1: 0, fadeIn: 0.2 });
+    const W = size.width, H = size.height, low = this.quality === 'low';
+    if (!gust) {
+      for (let i = 0; i < (low ? 10 : 26); i++) {
+        this.particle('dot', Math.random() * W, Math.random() * H * 0.7, { screen:true, tint, vx: 30 + Math.random() * 40, vy: 60 + Math.random() * 60, life: 1 + Math.random() * 0.6, s0: 0.25 + Math.random() * 0.3, s1: 0.1, a0: 0.8, a1: 0, fadeIn: 0.2 });
+      }
+      return;
+    }
+    // snowflakes: lifted off the bottom edge (a share starts below it), blown up-right and tumbled by the gust
+    for (let i = 0; i < (low ? 22 : 48); i++) {
+      const vy = -H * (0.55 + Math.random() * 0.5), vx = W * (0.04 + Math.random() * 0.1);
+      this.particle('dot', Math.random() * W, H * (0.55 + Math.random() * 0.55), { screen:true, tint, vx, vy, life: 1.4 + Math.random() * 0.9, s0: 0.22 + Math.random() * 0.34, s1: 0.08, a0: 0.9, a1: 0, fadeIn: 0.12, spin: (Math.random() - 0.5) * 6 });
+    }
+    // gust streaks: thin wind lines racing up through the field along their velocity
+    for (let i = 0; i < (low ? 4 : 10); i++) {
+      const vy = -H * (0.9 + Math.random() * 0.6), vx = W * (0.1 + Math.random() * 0.12);
+      this.particle('streak', Math.random() * W, H * (0.6 + Math.random() * 0.5), { screen:true, tint, vx, vy, life: 0.7 + Math.random() * 0.4, s0: 0.04 + Math.random() * 0.03, s1: 0.02, sx: 6 + Math.random() * 6, a0: 0.55, a1: 0, fadeIn: 0.08, rot: Math.atan2(vy, vx) });
     }
   }
 

@@ -1,3 +1,4 @@
+import { hypot, powi } from '../../detmath.js';
 import { isHpLoss } from '../../damage.js';
 // server/sim/content/kits/tier3.js — hand-authored kits for the 21 tier-3 chess (19 visible + 见行者/巫恋 hidden).
 //
@@ -627,7 +628,7 @@ const KITS = {
           battle.on('fatal', (ctx) => {
             if (ctx.unit !== unit || ctx.prevented) return;
             const n = unit.mem.saveCount ?? 0;
-            const cost = Math.abs(num(t1.cost, -5)) * Math.pow(num(t1.cost_multi, 2), n);
+            const cost = Math.abs(num(t1.cost, -5)) * powi(num(t1.cost_multi, 2), n);
             const pl = battle.getPlayer(unit.ownerId);
             if (!pl || pl.dp + 1e-9 < cost) return;
             battle.addDp(unit.ownerId, -cost);
@@ -817,7 +818,7 @@ const KITS = {
             // (only the angle: a target nearer than 0.25 tile still turns radial at 受力等级 −2) — by the official
             // 力度 − 重量 distance of a 特效 push (PRTS 推与拉 names 见行者's skills 特效类; Battle.push / pushDistance);
             // stopped short of it ⇒ it hit a wall
-            const near = Math.hypot(e.x - unit.x, e.y - unit.y) < PUSH_DIRECTIONAL_MIN_DIST;
+            const near = hypot(e.x - unit.x, e.y - unit.y) < PUSH_DIRECTIONAL_MIN_DIST;
             const expect = battle.pushDistance(e, near ? force - 2 : force, { effect: true });
             const moved = battle.push(e, force, { from: unit, dir: { x: unit.fwd[1], y: unit.fwd[0] }, fixedAngle: true, effect: true });
             const wall = expect > 0 && moved + 0.05 < expect;

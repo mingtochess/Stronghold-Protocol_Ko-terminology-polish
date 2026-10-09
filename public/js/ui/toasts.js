@@ -1,3 +1,5 @@
+import { t } from '../../../shared/i18n.js';
+import { recordError } from '../diag.js';
 // Global toast notifications (top-centre stack).
 //
 // Imperative API usable from anywhere: `toast(text, kind)`, `toastError(err)`; render <ToastHost/>
@@ -106,6 +108,7 @@ export function describeError(err) {
  * @returns {number}
  */
 export function toastError(err) {
+  recordError('request', err);
   return toast(describeError(err), 'error');
 }
 

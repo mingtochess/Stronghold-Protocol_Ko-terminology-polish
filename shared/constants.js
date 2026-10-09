@@ -1,9 +1,11 @@
+
 // Shared enums & constants (server + browser). Pure ESM, no Node APIs.
 
 export const PROTOCOL_VERSION = 1;
 /** Upstream package version stays valid SemVer; the lowercase suffix identifies site updates. */
-export const BASE_VERSION = '0.2.1';
-export const APP_VERSION = `${BASE_VERSION}b`;
+export const BASE_VERSION = '0.2.2';
+export const APP_VERSION = `${BASE_VERSION}a`;
+export const DEV_BUILD = /-dev$/.test(APP_VERSION);
 
 export const MAX_SEATS = 4;
 /**

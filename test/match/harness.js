@@ -55,7 +55,7 @@ export function makeMatch(o = {}) {
     if (o.script) FakeBattle.script = o.script;
   }
   h.m = new Match({
-    roomCode: 'TEST', customFactions:o.customFactions, customExtensions:o.customExtensions, mode, difficulty, seats, spectators: o.spectators, seed: o.seed ?? 1, matchNo: o.matchNo, data: o.data ?? DATA, log,
+    roomCode: 'TEST', aiPicksLast: o.aiPicksLast, customFactions:o.customFactions, customExtensions:o.customExtensions, mode, difficulty, seats, spectators: o.spectators, seed: o.seed ?? 1, matchNo: o.matchNo, data: o.data ?? DATA, log,
     send: (id, msg) => {
       for (const fn of h.onSend) fn(id, msg);
       if (msg.t === 'b.snap' || msg.t === 'b.ev') { h.frames++; if (!captureFrames) return true; }

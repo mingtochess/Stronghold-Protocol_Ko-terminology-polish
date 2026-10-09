@@ -1,3 +1,4 @@
+import { hypot, sin, cos, atan2 } from '../../detmath.js';
 // Opt-in recruits. Skill, talent and module numbers are read from the selected official record.
 import {num,talentBb,traitBb,moduleBb,batMod} from './tier1.js';
 import {COLS} from '../../constants.js';
@@ -38,7 +39,7 @@ function skill(raw,s){
  if(cid==='char_1050_chen3'){
   if(i===0)return duration(s,{mods:{atkPct:num(bb.atk)},attack:{hits:2,onEachHit({battle,unit,target}){battle.applyStatus(target,'silence',{duration:unit.skill.timeLeft,source:unit})}}});
   if(i===1)return duration(s,{onStart({battle,unit}){
-   const seq=unit.deploySeq;unit.profile.noAttack=true;battle.addBuff(unit,{key:'chen3:slashing',flags:{invulnerable:true},duration:2});const finish=()=>{unit.profile.noAttack=false;battle.removeBuff(unit,'chen3:slashing');if(up(unit)){unit.skill.timeLeft=unit.skill.duration;battle.addBuff(unit,{key:unit.skill._buffKey,mods:{atkPct:num(bb['chen3_s2[respawn_buff].atk']),dodgePhys:num(bb['chen3_s2[respawn_buff].prob']),dodgeArts:num(bb['chen3_s2[respawn_buff].prob'])},tags:['skill']})}};let target=battle.foesInRadius(unit.x,unit.y,3).sort((a,b)=>Math.hypot(a.x-unit.x,a.y-unit.y)-Math.hypot(b.x-unit.x,b.y-unit.y))[0];
+   const seq=unit.deploySeq;unit.profile.noAttack=true;battle.addBuff(unit,{key:'chen3:slashing',flags:{invulnerable:true},duration:2});const finish=()=>{unit.profile.noAttack=false;battle.removeBuff(unit,'chen3:slashing');if(up(unit)){unit.skill.timeLeft=unit.skill.duration;battle.addBuff(unit,{key:unit.skill._buffKey,mods:{atkPct:num(bb['chen3_s2[respawn_buff].atk']),dodgePhys:num(bb['chen3_s2[respawn_buff].prob']),dodgeArts:num(bb['chen3_s2[respawn_buff].prob'])},tags:['skill']})}};let target=battle.foesInRadius(unit.x,unit.y,3).sort((a,b)=>hypot(a.x-unit.x,a.y-unit.y)-hypot(b.x-unit.x,b.y-unit.y))[0];
    let remaining=10;const slash=()=>{if(!up(unit)||unit.deploySeq!==seq)return;
     if(!up(target)){target=battle.foesInRadius(unit.x,unit.y,3).sort((a,b)=>a.hp-b.hp)[0];if(!target){finish();return;}}
     damage(battle,unit,target,num(bb.atk_scale),'arts',['chen3-slash']);battle._ev(['atk',unit.id,target.id,'slash']);remaining--;if(!up(target))remaining++;
@@ -76,13 +77,13 @@ function note(b,u,scale=1,type='phys',high=false){
 function advanceNotes(b,u,dt){
  const kept=[];for(const n of u.mem.sakikoNotes){
   n.age+=dt;n.seek+=dt;
-  if(!n.hit&&!up(n.target)&&n.seek>=.4){n.seek=0;n.target=b.foesInRadius(n.x,n.y,1).filter(e=>up(e)&&!e.s.flags.untargetable).sort((a,b)=>Math.hypot(a.x-n.x,a.y-n.y)-Math.hypot(b.x-n.x,b.y-n.y))[0]||n.target;}
+  if(!n.hit&&!up(n.target)&&n.seek>=.4){n.seek=0;n.target=b.foesInRadius(n.x,n.y,1).filter(e=>up(e)&&!e.s.flags.untargetable).sort((a,b)=>hypot(a.x-n.x,a.y-n.y)-hypot(b.x-n.x,b.y-n.y))[0]||n.target;}
   const seek=up(n.target)&&!n.hit;
-  if(seek&&n.age>=.1)n.angle=Math.atan2(n.target.y-n.y,n.target.x-n.x);
+  if(seek&&n.age>=.1)n.angle=atan2(n.target.y-n.y,n.target.x-n.x);
   const speed=u.def.raw.skill.index===1?(n.type==='phys'?3.5:1):2;
-  n.x+=Math.cos(n.angle)*speed*dt;n.y+=Math.sin(n.angle)*speed*dt;
+  n.x+=cos(n.angle)*speed*dt;n.y+=sin(n.angle)*speed*dt;
   const hit=e=>{const mod=!!u.def.raw.module?.active&&u.skill.active;const scale=!u.blocking.includes(e)?(mod?1:num(traitBb(u.def.raw).atk_scale,.8)):1;b.dealDamage(u,e,{amount:n.amount*scale,type:n.type,isAttack:true,isSkill:u.skill.active,tags:['sakiko-note']});n.seen.add(e.id);};
-  if(seek&&Math.hypot(n.target.x-n.x,n.target.y-n.y)<=Math.max(.16,speed*dt)){hit(n.target);n.hit=true;n.tail=u.def.raw.skill.index===1&&n.type==='phys'?.5:0;}
+  if(seek&&hypot(n.target.x-n.x,n.target.y-n.y)<=Math.max(.16,speed*dt)){hit(n.target);n.hit=true;n.tail=u.def.raw.skill.index===1&&n.type==='phys'?.5:0;}
   if(n.hit){n.tail-=dt;if(n.tail<=0)continue;for(const e of b.foesInRadius(n.x,n.y,.8))if(up(e)&&!n.seen.has(e.id))hit(e);}
   const r=Math.round(n.y),c=Math.round(n.x),inside=b.grid.inRect(r,c)&&u.rangeKeySet.has(r*COLS+c);n.outside=inside?0:n.outside+dt;
   if(n.outside>=1||n.age>30)continue;kept.push(n);
@@ -111,7 +112,7 @@ function kit(bb,raw){
   if(cid==='char_4138_narant'){
    u.mem.narantSteal={atk:0,def:0};u.mem.narantQuiet=0;u.mem.narantReturns=0;S.passiveBuff(b,u,'narant:dodge',{dodgePhys:num(t2.prob),dodgeArts:num(t2.prob)});
    u.profile.onBoomerangReturn=()=>{u.mem.narantReturns++;if(num(tb.come_back_cnt)&&u.mem.narantReturns%tb.come_back_cnt===0)u.skill.gainSp(num(tb.sp,1),'narant-module');if(u.skill.active&&u.def.raw.skill.index===2){const bb=u.skill.bb;for(const e of b.foesInRadius(u.x,u.y,1.42).filter(e=>nearby(u,e)).slice(0,num(bb['attack@aoe.max_target'],3))){damage(b,u,e,num(bb.atk_scale_aoe));b.applyStatus(e,'sluggish',{duration:num(bb.sluggish,1),source:u})}}};
-   u.profile.onBoomerangTurn=({x,y})=>{if(u.skill.active&&u.def.raw.skill.index===1){const bb=u.skill.bb,dx=u.x-x,dy=u.y-y,len=Math.hypot(dx,dy);for(const e of b.enemies){const f=len?((e.x-x)*dx+(e.y-y)*dy)/(len*len):0;if(up(e)&&canTargetEnemy(u,e,u.profile)&&f>=0&&f<=1&&Math.hypot(e.x-(x+f*dx),e.y-(y+f*dy))<=num(bb['attack@projectile_range'],1)/2)damage(b,u,e,num(bb['attack@atk_scale_comeback']))}}};
+   u.profile.onBoomerangTurn=({x,y})=>{if(u.skill.active&&u.def.raw.skill.index===1){const bb=u.skill.bb,dx=u.x-x,dy=u.y-y,len=hypot(dx,dy);for(const e of b.enemies){const f=len?((e.x-x)*dx+(e.y-y)*dy)/(len*len):0;if(up(e)&&canTargetEnemy(u,e,u.profile)&&f>=0&&f<=1&&hypot(e.x-(x+f*dx),e.y-(y+f*dy))<=num(bb['attack@projectile_range'],1)/2)damage(b,u,e,num(bb['attack@atk_scale_comeback']))}}};
    b.on('hit',c=>{if(c.source===u&&c.dmg.isAttack&&nearby(u,c.target))c.dmg.mul*=num(tb.atk_scale,1);if(up(u)&&c.source?.side==='enemy'&&nearby(u,c.source)&&['phys','arts'].includes(c.dmg.type)&&c.dmg.canDodge&&b.rng()<-num(t2[`damage_hitrate_${c.dmg.type==='phys'?'physical':'magical'}`])){c.dmg.cancel=true;b.emit('dodge',{source:c.source,target:c.target,dmg:c.dmg})}},{owner:u});
    b.on('damaged',c=>{if(c.target===u)u.mem.narantQuiet=0;if(c.source!==u||!c.dmg.isAttack)return;const twice=raw.module?.active&&raw.module?.id==='uniequip_002_narant'&&nearby(u,c.target)?2:1,st=u.mem.narantSteal;const atk=Math.min(num(t['attack@steal_atk_max'])-st.atk,num(t['attack@steal_atk'])*twice),def=Math.min(num(t['attack@steal_def_max'])-st.def,num(t['attack@steal_def'])*twice);st.atk+=Math.max(0,atk);st.def+=Math.max(0,def);S.passiveBuff(b,u,'narant:steal',{atkFlat:st.atk,defFlat:st.def});const key=`narant:loss:${u.id}`,old=c.target.findBuff(key)?.mods||{};b.addBuff(c.target,{key,mods:{atkFlat:num(old.atkFlat)-Math.max(0,atk),defFlat:num(old.defFlat)-Math.max(0,def)},persist:true})},{owner:u});
    b.on('tick',({dt})=>{if(!up(u))return;u.mem.narantQuiet+=dt;S.passiveBuff(b,u,'narant:quiet',{atkPct:u.mem.narantQuiet>=num(mb.interval,Infinity)?num(mb.atk):0});if(u.mem.narantToggle){u.profile.atkScale=num(raw.skills[0].bb['attack@atk_scale']);u.profile.chain={count:num(raw.skills[0].bb['attack@times']),radius:1.5,falloff:0,repeat:true}}else{u.profile.atkScale=1;delete u.profile.chain}},{owner:u});
@@ -120,7 +121,7 @@ function kit(bb,raw){
    u.profile.shockTimes=num(tb['attack@enable_third_attack'])?3:2;
    b.on('beforeAttack',c=>{if(c.attacker===u&&u.skill.active&&u.def.raw.skill.index===1&&u.skill.timeLeft<=u.skill.duration/2){const pool=foes(b,u);if(pool.length)c.targets=Array.from({length:4},()=>pool[Math.floor(b.rng()*pool.length)]);c.profile.hits=1;c.profile.atkScale=num(u.skill.bb['attack@atk_scale_ol'])}},{owner:u});
    b.on('deploy',c=>{if(c.unit===u&&raw.talents.some(t=>t.tokenKey==='token_10035_wisdel_wward'))wisdelShadows(b,u,1)},{owner:u});
-   b.on('tick',()=>{if(up(u)&&(u.mem.wisdelShadows||[]).some(e=>up(e)&&Math.hypot(e.x-u.x,e.y-u.y)<=1.5))b.applyStatus(u,'camou',{duration:.15,source:u})},{owner:u});
+   b.on('tick',()=>{if(up(u)&&(u.mem.wisdelShadows||[]).some(e=>up(e)&&hypot(e.x-u.x,e.y-u.y)<=1.5))b.applyStatus(u,'camou',{duration:.15,source:u})},{owner:u});
    b.on('hit',c=>{if(c.source!==u||!up(c.target))return;const d=c.dmg,e=c.target;if(d.isAttack&&!d.isSplash){d.mul*=num(t['attack@main_atk_scale'],1);e.mem.wisdelMark=u.id}
     if(d.tags?.includes('aftershock')&&e.mem.wisdelMark===u.id&&b.rng()<((d.tags?.includes('wisdel-s3')||u.skill.active&&u.def.raw.skill.index===2)?num(u.skill.bb['attack@prob'],1):num(t['attack@prob']))){delete e.mem.wisdelMark;for(const x of b.foesInRadius(e.x,e.y,num(t['attack@range_radius'],1.1))){damage(b,u,x,num(t['attack@bomb_atk_scale']),'phys',['wisdel-mark']);b.applyStatus(x,'stun',{duration:num(t['attack@stun']),source:u})}}
     if(u.skill.active&&u.def.raw.skill.index===0)b.applyStatus(e,'stun',{duration:num(u.skill.bb.stun_duration),source:u});

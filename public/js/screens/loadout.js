@@ -1,3 +1,18 @@
+
+
+
+
+
+
+
+
+
+
+
+import { t } from '../../../shared/i18n.js';
+import {CultivationSection} from './cultivation.js';
+import {setOpsMap} from '../ui/loadoutSync.js';
+import {setOps} from '../ui/loadoutModel.js';
 import {FavoritesHost,FavoritesButton} from '../ui/favorites.js';
 import {loadoutRecord,resolveRecordLoadout} from '../../../shared/loadoutRecord.js';
 import {audio} from '../audio.js';
@@ -232,11 +247,11 @@ const getChessRec = (id) => data.lookup('chess', id);
  * @param {(id: string) => any} getChess
  * @returns {{ elite: boolean, chess: any, lo: any, record: any, trait: string, talents: any[] } | null} null without a record
  */
-export function statsPreview(base, golden, entries, level, getChess) {
+export function statsPreview(base, golden, entries, level, getChess, opts = {}) {
   const elite = level === 'elite' && !!golden;
   const chess = elite ? golden : base;
   if (!chess) return null;
-  const lo = chessLoadout(chess, entries, getChess);
+  const lo = chessLoadout(chess, entries, getChess, opts);
   const record = lo?.record || chess;
   // (the card's own rule: the 特性 line exists when the chess has one; its text follows the chosen module)
   return { elite, chess, lo, record, trait: chess.trait?.desc ? traitText(chess, !!chess.isGolden, lo) || '' : '', talents: chessTalents(record) };
@@ -249,8 +264,8 @@ export function statsPreview(base, golden, entries, level, getChess) {
  * toggle picks the 普通 or the 精锐 record; 精锐 is the default because the module only exists there.
  * @param {{ base: any, golden: any, entries: Record<string, any>, level: 'normal'|'elite', onLevel: (l: 'normal'|'elite') => void, getChess?: (id: string) => any }} props
  */
-export function LoadoutStats({ base, golden, entries, level, onLevel, getChess = getChessRec }) {
-  const pv = statsPreview(base, golden, entries, level, getChess);
+export function LoadoutStats({ base, golden, entries, ops, level, onLevel, getChess = getChessRec }) {
+  const pv = statsPreview(base, golden, entries, level, getChess, { ops, effects: data.get('effects') });
   if (!pv) return null;
   return html`<section class="lo-sec lo-sec--stats" aria-label="局内数值" data-variant=${pv.elite ? 'elite' : 'normal'}>
     <header class="lo-sec__head">
@@ -270,7 +285,7 @@ export function LoadoutStats({ base, golden, entries, level, onLevel, getChess =
   </section>`;
 }
 
-function Detail({ m, chess, golden, entries, onChange, onReset, locked }) {
+function Detail({ m, chess, golden, entries, ops, onChange, onReset, locked }) {
   const [level, setLevel] = useState('normal');
   const [statLevel, setStatLevel] = useState('elite'); // 局内数值: the 精锐 shows the chosen module's effect
   const bodyRef = useRef(null);
@@ -302,6 +317,7 @@ function Detail({ m, chess, golden, entries, onChange, onReset, locked }) {
       <${Button} variant="ghost" size="sm" icon="refresh" class="lo-dhead__reset" disabled=${!choice.changed && !choice.skin} onClick=${onReset}>恢复默认<//>
     </div>
     <div class="lo-detail__body" ref=${bodyRef}>
+      ${!chess.recruitPrototype && !chess.recruitReserve ? html`<${CultivationSection} charId=${chess.charId} ops=${ops} onSet=${(id,patch)=>setOpsMap(setOps(loadoutStore.get().ops,id,patch))} />` : null}
       <section class="lo-sec lo-sec--garrison"><header class="lo-sec__head"><h3>특질<${MicroLabel}>GARRISON<//></h3>
         <div class="lo-seg" role="tablist" aria-label="특질 단계">
           <button type="button" role="tab" aria-selected=${statLevel==='normal'} class=${cx(statLevel==='normal'&&'is-on')} onClick=${()=>setStatLevel('normal')}>일반</button>
@@ -328,7 +344,7 @@ function Detail({ m, chess, golden, entries, onChange, onReset, locked }) {
             locked=${chess.recruitPrototype} onPick=${(i) => onChange({ skill: i })} />`)}
         </div>
       </section>
-      <${LoadoutStats} base=${chess} golden=${golden} entries=${entries} level=${statLevel} onLevel=${setStatLevel} />
+      <${LoadoutStats} base=${chess} ops=${ops} golden=${golden} entries=${entries} level=${statLevel} onLevel=${setStatLevel} />
       ${golden ? html`<section class="lo-sec lo-sec--mod">
         <header class="lo-sec__head">
           <h3>模组<${MicroLabel}>MODULE<//></h3>
@@ -395,7 +411,7 @@ const SYNC_TEXT = {
 
 /** The overlay screen. */
 function LoadoutScreen({ st }) {
-  const ready = useData('chess', 'bonds', 'garrisons', 'assets', 'local');
+  const ready = useData('chess', 'bonds', 'garrisons', 'assets', 'local', 'effects');
   const phase = useStore((s) => s.match?.public?.phase || null);
   const inMatch = useStore((s) => !!s.room?.inMatch);
   // co-op briefing (INFO_CHECK, 25 s): the overlay covers the briefing's own countdown, so it shows the time left — the
@@ -553,7 +569,7 @@ function LoadoutScreen({ st }) {
       </section>
       <div class="lo-detail-wrap">
         <button type="button" class="lo-detail-back tapx" onClick=${() => setNarrowDetail(false)}><${Icon} name="chevronLeft" />干员列表</button>
-        <${Detail} m=${m} chess=${base} golden=${golden} entries=${st.entries} onChange=${change} onReset=${resetOne} locked=${locked} />
+        <${Detail} m=${m} chess=${base} golden=${golden} entries=${st.entries} ops=${st.ops} onChange=${change} onReset=${resetOne} locked=${locked} />
       </div>
     </main>`}
   </div>

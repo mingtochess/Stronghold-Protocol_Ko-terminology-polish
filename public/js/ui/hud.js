@@ -1,3 +1,6 @@
+
+
+import { t } from '../../../shared/i18n.js';
 // In-match top bar (research 06 §11.1): exit + ping (left); round box, phase capsule (prep label /
 // kills n/m / boss HP bar), LP tower, match-info and enemy-preview buttons (centre, bracket frame);
 // 7-segment countdown with gauge and the 准备就绪 toggle (right).
@@ -84,7 +87,7 @@ export function PhaseCapsule({ pub, hud, miss = null }) {
     const frac = bossFrac(boss);
     return html`<div class="capsule capsule--boss" role="status">
       <${Sprite} k="hudPanel/icon_boss" class="capsule__icon" fallback=${html`<${GIcon} name="skull" class="capsule__icon" />`} />
-      ${hud?.total != null ? html`<span class="capsule__kills num"><b>${hud.killed ?? 0}</b>/${hud.total}</span>` : null}
+      ${hud?.total != null ? html`<span class="capsule__kills num"><b>${hud.resolved ?? hud.killed ?? 0}</b>/${hud.total}</span>` : null}
       <div class="bossbar" title=${boss ? `${fmtNum(boss.hp)} / ${fmtNum(boss.max)}` : '敌方领袖'}>
         <div class="bossbar__fill" style=${`width:${frac == null ? 100 : frac * 100}%`}></div>
         <span class="bossbar__txt num">${frac == null ? '敌方领袖' : bossPctText(frac)}</span>
@@ -95,7 +98,7 @@ export function PhaseCapsule({ pub, hud, miss = null }) {
     return html`<div class=${cx('capsule', 'capsule--combat', phase === PHASE.UNITE && 'capsule--unite')} role="status">
       <${Sprite} k=${phase === PHASE.UNITE ? 'hudPanel/icon_coop' : 'hudPanel/icon_battle'} class="capsule__icon"
         fallback=${html`<${Icon} name="sword" class="capsule__icon" />`} />
-      <span class="capsule__kills num"><b>${hud?.killed ?? 0}</b>/${hud?.total ?? '--'}</span>
+      <span class="capsule__kills num"><b>${hud?.resolved ?? hud?.killed ?? 0}</b>/${hud?.total ?? '--'}</span>
       ${phase === PHASE.UNITE ? html`<span class="capsule__tag">联防</span>` : null}
       ${phase === PHASE.UNITE && Number.isFinite(miss) ? html`<${MissTag} n=${miss} />` : null}
     </div>`;
@@ -241,16 +244,18 @@ export function tempReadyReason(priv) {
 }
 
 /**
- * Ready toggle (PREP only). Disabled while the temp row holds pieces — the reason shows under it (not only on hover):
- * "临时整备区 N 个单位待处理" (user playtest #3 item 3).
+ * Ready toggle (PREP only). Disabled while the temp row holds pieces or a personal choice (教鞭) is open — the reason shows
+ * under it (not only on hover): "临时整备区 N 个单位待处理" (user playtest #3 item 3), "请先完成教鞭选择".
  * @param {{ priv:any, onToggle:(ready:boolean)=>void, busy?:boolean, readyCount?:number, total?:number }} props
  */
 export function ReadyToggle({ priv, onToggle, busy, readyCount, total }) {
   const ready = !!priv?.ready;
   const temp = tempInfo(priv);
-  const reason = !ready ? tempReadyReason(priv) || shopBlockReason('ready', { priv, editable: true }) : null;
+  const choice = !!priv?.personalChoice;
+  const reason = !ready ? (choice ? shopBlockReason('ready', { priv, editable: true }) : tempReadyReason(priv) || shopBlockReason('ready', { priv, editable: true })) : null;
+  const why = !ready && (choice || temp.count > 0);
   const btn = html`<button type="button" class=${cx('readybtn', 'tapx', ready && 'is-on', busy && 'is-busy')} disabled=${!!reason || busy}
-      aria-pressed=${ready ? 'true' : 'false'} aria-describedby=${!ready && temp.count ? 'readywrap-why' : undefined} onClick=${() => onToggle(!ready)}>
+      aria-pressed=${ready ? 'true' : 'false'} aria-describedby=${why ? 'readywrap-why' : undefined} onClick=${() => onToggle(!ready)}>
     <span class="readybtn__box">${ready ? html`<${Icon} name="check" />` : null}</span>
     <span class="readybtn__label">${ready ? '取消准备' : '准备就绪'}</span>
     <kbd class="readybtn__key">Space</kbd>
@@ -339,7 +344,9 @@ export function PauseButton({ paused, busy = false, onToggle }) {
  *   onReady:(r:boolean)=>void, readyBusy?:boolean, readyCount?:number, playerCount?:number,
  *   pen?:boolean, penAvail?:boolean, onPen?:(on:boolean)=>void, config?: any, frozenAt?: number|null,
  *   pause?: { show: boolean, paused: boolean, busy?: boolean, onToggle: () => void } | null,
- *   live?: { pending: number, unite: boolean, left?: number|null } | null }} props
+ *   live?: { pending: number, unite: boolean, left?: number|null } | null,
+ *   spectators?: any[]|null, myId?: any, isHost?: boolean, onRemoveSpectator?: ((playerId: any) => any)|null }} props
+ *   spectators: the room's spectator seats (room.state) — the 观战席 capsule beside the latency (SpectatorPill; the host removes)
  *   frozenAt: the server time every clock shows while the solo match is paused (null = live)
  *   live: the own battle's pending LP loss (liveLp): the tower shows lp − pending in red with a −N tick, 联防中 during 联防;
  *     `left` (a leaker in 联防): its enemies still standing — the capsule's ×N tag

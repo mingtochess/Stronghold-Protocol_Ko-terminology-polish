@@ -1,3 +1,20 @@
+
+import { msg } from '../../shared/i18n.js';
+import { bountyCard } from './choices.js';
+const PERSONAL_OFFER_SIZE = 3;
+
+const finiteOrNull = (v, cap = Infinity) => {
+  if (v == null) return null;   // Number(null) === 0: an unreported value must not read as "0 resolved"
+  const n = Number(v);
+  if (!Number.isFinite(n)) return null;
+  return Math.max(0, Math.min(Number.isFinite(cap) ? cap : Infinity, Math.trunc(n)));
+};
+function cultivationInfo(lo) {
+  const out = {};
+  if (lo && Number.isInteger(lo.potential) && lo.potential < 6) out.potential = lo.potential;
+  if (lo && Number.isInteger(lo.cultivate)) out.cultivate = lo.cultivate;
+  return out;
+}
 import {loadoutRecord, resolveRecordLoadout} from '../../shared/loadoutRecord.js';
 import { applyCustomExtensions, normalizeCustomExtensions } from '../../shared/customExtensions.js';
 // server/match/Match.js — the match & meta engine: state machine, timers, round loop, co-op orchestration,
@@ -148,11 +165,7 @@ import { generateDraft, applyCard, cardView, bountyBattles, isMultiRoundBounty }
 import { setupMatchWaves, buildNormalWave, buildBossWave, bountySpawns, withBounties, previewOf, weightedPick } from './waves.js';
 import { planUnite, uniteBattleOpts, uniteSurvivors } from './unite.js';
 import { pairPlayers, bossPoolHp, SharedBossPool, hiddenEligible, BOSS_HIT_STEPS } from './finalAssault.js';
-import {
-  FieldRunner, DeadBattle, GAME_SPEED, snapFrame, runHeadless, timelineAt, HeadlessPacer, syntheticResult,
-  validateClientResult, RESULT_GRACE_MS, BOSS_SILENCE_MS, HARD_CAP_SECONDS, HeadlessJob, HEADLESS_SLICE_MS, CATCHUP_TICKS_PER_INTERVAL,
-  uniteBillBounds,
-} from './fields.js';
+import { FieldRunner, DeadBattle, GAME_SPEED, snapFrame, timelineAt, HeadlessPacer, syntheticResult, validateClientResult, RESULT_GRACE_MS, BOSS_SILENCE_MS, HARD_CAP_SECONDS, HeadlessJob, HEADLESS_SLICE_MS, CATCHUP_TICKS_PER_INTERVAL, uniteBillBounds } from './fields.js';
 import { buildBattleSpec, createBattleFromSpec, resultDigest, compactResult as compactForVerify, battleProgress, uniteLeft } from '../sim/spec.js';
 import { CreditPool } from './finalAssault.js';
 import { buildResult } from './results.js';
@@ -263,6 +276,7 @@ export class Match {
     this.gd = new GameData(this.data, this.modeId);
     if (!this.difficulty) this.difficulty = this.gd.difficulty;
     this.isSolo = this.mode === 'solo' || this.gd.isSolo;
+    this.aiPicksLast = !this.isSolo && opts.aiPicksLast === true;
     this.ownsScheduler = !opts.scheduler;
     this.sched = opts.scheduler || new RealScheduler({ now: opts.now || Date.now, onError: (e) => this.reportError('timer', e) });
     this.registry = opts.registry || getDefaultRegistry();
@@ -458,13 +472,13 @@ export class Match {
    * @param {Record<string, { skill: number, module: string|null }> | null} loadout
    * @returns {{ ok: true } | { error: string, detail?: string }}
    */
-  setLoadout(playerId, loadout) {
+  setLoadout(playerId, loadout, ops = undefined) {
     const ps = this.players.get(playerId);
     if (!ps || ps.isBot || ps.left) return fail(ERR.NOT_IN_ROOM);
     if (this.disposed || this.ended || ![PHASE.INFO_CHECK,PHASE.BAND_DRAFT].includes(this.phase)) return fail(ERR.WRONG_PHASE, 'loadout locked for this match');
     let res = OK;
     this.guard(() => {
-      if (!ps.setLoadout(loadout)) { res = fail(ERR.BAD_TARGET, 'loadout does not match the game data'); return; }
+      if (!ps.setLoadout(loadout, ops)) { res = fail(ERR.BAD_TARGET, 'loadout does not match the game data'); return; }
       this.markPrivate(ps);
       this.markPublic(); // selected recruits are also part of the public roster
     });
@@ -1011,6 +1025,7 @@ export class Match {
         skillIndex: lo && Number.isInteger(lo.skillIndex) ? lo.skillIndex : undefined,
         moduleId: lo && typeof lo.moduleId === 'string' ? lo.moduleId : undefined,
         skinId: lo?.skinId, charId: rec?.charId,
+        ...cultivationInfo(lo),
         // the equipped items (like the sim's UnitInfo): a 变形同构体 wearer shows as a member of the bond it grants
         items: piece.kind === 'chess' && Array.isArray(piece.items) && piece.items.length ? piece.items.map((it) => it.id) : undefined,
       });
@@ -1035,14 +1050,15 @@ export class Match {
         skillIndex: lo && Number.isInteger(lo.skillIndex) ? lo.skillIndex : undefined,
         moduleId: lo && typeof lo.moduleId === 'string' ? lo.moduleId : undefined,
         skinId: lo?.skinId, charId: rec?.charId,
+        ...cultivationInfo(lo),
         items: piece.kind === 'chess' && Array.isArray(piece.items) && piece.items.length ? piece.items.map((it) => it.id) : undefined,
       });
     };
     for (let i = 0; i < ps.hand.length; i++) {
-      if (ps.hand[i]) benchUnit(ps.hand[i], i, GEO.HAND_ROW);
+      if (ps.hand[i]) benchUnit(ps.hand[i], i, GEO.HAND_ROW, 'hand');
     }
     for (let i = 0; i < ps.temp.length; i++) {
-      if (ps.temp[i]) benchUnit(ps.temp[i], GEO.TEMP_C0 + i, GEO.TEMP_ROW);
+      if (ps.temp[i]) benchUnit(ps.temp[i], GEO.TEMP_C0 + i, GEO.TEMP_ROW, 'temp');
     }
     // `nextEnemies`: the scouted player's coming enemies — their preview pen shows on the scouting board too (research 09
     // §2.2 "Teammates"; render/app.js enterBattle({ prep: true, nextEnemies }))
@@ -1086,12 +1102,13 @@ export class Match {
     const fid = `n:${ps.playerId}`;
     const watchers = this.watchersOf(fid);
     if (!watchers.length) return;
-    const sig = this._prepScoutSig(ps);
+    const meta = this.prepFieldMeta(ps);
+    // Deduplicate the public payload itself: effects and enemy previews can change without any piece moving (#346).
+    const sig = JSON.stringify(meta);
     const changed = sig !== ps._prepScoutSig;
     ps._prepScoutSig = sig;
     const dest = changed ? watchers : (to ? [to] : []);
     if (!dest.length) return;
-    const meta = this.prepFieldMeta(ps);
     for (const pid of dest) this.sendTo(pid, meta);
   }
 
@@ -1140,7 +1157,9 @@ export class Match {
       case 'g.art': return ps.useArt(msg.itemUid, msg.row, msg.col, msg.dir);
       case 'g.destroy': return ps.destroy(msg.uid);
       case 'g.reward': return ps.pickReward(msg.idx);
-      case 'g.choice': return this.pickCard(ps, msg.idx);
+      case 'g.choice': return msg.choiceId !== undefined
+        ? this.pickPersonalChoice(ps, msg.idx, msg.choiceId)
+        : this.pickCard(ps, msg.idx);
       case 'g.ready': return ps.setReady(!!msg.ready);
       case 'g.emote': return this.emote(ps, msg.id);
       case 'g.chat': return this.chat(ps, msg.text);
@@ -1437,8 +1456,9 @@ export class Match {
   enterBandDraft() {
     if (this.phase !== PHASE.INFO_CHECK) return;
     this.phase = PHASE.BAND_DRAFT;
-    const order = this.order.map((p) => p.playerId);
+    let order = this.order.map((p) => p.playerId);
     if (!this.isSolo) this.rngDraft.shuffle(order);
+    order = this.humansFirst(order);
     const skips = this.isSolo ? 0 : this.gd.bandDraft.skipsPerPlayer;
     const untimed = this.soloUntimed;
     this.draft = {
@@ -1591,7 +1611,16 @@ export class Match {
     if (d.order.length - d.idx <= 1) return fail(ERR.BAD_TARGET, 'nobody to pass to');
     d.skipsLeft[ps.playerId]--;
     d.order.splice(d.idx, 1);
-    d.order.push(ps.playerId);
+    // the skipper goes to the end; with 「AI 队友最后选择」 to the end of the humans still to pick — behind them, ahead of
+    // the AI seats — and to the very end only when no other human is left to pass to [ASSUMED: the option's intent,
+    // humans before AI, kept through a skip; no source, a remake option]
+    let at = d.order.length;
+    if (this.aiPicksLast) {
+      for (let j = d.order.length - 1; j >= d.idx; j--) {
+        if (!this.players.get(d.order[j])?.isBot) { at = j + 1; break; }
+      }
+    }
+    d.order.splice(at, 0, ps.playerId);
     this.startDraftTurn();
     return OK;
   }
@@ -1687,8 +1716,10 @@ export class Match {
     const alive = this.alivePlayers();
     if (!draft || !alive.length) { this.enterPrep(); return; }
     this.phase = PHASE.SP_DRAFT;
-    const order = alive.map((p) => p.playerId);
+    let order = alive.map((p) => p.playerId);
     if (!this.isSolo) this.rngDraft.shuffle(order);
+    // 「AI 队友最后选择」 (GitHub #338): humans before AI seats, after the same shuffle (MatchPhases.humansFirst)
+    order = this.humansFirst(order);
     // untimed: solo and any single-human match (soloUntimed); the co-op order / 6 cards stay
     const untimed = this.soloUntimed;
     this.sp = { ...draft, order, idx: 0, picks: {}, taken: {}, untimed, turnDeadline: 0 };
@@ -1924,6 +1955,7 @@ export class Match {
     };
     const ready = () => {
       if (!ps.ready) {
+        this.autoPickPersonalChoice(ps, 'random');
         ps.resolveTemp();
         ps.setReady(true);
       }
@@ -1975,6 +2007,7 @@ export class Match {
     if (this.phase !== PHASE.PREP) return;
     for (const ps of this.alivePlayers()) {
       if (ps.ready) continue;
+      this.autoPickPersonalChoice(ps, 'random');
       ps.resolveTemp();
       ps.ready = true;
       ps.dirty();
@@ -2206,8 +2239,9 @@ export class Match {
 
   _clearFieldTimers(f) {
     if (!f || !f.cc) return;
-    for (const k of ['deadlineTimer', 'doneTimer', 'waitTimer', 'sliceTimer']) if (f[k]) { this.cancel(f[k]); f[k] = null; }
+    for (const k of ['deadlineTimer', 'doneTimer', 'waitTimer', 'sliceTimer', 'verifyTimer']) if (f[k]) { this.cancel(f[k]); f[k] = null; }
     f.job = null;
+    f.verifyJob = null;
   }
 
   /** A client-combat field record: the JSON BattleSpec of its Battle options plus the authority / result state. */
@@ -2217,16 +2251,22 @@ export class Match {
     const battleId = seq.length + 1 + String(fieldId).length <= 64 ? `${seq}.${fieldId}` : seq;
     const spec = buildBattleSpec({ ...opts, flags: {...opts.flags, customFactions:this.customFactions,customExtensions:this.customExtensions}, battleId, fieldId, kind, content: this.battleContent, boss });
     let total = 0;
-    for (const x of spec.spawns) if (x && x.tag !== 'boss' && x.tag !== 'part') total += Math.max(1, Math.floor(Number(x.count) || 1));
+    for (const x of spec.spawns) if (x && x.tag !== 'boss' && x.tag !== 'part' && x.countInTotal !== false) total += Math.max(1, Math.floor(Number(x.count) || 1));
     return {
       cc: true, fieldId, kind, players: players.slice(), battleId, spec, battle: null, live: true, done: false,
       mode: null, authority: null, startAt: this.sched.now(), result: null, resultSource: null, timeline: null, endGt: null,
-      progress: { gt: 0, killed: 0, total, leaks: 0, done: false }, lastProgressAt: this.sched.now(),
+      // progress: the field's own numbers as far as they are known before its first b.progress / result (`total` = the
+      // spec's scheduled enemies — the capsule's denominator). `resolved` starts at **null**: it is only adopted from a
+      // real report, so `resolved ?? killed` fallbacks (an unreported field, a synthetic result) keep working — a 0 here
+      // would read as "nothing resolved yet" and could never be told apart from a reported 0.
+      progress: { gt: 0, killed: 0, total, leaks: 0, resolved: null, done: false }, lastProgressAt: this.sched.now(),
       bossAcked: 0, bossBy: {}, lpAcked: 0, lpCum: 0, deadlineTimer: null, doneTimer: null, waitTimer: null,
       // boss fields: the latest client reports (re-credited as the plausibility budget grows), the server run's
       // CreditPool, humans demoted for an implausible result (never the authority of this field again), a 'cleared'
-      // b.result waiting for the budget to credit the pool it emptied (`heldResult`, _onResult)
-      bossReported: null, lpReported: 0, credit: null, demoted: new Set(), heldResult: null,
+      // b.result waiting for the budget to credit the pool it emptied (`heldResult`, _onResult); `leaksBy`: the authority's
+      // per-player split of the LP its enemy leaks cost (b.progress, the highest value seen; null until one carried it),
+      // which a result must not contradict before a perfect-payout bounty pays (_bossLeaksAgree)
+      bossReported: null, lpReported: 0, credit: null, demoted: new Set(), heldResult: null, leaksBy: null,
     };
   }
 
@@ -2255,19 +2295,33 @@ export class Match {
     if (!f.cc) {
       const b = f.battle;
       if (!b) return null;
-      return { killed: Number(b.killed) || 0, total: Number(b.total) || 0, done: !f.live };
+      const total = Number(b.total) || 0;
+      return { killed: Number(b.killed) || 0, resolved: finiteOrNull(b.resolved, total), total, done: !f.live };
     }
     if (f.done && f.result) {
-      let killed = 0, total = 0;
-      for (const pp of Object.values(f.result.perPlayer || {})) { killed += Number(pp && pp.killed) || 0; total += Number(pp && pp.total) || 0; }
-      if (f.result.synthetic) { killed = f.progress.killed; total = f.progress.total; }
-      return { killed, total, done: true };
+      let killed = 0, total = 0, own = 0, ownKnown = true;
+      for (const pp of Object.values(f.result.perPlayer || {})) {
+        killed += Number(pp && pp.killed) || 0;
+        total += Number(pp && pp.total) || 0;
+        if (Number.isFinite(pp && pp.resolved)) own += Number(pp.resolved); else ownKnown = false;
+      }
+      // the FIELD's numerator (the validated client result / Battle.result(): what the capsule showed) — not the sum of the
+      // players' own: an enemy that spawns on one half and leaks on the other (a 联防 lane, the boss pair's crossing routes)
+      // is billed to one player's `total` and to the other's leak, so their own min(total, …) clamp it to 0
+      let resolved = finiteOrNull(f.result.resolved, total);
+      if (resolved == null && ownKnown) resolved = Math.min(total, own);
+      if (f.result.synthetic) { killed = f.progress.killed; total = f.progress.total; resolved = finiteOrNull(f.progress.resolved, total); }
+      return { killed, resolved, total, done: true };
     }
     if (f.mode === 'server' && f.timeline) {
-      const [, killed, total] = timelineAt(f.timeline, this._fieldElapsed(f));
-      return { killed, total, done: false };
+      // a server-run / bot field: no authority ever sends a b.progress, so the capsule reads the battle's own counters —
+      // the timeline sample carries `resolved` (Battle.resolved: knocked out + leaked among the field's own enemies),
+      // never the report-driven `progress.leaks`, which would leave such a field at 0 forever
+      const [, killed, total, resolved] = timelineAt(f.timeline, this._fieldElapsed(f));
+      return { killed, resolved: finiteOrNull(resolved, total), total, done: false };
     }
-    return { killed: f.progress.killed, total: f.progress.total, done: false };
+    const total = f.progress.total;
+    return { killed: f.progress.killed, resolved: finiteOrNull(f.progress.resolved, total), total, done: false };
   }
 
   /**
@@ -2329,8 +2383,9 @@ export class Match {
     let live = null;
     if (f && f.cc) {
       if (f.mode === 'server' && f.timeline) {
+        // the sample is [gt, killed, total, resolved(, left)]: a 联防 sample's `left` is its 5th element
         const sample = timelineAt(f.timeline, this._fieldElapsed(f));
-        live = sample && sample[3] && typeof sample[3] === 'object' ? sample[3] : null;
+        live = sample && sample[4] && typeof sample[4] === 'object' ? sample[4] : null;
       } else live = f.progress && f.progress.left && typeof f.progress.left === 'object' ? f.progress.left : null;
     } else if (f && f.battle) {
       try { live = uniteLeft(f.battle); } catch { live = null; }
@@ -2388,7 +2443,7 @@ export class Match {
     return {
       t: 'b.start', battleId: f.battleId, fieldId: f.fieldId, kind: f.kind,
       spec: this.spectators.has(pid) ? this._spectatorSpec(f) : f.spec,
-      authoritative: !!(!f.done && f.mode === 'client' && f.authority === pid && !watch),
+      authoritative: !!(!f.done && !f.verifyJob && f.mode === 'client' && f.authority === pid && !watch),
       startAt: f.startAt, serverNow: this.sched.now(), elapsed: Math.round(this._fieldElapsed(f) * 1000) / 1000,
       speed: this.gameSpeed, watch: !!watch, done: !!f.done,
     };
@@ -2433,6 +2488,7 @@ export class Match {
   /** A client field's result deadline: its time limit on the field clock + RESULT_GRACE_MS (then the server takes over). */
   _armDeadline(f) {
     if (f.deadlineTimer) { this.cancel(f.deadlineTimer); f.deadlineTimer = null; }
+    if (f.verifyJob) return;
     const lim = f.spec.timeLimit > 0 ? f.spec.timeLimit : 60;
     const at = f.startAt + Math.round((lim / this.gameSpeed) * 1000) + RESULT_GRACE_MS;
     f.deadlineTimer = this.later(Math.max(0, at - this.sched.now()), () => {
@@ -2537,7 +2593,7 @@ export class Match {
   /** An authoritative human disconnected / left: normal & 联防 fields → server takeover; boss → the partner or the server. */
   _authorityLost(ps, why) {
     for (const f of this.fields) {
-      if (!f.cc || f.done || f.mode !== 'client' || f.authority !== ps.playerId) continue;
+      if (!f.cc || f.done || f.verifyJob || f.mode !== 'client' || f.authority !== ps.playerId) continue;
       if (f.kind === 'boss' || f.kind === 'hidden') this._bossHandover(f, why);
       else this._runOnServer(f, why);
     }
@@ -2616,17 +2672,23 @@ export class Match {
   _onProgress(ps, msg) {
     if (!this.clientCombat) return fail(ERR.WRONG_PHASE, 'server-run combat');
     const f = this._fieldByBattle(msg.battleId);
-    if (!f || f.done || f.mode !== 'client' || f.authority !== ps.playerId) return OK;
+    if (!f || f.done || f.verifyJob || f.mode !== 'client' || f.authority !== ps.playerId) return OK;
     const p = f.progress;
     const maxTotal = Math.max(p.total, (f.spec.spawns.length + 1) * 400);
     p.gt = Math.max(p.gt, Math.min(Number(msg.gt) || 0, HARD_CAP_SECONDS));
     // the latest total (spawns never reached before the limit leave it at the end)
     p.total = Math.min(maxTotal, Math.max(0, msg.total | 0));
     p.killed = Math.min(p.total, Math.max(p.killed, msg.killed | 0));
+    // the HUD capsule's numerator as the authority reported it (shared/protocol.js b.progress `resolved`). Only a real
+    // integer is adopted — an absent field leaves the null placeholder alone, so "not reported" and a reported 0 differ
+    // (a `Number(null) === 0` here would defeat every `resolved ?? killed` fallback); a lower value is kept (the final
+    // report drops never-spawned enemies from `total`, and a takeover may report a different number)
+    if (Number.isInteger(msg.resolved)) p.resolved = Math.max(0, Math.min(1e5, msg.resolved));
     f.lastProgressAt = this.sched.now();
     if (f.kind === 'boss' || f.kind === 'hidden') {
       this._creditBoss(f, msg.bossDmg, msg.by);
       this._creditLp(f, msg.leaks, true);
+      this._noteLeaksBy(f, msg.leaksBy);
       this._checkFinalEnd();
       this._broadcastPool(false);
       // 4 Hz per field: b.pool carries the exact pool / team LP; m.public (boss HP, LP, progress) follows at ~1 Hz
@@ -2644,7 +2706,7 @@ export class Match {
   _onResult(ps, msg) {
     if (!this.clientCombat) return fail(ERR.WRONG_PHASE, 'server-run combat');
     const f = this._fieldByBattle(msg.battleId);
-    if (!f || f.done || f.heldResult || f.mode !== 'client' || f.authority !== ps.playerId) return OK;
+    if (!f || f.done || f.heldResult || f.verifyJob || f.mode !== 'client' || f.authority !== ps.playerId) return OK;
     const bossLike = f.kind === 'boss' || f.kind === 'hidden';
     const v = validateClientResult(f.spec, msg.result, { gd: this.gd });
     if (!v.ok) {
@@ -2655,7 +2717,7 @@ export class Match {
       else this._runOnServer(f, 'invalid');
       return OK;
     }
-    let result = v.result;
+    const result = v.result;
     if (bossLike) {
       // the final b.progress normally carried everything; the result's per-player damage is a lower bound
       const by = {};
@@ -2689,13 +2751,15 @@ export class Match {
         return OK;
       }
       this._bossResultDamage(f, result);
-    } else {
-      result = this._verifyResult(f, result);
     }
-    f.result = result;
-    f.resultSource = 'client';
-    this._fieldDone(f);
-    if (bossLike) { this._checkFinalEnd(); this._broadcastPool(false); }
+    const accept = (verified) => {
+      f.result = verified;
+      f.resultSource = 'client';
+      this._fieldDone(f);
+      if (bossLike) { this._checkFinalEnd(); this._broadcastPool(false); }
+    };
+    if (bossLike) accept(result);
+    else this._verifyResult(f, result, accept);
     return OK;
   }
 
@@ -2708,25 +2772,57 @@ export class Match {
    * SP_VERIFY: re-simulate an accepted client result ('all': now, the server's result wins on a mismatch; 'sample':
    * ~1 battle in 8 in a later callback, mismatches are only logged).
    */
-  _verifyResult(f, result) {
-    if (this.verifyMode === 'off') return result;
-    const check = () => {
-      const run = runHeadless(this._specBattle(f.spec), { players: f.players });
-      const mine = validateClientResult(f.spec, compactForVerify(run.result), { gd: this.gd });
-      const server = mine.ok ? mine.result : run.result;
-      this.verifyStats.checked++;
-      if (resultDigest(server).hash !== resultDigest(result).hash) {
-        this.verifyStats.mismatches++;
-        this.log.warn?.(`[match ${this.roomCode}] ${f.fieldId}: client result differs from the server's simulation`);
-        return server;
+  _verifyResult(f, result, accept) {
+    if (this.verifyMode === 'off') { accept(result); return; }
+    const required = this.verifyMode === 'all';
+    const start = () => {
+      const job = new HeadlessJob(this._specBattle(f.spec), { players: f.players, onError: (e) => this.reportError('verify', e) });
+      if (required) {
+        // The result has arrived: duplicate reports, disconnects and the old deadline must not start another run.
+        f.verifyJob = job;
+        this.cancel(f.deadlineTimer);
+        f.deadlineTimer = null;
+        f.rearmDeadline = false;
       }
-      return null;
+      const schedule = () => {
+        const timer = this.later(0, slice);
+        if (required) f.verifyTimer = timer;
+      };
+      const slice = () => {
+        if (required) f.verifyTimer = null;
+        if (this.disposed || this.ended) return;
+        if (required && (f.verifyJob !== job || f.done || f.mode !== 'client' || !this.fields.includes(f))) return;
+        let verified = result;
+        try {
+          if (!job.run(this.headlessSliceMs)) { schedule(); return; }
+          const run = job.output();
+          const mine = validateClientResult(f.spec, compactForVerify(run.result), { gd: this.gd });
+          const server = mine.ok ? mine.result : run.result;
+          this.verifyStats.checked++;
+          if (resultDigest(server).hash !== resultDigest(result).hash) {
+            this.verifyStats.mismatches++;
+            this.log.warn?.(`[match ${this.roomCode}] ${f.fieldId}: client result differs from the server's simulation`);
+            verified = server;
+          }
+        } catch (e) {
+          this.reportError('verify', e);
+          if (required) {
+            this._clearFieldTimers(f);
+            this._runOnServer(f, 'verify-error');
+          }
+          return;
+        }
+        if (required) { f.verifyJob = null; accept(verified); }
+      };
+      if (Number.isFinite(this.headlessSliceMs)) schedule();
+      else slice(); // Virtual schedulers retain their synchronous fast path.
     };
-    if (this.verifyMode === 'all') return check() || result;
+    if (required) { start(); return; }
     let h = 0;
     for (let i = 0; i < f.battleId.length; i++) h = (h * 31 + f.battleId.charCodeAt(i)) >>> 0;
-    if (h % 8 === 0) this.later(0, () => { try { check(); } catch (e) { this.reportError('verify', e); } });
-    return result;
+    // Sample jobs use only match-level timers: field completion must not cancel the diagnostic work.
+    if (h % 8 === 0) this.later(0, start);
+    accept(result);
   }
 
   // ---- watching (research 09 §3.1 / §6.3)
@@ -3208,8 +3304,9 @@ export class Match {
    * Bounties after a boss field: kill-bounty coins go to pending funds (spent in the Hidden Core's prep) and every
    * bounty used one of its battles, exactly like SETTLE does for normal rounds.
    */
-  _settleBossBounties(ps, pp) {
-    const coins = Math.max(0, Math.trunc(Number(pp.coins) || 0));
+  _settleBossBounties(ps, pp, perfect) {
+    let coins = Math.max(0, Math.trunc(Number(pp.coins) || 0));
+    if (perfect) for (const b of ps.bounties) if (b.card.payout === 'perfect') coins += b.card.coin;
     if (coins > 0) { ps.pendingFunds += coins; ps.stats.fundsGained += coins; }
     if (!ps.bounties.length) return;
     for (const b of ps.bounties) b.roundsLeft--;
@@ -3304,6 +3401,9 @@ export class Match {
   _finishFinal(hidden, resultOf) {
     if (this.phase !== (hidden ? PHASE.HIDDEN_CORE : PHASE.FINAL_ASSAULT)) return;
     this._stopClientCombat();
+    // the end condition the server registered first decides (client-side combat: _endFinal — pool 0 → victory, team LP 0
+    // → defeat); a boss field's final result may never turn a defeat into a victory (user playtest #6 item 5)
+    const victory = this._finalEnding ? this._finalEnding === 'cleared' : this.bossPool.hp <= 0;
     for (const f of this.fields) {
       const res = resultOf(f);
       this._collectSimErrors(f, res);
@@ -3318,13 +3418,17 @@ export class Match {
           ps.dirty(); // m.private.stats
           this._charDamageTickers(ps, pp);
         }
-        if (pp && ps) this._settleBossBounties(ps, pp);
+        if (pp && ps) {
+          // the own battle counts as perfect when the team won, the result is a real one (not the stand-in of a field that
+          // never reported) and the player's own field let no counted enemy through [ASSUMED: the boss battle is a battle
+          // of the player's own — "下场作战" — so a perfect-payout card pays as after a normal one]
+          const perfect = victory && !res.synthetic && pp.perfect === true && !(pp.leaked || []).some((l) => l && l.counted !== false)
+            && this._bossLeaksAgree(f, res, pid);
+          this._settleBossBounties(ps, pp, perfect);
+        }
         if (pp && ps) this.dispatch(ps, 'onBattleResult', { result: pp, lpLoss: 0, perfect: !!pp.perfect, boss: true });
       }
     }
-    // the end condition the server registered first decides (client-side combat: _endFinal — pool 0 → victory, team LP 0
-    // → defeat); a boss field's final result may never turn a defeat into a victory (user playtest #6 item 5)
-    const victory = this._finalEnding ? this._finalEnding === 'cleared' : this.bossPool.hp <= 0;
     this._syncTeamLp();
     this.deadline = 0;
     this.overtimeAt = 0;
@@ -3380,4 +3484,61 @@ export class Match {
     summary.errors = this.errorCount;
     try { this.onEndFn(summary); } catch (e) { this.reportError('onEnd', e); }
   }
+  _noteLeaksBy(f, by) {
+    if (!by || typeof by !== 'object') return;
+    if (!f.leaksBy) f.leaksBy = {};
+    for (const pid of f.players) {
+      const v = Number(by[pid]);
+      if (Number.isFinite(v) && v > (f.leaksBy[pid] || 0)) f.leaksBy[pid] = v;
+    }
+  }
+
+  _bossLeaksAgree(f, res, pid) {
+    if (!f.cc || f.resultSource !== 'client') return true;
+    if (f.lpReported > 1e-9 && !f.leaksBy) return false;
+    const shown = ((res.perPlayer[pid] && res.perPlayer[pid].leaked) || []).reduce((n, l) => n + (Number.isFinite(l.lpr) && l.lpr >= 0 ? l.lpr : 1), 0);
+    return shown + 1e-6 >= ((f.leaksBy && f.leaksBy[pid]) || 0);
+  }
+
+  humansFirst(order) {
+    if (!this.aiPicksLast) return order;
+    const bot = (pid) => !!this.players.get(pid)?.isBot;
+    return [...order.filter((pid) => !bot(pid)), ...order.filter(bot)];
+  }
+
+  offerBountyChoice(ps, candidates, sourceItemId) {
+    if (this.phase !== PHASE.PREP) return fail(ERR.WRONG_PHASE);
+    if (!ps.alive) return fail(ERR.ELIMINATED);
+    if (ps.ready) return fail(ERR.WRONG_PHASE, 'ready');
+    if (ps.personalChoice) return fail(ERR.BAD_TARGET, '请先完成当前教鞭选择'); // i18n-ignore: developer error detail
+    if (!candidates.length) return fail(ERR.BAD_TARGET, '当前没有可用的战术特训'); // i18n-ignore: developer error detail
+    const cards = this.rngMeta.shuffle(candidates.slice()).slice(0, PERSONAL_OFFER_SIZE);
+    ps.personalChoice = { id: `${this.battlePrefix}.choice.${this.nextUid()}`, round: this.round, sourceItemId, cards };
+    ps.dirty();
+    return OK;
+  }
+
+  pickPersonalChoice(ps, idx, choiceId) {
+    if (this.phase !== PHASE.PREP) return fail(ERR.WRONG_PHASE);
+    if (!ps.alive) return fail(ERR.ELIMINATED);
+    if (ps.ready) return fail(ERR.WRONG_PHASE, 'ready');
+    const pending = ps.personalChoice;
+    if (!pending || pending.id !== choiceId || pending.round !== this.round) return fail(ERR.BAD_TARGET);
+    if (!Number.isInteger(idx) || idx < 0 || idx >= pending.cards.length) return fail(ERR.BAD_TARGET);
+    if (!this.addBounty(ps, pending.cards[idx])) return fail(ERR.BAD_TARGET);
+    ps.personalChoice = null;
+    ps.dirty();
+    return OK;
+  }
+
+  autoPickPersonalChoice(ps, mode) {
+    const pending = ps.personalChoice;
+    if (!pending) return undefined;
+    const indices = pending.cards.map((c, i) => i);
+    const idx = mode === 'bot'
+      ? botPickCard(this, ps, pending.cards.map((c) => bountyCard(this.gd, c)), indices)
+      : this.rngMeta.pick(indices);
+    return this.pickPersonalChoice(ps, idx, pending.id);
+  }
+
 }
