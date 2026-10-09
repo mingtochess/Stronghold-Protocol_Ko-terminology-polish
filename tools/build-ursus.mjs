@@ -90,7 +90,7 @@ export async function buildUrsus(){
  // Ursus Cutlass: appearance/lore from Integrated Strategies, custom equipment effects for this mode.
  for(const suffix of ['a','b']){
   const id=`chess_item_custom_ursus_${suffix}`,elite=suffix==='b',rec=structuredClone(items[`chess_item_1_01_e_${suffix}`]);
-  Object.assign(rec,{id,baseId:'chess_item_custom_ursus_a',goldenId:'chess_item_custom_ursus_b',upgradeChessId:elite?null:'chess_item_custom_ursus_b',identifier:9500+Number(elite),name:'우르수스 곡도',effectName:'우르수스 곡도',tier:3,shopSortId:90,trapId:'ursus_cutlass',iconId:'ursus_cutlass',giveBondId:'ursusShip',effectId:'eff_custom_ursus_cutlass',desc:`공격력·최대 HP +${elite?25:15}%. 변형 구조체와 함께 장착하면 우르수스 소속 추가.`,flavor:'강철의 홍수가 황량한 땅을 달린다. 우르수스는 내 두 손의 연장이다.',source:{relicId:'rogue_1_relic_c01',name:'乌萨斯弯刀',mode:'Integrated Strategies',effects:'custom'}});
+  Object.assign(rec,{id,baseId:'chess_item_custom_ursus_a',goldenId:'chess_item_custom_ursus_b',upgradeChessId:elite?null:'chess_item_custom_ursus_b',identifier:9500+Number(elite),name:'우르수스 곡도',effectName:'우르수스 곡도',tier:3,shopSortId:90,trapId:'ursus_cutlass',iconId:'ursus_cutlass',giveBondId:'ursusShip',effectId:'eff_custom_ursus_cutlass',desc:`공격력·최대 HP +${elite?25:15}%.`,flavor:'강철의 홍수가 황량한 땅을 달린다. 우르수스는 내 두 손의 연장이다.',source:{relicId:'rogue_1_relic_c01',name:'乌萨斯弯刀',mode:'Integrated Strategies',effects:'custom'}});
   rec.descRaw=rec.desc;rec.buffs[0].bb={atk:elite?.25:.15,max_hp:elite?.25:.15};rec.params={...rec.buffs[0].bb,key:'attr_common_global_buff'};items[id]=rec;
  }
  assets.items.ursus_cutlass='/assets/custom/ursus/item/ursus-cutlass.png';
@@ -102,7 +102,6 @@ export async function buildUrsus(){
  }
  assets.items.ursus_favor='/assets/custom/ursus/item/emperors-favor.png';
 
- for(const rec of Object.values(items))if(rec.canGiveBond)rec.descRaw=rec.desc+='\n우르수스 곡도와 함께 장착: 우르수스 소속 추가.';
  const bandId='band_custom_ursus_kaschey';
  const bandDesc='[영광과 번영]<우르수스> 오퍼레이터를 승급할 때마다 레벨업 비용 -4 (라운드당 최대 1회)';
  bands[bandId]={...structuredClone(bands.band_bldsk),bandId,sortId:90,name:'카셰이',iconId:'icon_custom_ursus_kaschey',totalHp:22,effectId:'effect_custom_ursus_kaschey',effectName:'영광과 번영',desc:bandDesc,descRaw:bandDesc,bondIds:['ursusShip'],buffs:[{key:'custom_ursus_merge_level_discount',bb:{count:4,max_count:1},bbStr:{}}],params:{count:4,max_count:1}};
