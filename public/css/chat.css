@@ -1,3 +1,4 @@
+@import url("/css/restart-vote.css");
 :root { --chat-corner-inset: max(12px, env(safe-area-inset-left), env(safe-area-inset-bottom)); --chat-button-size: max(.56rem, 34px); --chat-button-gap: .1rem; }
 .game-chat {
   position: fixed; left: var(--chat-corner-inset); bottom: var(--chat-corner-inset);

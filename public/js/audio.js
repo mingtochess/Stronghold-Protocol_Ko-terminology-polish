@@ -960,6 +960,10 @@ export class AudioManager {
    * @param {string} name
    * @param {{ volume?: number }} [o]
    */
+  restartNotification() {
+    this.sfx('broadcast', { volume: .65 });
+  }
+
   sfx(name, o = {}) {
     try {
       const url = this.getManifest()?.audio?.sfx?.ui?.[name];
