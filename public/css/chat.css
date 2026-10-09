@@ -107,3 +107,8 @@
 .gm__corner > .game-chat > .game-chat__preview {
   position:absolute; left:0; bottom:calc(var(--chat-button-size) + 8px); margin-bottom:0;
 }
+
+/* Keep restart requests in the tool row, outside the floating chat panel. */
+.gm__corner > .game-chat { display:flex; align-items:center; gap:var(--chat-button-gap); }
+.gm__corner > .game-chat > .restart-controls { margin:0; flex:none; }
+.gm__corner > .game-chat > .restart-controls > button { min-height:var(--chat-button-size); white-space:nowrap; }

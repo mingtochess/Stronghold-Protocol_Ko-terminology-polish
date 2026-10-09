@@ -120,7 +120,8 @@ export function ChatPanel({room = false}) {
       ${!open && unread ? html`<span class="game-chat__badge" aria-label=${`읽지 않은 메시지 ${unread}개`}>${unread > 99 ? '99+' : unread}</span>` : null}
     </button>`;
   return [html`<aside class=${room ? 'game-chat game-chat--room' : 'game-chat'} aria-label="게임 채팅" onKeyDown=${keyboard} onPointerDown=${(e) => e.stopPropagation()}>
-    <${RestartVoteControls} requestVisible=${open} />
+    ${!room ? toggle : null}
+    <${RestartVoteControls} />
     ${room ? html`<header class="game-chat__room-header"><strong>대기실 채팅</strong></header>` : null}
     ${open ? html`<section class="game-chat__panel" id="game-chat-panel" aria-label="게임 채팅창">
       <header><strong hidden=${room}>게임 채팅</strong><button type="button" class="game-chat__faction-toggle"
@@ -148,6 +149,5 @@ export function ChatPanel({room = false}) {
         <strong>${m.name}${m.spectator ? html`<span class="game-chat__spectator">(관전자)</span>` : null}${chatFaction(m.faction) ? html`<span class="game-chat__faction" style=${{color:chatFaction(m.faction).color}}>(${m.faction})</span>` : null}</strong><span>${m.text}</span>
       </p>`)}
     </div>` : null}
-    ${!room ? toggle : null}
   </aside>`, html`<${SettingsModal} open=${settingsOpen} onClose=${() => setSettingsOpen(false)} />`];
 }
