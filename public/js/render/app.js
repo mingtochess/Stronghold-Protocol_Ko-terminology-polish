@@ -242,6 +242,12 @@ export function boardArea(vk) {
   return areaFor(vk);
 }
 
+/** Boss intel builds only its field and the separate preview floor, never the normal battlefield. */
+export function boardAreaForView(vk, previousKind) {
+  if (vk === 'pen' && previousKind === 'bossPrep') return [...AREAS.boss, {r0:14,r1:18,c0:6,c1:14}];
+  return boardArea(vk);
+}
+
 /**
  * 2D rows drawn for a view kind: prep / normal / pen retain rows 6–18; the boss field with the separator
  * with its own separator row; other fields are excluded.
@@ -783,9 +789,7 @@ export async function createFieldView(host, options = {}) {
   }
 
   function viewBoardArea(vk) {
-    // A boss preparation detour retains its boss field and the preview, just as normal prep does.
-    return vk === 'pen' && camBeforePen && viewKind(camBeforePen.kind,camBeforePen.opts) === 'bossPrep'
-      ? boardArea('bossPrep') : boardArea(vk);
+    return boardAreaForView(vk, camBeforePen && viewKind(camBeforePen.kind, camBeforePen.opts));
   }
 
   // rows drawn per camera kind: module `bandFor`; the active field rows: module `fieldRows`

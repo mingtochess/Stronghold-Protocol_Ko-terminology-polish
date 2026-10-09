@@ -1491,3 +1491,24 @@ test('Horn S2 overdrive uses half the activation ammunition including additional
  }
  done(h);
 });
+
+test('Titi targets and damages enemies already asleep, with either grade and every skill loadout', () => {
+ for(const id of pair('02')) for(const skillId of ['skchr_titi_1','skchr_titi_2','skchr_titi_3']) for(const moduleId of [undefined,'none']) {
+  const h=run({defs:{enemies:{enemy_dummy:dummy('enemy_dummy')}},units:[entry(id,skillId,{row:10,col:4,moduleId})],enemies:[{key:'enemy_dummy',pos:[10,7]}]});
+  const u=h.unit(id),e=h.enemy('enemy_dummy');
+  mute(h,u);
+  h.b.applyStatus(e,'sleep',{duration:60,source:u});
+  const start=h.b.time;
+  h.run(4);
+  assert.ok(dealt(h,u,c=>c.t>start&&c.target===e&&c.dmg.isAttack).length,`${id} ${skillId} ${moduleId}: basic attacks hit sleepers`);
+  h.b.removeBuff(u,'test:mute');
+  cast(h,u);
+  const activeAt=h.b.time;
+  h.run(4);
+  const hits=dealt(h,u,c=>c.t>activeAt&&c.target===e&&c.dmg.isAttack);
+  if(skillId==='skchr_titi_2') assert.equal(hits.length,0,'S2 intentionally stops attacks');
+  else assert.ok(hits.length,`${id} ${skillId} ${moduleId}: active skill attacks hit sleepers`);
+  assert.ok(tagged(h,u,'titiDream',e).some(c=>c.t>activeAt),'sleep talent continues dealing damage');
+  done(h);
+ }
+});

@@ -140,3 +140,12 @@ describe('#6 audit: every device of every stage is drawn in the views of the fie
     assert.equal(blowers(AREAS.all).length, 8, 'the whole map: all 8');
   });
 });
+
+test('boss intel builds a preview floor without rebuilding the normal battlefield',async()=>{
+ const {boardAreaForView}=await import('../../public/js/render/app.js');
+ const area=boardAreaForView('pen','bossPrep');
+ assert.ok(area.some(a=>15>=a.r0&&15<=a.r1&&10>=a.c0&&10<=a.c1));
+ assert.ok(!area.some(a=>10>=a.r0&&10<=a.r1));
+ const grid=classifyStage(M01,area);
+ for(const row of grid.slice(7,13))for(const tile of row)assert.equal(tile.content,false);
+});

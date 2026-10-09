@@ -385,7 +385,7 @@ export class SpineActor {
     // clip per attack: its own speed, sped up only when the attacks come quicker than the clip
     const plan = windUpPlan(loopDur, hit, this.clipPerAttack && !once ? Math.min(iv, loopDur) : iv, lead);
     if (!(hit > 0) || lead * plan.ts > hit + 1e-6) return false;
-    if (!once) this.interval = iv;
+    if (!once) { this.interval = iv; this.attackPoseUntil = this.clock + lead + iv + .12; }
     this.mode = 'attack';
     this.attackUntil = this.clock + lead + (single ? Math.max(0, loopDur - hit) / plan.ts : Math.max(0.45, iv * 1.4));
     this._play(clip.loop, !single, { timeScale: plan.tsWind, start: plan.start, mix: 0.06 });
@@ -403,6 +403,7 @@ export class SpineActor {
     const dur = this.dur(clip.loop), hit = this._hitTime(clip.loop, dur);
     this.interval = clampN(interval, .08, 8);
     const ts = lead > 0 && hit > 0 ? hit / lead : Math.max(1, Math.min(4, dur / this.interval));
+    this.attackPoseUntil = this.clock + lead + this.interval + .12;
     this.mode = 'attack'; this.wound = true;
     this.windUntil = null;
     this.attackUntil = this.clock + lead + Math.max(0, dur - hit) / ts;
@@ -411,7 +412,7 @@ export class SpineActor {
   }
 
   cancelAttack() {
-    if (this.mode !== 'attack') return;
+    if (this.mode !== 'attack' && this.mode !== 'attackRest') return;
     this.wound = false; this.windUntil = null; this.mode = 'base';
     this._play(this._baseName(), true, { mix: .06 });
   }
@@ -434,6 +435,8 @@ export class SpineActor {
     if (!once) this.interval = clampN(Number.isFinite(interval) && interval > 0 ? interval : this.interval, 0.08, 8);
     const clip = this._attackClip();
     if (!clip) return;
+    if (!once) this.attackPoseUntil = this.clock + this.interval + .12;
+    else this.attackPoseUntil = 0;
     const loopDur = this.dur(clip.loop);
     const per = this.clipPerAttack && !once;
     const single = once || per;
@@ -476,6 +479,14 @@ export class SpineActor {
         e.trackTime += d * 0.8;
       }
     }
+  }
+
+  // Split attack models have an authored ready pose between shots. Keep it
+  // for the expected next shot; never loop the firing clip to fill a cooldown.
+  _normalAttackIdle(clip) {
+    if (!clip || !this.continuousAttacks || clip !== this.roles.attack) return null;
+    const idle = clip.idle || clip.loop.replace(/Loop$/i, 'Idle');
+    return idle !== clip.loop && this.has(idle) ? idle : null;
   }
 
   _attackClip() {
@@ -560,7 +571,7 @@ export class SpineActor {
       this.skillCastUntil=this.clock+(sk.begin?this.dur(sk.begin):0)+this.dur(sk.loop);
       return;
     }
-    if (on && this.has(sk?.activation) && this.mode === 'base') {
+    if (on && this.has(sk?.activation) && (this.mode === 'base' || this.mode === 'attackRest')) {
       this.mode = 'skillBegin'; this.skillBeginBlocking = false;
       this.skillClipOnce = true;
       this._play(sk.activation, false, {mix:.08});
@@ -689,13 +700,27 @@ export class SpineActor {
             this.mode = 'base'; this.skillOn = true; this.setSkill(false);
             break;
           }
-          this.mode = 'base';
           this.wound = false;
           const clip = this._attackClip() || this.roles.attack;
+          const ready = this._normalAttackIdle(clip);
+          if (ready && this.clock < this.attackPoseUntil) {
+            this.mode = 'attackRest';
+            this._play(ready, true, { mix: .06 });
+            break;
+          }
+          this.mode = 'base';
           // a skill with its own idle: back to that idle (its end clip is for the end of the skill, setSkill(false))
           const toSkillIdle = clip === this.roles.skill && !!this._skillIdle();
           if (clip && this.has(clip.end) && !toSkillIdle) { this._play(clip.end, false); this._queue(this._baseName(), true); }
           else this._play(this._baseName(), true, { mix: 0.15 });
+        }
+        break;
+      case 'attackRest':
+        if (this.clock > this.attackPoseUntil || this.base === 'move') {
+          this.mode = 'base';
+          const clip = this.roles.attack;
+          if (this.has(clip?.end)) { this._play(clip.end, false); this._queue(this._baseName(), true); }
+          else this._play(this._baseName(), true, { mix: .15 });
         }
         break;
       case 'skillBegin':

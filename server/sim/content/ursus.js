@@ -18,6 +18,7 @@ export function droneTile(battle,pid){
  for(let r=R.r0;r<=R.r1;r++)for(let c=R.c0;c<=R.c1;c++)if(tileFree(battle,r,c)&&(battle.players.length===1||(battle.getPlayer(pid)?.half==='R'?c>=11:c<=10)))tiles.push([r,c]);
  return tiles.sort((a,b)=>hypot(a[0]-centerR,a[1]-centerC)-hypot(b[0]-centerR,b[1]-centerC)||a[0]-b[0]||a[1]-b[1])[0]||null;
 }
+export function droneRange(u){return u?.mem?.attackRangeRadius ?? DRONE_RANGE;}
 export const DRONE_FALL=.44;
 export function installDroneBombardment(battle,u){
  u.profile.deferHit=true;u.profile.projectile='mortar';u.profile.visibleRangeRadius=DRONE_RANGE;
@@ -32,12 +33,12 @@ export function installDroneBombardment(battle,u){
    battle.fx('bombardShell',{x:aim.x,y:aim.y,id:u.id,shot,target:target.id,r:DRONE_BLAST,t:flight,fall,vertical:true});
    const update=()=>{
     if(locked)return;
-    const valid=canTargetEnemy(u,aim.target,u.profile)&&bodyDist(aim.target,u.x,u.y)<=DRONE_RANGE+1e-9;
+    const valid=canTargetEnemy(u,aim.target,u.profile)&&bodyDist(aim.target,u.x,u.y)<=droneRange(u)+1e-9;
     if(!valid){
      const next=droneTargets(battle,u,true)[0];
      if(next)aim.target=next;
     }
-    const follows=canTargetEnemy(u,aim.target,u.profile)&&bodyDist(aim.target,u.x,u.y)<=DRONE_RANGE+1e-9;
+    const follows=canTargetEnemy(u,aim.target,u.profile)&&bodyDist(aim.target,u.x,u.y)<=droneRange(u)+1e-9;
     if(follows){aim.x=aim.target.x;aim.y=aim.target.y;}
     const shown=follows?aim.target.id:null;
     if(shown!==aim.shown){aim.shown=shown;battle.fx('bombardAim',{id:u.id,shot,target:shown,x:aim.x,y:aim.y});}
@@ -54,7 +55,7 @@ export function installDroneBombardment(battle,u){
 }
 
 export function droneTargets(b,u,inRange=false){
- const inside=e=>bodyDist(e,u.x,u.y)<=DRONE_RANGE+1e-9;
+ const inside=e=>bodyDist(e,u.x,u.y)<=droneRange(u)+1e-9;
  // Only the field's main leader gets boss priority; bounty bosses retain ordinary targeting.
  const priority=e=>e.tag==='boss'?0:e.blockedBy?(inside(e)?1:2):3;
  return b.enemies.filter(e=>canTargetEnemy(u,e,u.profile)&&(!inRange||inside(e))).sort((a,c)=>{
@@ -71,8 +72,8 @@ export function installDroneFlight(battle,u){
  u.profile.noHeal=true;
  u.profile.attackSpeedDebuffImmune=true;u.markDirty();
  u.profile.acquireTargets=(b,unit)=>droneTargets(b,unit,true).slice(0,1);
- const radius=DRONE_RANGE,speed=(u.def.raw.stats.moveSpeed??.5)*MOVE_SCALE*1.5;
- const refresh=()=>{const keys=[];for(let r=Math.max(0,Math.floor(u.y-radius));r<=Math.min(ROWS-1,Math.ceil(u.y+radius));r++)for(let c=Math.max(0,Math.floor(u.x-radius));c<=Math.min(COLS-1,Math.ceil(u.x+radius));c++)if(hypot(c-u.x,r-u.y)<=radius+1e-9)keys.push(r*COLS+c);u.rangeKeys=keys;u.rangeKeySet=new Set(keys);u.baseRangeKeys=keys;};
+ const speed=(u.def.raw.stats.moveSpeed??.5)*MOVE_SCALE*1.5;
+ const refresh=()=>{const radius=droneRange(u),keys=[];for(let r=Math.max(0,Math.floor(u.y-radius));r<=Math.min(ROWS-1,Math.ceil(u.y+radius));r++)for(let c=Math.max(0,Math.floor(u.x-radius));c<=Math.min(COLS-1,Math.ceil(u.x+radius));c++)if(hypot(c-u.x,r-u.y)<=radius+1e-9)keys.push(r*COLS+c);u.rangeKeys=keys;u.rangeKeySet=new Set(keys);u.baseRangeKeys=keys;};
  u.motion='FLY';u.ground=false;for(const key of ['terrain:mire','terrain:smog','terrain:deepsea','terrain:infection'])battle.removeBuff(u,key);u.mem.terrain=0;refresh();
  battle.on('tick',({dt})=>{
   if(!u.alive||!u.deployed)return;
@@ -83,7 +84,7 @@ export function installDroneFlight(battle,u){
   if(u.mem.attackWindup || battle.time-u.lastAttackAt<recovery-1e-9){refresh();return;}
   const target=droneTargets(battle,u)[0];
   if(target&&u.canAct&&!u.s.flags.noMove&&!u.s.flags.bind&&speed>0){
-   const dx=target.x-u.x,dy=target.y-u.y,d=hypot(dx,dy),stop=radius-.25;
+   const dx=target.x-u.x,dy=target.y-u.y,d=hypot(dx,dy),stop=droneRange(u)-.25;
    if(d>stop){const step=Math.min(d-stop,speed*dt),R=battle.rect;u.x=Math.max(R.c0,Math.min(R.c1,u.x+dx/d*step));u.y=Math.max(R.r0,Math.min(R.r1,u.y+dy/d*step));}
   }
   refresh();
@@ -107,7 +108,9 @@ export function install(battle){
     if(old?.mods?.atkPct!==bonus)S.passiveBuff(battle,u,'bond:ursus:stats',S.directMods({atk:bonus,hp:bonus}));
    }
    if(drone){
-    drone.mem.visualScale=.85*(1+.005*layers);
+    drone.mem.visualScale=.85*(1+.0025*layers);
+    drone.mem.attackRangeRadius=DRONE_RANGE*(1+.0015*layers);
+    drone.profile.visibleRangeRadius=drone.mem.attackRangeRadius;
     const atkFlat=six()?members.filter(u=>u.alive&&u.deployed&&!u.hidden).reduce((sum,u)=>sum+u.s.atk,0)*(.05+.00025*layers):0;
     const aspd=six()?50:0,old=drone.findBuff('bond:ursus:drone');
     if(old?.mods?.atkPct!==bonus||old?.mods?.atkFlat!==atkFlat||old?.mods?.aspd!==aspd)
@@ -125,7 +128,7 @@ export function install(battle){
   battle.on('tick',()=>{
    refresh();
    if(!six()||!drone?.alive||!drone.deployed)return;
-   for(const e of battle.enemies)if(e.alive&&e.deployed&&!e.hidden&&bodyDist(e,drone.x,drone.y)<=DRONE_RANGE+1e-9)
+   for(const e of battle.enemies)if(e.alive&&e.deployed&&!e.hidden&&bodyDist(e,drone.x,drone.y)<=droneRange(drone)+1e-9)
     battle.addBuff(e,{key:`ursus:reveal:${drone.id}`,duration:.12,flags:{reveal:true},source:drone});
   },{owner:`ursus:${pid}`});
   // Layer state is committed after the event; refresh on the next simulation tick.

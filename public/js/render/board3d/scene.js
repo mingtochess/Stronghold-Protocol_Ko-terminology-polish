@@ -59,6 +59,22 @@ export function gatePulse(t, phase = 0) {
 
 const areaKey = (list) => (list || []).map((a) => `${a.r0},${a.r1},${a.c0},${a.c1}`).sort().join(';');
 
+/** Discard unused vertices as well as faces before creating GPU geometry. */
+export function compactGeometry(src) {
+  if (!src?.position || !src.index) return src;
+  const count=src.position.length/3;
+  const attrs=Object.entries({position:3,normal:3,uv:2,uv1:2,color:3}).filter(([key,size])=>src[key]?.length===count*size);
+  const out={...src,...Object.fromEntries(attrs.map(([key])=>[key,[]])),index:[]},map=new Map();
+  for(const id of src.index){
+    if(!map.has(id)){
+      map.set(id,map.size);
+      for(const [key,size] of attrs)out[key].push(...src[key].slice(id*size,(id+1)*size));
+    }
+    out.index.push(map.get(id));
+  }
+  return out;
+}
+
 /** Exclude inactive field platforms and props from both the visible pass and shadow pass.
  * Scenic background is handled separately by sceneryForArea; platform meshes outside the board envelope are still platforms.
  * Sub-floor triangles inside an inactive field are still platform geometry: depth alone must not preserve them. */
@@ -372,7 +388,7 @@ export class BoardScene {
   _mesh(data, material, { cast = true, receive = true, order = 0 } = {}) {
     addShadowContrast(this.THREE, material);
     if (!data || !material || !(data.index?.length > 0)) return null;
-    const m = new this.THREE.Mesh(this._geometry(data), material);
+    const m = new this.THREE.Mesh(this._geometry(compactGeometry(data)), material);
     m.castShadow = cast; m.receiveShadow = receive; m.renderOrder = order;
     m.matrixAutoUpdate = false; m.updateMatrix();
     this.root.add(m);
@@ -506,6 +522,8 @@ export class BoardScene {
       M.pipe = this._mesh(board.buckets.pipe, this.mat.pipe);
     }
     if (original) {
+      // Preview floor is procedural and independent of the original battle map.
+      M.previewGlass = this._mesh(board.buckets.glass, this.mat.glass);
       const slabs = buildDeviceSlabs(board.devices.filter(d=>!this.nativeDevice(d)), board.grid, this.pack?.uv);
       M.deviceSlabs = this._mesh(slabs.board, this.mat.board);
       M.deviceDecals = this._mesh(slabs.decal, this.mat.decal, { cast: false });

@@ -25,10 +25,10 @@ test('All 19 Ursus skills, normal and elite: selected authored runtime and compl
  }}assert.equal(total,38);
  }finally{setGameData(null)}
 });
-test('Botani acquisition adds six / twelve Ursus/Miracle layers even while inactive; morph grants Ursus only when paired',{skip:!ready},()=>{
+test('Botani acquisition grants no layers; morph grants Ursus only when paired',{skip:!ready},()=>{
  const h=makeMatch({data,customFactions:true,mode:'solo',fake:true}).start();h.toPrep(1);const ps=h.ps('p_0');ps.layers={};ps.board.clear();ps.hand.fill(null);ps.temp.fill(null);ps.recompute();
- ps.acquireChess(id('botany'),{source:'test'});assert.equal(ps.layers.ursusShip,6);assert.equal(ps.layers.miraShip,6);assert.equal(!!ps.bonds.ursusShip?.active,false);
- ps.acquireChess(id('botany',true),{source:'test'});assert.equal(ps.layers.ursusShip,18);assert.equal(ps.layers.miraShip,18);
+ ps.acquireChess(id('botany'),{source:'test'});assert.equal(ps.layers.ursusShip||0,0);assert.equal(ps.layers.miraShip||0,0);assert.equal(!!ps.bonds.ursusShip?.active,false);
+ ps.acquireChess(id('botany',true),{source:'test'});assert.equal(ps.layers.ursusShip||0,0);assert.equal(ps.layers.miraShip||0,0);
  const gd=new GameData(data),base=Object.values(data.chess).find(c=>c.visible&&!c.isGolden&&!c.bonds.includes('ursusShip')).chessId;
  assert.ok(!pieceBonds(gd,{id:base,items:[{id:'chess_item_custom_ursus_a'}]}).includes('ursusShip'));
  for(const suffix of ['a','b'])assert.ok(pieceBonds(gd,{id:base,items:[{id:`chess_item_custom_ursus_${suffix}`},{id:'chess_item_6_09_e_a'}]}).includes('ursusShip'));
@@ -207,8 +207,7 @@ test('every Ursus operator has distinct normal and elite trait data and matching
  assert.equal(normals.length,10);
  for(const c of normals){const elite=data.chess[c.goldenId];assert.ok(elite,c.name);
   const gs=c.garrisonIds.map(g=>data.garrisons[g]),es=elite.garrisonIds.map(g=>data.garrisons[g]);
-  assert.notDeepEqual(gs.map(g=>g.bb),es.map(g=>g.bb),c.name+' must improve on promotion');
-  assert.notDeepEqual(gs.map(g=>g.desc),es.map(g=>g.desc),c.name+' description must show the improvement');
+  {assert.notDeepEqual(gs.map(g=>g.bb),es.map(g=>g.bb),c.name+' must improve on promotion');assert.notDeepEqual(gs.map(g=>g.desc),es.map(g=>g.desc),c.name+' description must show the improvement');}
   for(const g of [...gs,...es])if(g.garrisonId.startsWith('garrison_ursus_'))for(const effect of g.effects||[]){
    assert.deepEqual(effect.bb,g.bb,g.garrisonId);assert.deepEqual(effect.bbStr,g.bbStr,g.garrisonId);assert.equal(effect.eventType,g.eventType);
    if(g.eventTypes)assert.deepEqual(effect.eventTypes,g.eventTypes);
@@ -232,4 +231,16 @@ test('Zima S3 fires all five rounds at its fixed front tile without enemies',{sk
   h.run(20);assert.equal(u.mem.zimaStrikes,5);assert.equal(u.skill.active,false);
   assert.equal(u.stats.attacks,5);assert.equal(h.b.errorCount,0);
  }finally{setGameData(null)}
+});
+
+test('Botani first skill grants eight / sixteen active Ursus layers by grade',{skip:!ready},()=>{
+ setGameData(data);try{for(const elite of [false,true]){
+  const h=combat('botany',0,elite,{flags:{layerGainsEnabled:true},bonds:{ursusShip:{count:3,active:true,tier:1,layers:0}},enemies:[]}),u=h.unit(id('botany',elite));
+  const before=h.b.getPlayer('p1').bonds.ursusShip.layers;
+  h.b.emit('skillStart',{unit:u});
+  assert.equal(h.b.getPlayer('p1').bonds.ursusShip.layers,before+(elite?16:8));
+  h.b.emit('skillStart',{unit:u});
+  assert.equal(h.b.getPlayer('p1').bonds.ursusShip.layers,before+(elite?16:8),'no further grants this battle');
+  checkInvariants(h.b);
+ }}finally{setGameData(null)}
 });

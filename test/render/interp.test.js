@@ -278,3 +278,12 @@ test('drone cosmetic scale passes through shared snapshot interpolation without 
  const b=new SnapshotBuffer();b.push({...snap(0,[U(1,4,10)]),modelScales:[[1,.850425]]},0);b.push({...snap(.1,[U(1,4,10)]),modelScales:[[1,.851275]]},.1);
  assert.equal(b.sample(0).get(1).modelScale,.850425);assert.equal(b.sample(.1).get(1).modelScale,.851275);assert.equal(b.sample(.1).get(1).x,4);
 });
+
+test('live drone attack radius reaches both normal and spectated snapshot views',()=>{
+ const b=new SnapshotBuffer();
+ b.push({...snap(0,[U(1,4,10)]),attackRanges:[[1,2.3]]},0);
+ b.push({...snap(.1,[U(1,4,10)]),attackRanges:[[1,2.6]]},.1);
+ assert.equal(b.sample(0).get(1).attackRangeRadius,2.3);
+ assert.equal(b.sample(.1).get(1).attackRangeRadius,2.6);
+ assert.equal(normalizeSnapshot({...snap(0,[U(1,4,10)]),attackRanges:[[1,-1],[1,NaN]]}).units.get(1)[23],undefined);
+});

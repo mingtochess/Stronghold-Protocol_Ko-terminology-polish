@@ -858,7 +858,10 @@ export class UnitView {
     this.hp = hp;
     this.sp = s.sp; this.spMax = s.spMax;
     this.shieldHp = Math.max(0, s.shieldHp || 0);
-    if(this.info.defId==='token_custom_ursus_drone')this.modelK=s.modelScale??1;
+    if(this.info.defId==='token_custom_ursus_drone'){
+      this.modelK=s.modelScale??1;
+      if(s.attackRangeRadius>0)this.info.rangeRadius=s.attackRangeRadius;
+    }
     this.snowTiles = s.snowTiles || [];
     this.skillTiles = s.skillTiles;
     this.ammoLeft = s.ammoLeft; this.ammoMax = s.ammoMax || 0;

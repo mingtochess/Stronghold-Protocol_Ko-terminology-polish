@@ -148,7 +148,19 @@ test('six Ursus adds donated total ATK before the three-member percentage, track
  const buffed=d.s.atk;h.step(10);close(d.s.atk,buffed);
  h.b.kill(u,null);h.step();assert.ok(d.s.atk<buffed);close(d.s.atk,expected());
 });
-test('hidden drone visual scale grows from 85 percent by 0.5 percent of that base per layer and is serialized',()=>{
- const h=setup(3,100);h.step();const d=h.b.allyUnits.find(u=>u.defId===DRONE_ID);close(d.mem.visualScale,.85*1.5);assert.deepEqual(h.b.snapshot().modelScales,[[d.id,.85*1.5]]);
- h.b.addLayers('p1','ursusShip',100,'test');h.step(2);close(d.mem.visualScale,.85*2);checkInvariants(h.b);
+test('hidden drone visual scale grows from 85 percent by 0.25 percent of that base per layer and is serialized',()=>{
+ const h=setup(3,100);h.step();const d=h.b.allyUnits.find(u=>u.defId===DRONE_ID);close(d.mem.visualScale,.85*1.25);assert.deepEqual(h.b.snapshot().modelScales,[[d.id,.85*1.25]]);
+ h.b.addLayers('p1','ursusShip',100,'test');h.step(2);close(d.mem.visualScale,.85*1.5);checkInvariants(h.b);
+});
+
+test('hidden drone range grows by 0.15 percent per layer and updates selection, reveal and snapshots',()=>{
+ const h=setup(6,100);h.step();const d=h.b.allyUnits.find(u=>u.defId===DRONE_ID);
+ close(d.profile.visibleRangeRadius,2.3);assert.deepEqual(h.b.snapshot().attackRanges,[[d.id,2.3]]);
+ const e=h.spawn('dummy',{pos:[d.y,d.x+2.2],route:{motion:'WALK',start:[d.y,d.x+2.2],end:[10,2],checkpoints:[]}});
+ h.b.addBuff(e,{key:'test:stealth',flags:{stealth:true}});h.step(2);
+ assert.ok(e.s.flags.reveal,'six-Ursus reveal uses the enlarged attack radius');
+ assert.ok(h.b.effectiveProfile(d).acquireTargets(h.b,d).includes(e),'target outside base radius is selectable');
+ h.b.addLayers('p1','ursusShip',100,'test');h.step(2);
+ close(d.profile.visibleRangeRadius,2.6);assert.deepEqual(h.b.snapshot().attackRanges,[[d.id,2.6]]);
+ checkInvariants(h.b);
 });

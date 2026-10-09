@@ -2565,6 +2565,8 @@ export class Battle {
     if (shields.length) snap.shields = shields;
     const modelScales=this.units.filter(u=>u.alive&&u.deployed&&!u.hidden&&Number.isFinite(u.mem.visualScale)).map(u=>[u.id,u.mem.visualScale]);
     if(modelScales.length)snap.modelScales=modelScales;
+    const attackRanges=this.units.filter(u=>u.alive&&u.deployed&&!u.hidden&&Number.isFinite(u.mem.attackRangeRadius)).map(u=>[u.id,u.mem.attackRangeRadius]);
+    if(attackRanges.length)snap.attackRanges=attackRanges;
     // Cosmetic pace: Lancer's authored run uses a 1 tile/s reference.
     // Dividing by its .25 tile/s initial crawl made full charge play at 13.5x.
     const moveRates = this.units.filter(u=>u.side==='enemy' && u.alive && u.deployed && !u.hidden && u.base.moveSpeed>0)
