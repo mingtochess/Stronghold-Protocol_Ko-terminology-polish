@@ -262,7 +262,7 @@ function StatsScreen({ tab }) {
   useEffect(() => { if (inMatch) closeStats(); }, [inMatch]);
   useEffect(() => {
     const onKey = (e) => {
-      if (e.key !== 'Escape' || document.querySelector('.modal')) return; // a confirm dialog on top takes the Esc
+      if (e.defaultPrevented || e.repeat || e.isComposing || e.key !== 'Escape' || document.querySelector('.modal')) return; // a confirm dialog on top takes the Esc
       e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
       if (replayRef.current) setReplay(null); else closeStats();
     };

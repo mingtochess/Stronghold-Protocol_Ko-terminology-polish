@@ -151,7 +151,7 @@ export function DiyPicker(props) {
   // was swallowed — the overlay skipped it, the picker did not hear it yet; the 0.2.2 full browser pass)
   useLayoutEffect(() => {
     const onKey = (e) => {
-      if (e.key !== 'Escape' || e.ctrlKey || e.metaKey || e.altKey || document.querySelector('.modal')) return;
+      if (e.defaultPrevented || e.repeat || e.isComposing || e.key !== 'Escape' || e.ctrlKey || e.metaKey || e.altKey || document.querySelector('.modal')) return;
       e.preventDefault();
       e.stopImmediatePropagation();
       props.onClose();

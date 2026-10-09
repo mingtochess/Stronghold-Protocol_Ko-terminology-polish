@@ -74,6 +74,7 @@ test('two browsers chat over real game sockets: toggle, unread, safe text, Korea
       await host.waitForSelector('.game-chat__panel');
       assert.equal(await host.$eval('.game-chat input',el=>el===document.activeElement),true,'Enter opens and focuses chat');
       await host.type('.game-chat input', '안녕하세요!');
+      assert.equal(await host.$eval('.game-chat input',el=>el.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',repeat:true,bubbles:true,cancelable:true}))),false,'holding Enter never submits another chat message');
       await host.keyboard.press('Enter');
       await guest.bringToFront();
       await guest.waitForSelector('.game-chat__badge');

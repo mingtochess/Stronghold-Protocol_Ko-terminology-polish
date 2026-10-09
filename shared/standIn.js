@@ -75,6 +75,7 @@ export function composeUnitRecord(identity, unit, form, { skillIndex, moduleId =
   const golden = !!identity.isGolden;
   const a = unit.assets || {};
   Object.assign(out, {
+    attackTiming: unit.attackTiming ?? null,
     charId: unit.charId, name: unit.name, appellation: unit.appellation, rarity: unit.rarity, profession: unit.profession,
     subProfessionId: unit.subProfessionId, subProfessionName: unit.subProfessionName, position: unit.position,
     nationId: unit.nationId,

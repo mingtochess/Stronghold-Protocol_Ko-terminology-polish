@@ -225,7 +225,7 @@ export function useTwoTap({ editable, keys }) {
       if (t && t.closest && t.closest('.scard, .lvcard, .dpanel, .modal')) return;
       setArmed(null);
     };
-    const onKey = (e) => { if (e.key === 'Escape') setArmed(null); };
+    const onKey = (e) => { if (!e.defaultPrevented && !e.repeat && e.key === 'Escape') { e.preventDefault(); setArmed(null); } };
     window.addEventListener('pointerdown', onDown, true);
     window.addEventListener('keydown', onKey);
     return () => { window.removeEventListener('pointerdown', onDown, true); window.removeEventListener('keydown', onKey); };

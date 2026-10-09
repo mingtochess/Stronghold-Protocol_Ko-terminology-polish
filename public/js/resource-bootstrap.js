@@ -80,7 +80,12 @@ async function boot() {
       notice.textContent = '리소스 다운로드 완료';
       setTimeout(() => notice.remove(), 4000);
     }).catch(error => {
-      notice.textContent = '리소스 다운로드가 중단되었습니다. 받은 파일은 유지됩니다. ';
+      notice.textContent = '일부 리소스를 다운로드하지 못했습니다. 받은 파일은 유지됩니다. ';
+      const details = document.createElement('details');
+      const summary = document.createElement('summary'); summary.textContent = '실패 원인';
+      const reason = document.createElement('pre'); reason.textContent = error.message;
+      reason.style.cssText = 'white-space:pre-wrap;overflow-wrap:anywhere;font:12px/1.5 sans-serif';
+      details.append(summary, reason); notice.append(details);
       const retry = document.createElement('button');
       retry.type = 'button'; retry.textContent = '다시 시도';
       retry.onclick = () => { retry.disabled = true; download(); };

@@ -503,10 +503,10 @@ function LoadoutScreen({ st }) {
   // Esc closes; ←/→ browse the filtered roster (not while typing in the search field)
   useEffect(() => {
     const onKey = (e) => {
-      if (e.ctrlKey || e.metaKey || e.altKey) return;
+      if (e.defaultPrevented || e.isComposing || e.ctrlKey || e.metaKey || e.altKey) return;
       if (document.querySelector('.modal')) return; // a confirm dialog handles its own keys
       const typing = e.target && /^(INPUT|SELECT|TEXTAREA)$/.test(e.target.tagName);
-      if (e.key === 'Escape') { e.preventDefault(); e.stopImmediatePropagation(); closeLoadout(); return; }
+      if (e.key === 'Escape') { e.preventDefault(); e.stopImmediatePropagation(); if (!e.repeat) closeLoadout(); return; }
       if (typing) return;
       if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
         const ids = list.map((c) => c.chessId);

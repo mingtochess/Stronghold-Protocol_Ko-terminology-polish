@@ -245,6 +245,8 @@ export function FacingWheel({ view, row, col, grid, name = '', onPreview, onComm
   const rootRef = useRef(null);
   useEffect(() => {
     const onKey = (e) => {
+      if (e.defaultPrevented) return;
+      if (e.repeat || e.isComposing || e.keyCode === 229) { e.preventDefault(); e.stopImmediatePropagation(); return; }
       const L = live.current;
       if (e.key === 'Escape') { e.preventDefault(); e.stopImmediatePropagation(); L.onCancel(); return; }
       const k = dirFromKey(e.key);

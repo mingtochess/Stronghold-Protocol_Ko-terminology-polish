@@ -20,7 +20,13 @@ async function index() {
 const send = message => { for (const port of listeners) port.postMessage(message); };
 async function complete(cache, resources) {
   const keys = new Set((await cache.keys()).map(key => new URL(key.url).pathname));
-  return resources.files.every(file => keys.has(file.path)) && keys.has('/fonts/fonts.css') && keys.has('/__resources_ready__');
+  const marked = keys.has('/fonts/fonts.css') && keys.has('/__resources_ready__');
+  if (!marked) return false;
+  for (const name of await caches.keys()) {
+    if (!name.startsWith(PREFIX) || name === PREFIX + resources.version) continue;
+    for (const key of await (await caches.open(name)).keys()) keys.add(new URL(key.url).pathname);
+  }
+  return resources.files.every(file => keys.has(file.path));
 }
 
 function download(file, cache, resources) {
@@ -34,7 +40,7 @@ function download(file, cache, resources) {
 async function downloadOne(file, cache, resources) {
   if (await cache.match(file.path)) return;
   const previous=await caches.match(file.path);
-  if(previous){await cache.put(file.path,previous);return;}
+  if(previous)return; // Reuse previous assets without duplicating gigabytes on every patch.
   let lastError;
   for (const source of file.sources) {
     const url = new URL(source, self.location.origin);
@@ -54,7 +60,7 @@ async function downloadOne(file, cache, resources) {
           const texture = resources.files.find(f => f.path === path);
           if (!texture) throw new Error('Missing atlas texture: ' + path);
           await download(texture, cache, resources);
-          const png = await (await cache.match(path)).arrayBuffer();
+          const png = await (await cache.match(path) || await caches.match(path)).arrayBuffer();
           const view = new DataView(png);
           sizes.set(path.split('/').at(-1), {width:view.getUint32(16),height:view.getUint32(20)});
         }
@@ -74,26 +80,32 @@ async function prepare(background = false) {
   const cache = await caches.open(PREFIX + resources.version);
   if(!background)await cache.delete('/__resources_ready__');
   await cache.put('/fonts/fonts.css', new Response(resources.fontCss, {headers:{'Content-Type':'text/css'}}));
-  const failures = [];
+  let failures = [];
+  let queue = resources.files;
   let next = 0, done = 0;
   const run = async () => {
-    while (next < resources.files.length) {
-      const file = resources.files[next++];
-      try { await download(file, cache, resources); } catch (error) { failures.push(error.message); }
-      send({ type: 'progress', done: ++done, total: resources.files.length });
+    while (next < queue.length) {
+      const file = queue[next++];
+      try { await download(file, cache, resources); } catch (error) { failures.push({file, message:error.message}); }
+      send({ type: 'progress', done: Math.min(++done, resources.files.length), total: resources.files.length });
     }
   };
   await Promise.all(Array.from({ length: background ? 2 : 6 }, run));
-  if (failures.length) throw new Error(`${failures.length}개 파일을 받지 못했습니다. 다시 시도하면 받은 파일은 재사용합니다.\n${failures.slice(0, 3).join('\n')}`);
+  // Retry only failed files: a brief mirror/network interruption must not restart the whole manifest.
+  for (let retry = 0; failures.length && retry < 2; retry++) {
+    queue = failures.map(item => item.file); failures = []; next = 0;
+    await Promise.all(Array.from({length: background ? 2 : 6}, run));
+  }
+  if (failures.length) throw new Error(`${failures.length}개 파일을 받지 못했습니다.\n${failures.slice(0, 3).map(item => item.message).join('\n')}`);
   // Match the repository pipeline's atlas normalization, using actual cached PNG dimensions.
   for (const file of resources.files.filter(f => f.atlas)) {
     const sizes = new Map();
     for (const path of file.atlas.textures) {
-      const png = await (await cache.match(path)).arrayBuffer();
+      const png = await (await cache.match(path) || await caches.match(path)).arrayBuffer();
       const view = new DataView(png);
       sizes.set(path.split('/').at(-1), { width: view.getUint32(16), height: view.getUint32(20) });
     }
-    const text = await (await cache.match(file.path)).text();
+    const text = await (await cache.match(file.path) || await caches.match(file.path)).text();
     const normalized = normalizeAtlas(text, {
       pma: file.atlas.pma,
       renamePage: name => name.replace(/[^A-Za-z0-9._-]/g, '_'),
@@ -152,9 +164,9 @@ self.addEventListener('fetch', event => {
       path = resources.files.find(f => ['.mp3', '.ogg', '.wav'].some(ext => f.path === stem + ext))?.path || path;
     }
     const cached = await cache.match(path) || await caches.match(path) || await caches.match(url.pathname);
-    if(cached){await cache.put(path,cached.clone());return cached;}
+    if(cached)return cached;
     const file = resources.files.find(f => f.path === path);
-    if (file) { await download(file, cache, resources); return cache.match(path); }
+    if (file) { await download(file, cache, resources); return await cache.match(path) || caches.match(path); }
     const response=await fetch(event.request);
     if(response.ok)await cache.put(path,response.clone());
     return response;

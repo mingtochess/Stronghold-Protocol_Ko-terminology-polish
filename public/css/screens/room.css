@@ -346,3 +346,8 @@
 .rpick { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); width: 3.8rem; max-width: 100%; }
 .rpick__opt { --d-color: var(--mint-400); justify-content: center; min-width: 0; padding: 0 .08rem; letter-spacing: 0; white-space: nowrap; }
 .rpick__value { color: var(--mint-400); font-size: .18rem; white-space: nowrap; }
+
+/* Keep footer controls readable independently of translated label length. */
+.room-bar__left .dpick { flex-shrink: 0; }
+.room-bar__label, .ailast__opt, .rpick__opt { white-space: nowrap; }
+.room-bar__label .micro { letter-spacing: .04em; }

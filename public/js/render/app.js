@@ -602,7 +602,7 @@ export async function createFieldView(host, options = {}) {
     P, layers, cam: () => cam, settings, assets, heightAt, redVignette: bg.red, surfaceLayer: ctx.surfaceLayer,
     timeScale: () => ctx.timeScale(),
     loadLevel: () => loadLevel,
-    fieldRect: () => (mode === 'battle' && battleMeta ? battleMeta.rect : null),
+    fieldRect: () => (mode === 'battle' && battleMeta && !battleMeta.prep ? battleMeta.rect : null),
     subProfOf: (defId) => data.chess(defId)?.subProfessionId || null,
     view: (id) => views.get(id) || null,
     screenSize: size,
@@ -656,7 +656,7 @@ export async function createFieldView(host, options = {}) {
       b.setArea(viewBoardArea(viewKind(camKind, camOpts)));
       if (stageRec) b.setStage(stageRec);
       b.setFocus(camRect());
-      b.setBattleRect(mode === 'battle' && battleMeta ? battleMeta.rect : null);
+      b.setBattleRect(mode === 'battle' && battleMeta && !battleMeta.prep ? battleMeta.rect : null);
       tiles.project(cam, true);
       recover.since = performance.now();
       for (const [g, r] of hlReq) drawHighlight(r.tiles, r.style, g);
@@ -906,8 +906,8 @@ export async function createFieldView(host, options = {}) {
     if (!st || typeof st !== 'object' || !Array.isArray(st.rows)) return false;
     stageRec = st;
     tiles.setStage(st);
-    tiles.setBattleRect(mode === 'battle' && battleMeta ? battleMeta.rect : null);
-    if (board3d) { board3d.setStage(st); board3d.setBattleRect(mode === 'battle' && battleMeta ? battleMeta.rect : null); }
+    tiles.setBattleRect(mode === 'battle' && battleMeta && !battleMeta.prep ? battleMeta.rect : null);
+    if (board3d) { board3d.setStage(st); board3d.setBattleRect(mode === 'battle' && battleMeta && !battleMeta.prep ? battleMeta.rect : null); }
     tiles.project(cam, true);
     // a pen laid out before the stage arrived (setPrep / a scouting board first) used the default zones and the old
     // tile heights: lay it out again on this stage
@@ -1587,8 +1587,9 @@ export async function createFieldView(host, options = {}) {
       const st = data.stage(meta.stageId);
       if (st) setStage(st);
     }
-    tiles.setBattleRect(rect);
-    board3d?.setBattleRect(rect);
+    // A scouted prep snapshot contains operators, not simulated stage devices.
+    tiles.setBattleRect(battleMeta.prep ? null : rect);
+    board3d?.setBattleRect(battleMeta.prep ? null : rect);
     for (const u of Array.isArray(meta.units) ? meta.units : []) addInfo(u);
     return true;
   }

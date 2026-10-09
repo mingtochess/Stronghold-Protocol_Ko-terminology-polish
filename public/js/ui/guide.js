@@ -120,7 +120,7 @@ export function GuideHost() {
       if (e.ctrlKey || e.metaKey || e.altKey) return;
       const k = e.key;
       let handled = true;
-      if (k === 'Escape') closeGuide();
+      if (k === 'Escape') { if (!e.repeat && !e.isComposing) closeGuide(); }
       else if (k === 'ArrowRight' || k === 'd' || k === 'D' || k === 'PageDown') go(guideStore.get().page + 1);
       else if (k === 'ArrowLeft' || k === 'a' || k === 'A' || k === 'PageUp') go(guideStore.get().page - 1);
       else if (k === 'Home') go(0);

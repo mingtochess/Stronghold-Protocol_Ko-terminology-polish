@@ -107,11 +107,11 @@ export function ChatPanel({room = false}) {
 
   const keyboard = (event) => {
     event.stopPropagation();
-    if (event.key === 'Escape' && !event.isComposing) {
+    if (event.key === 'Escape' && !event.isComposing && !event.repeat) {
       if (choosingFaction) setChoosingFaction(false);
       else setOpen(false);
     }
-    if (event.key === 'Enter' && (event.isComposing || composing.current || event.keyCode === 229)) event.preventDefault();
+    if (event.key === 'Enter' && (event.repeat || event.isComposing || composing.current || event.keyCode === 229)) event.preventDefault();
   };
 
   const toggle = html`<button class="game-chat__toggle" type="button" aria-label=${open ? '채팅 닫기' : '채팅 열기'} title=${open ? '채팅 닫기' : '채팅 열기'} aria-expanded=${open} aria-controls="game-chat-panel" onClick=${() => { focusOnOpen.current = false; setOpen(!open); }}>

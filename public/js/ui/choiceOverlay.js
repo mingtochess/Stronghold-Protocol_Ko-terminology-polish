@@ -134,7 +134,7 @@ export function ChoiceOverlay(props) {
   useEffect(() => { if (sel != null && armed == null) setSel(null); }, [sel, armed]);
   useEffect(() => {
     if (armed == null) return undefined;
-    const onKey = (e) => { if (e.key === 'Escape') setSel(null); };
+    const onKey = (e) => { if (!e.defaultPrevented && !e.repeat && e.key === 'Escape') { e.preventDefault(); setSel(null); } };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [armed]);

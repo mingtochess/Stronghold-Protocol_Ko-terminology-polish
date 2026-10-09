@@ -417,7 +417,8 @@ export function Modal({ open, title, micro, tone = 'mint', onClose, actions, wid
     const onKey = (e) => {
       if (!topmost()) return;
       if (e.key === 'Escape' && closeRef.current) {
-        e.stopPropagation();
+        e.preventDefault(); e.stopImmediatePropagation();
+        if (e.repeat || e.isComposing) return;
         closeRef.current();
       } else if (e.key === 'Tab') {
         const els = tabbable();

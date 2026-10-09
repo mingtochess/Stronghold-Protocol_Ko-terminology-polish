@@ -1,3 +1,4 @@
+import {attachAttackTimings} from '../../../shared/attackTiming.js';
 // Local battle runner — client-side combat (DESIGN §14, research 09 §3.2 / §6.4).
 //
 // Like the official client, the browser simulates battles itself with the shared deterministic sim (server/sim,
@@ -112,7 +113,7 @@ export function compactHeld(list) {
   return list.filter((x, i) => (x[0] === 'status' ? last.get(`s:${x[1]}:${x[2]}`) === i : x[0] === 'skill' ? last.get(`k:${x[1]}`) === i : true));
 }
 /** Data files the simulation reads (DataSource + content/support gameData()). */
-export const SIM_DATA_FILES = Object.freeze(['chess', 'enemies', 'tokens', 'stages', 'waves', 'bonds', 'items', 'garrisons', 'bands', 'effects']);
+export const SIM_DATA_FILES = Object.freeze(['chess', 'enemies', 'tokens', 'stages', 'waves', 'bonds', 'items', 'garrisons', 'bands', 'effects', 'assets', 'backups']);
 
 /** Request failures after which a b.result counts as never delivered (re-sent on resume / b.start). */
 export const LOST_RESULT_CODES = Object.freeze(['DISCONNECTED', 'OFFLINE', 'TIMEOUT']);
@@ -159,7 +160,10 @@ export async function loadBrowserSim({ base = '/sim/', dataBase = '/data/', fetc
   const missing = SIM_DATA_FILES.filter((n, i) => !files[i] || typeof files[i] !== 'object');
   if (missing.length) throw new Error(`simulation data unavailable: ${missing.join(', ')}`);
   const raw = {};
-  SIM_DATA_FILES.forEach((n, i) => { raw[n] = deepFreeze(files[i]); });
+  SIM_DATA_FILES.forEach((n, i) => { raw[n] = files[i]; });
+  attachAttackTimings(raw, raw.assets);
+  if (raw.backups?.units) attachAttackTimings({chess:raw.backups.units}, raw.assets);
+  deepFreeze(raw);
   simdata.setSimData(raw);
   if (typeof support.setGameData === 'function') support.setGameData(null); // re-read through the injected data
   return { spec, ds: new simdata.DataSource(raw, null) };

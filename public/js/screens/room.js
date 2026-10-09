@@ -363,8 +363,8 @@ export function RoomScreen() {
         <div class="room-bar__difficulty">
           <span class="room-bar__label">模拟难度<${MicroLabel}>DIFFICULTY<//></span>
           <${DifficultyPicker} room=${room} isHost=${facts.isHost} busy=${busy} onPick=${setDifficulty} />
-          <${AiLastToggle} option=${aiLastOption(room, me.playerId)} busy=${busy} onToggle=${setAiLast} />
         </div>
+          <${AiLastToggle} option=${aiLastOption(room, me.playerId)} busy=${busy} onToggle=${setAiLast} />
         <div class="room-bar__reroll">
           <span class="room-bar__label">리롤 횟수<${MicroLabel}>REROLL LIMIT<//></span>
           ${facts.isHost ? html`<div class="dpick rpick" role="radiogroup" aria-label="리롤 허용 횟수">

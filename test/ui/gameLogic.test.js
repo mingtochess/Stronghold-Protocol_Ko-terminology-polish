@@ -516,7 +516,9 @@ describe('keyboard & settings', () => {
     assert.equal(shortcutFor({ key: 'Escape' }), 'escape');
     assert.equal(shortcutFor({ key: 'r', ctrlKey: true }), null);
     assert.equal(shortcutFor({ key: 'r', repeat: true }), null);
-    assert.equal(shortcutFor({ key: 'Escape', repeat: true }), 'escape');
+    assert.equal(shortcutFor({ key: 'Escape', repeat: true }), null);
+    assert.equal(shortcutFor({key:'r', defaultPrevented:true}), null);
+    assert.equal(shortcutFor({key:'r', isComposing:true}), null);
     assert.equal(shortcutFor({ key: 'r', target: { tagName: 'input' } }), null);
     assert.equal(shortcutFor({ key: ' ', code: 'Space', target: { tagName: 'BUTTON' } }), 'ready', 'space readies even with a HUD button focused');
     assert.equal(shortcutFor({ key: ' ', code: 'Space', target: { tagName: 'TEXTAREA' } }), null);

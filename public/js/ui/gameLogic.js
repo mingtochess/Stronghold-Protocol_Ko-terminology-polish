@@ -1683,7 +1683,7 @@ export function rangeGridBox(grid, mirror = false) {
  * @returns {'refresh'|'freeze'|'levelUp'|'retreat'|'sell'|'ready'|'escape'|null}
  */
 export function shortcutFor(e) {
-  if (!e || e.ctrlKey || e.metaKey || e.altKey) return null;
+  if (!e || e.defaultPrevented || e.isComposing || e.keyCode === 229 || e.ctrlKey || e.metaKey || e.altKey || e.repeat) return null;
   const t = e.target;
   const tag = t && typeof t.tagName === 'string' ? t.tagName.toUpperCase() : '';
   if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || t?.isContentEditable) return null;

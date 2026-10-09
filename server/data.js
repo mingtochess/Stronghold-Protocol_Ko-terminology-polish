@@ -14,6 +14,7 @@
 // the process-wide getData() singleton).
 
 import fs from 'node:fs';
+import {attachAttackTimings} from '../shared/attackTiming.js';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -77,6 +78,11 @@ export function loadData(dir = DATA_DIR, { log = console, expected = DATA_FILES 
   }
   const missing = expected.filter((k) => !(k in out));
   if (missing.length) log.warn(`[data] missing data files: ${missing.map((k) => k + '.json').join(', ')}`);
+  // Prepared catalogues may bypass build-data: restore authored timing before freezing.
+  if (out.assets) {
+    attachAttackTimings(out, out.assets);
+    if (out.backups?.units) attachAttackTimings({chess:out.backups.units}, out.assets);
+  }
   return deepFreeze(out);
 }
 

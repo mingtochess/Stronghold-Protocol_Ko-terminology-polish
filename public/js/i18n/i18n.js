@@ -247,14 +247,25 @@ function installDom() {
 
 // ---- 부팅 -----------------------------------------------------------------------------------
 
+async function fetchDictionary(url) {
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const response = await fetch(url, {cache:'no-store'});
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      return await response.json();
+    } catch (error) { if (attempt === 1) console.warn('[i18n] Dictionary unavailable:', url, error); }
+  }
+  return {};
+}
+
 async function load() {
   const base = '/i18n/ko/';
-  const upstream = await fetch('/i18n/ko.json').then(r => r.ok ? r.json() : {}).catch(() => ({}));
+  const upstream = await fetchDictionary('/i18n/ko.json');
   for (const [zh, ko] of Object.entries(upstream)) {
     if (!zh.startsWith('_') && typeof ko === 'string') { dict.set(zh, ko); if (/\{\d+\}/.test(zh)) addPattern(zh, ko); }
   }
   addMessages('ko', upstream);
-  const res = await Promise.all(FILES.map((f) => fetch(`${base}${f}.json`).then((r) => (r.ok ? r.json() : {})).catch(() => ({}))));
+  const res = await Promise.all(FILES.map((f) => fetchDictionary(`${base}${f}.json`)));
   res.forEach((obj, k) => {
     for (const [zh, ko] of Object.entries(obj || {})) {
       if (typeof ko !== 'string' || (!ko && FILES[k] !== 'ui') || zh.startsWith('//')) continue;
