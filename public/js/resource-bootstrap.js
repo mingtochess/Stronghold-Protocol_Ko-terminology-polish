@@ -89,7 +89,14 @@ async function boot() {
       const retry = document.createElement('button');
       retry.type = 'button'; retry.textContent = '다시 시도';
       retry.onclick = () => { retry.disabled = true; download(); };
-      notice.append(retry);
+      const skip = document.createElement('button');
+      skip.type = 'button'; skip.textContent = '실패한 파일 건너뛰기';
+      skip.style.marginLeft = '8px';
+      // preparePatch already attempted every file before reporting failures.
+      // Dismiss this batch without marking missing resources as cached/ready;
+      // they can still download on demand or on the next visit.
+      skip.onclick = () => notice.remove();
+      notice.append(retry, skip);
       console.warn('Background resource download:', error.message);
     });
     download();
