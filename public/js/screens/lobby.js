@@ -325,6 +325,7 @@ export function LobbyScreen() {
       <div class="topbar__left">
         <${Button} variant="ghost" size="sm" icon="chevronLeft" onClick=${backToTitle} title="返回标题">返回<//>
         <${PingPill} ms=${conn.ping} online=${online} />
+        <${PatchNotesButton} autoOpen=${true} />
       </div>
       <div class="topbar__center">
         <${MicroLabel} tone="mint">SIMULATION PROTOCOL SELECT<//>
@@ -332,7 +333,7 @@ export function LobbyScreen() {
       </div>
       <div class="topbar__right">
         <${LangButton} class="lobby-lang" variant="secondary" />
-        <${Button} variant="secondary" size="sm" onClick=${openStats}>통계<//><${PatchNotesButton} autoOpen=${true} /><${SettingsButton} />
+        <${Button} variant="secondary" size="sm" onClick=${openStats}>통계<//><${SettingsButton} />
         <${GuideButton} class="lobby-guide" variant="secondary" />
         <${LoadoutButton} from="lobby" size="sm" class="lobby-loadout" />
         <div class="me-chip">

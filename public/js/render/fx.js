@@ -129,18 +129,8 @@ const ANCHOR_SNAP = 0.75;
 const SKILL_GOLD = 0xffd45a;
 const NO_OPTS = Object.freeze({});
 const clamp = (v, lo, hi) => (v < lo ? lo : v > hi ? hi : v);
-/** Fractions of authored model height used by world-space attack anchors. */
-export const SHOT_HEIGHT = Object.freeze({ launch: 0.45, aim: 0.5 });
-// Assets are upright sprites authored for the original 30-degree battle view.
-// Convert their model height once using that fixed reference, never the live camera.
-export const MODEL_WORLD_HEIGHT = 2;
-export function bodyZ(_cam, v, frac) {
-  return (v.z || 0) + (v.hover || 0) + (v.waterSink || 0) + (v._headTiles || 1.2) * MODEL_WORLD_HEIGHT * frac;
-}
-/** Camera-independent world anchor, including the giant body's authored horizontal offset. */
-export function bodyPoint(_cam, v, frac) {
-  return {x:v.x+(v.bossArea?.dx||0),y:v.y,z:bodyZ(null,v,frac)};
-}
+export { SHOT_HEIGHT, MODEL_WORLD_HEIGHT, bodyZ, bodyPoint } from './worldAnchors.js';
+import { SHOT_HEIGHT, MODEL_UP, bodyPoint, modelPoint } from './worldAnchors.js';
 /** World height just above a unit's feet (where shells land). */
 const feetZ = (v) => (v.z || 0) + (v.hover || 0) + (v.waterSink || 0) + 0.2;
 /** Cheap fingerprint of a camera's framing (the damage-number layout cache is reused only while it is unchanged). */
@@ -488,8 +478,9 @@ export class FxSystem {
       const sp = p.sp;
       let cameraScale=1;
       if(p.world){
-        const a=this.ctx.cam().project(p.world.x,p.world.y,p.world.z||0);cameraScale=a.s/p.as;
-        sp.position.set(a.x+(p.x-p.ax)*cameraScale,a.y+(p.y-p.ay)*cameraScale);
+        const height=-(p.y-p.ay)/p.as;
+        const a=this.ctx.cam().project(p.world.x+(p.x-p.ax)/p.as,p.world.y+height*MODEL_UP.y,(p.world.z||0)+height*MODEL_UP.z);cameraScale=a.s/p.as;
+        sp.position.set(a.x,a.y);
       }else sp.position.set(p.x,p.y);
       const s = (p.s0 + (p.s1 - p.s0) * k)*cameraScale;
       sp.scale.set(s * p.sx, s);
@@ -612,8 +603,10 @@ export class FxSystem {
     const hand = Math.min(0.28, dist * 0.3);   // the weapon is in front of the body
     const look = spec.look;
     pr.kind = kind; pr.spec = spec; pr.src = src; pr.tgt = tgt; pr.rise = 0;
-    pr.x0 = src.x+(src.bossArea?.dx||0) + ux * hand; pr.y0 = src.y + uy * hand; pr.z0 = bodyZ(cam, src, SHOT_HEIGHT.launch);
-    pr.tx=tgt.x+(tgt.bossArea?.dx||0);pr.ty=tgt.y;pr.tz=look==='shell'?feetZ(tgt):bodyZ(cam,tgt,SHOT_HEIGHT.aim);
+    const launch=bodyPoint(null,src,SHOT_HEIGHT.launch);
+    pr.x0 = launch.x + ux * hand; pr.y0 = launch.y + uy * hand; pr.z0 = launch.z;
+    const aim=look==='shell'?{x:tgt.x+(tgt.bossArea?.dx||0),y:tgt.y,z:feetZ(tgt)}:bodyPoint(null,tgt,SHOT_HEIGHT.aim);
+    pr.tx=aim.x;pr.ty=aim.y;pr.tz=aim.z;
     pr.t = 0; pr.fade = 0; pr.hit = false; pr.emit = Math.random(); pr.ang = Math.atan2(-uy, ux);   // ≈ on screen (rows run up)
     pr.dur = clamp(dist / projSpeed(kind) / this._ts(), 0.04, 1.5);
     pr.arc = spec.arc ? spec.arc * clamp(0.45 + dist * 0.18, 0.6, 1.8) : 0;
@@ -713,7 +706,7 @@ export class FxSystem {
     const spec = pr.spec, look = spec.look;
     pr.t += dt;
     const tg = pr.tgt;
-    if (tg && !tg.destroyed && tg.alive !== false) { pr.tx=tg.x+(look==='shell'?0:tg.bossArea?.dx||0);pr.ty=tg.y;pr.tz=look==='shell'?feetZ(tg):bodyZ(cam,tg,SHOT_HEIGHT.aim); }
+    if (tg && !tg.destroyed && tg.alive !== false) { const aim=look==='shell'?{x:tg.x,y:tg.y,z:feetZ(tg)}:bodyPoint(null,tg,SHOT_HEIGHT.aim);pr.tx=aim.x;pr.ty=aim.y;pr.tz=aim.z; }
     const k = Math.min(1, pr.t / pr.dur);
     if (k >= 1 && !pr.hit) { pr.hit = true; pr.fade = 0; this._impact(pr, cam); }
     let fk = 0;
@@ -794,12 +787,12 @@ export class FxSystem {
     let gx, gy, gz;
     if (pr.phase === 0) {
       const tg = pr.tgt;
-      if (tg && !tg.destroyed && tg.alive !== false) { pr.tx=tg.x+(tg.bossArea?.dx||0);pr.ty=tg.y;pr.tz=bodyZ(cam,tg,SHOT_HEIGHT.aim); }
+      if (tg && !tg.destroyed && tg.alive !== false) { const aim=bodyPoint(null,tg,SHOT_HEIGHT.aim);pr.tx=aim.x;pr.ty=aim.y;pr.tz=aim.z; }
       gx = pr.tx; gy = pr.ty; gz = pr.tz;
     } else {
       const sv = pr.src;
       if (!sv || sv.destroyed || sv.alive === false) return false;
-      gx=sv.x+(sv.bossArea?.dx||0);gy=sv.y;gz=bodyZ(cam,sv,SHOT_HEIGHT.launch);
+      const launch=bodyPoint(null,sv,SHOT_HEIGHT.launch);gx=launch.x;gy=launch.y;gz=launch.z;
     }
     const dx = gx - pr.bx, dy = gy - pr.by, dz = gz - pr.bz;
     const d = Math.hypot(dx, dy, dz);
@@ -876,7 +869,7 @@ export class FxSystem {
     if (k < pr.rise && !pr.vertical) {
       const u = k / pr.rise, ub = Math.max(0, u - .085/Math.max(.01,pr.dur*pr.rise));
       const sv = pr.src;
-      if (sv && !sv.destroyed) { pr.x0 = sv.x; pr.y0 = sv.y; }
+      if (sv && !sv.destroyed) { const launch=bodyPoint(null,sv,SHOT_HEIGHT.launch);pr.x0=launch.x;pr.y0=launch.y;pr.z0=launch.z; }
       x = pr.x0; y = pr.y0;
       z = pr.z0 + SHELL_UP * (1 - (1 - u) * (1 - u));          // out of the barrel fast, slowing as it climbs
       zq = pr.z0 + SHELL_UP * (1 - (1 - ub) * (1 - ub));
@@ -1015,7 +1008,8 @@ export class FxSystem {
     const gz = this._groundZ(x, y);
     pr.warnRings=null;pr.aimTarget=null;pr.shot=null;pr.fallTime=.22;
     pr.vertical = vertical; pr.kind = 'bombardShell'; pr.spec = BOMBARD_SHELL; pr.src = src; pr.tgt = null;
-    pr.x0 = src ? src.x : x; pr.y0 = src ? src.y : y; pr.z0 = src ? bodyZ(this.ctx.cam(), src, SHOT_HEIGHT.launch) : gz + 0.5;
+    const launch=src?bodyPoint(null,src,SHOT_HEIGHT.launch):{x,y,z:gz+.5};
+    pr.x0=launch.x;pr.y0=launch.y;pr.z0=launch.z;
     pr.tx = x; pr.ty = y; pr.tz = gz;
     pr.t = 0; pr.dur = clamp(flight, 0.1, 4); pr.fade = 0; pr.hit = false; pr.emit = 0; pr.arc = 0; pr.ang = Math.PI / 2;
     pr.rise = pr.dur >= 0.45 ? SHELL_RISE : 0;
@@ -1391,11 +1385,10 @@ export class FxSystem {
     if (!(n > 0 || (allowZero && n === 0)) || !view) return;
     const now = this.time;
     const cam = this.ctx.cam();
-    const base = (view.z || 0) + (view.hover || 0) + (view._headTiles || 1.2) * 0.8 + 0.22;
-    const a = cam.project(view.x+(view.bossArea?.dx||0), view.y, base, this._p);
+    const birth = modelPoint(view, (view._headTiles || 1.2) * .8 + .22);
+    const base = birth.z;
+    const a = cam.project(birth.x, birth.y, birth.z, this._p);
     const ax = a.x, ay = a.y, s = a.s > 0 ? a.s : 100;
-    const pxPerZ = ay - cam.project(view.x+(view.bossArea?.dx||0), view.y, base + 1, this._q).y;
-    const risePx = NUM_RISE * (pxPerZ > 1e-3 ? pxPerZ : s * 0.5);
     // the live boxes only change between frames: laid out once per frame / camera, not once per hit (a heavy AoE
     // lands dozens of hits in one frame — re-projecting every live number for each was O(hits × numbers))
     this._layoutNumsOnce(cam);
@@ -1437,7 +1430,7 @@ export class FxSystem {
     t.text.text = (style === 'heal' ? '+' : '') + n;
     Object.assign(t, {
       unit: view, style, value: n, life: 0, end: life, born: now, lastHit: now, pop: 1, big: !!big, fading: false,
-      ox: cx - ax, oy: cy - ay, x0: view.x+(view.bossArea?.dx||0), y0: view.y, z0: base, risePx, _x: cx, _y: cy, _w: w, _h: h,
+      lane: NUM_LANES[mine%NUM_LANES.length]*.035, ox: cx - ax, oy: cy - ay, x0: birth.x, y0: birth.y, z0: base, _x: cx, _y: cy, _w: w, _h: h,
     });
     this.nums.push(t);
   }
@@ -1452,12 +1445,12 @@ export class FxSystem {
     const p = this._p;
     for (const t of this.nums) {
       const u = t.unit;
-      if (u && !u.destroyed) { t.x0 = u.x+(u.bossArea?.dx||0); t.y0 = u.y; }
-      cam.project(t.x0, t.y0, t.z0, p);
+      if (u && !u.destroyed) { const at=modelPoint(u,(u._headTiles||1.2)*.8+.22);t.x0=at.x;t.y0=at.y;t.z0=at.z; }
+      const rise=NUM_RISE*easeOut(Math.min(1,t.life/NUM_RISE_T));
+      cam.project(t.x0, t.y0+rise*MODEL_UP.y, t.z0+rise*MODEL_UP.z, p);
       t._s = p.s;
-      const k = Math.min(1, t.life / NUM_RISE_T);
-      t._x = p.x + t.ox;
-      t._y = p.y + t.oy - t.risePx * easeOut(k);
+      t._x = p.x + (t.lane ?? 0) * p.s;
+      t._y = p.y + t.oy;
       this._sizeNum(t);
     }
     this._laidAt = this.time;
@@ -1939,11 +1932,11 @@ export class FxSystem {
           break;
         }
         const v = at.v;
-        const hz = v ? bodyZ(null,v,1) + 0.25 : at.z + 1.4;
-        const q = cam.project(at.x, at.y, hz, this._q);
+        const mark=v?modelPoint(v,(v._headTiles||1.2)+.25):{x:at.x,y:at.y,z:at.z+1.4};
+        const q=cam.project(mark.x,mark.y,mark.z,this._q);
         if (spec.a === 'mark') {
           this.particle('glow', q.x, q.y, { tint: col, life: 0.6, s0: q.s / 128 * 0.5, s1: q.s / 128 * 0.7, a0: 0.8, a1: 0 });
-          this.numberAt(q.x, q.y, '!', col, 0.8);
+          this.numberAt(q.x,q.y,'!',col,.8,mark);
         } else {
           this.particle('ring', p.x, p.y, { tint: col, life: 0.6, s0: s / 128 * 1.3, s1: s / 128 * 0.7, a0: 0.95, a1: 0, spin: 3 });
           this.particle('hex', p.x, p.y, { tint: col, life: 0.6, s0: s / 128 * 0.5, s1: s / 128 * 0.9, a0: 0.8, a1: 0, spin: -2 });
@@ -1971,8 +1964,8 @@ export class FxSystem {
       }
       case 'sleep': {
         const v = at.v;
-        const hz = v ? bodyZ(null,v,1) : at.z + 1.2;
-        const q = cam.project(at.x + 0.2, at.y, hz, this._q);
+        const mark=v?bodyPoint(null,v,1):{x:at.x,y:at.y,z:at.z+1.2};
+        const q=cam.project(mark.x+.2,mark.y,mark.z,this._q);
         for (let i = 0; i < 3; i++) this.particle('st_sleep', q.x + i * q.s * 0.12, q.y - i * q.s * 0.12, { add: false, vy: -q.s * 0.5, vx: q.s * 0.15, life: 0.9 + i * 0.2, s0: q.s / 32 * 0.22, s1: q.s / 32 * 0.32, a0: 1, a1: 0, fadeIn: 0.1 * i });
         break;
       }
@@ -2114,7 +2107,7 @@ export class FxSystem {
   }
 
   /** Floating label ('!', '+10') at a screen point, using the damage-number pool. */
-  numberAt(x, y, label, tint, life = 0.8) {
+  numberAt(x, y, label, tint, life = 0.8, at = null) {
     const P = this.P;
     if (this.labels.length >= 24) { const o = this.labels.shift(); o.t.destroy(); }
     const t = new P.BitmapText(String(label), { fontName: DMG_STYLE.true.font, fontSize: 26, align: 'center' });
@@ -2122,7 +2115,10 @@ export class FxSystem {
     t.tint = tint;
     t.position.set(x, y);
     this.ctx.layers.text.addChild(t);
-    this.labels.push({ t, y0: y, life: 0, max: life });
+    const cam=this.ctx.cam(),anchor=at||this._particleAnchor;
+    let world=null;
+    if(anchor){const p=cam.project(anchor.x,anchor.y,anchor.z||0),height=-(y-p.y)/p.s;world={x:anchor.x+(x-p.x)/p.s,y:anchor.y+height*MODEL_UP.y,z:(anchor.z||0)+height*MODEL_UP.z};}
+    this.labels.push({t,y0:y,world,life:0,max:life});
   }
 
   _updateLabels(dt) {
@@ -2131,7 +2127,8 @@ export class FxSystem {
       l.life += dt;
       if (l.life >= l.max) { l.t.destroy(); continue; }
       const k = l.life / l.max;
-      l.t.position.y = l.y0 - 22 * easeOut(k);
+      if(l.world){const w=l.world,p=this.ctx.cam().project(w.x,w.y+.25*easeOut(k)*MODEL_UP.y,w.z+.25*easeOut(k)*MODEL_UP.z);l.t.position.set(p.x,p.y);}
+      else l.t.position.y=l.y0-22*easeOut(k);
       l.t.alpha = k > 0.6 ? 1 - (k - 0.6) / 0.4 : 1;
       l.t.scale.set(k < 0.12 ? 0.6 + (k / 0.12) * 0.5 : 1.1 - Math.min(0.1, k - 0.12));
       this.labels[w++] = l;
@@ -2351,8 +2348,8 @@ export class FxSystem {
     if(!tip)return;
     // Skeleton coordinates are model-local; retain the same world vertex through camera changes.
     const modelScale=UNIT.modelScale*(view.modelK||1),flip=view.flipValue??1;
-    const world={x:view.x+(view.bossArea?.dx||0)+(tip.x-(view.bossModelCenter||0))*modelScale*flip,y:view.y};
-    const z=(view.z||0)+(view.hover||0)-tip.y*modelScale*MODEL_WORLD_HEIGHT;
+    const world=modelPoint(view,-tip.y*modelScale,(tip.x-(view.bossModelCenter||0))*modelScale*flip);
+    const z=world.z;
     if(!rec){const g=new this.P.Graphics();this.projLayer.addChild(g);rec={g,samples:[],age:0,actor};this.weaponTrails.set(view,rec);}
     if(rec.actor!==actor){rec.samples.length=0;rec.actor=actor;}
     rec.age+=dt;

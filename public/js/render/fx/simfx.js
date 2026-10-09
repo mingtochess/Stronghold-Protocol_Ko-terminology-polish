@@ -1,7 +1,8 @@
+import { modelPoint } from '../worldAnchors.js';
 // public/js/render/fx/simfx.js — FxSystem placement of a sim fx event.
 // Installed on FxSystem.prototype by ./system.js (a method container: never instantiated; `this` is the effect system).
 
-import { SHOT_HEIGHT, bodyZ } from './camera.js';
+import { SHOT_HEIGHT, bodyPoint } from './camera.js';
 import { fxSpec, tilesAround, wallTiles } from './kinds.js';
 import { clamp } from './limits.js';
 
@@ -208,15 +209,16 @@ export class FxSim {
           // (`hold`: 蕾缪安 S3 — the reticle waits while her skill runs, however long nothing is in range)
           const lv = at.v || this._viewOf(ex.id);
           this._touchLocks(ex.src ?? null);
-          this._lock(lv, ex.src ?? null, lv ? lv.x : at.x, lv ? lv.y : at.y, lv ? bodyZ(cam, lv, SHOT_HEIGHT.aim) : at.z + 0.55, !!ex.hold);
+          const aim=lv?bodyPoint(null,lv,SHOT_HEIGHT.aim):{x:at.x,y:at.y,z:at.z+.55};
+          this._lock(lv,ex.src??null,aim.x,aim.y,aim.z,!!ex.hold);
           break;
         }
         const v = at.v;
-        const hz = v ? (v.z || 0) + (v.hover || 0) + (v._headTiles || 1.2) + 0.25 : at.z + 1.4;
-        const q = cam.project(at.x, at.y, hz, this._q);
+        const mark=v?modelPoint(v,(v._headTiles||1.2)+.25):{x:at.x,y:at.y,z:at.z+1.4};
+        const q=cam.project(mark.x,mark.y,mark.z,this._q);
         if (spec.a === 'mark') {
           this.particle('glow', q.x, q.y, { tint: col, life: 0.6, s0: q.s / 128 * 0.5, s1: q.s / 128 * 0.7, a0: 0.8, a1: 0 });
-          this.numberAt(q.x, q.y, '!', col, 0.8);
+          this.numberAt(q.x,q.y,'!',col,.8,mark);
         } else {
           this.particle('ring', p.x, p.y, { tint: col, life: 0.6, s0: s / 128 * 1.3, s1: s / 128 * 0.7, a0: 0.95, a1: 0, spin: 3 });
           this.particle('hex', p.x, p.y, { tint: col, life: 0.6, s0: s / 128 * 0.5, s1: s / 128 * 0.9, a0: 0.8, a1: 0, spin: -2 });
@@ -244,8 +246,8 @@ export class FxSim {
       }
       case 'sleep': {
         const v = at.v;
-        const hz = v ? (v.z || 0) + (v._headTiles || 1.2) : at.z + 1.2;
-        const q = cam.project(at.x + 0.2, at.y, hz, this._q);
+        const mark=v?bodyPoint(null,v,1):{x:at.x,y:at.y,z:at.z+1.2};
+        const q=cam.project(mark.x+.2,mark.y,mark.z,this._q);
         for (let i = 0; i < 3; i++) this.particle('st_sleep', q.x + i * q.s * 0.12, q.y - i * q.s * 0.12, { add: false, vy: -q.s * 0.5, vx: q.s * 0.15, life: 0.9 + i * 0.2, s0: q.s / 32 * 0.22, s1: q.s / 32 * 0.32, a0: 1, a1: 0, fadeIn: 0.1 * i });
         break;
       }

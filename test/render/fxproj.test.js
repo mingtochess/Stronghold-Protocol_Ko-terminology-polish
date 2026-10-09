@@ -621,7 +621,7 @@ test('projectile bodies remain opaque with normal blending while boomerangs igno
  const {fx}=makeFx({views:[v,src],ts:1});
  for(const side of ['L','R'])for(const half of [false,true]){
  const camera=presetCamera('boss',{width:1440,height:900,side,half});fx.ctx.cam=()=>camera;
- const fixed={x:10,y:3,z:2.2*FX.MODEL_WORLD_HEIGHT*FX.SHOT_HEIGHT.aim};
+ const fixed={x:10,y:3+2.2*FX.SHOT_HEIGHT.aim*Math.cos(Math.PI/6),z:2.2*FX.MODEL_WORLD_HEIGHT*FX.SHOT_HEIGHT.aim};
  const aim=camera.project(fixed.x,fixed.y,fixed.z);
  assert.deepEqual(FX.bodyPoint(camera,v,FX.SHOT_HEIGHT.aim),fixed);
  const world=FX.bodyPoint(camera,v,FX.SHOT_HEIGHT.aim),point=camera.project(world.x,world.y,world.z);
@@ -639,4 +639,32 @@ test('wide effects distinguish weapons and magic, without using omnidirectional 
  assert.equal(FX.wideAttackFamily({subProf:'phalanx'},true),'pulse');
  assert.equal(FX.wideAttackFamily({omnidirectional:true,attackType:'arts'},true),null);
  const {fx}=makeFx();fx._wideSweep(unit(10,0,0,{info:{subProf:'spreadshooter'}}));assert.equal(fx.sweeps.length,0,'unknown range never invents a wide radius');
+});
+
+test('boss model, impact, lock, projectile and text align in both halves and whole-field framing', async()=>{
+ const {modelPoint}=await import('../../public/js/render/worldAnchors.js');
+ const target=unit(880,10,3,{bossArea:{dx:1},_headTiles:2.2,z:.4,hover:.3,waterSink:-.18,lift:.1});
+ const src=unit(881,5,4),{fx}=makeFx({views:[target,src],ts:1});
+ const fixed=FX.bodyPoint(null,target,.5);
+ fx.ctx.settings.damageNumberMode='all';
+ fx.number(target,123,'phys',false);
+ const n=fx.nums[0];
+ for(const [side,half]of [['L',true],['R',true],['L',false]]){
+  const camera=presetCamera('boss',{width:1440,height:900,side,half});fx.ctx.cam=()=>camera;
+  const foot=camera.project(target.x+1,target.y,target.z+target.hover+target.lift+target.waterSink);
+  const actual=fx._bodyPt(target,.5,{});
+  assert.deepEqual(FX.bodyPoint(camera,target,.5),fixed);
+  assert.ok(Math.abs(actual.x-foot.x)<1e-6,'impact stays on the model horizontal centre');
+  assert.ok(Math.abs(actual.y-(foot.y-foot.s*target._headTiles*.5))<1e-6,'impact stays at the model chest');
+  fx._lock(target,null,0,0,0);fx._updateLocks(0);const lock=fx.locks.at(-1);
+  assert.ok(Math.abs(lock.ring.position.x-actual.x)<1e-6);
+  assert.ok(Math.abs(lock.ring.position.y-actual.y)<1e-6);
+  fx.attack(src,target,'arrow');const end=fx._shotPoint(fx.projs.at(-1),1,camera,{});
+  assert.ok(Math.abs(end.x-actual.x)<1e-6&&Math.abs(end.y-actual.y)<1e-6);
+  fx._layoutNums(camera);
+  const birth=modelPoint(target,target._headTiles*.8+.22),text=camera.project(birth.x,birth.y,birth.z);
+  assert.ok(Math.abs(n._x-text.x)<1e-6&&Math.abs(n._y-text.y)<1e-6);
+  assert.ok(Math.abs(n._x-foot.x)<1e-6,'text stays above the model, including while changing a live number camera');
+ }
+ fx.clear();
 });

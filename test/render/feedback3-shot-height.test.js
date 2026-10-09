@@ -1,8 +1,5 @@
-// test/render/feedback3-shot-height.test.js — GitHub #61 (0.1.3): shots left an operator at its hips and aimed at the
-// target's hips, and every attack shoved the whole model 0.12 tiles toward its target. render/fx.js took 0.45 × the
-// head height as a WORLD height, which the 30° camera pitch draws at ≈ 18 % of the (upright, screen-space) model; the
-// attack jolt of render/units.js was meant for the avatar diamond only. Now launch / aim points are heights on screen
-// (fx.js SHOT_HEIGHT, solved through projection.js Camera.liftFor) and a shown Spine model keeps its place.
+// Attack points use the same fixed world plane as the authored models.
+// Camera framing changes only their projection, never their world coordinates.
 
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
@@ -66,13 +63,13 @@ test('an arrow leaves the shooter at its hands and flies at the target\'s chest 
   const src = unit(1, 3, 10), tgt = unit(2, 7, 11, { isEnemy: true, _headTiles: 1.6 });
   fx.attack(src, tgt, 'arrow');
   const pr = fx.projs[fx.projs.length - 1];
-  close(pr.z0,src.z+src.hover+src._headTiles*2*FX.SHOT_HEIGHT.launch,1e-9,'fixed world launch height');
-  close(pr.tz,tgt.z+tgt.hover+tgt._headTiles*2*FX.SHOT_HEIGHT.aim,1e-9,'fixed world target height');
+  close(pr.z0,src.z+src.hover+src._headTiles*FX.MODEL_WORLD_HEIGHT*FX.SHOT_HEIGHT.launch,1e-9,'fixed world launch height');
+  close(pr.tz,tgt.z+tgt.hover+tgt._headTiles*FX.MODEL_WORLD_HEIGHT*FX.SHOT_HEIGHT.aim,1e-9,'fixed world target height');
   // the old rule: 0.45 × head height as a world height → ≈ 18–23 % of the model
   assert.ok(share(src, src.x, src.y, 0.45 * src._headTiles) < 0.25, 'the hip height it used to start from');
   // a raised / flying unit: measured from where it is drawn
   const fly = unit(3, 6, 9, { z: 0.4, hover: 0.32 });
-  close(FX.bodyZ(cam,fly,.5),.72+1.18,1e-9);
+  close(FX.bodyZ(cam,fly,.5),.72+1.18*.5*FX.MODEL_WORLD_HEIGHT,1e-9);
 });
 
 test('operator models and fallback portraits both keep their place on an attack', async () => {
@@ -116,4 +113,17 @@ test('submerged ground bodies sink and recover without lowering airborne or plat
   tile={drawn:true,glyph:'d',devH:.2};assert.equal(submergedVisual(ctx,v),false);
   tile.devH=0;v.flying=true;assert.equal(submergedVisual(ctx,v),false);
   v.destroy();
+});
+
+
+test('stationary boss footprint sorts behind surrounding operators in every boss framing', async()=>{
+ const {unitDepthKey}=await import('../../public/js/render/units.js');
+ const area={w:4.95,h:2.95,dx:0,dy:1};
+ for(const [side,half]of [['L',true],['R',true],['L',false]]){
+  const camera=presetCamera('boss',{width:1440,height:900,side,half});
+  const boss=unitDepthKey(camera,10,1,0,false,area);
+  for(const [x,y]of [[7,1],[13,1],[7,2],[13,3],[10,0]])assert.ok(unitDepthKey(camera,x,y)>boss);
+  assert.ok(unitDepthKey(camera,10,5)<boss,'units behind the whole footprint retain natural depth');
+  assert.equal(unitDepthKey(camera,10,1,0,true,area),unitDepthKey(camera,10,1,0,true),'airborne and moving units are unchanged');
+ }
 });

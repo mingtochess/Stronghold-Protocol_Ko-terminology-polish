@@ -248,7 +248,7 @@ function Replay({ rec, onBack }) {
 /** The overlay, rendered while open (its data hooks run only then). */
 function StatsScreen({ tab }) {
   const ready = useData('config', 'bands', 'assets');
-  const gd = useMemo(() => makeLookups(ready), [ready, data.locale()]);
+  const gd = useMemo(() => makeLookups(ready), [ready]);
   const [stats, setStats] = useState(() => loadStats());
   const [replay, setReplay] = useState(null);
   const boxRef = useRef(null);

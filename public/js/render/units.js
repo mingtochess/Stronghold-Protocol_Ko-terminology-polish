@@ -1351,7 +1351,7 @@ export class UnitView {
     if (lungeK) { const q = cam.project(this.x + lx, this.y + ly, this.z + this.hover + this.lift + this.waterSink, LG_P); bx = q.x; by = q.y; }
     this.root.position.set(bx, by);
     this.root.alpha = alpha;
-    this.root.zIndex = unitDepthKey(cam, this.x, this.y, this.lift, this.flying);
+    this.root.zIndex = unitDepthKey(cam, this.x, this.y, this.lift, this.flying, this.bossArea);
     // off-screen: nothing to animate or draw (bounds / hit-testing still follow `screen`)
     if (this._cull(bx, by, s, (this.alive && (this.flags & UF.FROZEN)) ? 0 : dt)) return;
     const flipTarget = this.info.fixedFacing ? 1 : this.isEnemy ? (ENEMY_MODEL_FACES_LEFT ? -this.visFacing : this.visFacing) : this.visFacing;
@@ -2041,7 +2041,10 @@ const ICON_TMP = [];
  * Unit-layer zIndex of a unit / piece whose feet are at (x, y): farther rows first (so raised block rows, keyed by
  * tiles.rowDepthKey, hide units behind them); lifted (dragged) pieces on top; ties broken by column.
  */
-export function unitDepthKey(cam, x, y, lift = 0, airborne = false) {
+export function unitDepthKey(cam, x, y, lift = 0, airborne = false, footprint = null) {
+  // Huge stationary bosses sort at the rear of their occupied ground area.
+  // Operators alongside or in front of that area remain visible over the body.
+  if (footprint && !airborne) y += (footprint.dy || 0) + Math.max(0, footprint.h || 0) / 2;
   // +40 (< one row of depth at the official 30° pitch, 100·sin 30° = 50): a lifted piece never ties with the unit one
   // row in front of it (a tie flickers with the column tie-break)
   return (airborne ? 100000 : 0) - cam.depthOf(x, y, 0) * 100 + (lift > 0 ? 40 : 0) + x * 0.001;

@@ -1,6 +1,30 @@
 // Player-facing history. Letters a/b were assigned retroactively to the two deployed update batches.
 export const PATCH_NOTES = [
 {
+  "version": "0.2.2b",
+  "date": "2026-10-09",
+  "status": "released",
+  "title": "전투 표시·번역·화면 오류 수정",
+  "sections": [
+    {
+      "title": "전투 표시",
+      "items": [
+        "보스전 시점 변경 시 대미지·회복 텍스트, 투사체, 조준점과 피격 효과가 모델에서 어긋나는 문제를 수정했습니다.",
+        "고정형 보스 주변 오퍼레이터가 보스 모델에 가려지는 문제를 수정했습니다."
+      ]
+    },
+    {
+      "title": "번역과 편의 기능",
+      "items": [
+        "특성·재능·스킬·모듈 설명의 한국어 번역을 보강하고 중복 문장을 재검사했습니다.",
+        "시뮬레이션 완료 화면의 채팅을 복구했습니다.",
+        "통계 페이지를 열 때 발생하는 오류를 수정했습니다.",
+        "시뮬레이션 방식 선택 화면의 패치노트 버튼을 돌아가기·핑 표시 옆으로 옮겼습니다."
+      ]
+    }
+  ]
+},
+{
   "version": "0.2.2a",
   "date": "2026-10-09",
   "status": "released",

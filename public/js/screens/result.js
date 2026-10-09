@@ -1,5 +1,4 @@
-
-
+import { ChatPanel } from '../ui/chat.js';
 
 import { t } from '../../../shared/i18n.js';
 // Result screen (research 06 §10.6): victory / defeat hero with rounds passed, boss medallions, and a
@@ -78,7 +77,7 @@ export function ResultScreen() {
   const myId = useStore((s) => s.me.playerId);
   const hasRoom = useStore((s) => !!s.room);
   const back = () => store.set({ match: emptyMatch() });
-  return html`<${ResultView} res=${res} pub=${pub} myId=${myId} backLabel=${hasRoom ? t('返回同盟') : t('返回大厅')} onBack=${back} />`;
+  return html`<div class="screen result-screen"><${ChatPanel} /><${ResultView} res=${res} pub=${pub} myId=${myId} backLabel=${hasRoom ? t('返回同盟') : t('返回大厅')} onBack=${back} /></div>`;
 }
 
 /**
