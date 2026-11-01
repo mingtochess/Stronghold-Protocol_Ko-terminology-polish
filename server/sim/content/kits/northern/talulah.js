@@ -23,10 +23,10 @@ export function talulahKit(_bb,raw){
    fx(b,u,'talulahGuard',{target:target?.id,dur:num(bb.skill_duration)});
   }}];
   return[s.skillId,{kind:'duration',duration:s.duration,mods:{atkPct:num(bb.atk)},attack:{noAttack:true},onStart({battle:b,unit:u,skill}){
-   const st=u.mem.talulah;st.waveClock=0;st.waveSerial=0;st.channelSeq=u.deploySeq;st.wavePhase=0;
+   const st=u.mem.talulah;st.waveClock=0;st.channelSeq=u.deploySeq;st.wavePhase=0;
    // Skill runtime retains its regular duration; overdrive starts exactly at its midpoint.
    st.waveDuration=skill.duration;fx(b,u,'talulahChannel',{dur:skill.duration});
-  },onEnd({battle:b,unit:u}){if(u.mem.talulah)u.mem.talulah.waves=[];fx(b,u,'talulahChannelEnd');}}];
+  },onEnd({battle:b,unit:u}){fx(b,u,'talulahChannelEnd');}}];
  }));
  return{skills,install(b,u){
   const t=talentBb(raw,0),trail=talentBb(raw,1),bb=u.skill.bb||{};
@@ -50,13 +50,23 @@ export function talulahKit(_bb,raw){
    for(let lane=-half;lane<=half;lane++){
     const row=u.tileR+dc*lane,col=u.tileC-dr*lane;if(!b.grid.inRect(row,col))continue;
     let back=0;while(back<11&&b.grid.inRect(row-dr*(back+1),col-dc*(back+1)))back++;
-    const x=col-dc*back,y=row-dr*back,range=(dr?b.rect.r1-b.rect.r0+1:b.rect.c1-b.rect.c0+1)+num(bb.wave_exit_distance,5);
+    const x=col-dc*back,y=row-dr*back,edge=dr?(dr>0?b.rect.r1+.5:b.rect.r0-.5):(dc>0?b.rect.c1+.5:b.rect.c0-.5),range=Math.abs(edge-(dr?y:x))+num(bb.wave_exit_distance,5);
     st.waves.push({x,y,dr,dc,left:range,serial,seen,lane});
-    fx(b,u,'talulahWave',{x,y,dx:dc,dy:dr,speed:num(bb.wave_speed),dur:range/num(bb.wave_speed),wave:serial,lane});
+    fx(b,u,'talulahWave',{born:b.time,x,y,dx:dc,dy:dr,speed:num(bb.wave_speed),dur:range/num(bb.wave_speed),wave:serial,lane});
    }
   }
+  // Fired projectiles keep flying after the channel ends, like the engine's projectile runtime.
+  function advanceWaves(dt){
+   for(const w of st.waves){const distance=num(bb.wave_speed)*dt;w.x+=w.dc*distance;w.y+=w.dr*distance;w.left-=distance;
+    const hit=b.foesInRadius(w.x,w.y,num(bb.projectile_range,.5),groundProfile)[0];if(!hit)continue;w.left=0;
+    for(const e of b.foesInRadius(w.x,w.y,num(bb.range_radius,1.5),groundProfile)){
+     const scale=w.seen.has(e.id)?num(bb.same_wave_repeat_damage_scale,.15):1;w.seen.add(e.id);
+     b.dealDamage(u,e,{amount:u.s.atk*num(bb.heatwave_atk_scale)*scale,type:e.findBuff('burnBurst')?'elemental':'arts',isSkill:true,tags:['talulah-wave']});
+    }fx(b,u,'talulahWaveHit',{x:w.x,y:w.y,wave:w.serial,lane:w.lane});
+   }st.waves=st.waves.filter(w=>w.left>0);
+  }
   b.on('tick',({dt})=>{
-   if(!alive(u))return;
+   if(!alive(u)){advanceWaves(dt);return;}
    if(b.time-st.lastAttack>=num(t.arcane_idle_delay,3)){st.arcaneClock+=dt;const iv=num(t.arcane_step_interval,.5);while(st.arcaneClock+1e-9>=iv){st.arcaneClock-=iv;st.arcane=Math.min(num(t.arcane_max),st.arcane+num(t.arcane_step));}}
    st.stacks=st.stacks.filter(end=>end>b.time);
    if(raw.skill.index===1){const n=st.stacks.length,key='talulah:counter-stacks';if(n){const old=u.findBuff(key),mods={atkPct:num(bb.atk)*n,defPct:num(bb.def)*n};if(old){old.mods=mods;old.timeLeft=.15;u.markDirty();}else b.addBuff(u,{key,duration:.15,mods});}else b.removeBuff(u,key);}
@@ -69,15 +79,9 @@ export function talulahKit(_bb,raw){
    st.fieldClock+=dt;const iv=num(trail.field_interval,.3);
    if(st.fieldClock+1e-9>=iv){st.fieldClock-=iv;for(const e of inCells(b,u,st.fields.keys()))b.dealDamage(u,e,{amount:u.s.atk*num(trail.field_atk_scale),type:'arts',isSkill:false,tags:['talulah-trail','dot']});}
    if(raw.skill.index===2&&u.skill.active&&u.canAct){const phase=u.skill.timeLeft<=st.waveDuration/2?1:0;if(phase&&!st.wavePhase)fx(b,u,'talulahOverdrive');st.wavePhase=phase;st.waveClock+=dt;const interval=num(st.wavePhase?bb.overload_interval:bb.normal_interval);if(st.waveClock+1e-9>=interval){st.waveClock-=interval;wave();}}
-   for(const w of st.waves){const distance=num(bb.wave_speed)*dt;w.x+=w.dc*distance;w.y+=w.dr*distance;w.left-=distance;
-    const hit=b.foesInRadius(w.x,w.y,num(bb.projectile_range,.5),groundProfile)[0];if(!hit)continue;w.left=0;
-    for(const e of b.foesInRadius(w.x,w.y,num(bb.range_radius,1.5),groundProfile)){
-     const scale=w.seen.has(e.id)?num(bb.same_wave_repeat_damage_scale,.15):1;w.seen.add(e.id);
-     b.dealDamage(u,e,{amount:u.s.atk*num(bb.heatwave_atk_scale)*scale,type:e.findBuff('burnBurst')?'elemental':'arts',isSkill:true,tags:['talulah-wave']});
-    }fx(b,u,'talulahWaveHit',{x:w.x,y:w.y,wave:w.serial,lane:w.lane});
-   }st.waves=st.waves.filter(w=>w.left>0);
+   advanceWaves(dt);
   },{owner:u});
   b.on('deploy',c=>{if(c.unit===u){st.arcane=0;st.attackArcane=0;st.lastAttack=b.time;st.arcaneClock=0;st.stacks=[];st.counterAt=-Infinity;st.waveClock=0;}},{owner:u});
-  b.on('death',c=>{if(c.unit===u){st.fields.clear();st.burning.clear();st.waves=[];}},{owner:u});
+  b.on('death',c=>{if(c.unit===u){st.fields.clear();st.burning.clear();}},{owner:u});
  }};
 }

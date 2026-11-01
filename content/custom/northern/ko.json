@@ -22,7 +22,7 @@
         "{damage_resistance:0%}의 <$ba.protect>가호</> 획득({shelter_hold_duration:0.0}초 후 점차 감소). 공격자 주변에 공격력의 {retaliate_atk_scale:0%}만큼 범위 마법 대미지를 주고, 피해량의 {heal_ratio:0%}만큼 자신의 HP 회복\n이후 {stack_duration:0.0}초간 저지 중인 모든 적을 공격하며, 공격력 +{atk:0%}, 방어력 +{def:0%}(최대 {max_stack_cnt}중첩)\n<@ba.rem>피격 시 발동, {max_stack_cnt}회 충전 가능</>"
       ],
       [
-        "작열하는 코로나",
+        "작열하는 광환",
         "공격력 +{atk:0%}. 일반 공격을 중지하고, {normal_interval:0.00}초마다 배치 방향을 따라 5개 줄에 ‘불꽃 무리’ 소환\n불꽃 무리는 적과 충돌하면 폭발하여 공격력의 {heatwave_atk_scale:0%}만큼 범위 마법 대미지를 줌. <$ba.dt.burning2>소각 손상</> 폭발 중인 적에게는 원소 대미지로 전환\n<$ba.overdrive>과부하</>: 소환 간격이 {overload_interval}초로 단축되고, 최대 13개 줄까지 범위 확대\n<@ba.rem>같은 차례에 소환된 불꽃 무리가 중복 적중하면, 두 번째부터는 대미지가 {same_wave_repeat_damage_scale:0%}로 감소</>"
       ]
     ],

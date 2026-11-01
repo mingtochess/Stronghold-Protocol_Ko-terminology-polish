@@ -39,7 +39,7 @@ test('Talulah guard protects its triggering hit, spends one charge and ignores d
 for(const dir of ['RIGHT','UP','LEFT','DOWN'])test(`Talulah flame waves honor ${dir} and grow from 5 lanes to overdrive`,()=>{
  const id=key('talulah');const h=makeBattle({data:durable,units:[{chessId:id,row:10,col:5,dir,skillIndex:2}],autoFinish:false,hooks:['damaged']});h.run(1.2);const u=h.unit(id);u.skill.gainSp(1000);assert.ok(u.skill.activate('test'));h.run(3);
  assert.equal(u.mem.talulah.waveSerial,1);assert.ok(u.mem.talulah.waves.length>0);const wave=u.mem.talulah.waves[0];assert.equal(wave.dr,dir==='UP'?1:dir==='DOWN'?-1:0);assert.equal(wave.dc,dir==='RIGHT'?1:dir==='LEFT'?-1:0);
- h.run(16);assert.equal(u.mem.talulah.wavePhase,1);u.skill.end('test');assert.equal(u.mem.talulah.waves.length,0);assert.deepEqual(h.b.errors,[]);
+ h.run(16);assert.equal(u.mem.talulah.wavePhase,1);const emitted=u.mem.talulah.waves.length;u.skill.end('test');u.skill.noSkill=true;assert.equal(u.mem.talulah.waves.length,emitted);h.run(22);assert.equal(u.mem.talulah.waves.length,0);assert.deepEqual(h.b.errors,[]);
 });
 test('Territoriya second S2 keeps ATK, range and extra ASPD beyond the first duration',()=>{
  const {h,u}=scenario('territoriya',1);u.skill.gainSp(1000);assert.ok(u.skill.activate('test'));h.run(.2);u.skill.end('test');u.skill.gainSp(1000);assert.ok(u.skill.activate('test'));h.run(25);assert.equal(u.skill.active,true);assert.equal(u.skill.timeLeft,Infinity);assert.ok(u.s.atk>u.base.atk);assert.ok(u.s.aspd>=130);assert.ok(u.findBuff(u.skill._buffKey));assert.deepEqual(h.b.errors,[]);
