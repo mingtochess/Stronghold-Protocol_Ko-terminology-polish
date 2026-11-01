@@ -17,9 +17,9 @@ function wavePaths(b,u,bb,half){
 }
 function hasWaveTargets(b,u,bb){
  // A cast includes both its normal and overdrive volleys. Use their complete footprint,
- // but retain the engine's identification and ground-target selection rules.
+ // while retaining identification rules. Flying enemies also qualify for activation.
  const paths=wavePaths(b,u,bb,Math.floor(Math.max(num(bb.normal_half_width),num(bb.overload_half_width)))),radius=num(bb.projectile_range,.5);
- return b.enemies.some(e=>canTargetEnemy(u,e,groundProfile)&&paths.some(p=>{
+ return b.enemies.some(e=>canTargetEnemy(u,e,{canHitFly:true})&&paths.some(p=>{
   const along=Math.max(0,Math.min(p.left,(e.x-p.x)*p.dc+(e.y-p.y)*p.dr));
   const dx=e.x-p.x-p.dc*along,dy=e.y-p.y-p.dr*along;
   return dx*dx+dy*dy<=radius*radius;
