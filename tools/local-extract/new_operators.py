@@ -63,18 +63,50 @@ def decode_table(payload):
     for unpack in (gzip.decompress, zlib.decompress):
         try: candidates.append(unpack(payload))
         except (OSError, EOFError, ValueError, zlib.error): pass
-    for data in candidates:
+    def document(data):
         for encoding in ('utf-8-sig', 'utf-16'):
             try:
                 value = json.loads(data.decode(encoding))
                 if isinstance(value, dict): return value
             except (UnicodeError, ValueError): pass
+        return None
+    for data in candidates:
+        value = document(data)
+        if value is not None: return value
+    # Client JSON/BSON TextAssets: 128-byte signature, masked IV, AES-CBC.
+    # Format reference: isHarryh/Ark-Unpacker DecodeTextAsset.ArkAESLibrary
+    # (BSD-3-Clause; bundled LICENSE-Ark-Unpacker.txt). No signature is forged.
+    if len(payload) >= 160 and (len(payload)-144) % 16 == 0:
+        try:
+            from Crypto.Cipher import AES
+            from Crypto.Util.Padding import unpad
+        except ImportError as e:
+            raise ValueError('Encrypted client table requires pycryptodome; rerun the updated launcher.') from e
+        mask = b'UITpAi82pHAWwnzqHRMCwPonJLIB3WCl'
+        iv = bytes(a ^ b for a, b in zip(payload[128:144], mask[16:]))
+        try:
+            plain = unpad(AES.new(mask[:16], AES.MODE_CBC, iv).decrypt(payload[144:]), 16)
+        except ValueError:
+            plain = None
+        if plain is not None:
+            value = document(plain)
+            if value is not None: return value
+            # BSON is used for some table versions; retain raw bytes on failure.
+            try:
+                from bson import BSON
+                value = BSON(plain).decode()
+                if isinstance(value, dict): return value
+            except ImportError as e:
+                raise ValueError('Decrypted table is not JSON; BSON requires pymongo from the updated launcher.') from e
+            except Exception:
+                pass
     raise ValueError('Unsupported client table encoding; raw bytes retained for diagnosis (no online replacement).')
 
 
 def load_tables(game, output, supplied=None, installed=None, log=print):
     """Explicit/updated local tables -> updated bundles -> loose base tables. Never use an online snapshot."""
     result, sources, errors, claimed = {}, {}, [], set()
+    inspection = []
     roots = [Path(supplied)] if supplied else []
     if supplied and not roots[0].is_dir(): raise ValueError('Local table folder does not exist')
     roots.append(Path(game)/'gamedata/excel')
@@ -120,16 +152,37 @@ def load_tables(game, output, supplied=None, installed=None, log=print):
             if REQUIRED <= claimed: break
             try:
                 env = UnityPy.load(str(path))
+                # Some builds strip m_Name but retain the logical table path in
+                # the Unity container. Match both, with no guessed character IDs.
+                containers = {}
+                for logical, pointer in env.container.items() if hasattr(env, 'container') else []:
+                    containers.setdefault(pointer.path_id, []).append(logical)
+                anonymous = path.relative_to(game).as_posix().lower().startswith('anon/')
+                record = {'bundle': path.relative_to(game).as_posix(), 'objects': [], 'containers': list(containers.values())}
                 for obj in env.objects:
-                    if obj.type.name != 'TextAsset': continue
-                    text = obj.read(); name = table_name(text.m_Name)
+                    if obj.type.name != 'TextAsset':
+                        if anonymous: record['objects'].append({'type': obj.type.name, 'pathId': getattr(obj, 'path_id', None)})
+                        continue
+                    text = obj.read()
+                    logical_paths = containers.get(getattr(obj, 'path_id', None), [])
+                    names = [text.m_Name, *logical_paths]
+                    name = next((table_name(n) for n in names if table_name(n)), None)
+                    if anonymous: record['objects'].append({'type': 'TextAsset', 'name': text.m_Name, 'paths': logical_paths})
                     if not name or name in claimed: continue
                     payload = text.m_Script
                     data = bytes(payload) if isinstance(payload, (bytes, bytearray)) else payload.encode('utf-8', 'surrogateescape')
                     accept(name, data, {'source': 'client-TextAsset', 'bundle': path.relative_to(game).as_posix()})
+                if anonymous:
+                    inspection.append(record)
+                    # Preserve opaque data bundles for off-machine diagnosis;
+                    # decoded JSON alone cannot explain missing table objects.
+                    dest = Path(output)/'tables/opaque-bundles'/path.name
+                    dest.parent.mkdir(parents=True, exist_ok=True)
+                    shutil.copyfile(path, dest)
             except Exception as e: errors.append({'bundle': path.relative_to(game).as_posix(), 'error': str(e)})
             if i % 20 == 0: log(f'Client table bundles {i}/{len(bundles)}; decoded {len(result)}/{len(TABLES)}')
             gc.collect()
+    write(Path(output)/'tables/opaque-inspection.json', inspection)
     loose(fallback)
     for name, value in result.items(): write(Path(output)/'tables/client'/(name+'.json'), value)
     report = {'sources': sources, 'missingRequired': sorted(REQUIRED-set(result)), 'missingOptional': sorted(set(TABLES)-REQUIRED-set(result)),

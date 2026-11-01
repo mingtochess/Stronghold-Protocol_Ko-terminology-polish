@@ -2,3 +2,5 @@ UnityPy>=1.25
 lz4>=4
 Pillow>=10
 numpy>=1.26
+pycryptodome>=3.20
+pymongo>=4.6

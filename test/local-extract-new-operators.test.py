@@ -63,6 +63,34 @@ class Planning(unittest.TestCase):
             values, _ = new.load_tables(game, root/'out', installed=root/'install', log=lambda s:None)
             self.assertIn(TAL, values['character_table'])
 
+    def test_encrypted_json_and_bson_tables(self):
+        try:
+            from Crypto.Cipher import AES
+            from Crypto.Util.Padding import pad
+            from bson import BSON
+        except ImportError:
+            self.skipTest('optional client AES/BSON dependencies are not installed')
+        value = {'fixture': {'name': '冻河', 'number': 74}}
+        mask = b'UITpAi82pHAWwnzqHRMCwPonJLIB3WCl'
+        salt = bytes(range(16))
+        iv = bytes(a ^ b for a, b in zip(salt, mask[16:]))
+        for data in (json.dumps(value).encode(), BSON.encode(value)):
+            encrypted = b'X'*128 + salt + AES.new(mask[:16], AES.MODE_CBC, iv).encrypt(pad(data, 16))
+            self.assertEqual(new.decode_table(encrypted), value)
+            with self.assertRaises(ValueError): new.decode_table(encrypted[:-1])
+
+    def test_anonymous_container_path_identifies_stripped_table_name(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp); game = root/'view'; (game/'anon').mkdir(parents=True)
+            (game/'anon/hash.bin').write_bytes(b'raw opaque fixture')
+            obj = NS(path_id=7, type=NS(name='TextAsset'), read=lambda:NS(m_Name='stripped', m_Script=b'{"fixture":{}}'))
+            env = NS(objects=[obj], container={'assets/gamedata/excel/character_table.bytes':NS(path_id=7)})
+            with patch.dict(sys.modules, {'aklz4':NS(), 'UnityPy':NS(load=lambda p:env)}):
+                values, _ = new.load_tables(game, root/'out', log=lambda s:None)
+            self.assertEqual(values['character_table'], {'fixture':{}})
+            self.assertEqual((root/'out/tables/opaque-bundles/hash.bin').read_bytes(), b'raw opaque fixture')
+            self.assertEqual(new.read(root/'out/tables/opaque-inspection.json')[0]['objects'][0]['name'], 'stripped')
+
     def test_default_targets_are_three_people_and_both_frozen_river_names_resolve_identically(self):
         self.assertEqual(new.DEFAULT_TARGETS, ['塔露拉', '国度', '冻河'])
         self.assertEqual(new.select_targets(tables()['character_table'], new.DEFAULT_TARGETS), ([TAL, LAND, TOSKA], []))

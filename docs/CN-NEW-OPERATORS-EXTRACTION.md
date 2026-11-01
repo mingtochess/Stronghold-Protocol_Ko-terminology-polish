@@ -90,3 +90,5 @@ node --test test/local-extract-new-operators.test.js test/local-extract-cn-launc
 ### 테이블 단계에서 멈췄던 경우
 
 테이블 검색은 설치 폴더의 다른 하위 경로와 이름이 불명확한 번들 내부까지 확인합니다. 전체 번들을 확인할 때는 시간이 걸리며, `Client table bundles` 진행률이 출력됩니다. 해석할 수 없는 테이블은 원본을 보존하고 `PARTIAL`로 보고합니다. `tables/bundle-inventory.json`에는 검색한 번들 목록이 들어갑니다.
+
+AES-CBC로 암호화된 클라이언트 JSON/BSON 테이블도 로컬에서 복호화합니다. 실행기가 `pycryptodome`과 `pymongo`를 설치합니다. TextAsset 이름이 제거된 경우 Unity 컨테이너 경로로도 식별합니다. 아직 식별하지 못한 테이블을 분석할 수 있도록 `anon/` 번들과 내부 객체 목록을 `tables/opaque-bundles/`, `tables/opaque-inspection.json`에 보존하므로 결과 압축 파일이 커질 수 있습니다. 이는 모든 최신 테이블 형식이 지원된다는 뜻은 아닙니다.
