@@ -3,6 +3,7 @@ import importlib.util
 import json
 from pathlib import Path
 import subprocess
+import struct
 import sys
 import tempfile
 from types import SimpleNamespace as NS
@@ -13,6 +14,7 @@ import zlib
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT/'tools/local-extract'))
+import client_flatbuffers as fb
 import new_operators as new
 import recovery_models as models
 
@@ -90,6 +92,183 @@ class Planning(unittest.TestCase):
             self.assertEqual(values['character_table'], {'fixture':{}})
             self.assertEqual((root/'out/tables/opaque-bundles/hash.bin').read_bytes(), b'raw opaque fixture')
             self.assertEqual(new.read(root/'out/tables/opaque-inspection.json')[0]['objects'][0]['name'], 'stripped')
+
+    def test_hashed_table_names_are_strictly_identified(self):
+        for name in new.TABLES:
+            self.assertEqual(new.table_name(name+'c913b6'), name)
+            self.assertEqual(new.table_name('dyn/gamedata/excel/'+name+'aB12cD.bytes'), name)
+            self.assertEqual(new.table_name(name+'.json'), name)
+            for suffix in ('_unrelated', 'c913b6extra', 'zzzzzz', 'c913b'):
+                self.assertIsNone(new.table_name(name+suffix))
+
+    def test_bundled_flatbuffers_schemas_parse(self):
+        for name in new.TABLES:
+            if name != 'range_table':
+                root, enums, tables = fb.schema(name)
+                self.assertIn(root, tables)
+                self.assertGreater(len(tables), 0)
+
+    def test_flatbuffers_strings_enum_vector_and_defaults(self):
+        data = bytearray(84)
+        for pos, fmt, value in [(0,'I',24),(8,'H',10),(10,'H',16),(12,'H',4),(14,'H',8),(16,'H',12),
+                                (24,'i',16),(28,'I',20),(32,'i',5),(36,'I',28),(48,'I',5),
+                                (64,'I',3),(68,'i',-2),(72,'i',0),(76,'i',7)]:
+            struct.pack_into('<'+fmt,data,pos,value)
+        data[52:58] = b'hello\0'
+        layout = ('Root', {'Mode':('int',{0:'NONE',5:'ACTIVE'})},
+                  {'Root':[('name','string',None),('mode','Mode',None),('nums','[int]',None),('missing','string',None),('flag','bool',None)]})
+        with patch.object(fb,'schema',return_value=layout):
+            self.assertEqual(fb.decode(b'X'*128+data,'fixture'),
+                             {'name':'hello','mode':'ACTIVE','nums':[-2,0,7],'missing':None,'flag':False})
+            with self.assertRaises(ValueError): fb.decode(b'X'*128+data[:-10],'fixture')
+            broken=bytearray(data);struct.pack_into('<I',broken,28,100000)
+            with self.assertRaises(ValueError): fb.decode(b'X'*128+broken,'fixture')
+
+    def test_flatbuffers_dictionary_wrapper_and_schema_mismatch(self):
+        data=bytearray(128)
+        for pos,fmt,value in [(0,'I',24),(8,'H',6),(10,'H',8),(12,'H',4),(24,'i',16),(28,'I',20),
+                              (48,'I',2),(52,'I',28),(56,'I',48),(64,'H',8),(66,'H',12),(68,'H',4),(70,'H',8),
+                              (80,'i',16),(84,'i',1),(88,'f',1.5),(104,'i',40),(108,'i',2),(112,'f',-2.25)]:
+            struct.pack_into('<'+fmt,data,pos,value)
+        layout=('Root',{}, {'Root':[('characters','[Entry]',None)],'Entry':[('key','int',None),('value','float',None)]})
+        with patch.object(fb,'schema',return_value=layout):
+            self.assertEqual(fb.decode(b'X'*128+data,'character_table'),{'1':1.5,'2':-2.25})
+            duplicate=bytearray(data);struct.pack_into('<i',duplicate,108,1)
+            with self.assertRaisesRegex(ValueError,'Duplicate'): fb.decode(b'X'*128+duplicate,'character_table')
+        layout=('Root',{}, {'Root':[]})
+        with patch.object(fb,'schema',return_value=layout):
+            with self.assertRaisesRegex(ValueError,'fewer fields'): fb.decode(b'X'*128+data,'fixture')
+
+    def test_updated_hashed_bundle_wins_over_differently_named_base(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp); game = root/'view'; (game/'anon').mkdir(parents=True)
+            for file in ('aaa.bin','zzz.bin'): (game/'anon'/file).write_bytes(b'fixture')
+            new.write(game/'client-bundle-sources.json', {'anon/aaa.bin':'base','anon/zzz.bin':'update'})
+            def load(path):
+                value = 'old' if Path(path).name == 'aaa.bin' else 'new'
+                obj=NS(type=NS(name='TextAsset'), read=lambda:NS(m_Name='character_tablec913b6',m_Script=json.dumps({'fixture':{'name':value}}).encode()))
+                return NS(objects=[obj])
+            with patch.dict(sys.modules,{'aklz4':NS(),'UnityPy':NS(load=load)}):
+                values, report=new.load_tables(game,root/'out',log=lambda s:None)
+            self.assertEqual(values['character_table']['fixture']['name'],'new')
+            self.assertEqual(report['sources']['character_table']['origin'],'update')
+
+    def test_prepared_view_records_base_and_update_provenance(self):
+        spec=importlib.util.spec_from_file_location('new_ops_prepare',ROOT/'tools/local-extract/prepare_client.py')
+        module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp);base=root/'base';updates=root/'updates'
+            for directory in (base,updates): (directory/'anon').mkdir(parents=True)
+            (base/'battle/prefabs/effects').mkdir(parents=True)
+            (base/'battle/prefabs/effects/test.ab').write_bytes(b'effect')
+            (base/'anon/shared.bin').write_bytes(b'base');(updates/'anon/shared.bin').write_bytes(b'new')
+            (updates/'anon/updated.bin').write_bytes(b'new')
+            module.prepare(base,updates,root/'view')
+            provenance=new.read(root/'view/client-bundle-sources.json')
+            self.assertEqual(provenance['anon/shared.bin'],'update')
+            self.assertEqual(provenance['anon/updated.bin'],'update')
+            self.assertEqual(provenance['battle/prefabs/effects/test.ab'],'base')
+            self.assertEqual((root/'view/anon/shared.bin').read_bytes(),b'new')
+            self.assertEqual((base/'anon/shared.bin').read_bytes(),b'base')
+
+    def test_upload_package_omits_recovery_ab_but_preserves_all_converted_resources(self):
+        import package_operators
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp);output=root/'extraction'
+            content={'operator-report.json':b'{"complete":true}', 'files.json':b'[]',
+                     'source-bundles/common.ab':b'raw recovery', 'source-bundles/source-report.json':b'{}',
+                     'models/operator/model.json':b'{"model":1}', 'base-fx/fx/prefabs/skill.json':b'{}',
+                     'audio/sfx/clip.wav':b'clip', 'tables/raw/character.bin':b'raw table'}
+            for rel, data in content.items():
+                p=output/rel;p.parent.mkdir(parents=True,exist_ok=True);p.write_bytes(data)
+            package_operators.package(output, archive=root/'upload.zip')
+            with zipfile.ZipFile(root/'upload.zip') as z:
+                self.assertNotIn('extraction/source-bundles/common.ab',z.namelist())
+                self.assertIn('extraction/source-bundles/source-report.json',z.namelist())
+                for rel in content:
+                    if rel not in ('source-bundles/common.ab','files.json'):
+                        self.assertEqual(z.read('extraction/'+rel),content[rel])
+                manifest=json.loads(z.read('extraction/upload-manifest.json'))
+                self.assertEqual(manifest['omittedBytes'],len(b'raw recovery'))
+                inventory=json.loads(z.read('extraction/files.json'))
+                self.assertNotIn('source-bundles/common.ab',[r['path'] for r in inventory])
+            for rel,data in content.items(): self.assertEqual((output/rel).read_bytes(),data)
+            package_operators.package(output,include_sources=True,archive=root/'full.zip')
+            with zipfile.ZipFile(root/'full.zip') as z:
+                self.assertEqual(z.read('extraction/source-bundles/common.ab'),b'raw recovery')
+            with self.assertRaises(ValueError): package_operators.package(output,archive=output/'bad.zip')
+            with self.assertRaises(ValueError): package_operators.package(output,archive=root/'full.zip')
+
+    def test_voice_line_ids_do_not_become_speaker_owners(self):
+        source=tables();p=new.make_plan(source,new.DEFAULT_TARGETS)
+        source['charword_table']['charWords'][TAL+'_CN_001']={'charId':TAL,'wordKey':TAL,'charWordId':TAL+'_CN_001','voiceId':'CN_001','voiceAsset':TAL+'/CN_001'}
+        self.assertNotIn(TAL+'_CN_001',new.voice_owners(source,p))
+        self.assertIn(TAL,new.voice_owners(source,p))
+
+    def test_unity_container_pointers_are_dereferenced_for_audio(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp);game=root/'game';(game/'audio').mkdir(parents=True);(game/'audio/test.ab').write_bytes(b'fixture')
+            sf=NS(name='CAB-fixture'); obj=NS(path_id=1,assets_file=sf,type=NS(name='AudioClip'),read=lambda:NS(m_Name='CN_001',samples={'CN_001.wav':b'voice'}))
+            pointer=NS(deref=lambda:obj)  # PPtr deliberately has no assets_file.
+            env=NS(objects=[obj],container={'voice/'+TAL+'/CN_001':pointer})
+            with patch.dict(sys.modules,{'aklz4':NS(),'UnityPy':NS(load=lambda p:env)}):
+                report=new.export_audio(game,root/'out',{'banks':[]},{TAL},lambda s:None)
+            self.assertFalse(report['errors']);self.assertFalse(report['missingVoiceOwners'])
+            self.assertEqual(len(report['files']),1)
+
+    def test_skill_icon_prefix_matches_requested_skill_id(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp);game=root/'game';(game/'spritepack').mkdir(parents=True);(game/'spritepack/skill_icons_0.ab').write_bytes(b'fixture')
+            image=NS(width=1,height=1,save=lambda p:Path(p).write_bytes(b'png fixture'))
+            item=NS(m_Name='skill_icon_skchr_tal_1',image=image)
+            obj=NS(type=NS(name='Sprite'),read=lambda:item)
+            plan={'sprites':['skchr_tal_1'],'requiredSprites':['skchr_tal_1']}
+            with patch.dict(sys.modules,{'aklz4':NS(),'UnityPy':NS(load=lambda p:NS(objects=[obj]))}):
+                report=new.export_sprites(game,root/'out',plan,lambda s:None)
+            self.assertFalse(report['missingRequired']);self.assertEqual(report['sprites'][0]['name'],'skill_icon_skchr_tal_1')
+
+    def test_initial_module_badge_is_not_required_as_a_unique_module_image(self):
+        source=tables();source['uniequip_table']['equipDict']['equip_default']={'charId':TAL,'type':'INITIAL','uniEquipIcon':'equip_default'}
+        source['uniequip_table']['charEquip'][TAL].append('equip_default')
+        plan=new.make_plan(source,new.DEFAULT_TARGETS)
+        self.assertIn('equip_default',plan['tables']['modules'])
+        self.assertNotIn('equip_default',plan['requiredSprites'])
+        self.assertIn('module_tal',plan['requiredSprites'])
+
+    def test_real_unitypy_pptr_audio_container_api(self):
+        try: from UnityPy.classes.PPtr import PPtr
+        except ImportError: self.skipTest('UnityPy is not installed in the test interpreter')
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp);game=root/'game';(game/'audio').mkdir(parents=True);(game/'audio/test.ab').write_bytes(b'fixture')
+            sf=NS(name='CAB-real-pptr',objects={})
+            obj=NS(path_id=1,assets_file=sf,type=NS(name='AudioClip'),read=lambda:NS(m_Name='CN_001',samples={'CN_001.wav':b'voice'}))
+            sf.objects[1]=obj;pointer=PPtr(m_FileID=0,m_PathID=1,assetsfile=sf)
+            self.assertFalse(hasattr(pointer,'assets_file'))
+            env=NS(objects=[obj],container={'voice/'+TAL+'/CN_001':pointer})
+            with patch.dict(sys.modules,{'aklz4':NS(),'UnityPy':NS(load=lambda p:env)}):
+                report=new.export_audio(game,root/'out',{'banks':[]},{TAL},lambda s:None)
+            self.assertEqual(len(report['files']),1);self.assertFalse(report['errors'])
+
+    def test_media_repair_uses_matching_run_and_preserves_original_output(self):
+        import repair_operator_media as repair
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp);original=root/'cn-operators-20261101-fixture';original.mkdir()
+            new.write(original/'operator-report.json',{'requested':new.DEFAULT_TARGETS})
+            for name,value in tables().items():new.write(original/'tables/client'/(name+'.json'),value)
+            new.write(original/'audio-banks.json',{'banks':[]})
+            model=original/'models/keep.json';new.write(model,{'unchanged':True})
+            with self.assertRaises(ValueError):repair.repair(original,output=root/'no-client')
+            game=root/'work/cn-client-20261101-fixture';game.mkdir(parents=True)
+            before={p.relative_to(original).as_posix():p.read_bytes() for p in original.rglob('*') if p.is_file()}
+            def icons(game,output,plan,log):
+                new.write(output/'sprites.json',{'sprites':[]});return {'sprites':[],'missingRequired':[],'errors':[]}
+            def audio(game,output,banks,owners,log):
+                new.write(output/'audio-report.json',{'files':[]});return {'files':[],'missingSfx':[],'missingVoiceOwners':[],'errors':[]}
+            with patch.object(repair,'export_sprites',side_effect=icons),patch.object(repair,'export_audio',side_effect=audio):
+                report=repair.repair(original,output=root/'followup',log=lambda s:None)
+            self.assertTrue(report['complete'])
+            self.assertEqual(before,{p.relative_to(original).as_posix():p.read_bytes() for p in original.rglob('*') if p.is_file()})
+            self.assertFalse((root/'followup/models').exists())
 
     def test_default_targets_are_three_people_and_both_frozen_river_names_resolve_identically(self):
         self.assertEqual(new.DEFAULT_TARGETS, ['塔露拉', '国度', '冻河'])
@@ -228,6 +407,9 @@ class ExtractionContracts(unittest.TestCase):
             with zipfile.ZipFile(archive) as z:
                 for name in builder.MODULES:self.assertIn('tools/local-extract/'+name,z.namelist())
                 self.assertIn('tools/local-extract/plugin-fx.mjs',z.namelist()); self.assertIn('prepare_client.py',z.namelist())
+                self.assertIn('tools/local-extract/client_flatbuffers.py', z.namelist())
+                self.assertIn('tools/local-extract/cn-schemas/character_table.fbs', z.namelist())
+                self.assertIn('tools/local-extract/cn-schemas/SOURCES.json', z.namelist())
                 ps=z.read('EXTRACT-NEW-OPERATORS.ps1');self.assertTrue(ps.startswith(b'\xef\xbb\xbf'))
                 launcher=ps.decode('utf-8-sig');self.assertIn('new_operators.py',launcher);self.assertNotIn("-Filter 'cn-client-*'",launcher)
                 self.assertIn("'--tables'",launcher);self.assertIn("'--operator'",launcher)

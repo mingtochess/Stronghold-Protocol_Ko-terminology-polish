@@ -2,6 +2,7 @@
 Only additional hard-link directory entries are created; source files are never written.
 """
 import argparse
+import json
 import os
 from pathlib import Path
 
@@ -19,7 +20,7 @@ def prepare(base, updates, output):
         for file in source.rglob('*'):
             if file.is_file() and file.suffix.lower() in ('.ab', '.bin'):
                 relative = file.relative_to(source)
-                chosen[str(relative).replace('\\', '/').lower()] = (relative, file)
+                chosen[str(relative).replace('\\', '/').lower()] = (relative, file, 'update' if source == updates else 'base')
     if not chosen:
         raise RuntimeError('No .ab/.bin bundles found. Send the console output for format inspection.')
     effects = [key for key in chosen if (key.startswith('pkgrps/btl_pfb_fx_') or key.startswith('battle/prefabs/effects/')) and key.endswith('.ab')]
@@ -27,13 +28,15 @@ def prepare(base, updates, output):
         examples = '\n'.join(list(chosen)[:20])
         raise RuntimeError('No supported effect bundle filenames found. Bundle sample:\n' + examples)
     output.mkdir(parents=True)
-    for relative, original in chosen.values():
+    for relative, original, origin in chosen.values():
         target = output / relative
         target.parent.mkdir(parents=True, exist_ok=True)
         try:
             os.link(original, target)
         except OSError as error:
             raise RuntimeError('Hard-link creation failed. Put this kit on the SAME NTFS drive as the CN client, then try again. ' + str(error)) from error
+    manifest = {str(relative).replace('\\', '/'): origin for relative, original, origin in chosen.values()}
+    (output/'client-bundle-sources.json').write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding='utf-8')
     print(f'Prepared {len(chosen)} bundles; {len(effects)} effect bundles. Updated files take priority.')
     print(f'Client view: {output}')
     return len(chosen)

@@ -1,3 +1,4 @@
+import {buildNorthernRecruits} from './build-northern-recruits.mjs';
 import {buildRecoveryAssets} from './build-recovery-assets.mjs';
 import {buildMakoto} from './build-makoto.mjs';
 import {buildSkinSfx} from './build-skin-sfx.mjs';
@@ -58,7 +59,8 @@ export async function buildUpstreamRecruits(root,dir){
  assets.stats??={};assets.stats.voiceChars=new Set([...Object.keys(assets.audio.voice.kr),...Object.keys(assets.audio.voice.jp)]).size;
  for(const [k,v]of Object.entries({chess,tokens,assets,bonds}))await writeFile(`${dir}/${k}.json`,JSON.stringify(v));
  await buildMakoto(root,dir);
- await buildRecruitResources(root,[...await buildSakikoSounds(root,dir),...(await buildMissingSfx(root,dir)).files,...await buildSkinSfx(root,dir),...await buildRecoveryAssets(root,dir)]);
+ const northernFiles=await buildNorthernRecruits(root,dir);
+ await buildRecruitResources(root,[...await buildSakikoSounds(root,dir),...(await buildMissingSfx(root,dir)).files,...await buildSkinSfx(root,dir),...await buildRecoveryAssets(root,dir),...northernFiles]);
  console.log(`Upstream recruit roster: ${ids.length} operators, preserved Sakiko`);
 }
 if(process.argv[1]?.endsWith('build-upstream-recruits.mjs'))await buildUpstreamRecruits(process.cwd(),`${process.cwd()}/.cache/ursus-data`);

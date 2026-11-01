@@ -54,10 +54,10 @@ def field_strings(value, keys):
 
 def table_name(value):
     leaf = str(value).replace('\\', '/').rsplit('/', 1)[-1].lower()
-    return next((name for name in TABLES if leaf in (name, name+'.json', name+'.bytes', name+'.txt')), None)
+    return next((name for name in TABLES if re.fullmatch(re.escape(name)+r'(?:[0-9a-f]{6})?(?:\.(?:json|bytes|txt))?', leaf)), None)
 
 
-def decode_table(payload):
+def decode_table(payload, name=None):
     if isinstance(payload, str): payload = payload.encode('utf-8', 'surrogateescape')
     candidates = [bytes(payload)]
     for unpack in (gzip.decompress, zlib.decompress):
@@ -73,6 +73,11 @@ def decode_table(payload):
     for data in candidates:
         value = document(data)
         if value is not None: return value
+    flatbuffer_error = None
+    if name and name != 'range_table' and len(payload) >= 136:
+        from client_flatbuffers import decode
+        try: return decode(payload, name)
+        except (ValueError, UnicodeError) as e: flatbuffer_error = str(e)
     # Client JSON/BSON TextAssets: 128-byte signature, masked IV, AES-CBC.
     # Format reference: isHarryh/Ark-Unpacker DecodeTextAsset.ArkAESLibrary
     # (BSD-3-Clause; bundled LICENSE-Ark-Unpacker.txt). No signature is forged.
@@ -100,13 +105,16 @@ def decode_table(payload):
                 raise ValueError('Decrypted table is not JSON; BSON requires pymongo from the updated launcher.') from e
             except Exception:
                 pass
-    raise ValueError('Unsupported client table encoding; raw bytes retained for diagnosis (no online replacement).')
+    detail = ' FlatBuffers: '+flatbuffer_error if flatbuffer_error else ''
+    raise ValueError('Unsupported client table encoding; raw bytes retained for diagnosis (no online replacement).'+detail)
 
 
 def load_tables(game, output, supplied=None, installed=None, log=print):
     """Explicit/updated local tables -> updated bundles -> loose base tables. Never use an online snapshot."""
     result, sources, errors, claimed = {}, {}, [], set()
-    inspection = []
+    inspection, opaque_sources = [], []
+    origin_file = Path(game)/'client-bundle-sources.json'
+    origins = read(origin_file) if origin_file.is_file() else {}
     roots = [Path(supplied)] if supplied else []
     if supplied and not roots[0].is_dir(): raise ValueError('Local table folder does not exist')
     roots.append(Path(game)/'gamedata/excel')
@@ -118,7 +126,7 @@ def load_tables(game, output, supplied=None, installed=None, log=print):
         raw = Path(output)/'tables/raw'/(name+'-'+hashlib.sha256(data).hexdigest()[:12]+'.bin')
         raw.parent.mkdir(parents=True, exist_ok=True); raw.write_bytes(data)
         try:
-            result[name] = decode_table(data)
+            result[name] = decode_table(data, name)
             sources[name] = {**source, 'sha256': hashlib.sha256(data).hexdigest()}
         except ValueError as e: errors.append({'table': name, **source, 'error': str(e)})
     def loose(directories):
@@ -141,7 +149,7 @@ def load_tables(game, output, supplied=None, installed=None, log=print):
         # Bundle filenames can be opaque/packed. Prefer likely paths, but never
         # conclude that tables are absent without inspecting remaining bundles.
         bundles = sorted((p for p in Path(game).rglob('*') if p.is_file() and p.suffix.lower() in ('.ab', '.bin')),
-                         key=lambda p: (not any(n in p.relative_to(game).as_posix().lower()
+                         key=lambda p: (origins.get(p.relative_to(game).as_posix()) != 'update', not any(n in p.relative_to(game).as_posix().lower()
                                                 for n in ('gamedata', 'excel', 'table')), str(p)))
         log(f'Client table search: {len(bundles)} bundles; loose tables decoded {len(result)}/{len(TABLES)}')
         write(Path(output)/'tables/bundle-inventory.json', [p.relative_to(game).as_posix() for p in bundles])
@@ -171,22 +179,26 @@ def load_tables(game, output, supplied=None, installed=None, log=print):
                     if not name or name in claimed: continue
                     payload = text.m_Script
                     data = bytes(payload) if isinstance(payload, (bytes, bytearray)) else payload.encode('utf-8', 'surrogateescape')
-                    accept(name, data, {'source': 'client-TextAsset', 'bundle': path.relative_to(game).as_posix()})
+                    accept(name, data, {'source': 'client-TextAsset', 'bundle': path.relative_to(game).as_posix(), 'origin': origins.get(path.relative_to(game).as_posix(), 'unknown')})
                 if anonymous:
                     inspection.append(record)
-                    # Preserve opaque data bundles for off-machine diagnosis;
-                    # decoded JSON alone cannot explain missing table objects.
-                    dest = Path(output)/'tables/opaque-bundles'/path.name
-                    dest.parent.mkdir(parents=True, exist_ok=True)
-                    shutil.copyfile(path, dest)
+                    opaque_sources.append(path)
             except Exception as e: errors.append({'bundle': path.relative_to(game).as_posix(), 'error': str(e)})
             if i % 20 == 0: log(f'Client table bundles {i}/{len(bundles)}; decoded {len(result)}/{len(TABLES)}')
             gc.collect()
     write(Path(output)/'tables/opaque-inspection.json', inspection)
     loose(fallback)
+    # Bulk diagnostic bundles are only needed while required tables are missing.
+    # Individual signed table payloads remain preserved even on successful reads.
+    if REQUIRED-set(result):
+        for path in opaque_sources:
+            dest = Path(output)/'tables/opaque-bundles'/path.name
+            dest.parent.mkdir(parents=True, exist_ok=True); shutil.copyfile(path, dest)
     for name, value in result.items(): write(Path(output)/'tables/client'/(name+'.json'), value)
     report = {'sources': sources, 'missingRequired': sorted(REQUIRED-set(result)), 'missingOptional': sorted(set(TABLES)-REQUIRED-set(result)),
               'errors': errors, 'onlineTablesUsed': False}
+    schema_source = Path(__file__).with_name('cn-schemas')/'SOURCES.json'
+    if schema_source.is_file(): report['binarySchemaSource'] = read(schema_source)
     write(Path(output)/'tables/table-report.json', report)
     log(f'Client tables decoded {len(result)}/{len(TABLES)}; read errors {len(errors)}')
     if report['missingRequired']: log('Missing required client tables: '+', '.join(report['missingRequired']))
@@ -240,8 +252,8 @@ def make_plan(tables, requested):
     required_ranges = set(field_strings([*(chars.get(cid,{}) for cid in units),skills,battle_equips], {'rangeId','rangeGridId'}))
     sprite_required = {row[key] for row in skin_rows for key in ('avatarId', 'portraitId') if isinstance(row.get(key), str) and row[key]}
     sprite_required.update(row.get('iconId') or key for key,row in skills.items())
-    sprite_required.update(row.get('uniEquipIcon') or row.get('iconId') or key for key,row in modules.items())
-    for record in [*skills.values(), *modules.values()]:
+    sprite_required.update(row.get('uniEquipIcon') or row.get('iconId') or key for key,row in modules.items() if row.get('type') != 'INITIAL')
+    for record in [*skills.values(), *(row for row in modules.values() if row.get('type') != 'INITIAL')]:
         sprite_required.update(s for key, s in record.items() if key in ('iconId', 'uniEquipIcon') and isinstance(s, str) and s)
         for level in record.get('levels') or []:
             if isinstance(level, dict) and level.get('iconId'): sprite_required.add(level['iconId'])
@@ -321,10 +333,11 @@ def export_sprites(game, output, plan, log):
             for obj in env.objects:
                 if obj.type.name not in ('Sprite', 'Texture2D'): continue
                 item = obj.read(); key = item.m_Name.lower().removesuffix('.png')
-                if key not in wanted: continue
+                match = key[11:] if key.startswith('skill_icon_') else key
+                if match not in wanted and key not in wanted: continue
                 image = item.image; data_name = hashlib.sha256(item.m_Name.encode()).hexdigest()[:12]
                 dest = output/(re.sub(r'[^a-zA-Z0-9_-]', '_', item.m_Name)+'-'+data_name+'.png')
-                image.save(dest); found.add(key)
+                image.save(dest); found.update((key, match))
                 rows.append({'name': item.m_Name, 'file': dest.name, 'bundle': path.relative_to(game).as_posix(), 'width': image.width, 'height': image.height})
         except Exception as e: errors.append({'bundle': path.relative_to(game).as_posix(), 'error': str(e)})
         if i % 50 == 0: log(f'Sprite bundles {i}/{len(bundles)}; found {len(found)} requested sprites')
@@ -358,9 +371,14 @@ def voice_owners(tables, plan):
             if isinstance(value, str) and CHAR_ID.fullmatch(value): owners.add(value)
     for key, row in (tables.get('charword_table', {}).get('charWords') or {}).items():
         if not isinstance(row, dict): continue
-        if row.get('charId') in owners or any(cid in key for cid in plan['operators']):
-            for value in strings(row):
-                if CHAR_ID.fullmatch(value): owners.add(value)
+        if row.get('charId') in owners or row.get('wordKey') in owners:
+            # charWordId is a line ID, not a speaker (char_*_CN_001).
+            # Only declared speaker fields and the voice asset owner are aliases.
+            aliases = [row.get('charId'), row.get('wordKey')]
+            asset = row.get('voiceAsset')
+            if isinstance(asset, str): aliases.append(asset.replace('\\','/').split('/')[0])
+            for value in aliases:
+                if isinstance(value, str) and CHAR_ID.fullmatch(value): owners.add(value)
     return owners
 
 
@@ -376,7 +394,11 @@ def export_audio(game, output, banks, owners, log):
     for i, path in enumerate(bundles, 1):
         try:
             env = UnityPy.load(str(path)); container_paths = {}
-            for key, obj in env.container.items(): container_paths.setdefault((id(obj.assets_file), obj.path_id), []).append(str(key))
+            for key, pointer in env.container.items():
+                # UnityPy container values are PPtr (assetsfile), not ObjectReader
+                # (assets_file). Resolve them before matching clips by file/path ID.
+                obj = pointer.deref() if callable(getattr(pointer, 'deref', None)) else pointer
+                container_paths.setdefault((id(obj.assets_file), obj.path_id), []).append(str(key))
             for obj in env.objects:
                 if obj.type.name != 'AudioClip': continue
                 clip = obj.read(); name = clip.m_Name.lower().removesuffix('.mp3').removesuffix('.wav')
@@ -495,7 +517,7 @@ def run(kit, game, output, requested, supplied=None, installed=None, plan_only=F
             stage('FX file integrity', lambda: validate_payloads(output))
             # Metadata points to original bundles; include shared skills/projectiles/template roots as well.
             import fx
-            seed_values = set(strings([models, results.get('all skin FX and mount points'), results.get('battle SFX and installed character voices'), wire, tr]))
+            seed_values = set(strings([models, results.get('all skin FX and mount points'), (results.get('battle SFX and installed character voices') or {}).get('files', []), wire, tr]))
             seed_values.update([fx.PROJECTILES, fx.SKILLS, fx.BUFF_TEMPLATES])
             for index_file in output.rglob('index.json'):
                 if index_file.parent.name == 'fx': seed_values.update(strings(read(index_file)))
@@ -527,8 +549,8 @@ def run(kit, game, output, requested, supplied=None, installed=None, plan_only=F
         write(output/'files.json', [{'path': p.relative_to(output).as_posix(), 'bytes': p.stat().st_size, 'sha256': hashlib.sha256(p.read_bytes()).hexdigest()} for p in sorted(output.rglob('*')) if p.is_file()])
         # Only this run's disposable root is removed. No client bundle or old output is touched.
         shutil.rmtree(work)
-        from cn_skins import package
-        package(output)
+        from package_operators import package
+        package(output, archive=output.with_suffix('.zip'))
     say('COMPLETE' if report['complete'] else 'PARTIAL: upload every listed volume and operator-report.json; missing assets were not silently accepted.')
     return report
 

@@ -5,17 +5,22 @@ import sys
 import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
-MODULES = ['new_operators.py', 'recovery_models.py', 'skin_fx.py', 'complete_skin_fx.py',
+MODULES = ['new_operators.py', 'repair_operator_media.py', 'package_operators.py', 'client_flatbuffers.py', 'recovery_models.py', 'skin_fx.py', 'complete_skin_fx.py',
            'skin_recovery.py', 'skin_audio.py', 'cn_skins.py', 'fx.py', 'aklz4.py',
            'extract.py', 'operators.py', 'scenes.py', 'requirements.txt', 'LICENSE-Ark-Unpacker.txt']
 
 README = '''중국 클라이언트 신규 선발 오퍼레이터 추출 도구
 
+이미 추출을 완료한 경우 package_operators.py로 재압축만 할 수 있습니다.
+업로드 ZIP에서는 source-bundles 원본 AB를 제외하며, 원본은 PC에 그대로 보관합니다.
+
 기본 대상은 세 명입니다.
 - 塔露拉 / Talulah
 - 国度 / Территория
 - 冻河 / Тоска (동일한 한 명)
-이름은 클라이언트 데이터에서 실제 charId로 해결합니다. 오퍼레이터 ID를 추측해서 고정하지 않습니다.
+이름은 클라이언트 데이터에서 실제 charId로 해결합니다.
+해시 접미사가 붙은 테이블 이름과 CN FlatBuffers/AES JSON/BSON을 로컬에서 해독합니다.
+기존 뷰 대신 일반 실행으로 새 뷰를 준비해야 업데이트 테이블 출처가 기록됩니다. 오퍼레이터 ID를 추측해서 고정하지 않습니다.
 
 준비
 1. 중국 PC 클라이언트를 업데이트하고 필요한 음성/스킨 리소스를 다운로드합니다.
@@ -70,6 +75,8 @@ def build(output):
     output = Path(output); output.parent.mkdir(parents=True, exist_ok=True)
     with zipfile.ZipFile(output, 'w', zipfile.ZIP_DEFLATED, compresslevel=6) as z:
         for name in MODULES: z.write(ROOT/'tools/local-extract'/name, 'tools/local-extract/'+name)
+        for path in sorted((ROOT/'tools/local-extract/cn-schemas').iterdir()):
+            if path.suffix in ('.fbs', '.json'): z.write(path, 'tools/local-extract/cn-schemas/'+path.name)
         # Existing exporters optionally query repository plugins; this standalone kit has none.
         z.writestr('tools/local-extract/plugin-fx.mjs', 'process.stdout.write("[]");\n')
         z.write(ROOT/'tools/local-extract/new-operators-START.ps1', 'EXTRACT-NEW-OPERATORS.ps1')

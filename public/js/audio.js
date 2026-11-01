@@ -1837,6 +1837,13 @@ export class AudioManager {
             else if(e[1]==='swap'&&ex.form==null)u.form=null;
             const url=this.getManifest()?.audio?.sfx?.units?.[u.def]?.fx?.[e[1]];if(url)this._playUnitUrl(url,`${ex.id}:${e[1]}`);
           }}
+          if(/^(talulah|territoriya|toska)/.test(e[1])&&ex?.id!=null){
+            const u=this.units.get(ex.id),cid=u?.baseDef||u?.def;
+            if(['char_4247_oxi','char_4246_dminon','char_4244_tocka'].includes(cid)&&(e[1]!=='talulahWave'||ex.lane===0)){
+              const entry=this.getManifest()?.audio?.sfx?.units?.[u.def]?.fx?.[e[1]],url=typeof entry==='string'?entry:entry?.[ex.kind];
+              if(url)this._playUnitUrl(url,`${ex.id}:${e[1]}`);
+            }
+          }
           if(e[1]==='iceSpikeImpact'&&ex){const u=this.units.get(ex.id),url=this.getManifest()?.audio?.sfx?.units?.[u?.def]?.fx?.iceSpike;if(typeof url==='string')this._play(url,{volume:.55,limited:true,unitKey:`${ex.id}:iceSpike`});continue;}
           if(['sakikoNoteSound','sakikoNoteHit'].includes(e[1])){
             const owner=this.units.get(ex?.id);if(owner?.def!=='char_4182_oblvns')continue;

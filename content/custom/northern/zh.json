@@ -1,0 +1,94 @@
+{
+  "talulah": {
+    "name": "塔露拉",
+    "trait": "能够阻挡两个敌人，可以造成<@ba.kw>元素伤害</>",
+    "subProfessionName": "本源近卫",
+    "talents": [
+      [
+        "绝不妥协",
+        "攻击造成法术伤害；造成法术伤害时附带13%<@ba.talpu>（+2%）</>的<$ba.dt.burning2>灼燃损伤</>；停止攻击3秒后法术和元素伤害逐渐提升（最高提升18%<@ba.talpu>（+3%）</>，每次攻击时衰减）"
+      ],
+      [
+        "我即火焰",
+        "在场时，全场敌人<$ba.dt.burning2>灼燃损伤</>爆发后5秒内，于可通行地面留下持续4<@ba.talpu>（+1）</>秒的“足迹”（最多25格），每0.3秒造成塔露拉攻击力15%<@ba.talpu>（+3%）</>的法术伤害"
+      ]
+    ],
+    "skills": [
+      [
+        "照霎白夜",
+        "对目标所在地块上的所有地面敌人造成攻击力<@ba.vup>{atk_scale:0%}</>的法术伤害，并造成<@ba.vup>{fear:0.0}</>秒<$ba.fear>恐惧</>"
+      ],
+      [
+        "阂断骤雪",
+        "获得<@ba.vup>{damage_resistance:0%}</>的<$ba.protect>庇护</>（持续<@ba.vup>{shelter_hold_duration:0.0}</>秒后逐渐降低），对攻击来源造成塔露拉攻击力<@ba.vup>{retaliate_atk_scale:0%}</>的范围法术伤害，并治疗塔露拉相当于伤害量<@ba.vup>{heal_ratio:0%}</>的生命值；之后<@ba.vup>{stack_duration:0.0}</>秒内攻击所有阻挡的敌人，攻击力<@ba.vup>+{atk:0%}</>和防御力<@ba.vup>+{def:0%}</>（可叠加<@ba.vup>5</>层）\\n<@ba.rem>受到攻击后触发，可充能{max_stack_cnt:0}次</>"
+      ],
+      [
+        "日冕重烈",
+        "攻击力<@ba.vup>+{atk:0%}</>；停止攻击以持续引导场地进入以下状态：每<@ba.vup>{normal_interval:0.00}</>秒在5行范围内，朝部署方向召唤“簇火”，“簇火”碰到敌人时爆炸造成攻击力<@ba.vup>{heatwave_atk_scale:0.0%}</>的范围法术伤害；若目标处于<$ba.dt.burning2>灼燃损伤</>爆发期间则改为造成元素伤害\\n<$ba.overdrive>过载</>：“簇火”生成间隔缩短至<@ba.vup>{overload_interval:0}</>秒，范围扩展最多13行\\n被同波次的多个“簇火”命中时，后续“簇火”造成的伤害降低至<@ba.vup>{same_wave_repeat_damage_scale:0%}</>\\n<@ba.rem>该技能可随时主动关闭</>"
+      ]
+    ]
+  },
+  "territoriya": {
+    "name": "国度",
+    "trait": "对攻击范围内<@ba.kw>所有敌人</>造成伤害\\n拥有50%的物理和法术闪避且不容易成为敌人的<@ba.kw>攻击目标</>",
+    "subProfessionName": "伏击客",
+    "talents": [
+      [
+        "实质坍缩",
+        "自身攻击范围内弥漫“国度”，处于“国度”内的地面敌人攻击速度-15，每秒受到攻击力13%的法术伤害"
+      ],
+      [
+        "此身为界",
+        "自身撤退时，对“国度”内的所有地面敌人造成相当于攻击力600%<@ba.talpu>（+100%）</>的法术伤害和5秒<$ba.stun>晕眩</>，随后所有“国度”消失"
+      ]
+    ],
+    "skills": [
+      [
+        "停步",
+        "攻击速度<@ba.vup>+{attack_speed}</>，每个敌人首次踏上“国度”时会<$ba.sluggish>停顿</><@ba.vup>{sluggish}</>秒"
+      ],
+      [
+        "受戮",
+        "攻击范围<@ba.vup>扩大</>，攻击力<@ba.vup>+{atk:0%}</>，使“国度”上的敌人无法闪避物理和法术攻击\\n<@ba.rem>第二次及以后使用时额外使攻击速度<@ba.vup>+{attack_speed}</>，且持续时间无限</>"
+      ],
+      [
+        "无人的国度",
+        "攻击范围<@ba.vup>扩大</>，攻击力<@ba.vup>+{atk:0%}</>，攻击速度<@ba.vup>+{attack_speed}</>，同时攻击“国度”上的所有敌人，“国度”上的单位被地面敌人攻击时，在伤害来源周围四格扩散“国度”，并造成相当于攻击力<@ba.vup>{attack@aoe_atk_scale:0%}</>的物理伤害（每{attack@cd}秒最多触发1次）\\n<@ba.rem>技能结束后，重置场上的“国度”状态</>"
+      ]
+    ],
+    "modules": {
+      "uniequip_001_dminon": "国度证章",
+      "uniequip_002_dminon": "空瓶罐们"
+    },
+    "moduleAdditional": "攻击范围内所有敌人移动速度<@ba.vdown>-20%</>"
+  },
+  "toska": {
+    "name": "冻河",
+    "trait": "可以使用<$ba.triggereffect>触发型效果</>协助作战",
+    "subProfessionName": "游击手",
+    "talents": [
+      [
+        "夜的哑然",
+        "自身的<$ba.triggereffect>触发型效果</>触发时回复2点技力，并为攻击范围内一名友方干员治疗攻击力100%<@ba.talpu>（+20%）</>的生命"
+      ],
+      [
+        "雪的印痕",
+        "施加<$ba.triggereffect>触发型效果</>后的下次普通攻击造成范围伤害，并使目标获得20%的<$ba.weaken>虚弱</>效果，持续8<@ba.talpu>（+2）</>秒，期间每秒受到攻击力80%的法术伤害"
+      ]
+    ],
+    "skills": [
+      [
+        "一无所有之人",
+        "对范围内<@ba.vup>{max_target}</>名干员施加<$ba.triggereffect>触发型效果</>（只选择未持有该效果的目标）：\\n受到攻击时，获得相当于冻河<@ba.vup>{shield_atk_scale:0%}</>攻击力的<$ba.barrier>屏障</>（在{shield_time}秒内衰减），并使攻击者<$ba.stun>晕眩</><@ba.vup>{stun}</>秒"
+      ],
+      [
+        "意欲呼啸之心",
+        "对<@ba.vup>全场</>{max_target}名干员施加<$ba.triggereffect>触发型效果</>（只选择未持有该效果的目标）：\\n技能可开启时，在<@ba.vup>{buff_duration}</>秒内攻击速度<@ba.vup>+{attack_speed}</>，期间技能变为自动开启"
+      ],
+      [
+        "踽踽独行之春",
+        "攻击速度<@ba.vup>+{attack_speed}</>，攻击对{attack@max_target}个敌人造成攻击力<@ba.vup>{attack@atk_scale:0%}</>的物理伤害并使目标<$ba.stun>晕眩</><@ba.vup>{attack@stun:0.0}</>秒，立刻对范围内另一名干员施加<$ba.triggereffect>触发型效果</>（已存在时改为将其触发）：\\n开启技能时自身和冻河攻击力<@ba.vup>+{bonus_init_atk:0%}</>（在<@ba.vup>{bonus_duration}</>秒内衰减），并将该<$ba.triggereffect>触发型效果</>转移给冻河攻击范围内技力比例最高的另一名干员；冻河技能期间拥有该效果的干员每秒获得<@ba.vup>1</>点技力"
+      ]
+    ]
+  }
+}
