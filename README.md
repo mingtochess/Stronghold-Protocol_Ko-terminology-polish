@@ -7,6 +7,7 @@
 ![node](https://img.shields.io/badge/node-22%20%7C%2024-339933)
 
 Claude Code 개발 안내: [설정·실행](docs/CLAUDE-CODE.md) · [현재 작업 인계](docs/CLAUDE-HANDOFF.md).
+중국 신규 오퍼레이터 추출: [실행·결과 안내](docs/CN-NEW-OPERATORS-EXTRACTION.md).
 
 ## 고지사항
 
