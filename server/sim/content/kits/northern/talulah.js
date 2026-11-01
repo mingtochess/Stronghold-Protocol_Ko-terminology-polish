@@ -25,7 +25,7 @@ export function talulahKit(_bb,raw){
   return[s.skillId,{kind:'duration',duration:s.duration,mods:{atkPct:num(bb.atk)},attack:{noAttack:true},onStart({battle:b,unit:u,skill}){
    const st=u.mem.talulah;st.waveClock=0;st.channelSeq=u.deploySeq;st.wavePhase=0;
    // Skill runtime retains its regular duration; overdrive starts exactly at its midpoint.
-   st.waveDuration=skill.duration;fx(b,u,'talulahChannel',{dur:skill.duration});
+   st.waveDuration=skill.duration;fx(b,u,'talulahChannel',{dur:skill.duration});st.emitWave();
   },onEnd({battle:b,unit:u}){fx(b,u,'talulahChannelEnd');}}];
  }));
  return{skills,install(b,u){
@@ -55,6 +55,7 @@ export function talulahKit(_bb,raw){
     fx(b,u,'talulahWave',{born:b.time,x,y,dx:dc,dy:dr,speed:num(bb.wave_speed),dur:range/num(bb.wave_speed),wave:serial,lane});
    }
   }
+  st.emitWave=wave;
   // Fired projectiles keep flying after the channel ends, like the engine's projectile runtime.
   function advanceWaves(dt){
    for(const w of st.waves){const distance=num(bb.wave_speed)*dt;w.x+=w.dc*distance;w.y+=w.dr*distance;w.left-=distance;

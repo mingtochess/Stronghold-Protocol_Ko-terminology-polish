@@ -1,17 +1,19 @@
-// Prepare server-hosted payloads for a future immutable GitHub/CDN origin.
+// Resolve immutable base and additive GitHub/CDN resource origins.
 import {readFile,writeFile,mkdir,copyFile} from 'node:fs/promises';
 import {resolve,dirname,relative,isAbsolute} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {createHash} from 'node:crypto';
+import {resolveResourcePacks,packedSources} from './resource-packs.mjs';
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'..');
 const sha=b=>createHash('sha256').update(b).digest('hex');
 const read=async p=>JSON.parse(await readFile(p,'utf8'));
 const local=f=>f.local || (f.sources||[]).some(s=>s.startsWith('/'));
 function safe(base,path){const out=resolve(base,path.replace(/^\//,'')),rel=relative(base,out);if(rel.startsWith('..')||isAbsolute(rel))throw Error('Unsafe resource path: '+path);return out;}
 export function applyOrigin(catalog,config){
- if(!config.baseUrls?.length)return catalog;
- const bases=config.baseUrls.map(value=>{const u=new URL(value);if(u.protocol!=='https:'||!['raw.githubusercontent.com','cdn.jsdelivr.net'].includes(u.hostname)||u.search||u.hash)throw Error('Use an immutable HTTPS GitHub raw/jsDelivr base URL');return u.href.replace(/\/$/,'');});
- const files=catalog.files.map(f=>local(f)?{...f,sources:[...bases.map(b=>b+'/'+f.path.split('/').filter(Boolean).map(encodeURIComponent).join('/')),...(config.fallbackToServer?[f.path]:[])]}:f);
+ if(!config.baseUrls?.length&&!config.resolvedPacks?.length)return catalog;
+ const bases=(config.baseUrls||[]).map(value=>{const u=new URL(value);if(u.protocol!=='https:'||!['raw.githubusercontent.com','cdn.jsdelivr.net'].includes(u.hostname)||u.search||u.hash)throw Error('Use an immutable HTTPS GitHub raw/jsDelivr base URL');return u.href.replace(/\/$/,'');});
+ const pinned=new Map((config.resolvedPacks||[]).flatMap(pack=>pack.files.map(f=>[f.path,pack])));
+ const files=catalog.files.map(f=>pinned.has(f.path)?{...f,sources:packedSources(pinned.get(f.path),f.path)}:local(f)&&bases.length?{...f,sources:[...bases.map(b=>b+'/'+f.path.split('/').filter(Boolean).map(encodeURIComponent).join('/')),...(config.fallbackToServer?[f.path]:[])]}:f);
  return {...catalog,files,version:sha(JSON.stringify(files)).slice(0,20)};
 }
 export async function exportResources(catalogPath,out,roots){
@@ -38,6 +40,6 @@ if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
  else if(mode==='apply'){
   const config=await read(args[1]||resolve(root,'content/custom/resource-origin.json'));
   const path=args[0]||resolve(root,'public/vendor/browser-resources.json');
-  const catalog=await read(path);await writeFile(path,JSON.stringify(applyOrigin(catalog,config)));
+  const catalog=await read(path);config.resolvedPacks=await resolveResourcePacks(root,config);await writeFile(path,JSON.stringify(applyOrigin(catalog,config)));
  }else throw Error('Usage: resource-origin.mjs export CATALOG OUT PUBLIC_ROOT... | apply [CATALOG] [CONFIG]');
 }
