@@ -1,0 +1,95 @@
+{
+  "talulah": {
+    "name": "탈룰라",
+    "trait": "적 2명을 저지하며, <@ba.kw>원소 대미지</>를 줄 수 있음",
+    "talents": [
+      [
+        "절대 타협하지 않는다",
+        "일반 공격으로 마법 대미지를 주며, 마법 대미지를 줄 때 피해량의 {ep_damage_ratio:0%}만큼 <$ba.dt.burning2>소각 손상</>을 추가로 부여\n{arcane_idle_delay}초 동안 공격하지 않으면 마법 및 원소 대미지가 점차 증가(최대 {arcane_max:0%}). 공격할 때마다 증가량이 한 단계 감소"
+      ],
+      [
+        "내가 곧 화염이다",
+        "배치 중 전장 내 적에게 <$ba.dt.burning2>소각 손상</> 폭발이 발생하면, 해당 적은 5초 동안 이동 가능한 지상 타일에 ‘발자취’를 남김(최대 {max_count}칸)\n발자취는 {field_duration}초간 지속되며, {field_interval:0.0}초마다 탈룰라 공격력의 {field_atk_scale:0%}만큼 마법 대미지를 줌"
+      ]
+    ],
+    "skills": [
+      [
+        "백야의 섬광",
+        "목표가 있는 타일의 모든 지상 적에게 공격력의 {atk_scale:0%}만큼 마법 대미지를 주고, {fear:0.0}초간 <$ba.fear>공포</> 부여"
+      ],
+      [
+        "폭설을 가르는 장벽",
+        "{damage_resistance:0%}의 <$ba.protect>가호</> 획득({shelter_hold_duration:0.0}초 후 점차 감소). 공격자 주변에 공격력의 {retaliate_atk_scale:0%}만큼 범위 마법 대미지를 주고, 피해량의 {heal_ratio:0%}만큼 자신의 HP 회복\n이후 {stack_duration:0.0}초간 저지 중인 모든 적을 공격하며, 공격력 +{atk:0%}, 방어력 +{def:0%}(최대 {max_stack_cnt}중첩)\n<@ba.rem>피격 시 발동, {max_stack_cnt}회 충전 가능</>"
+      ],
+      [
+        "작열하는 광환",
+        "공격력 +{atk:0%}. 일반 공격을 중지하고, {normal_interval:0.00}초마다 배치 방향을 따라 5개 줄에 ‘불꽃 무리’ 소환\n불꽃 무리는 적과 충돌하면 폭발하여 공격력의 {heatwave_atk_scale:0%}만큼 범위 마법 대미지를 줌. <$ba.dt.burning2>소각 손상</> 폭발 중인 적에게는 원소 대미지로 전환\n<$ba.overdrive>과부하</>: 소환 간격이 {overload_interval}초로 단축되고, 최대 13개 줄까지 범위 확대\n<@ba.rem>같은 차례에 소환된 불꽃 무리가 중복 적중하면, 두 번째부터는 대미지가 {same_wave_repeat_damage_scale:0%}로 감소</>"
+      ]
+    ],
+    "subProfessionName": "프라이멀 가드"
+  },
+  "territoriya": {
+    "name": "테리토리야",
+    "trait": "공격 범위 내 <@ba.kw>모든 적</>을 공격하며, 물리 및 마법 회피 50% 획득. 적의 공격 목표가 되기 어려움",
+    "moduleTrait": "공격 범위 내 <@ba.kw>모든 적</>을 공격하며, 물리 및 마법 회피 50% 획득. 적의 공격 목표가 되기 어려움\n공격 범위 내 모든 적의 이동 속도 <@ba.vdown>-20%</>",
+    "talents": [
+      [
+        "실체의 붕괴",
+        "자신의 공격 범위에 ‘국가’ 형성. 국가 내 지상 적의 공격 속도 {attack_speed}, 매초 테리토리야 공격력의 {atk_scale:0%}만큼 마법 대미지를 줌"
+      ],
+      [
+        "이 몸이 경계다",
+        "퇴각 시 국가 내 모든 지상 적에게 공격력의 {atk_scale:0%}만큼 마법 대미지를 주고, {stun}초간 <$ba.stun>기절</> 부여. 이후 모든 국가가 사라짐"
+      ]
+    ],
+    "skills": [
+      [
+        "멈춰라",
+        "공격 속도 +{attack_speed}. 각 적이 국가에 처음 진입할 때 {sluggish}초간 <$ba.sluggish>정지</> 부여"
+      ],
+      [
+        "처형",
+        "공격 범위 <@ba.vup>확대</>, 공격력 +{atk:0%}. 국가 내 적이 물리 및 마법 공격을 회피할 수 없게 됨\n<@ba.rem>두 번째 사용부터 공격 속도 +{attack_speed}, 지속시간 무한</>"
+      ],
+      [
+        "아무도 없는 국가",
+        "공격 범위 <@ba.vup>확대</>, 공격력 +{atk:0%}, 공격 속도 +{attack_speed}. 국가 내 모든 적을 동시에 공격\n국가 내 유닛이 지상 적에게 공격받으면, 공격자의 상하좌우 4칸에 국가가 퍼지고 공격력의 {attack@aoe_atk_scale:0%}만큼 물리 대미지를 줌({attack@cd}초마다 최대 1회)\n<@ba.rem>스킬 종료 시 국가가 원래 범위로 돌아감</>"
+      ]
+    ],
+    "modules": {
+      "uniequip_001_dminon": "테리토리야의 배지",
+      "uniequip_002_dminon": "빈 병과 깡통들"
+    },
+    "subProfessionName": "매복자",
+    "moduleAdditional": "공격 범위 내 모든 적의 이동 속도 <@ba.vdown>-20%</>"
+  },
+  "toska": {
+    "name": "토스카",
+    "trait": "<$ba.triggereffect>발동형 효과</>로 아군의 전투를 지원",
+    "talents": [
+      [
+        "밤의 침묵",
+        "자신이 부여한 <$ba.triggereffect>발동형 효과</>가 발동할 때 SP {sp} 회복, 공격 범위 내 아군 오퍼레이터 1명의 HP를 토스카 공격력의 {heal_scale:0%}만큼 회복"
+      ],
+      [
+        "눈의 흔적",
+        "<$ba.triggereffect>발동형 효과</> 부여 후 다음 일반 공격이 범위 공격으로 변경. 적중한 적에게 {attack@t2_buff_duration}초간 20%의 <$ba.weaken>허약</>을 부여하고, 지속시간 동안 매초 공격력의 {attack@t2_magic_atk_scale:0%}만큼 마법 대미지를 줌"
+      ]
+    ],
+    "skills": [
+      [
+        "가진 것 없는 자",
+        "공격 범위 내 아군 오퍼레이터 {max_target}명에게 다음 <$ba.triggereffect>발동형 효과</> 부여(같은 효과를 지닌 대상 제외)\n공격받으면 토스카 공격력의 {shield_atk_scale:0%}만큼 <$ba.barrier>배리어</>를 획득하고, 공격자에게 {stun}초간 <$ba.stun>기절</> 부여. 배리어는 {shield_time}초에 걸쳐 점차 감소"
+      ],
+      [
+        "울부짖는 마음",
+        "전장 내 아군 오퍼레이터 {max_target}명에게 다음 <$ba.triggereffect>발동형 효과</> 부여(같은 효과를 지닌 대상 제외)\n스킬을 사용할 수 있게 되면 {buff_duration}초간 공격 속도 +{attack_speed}. 지속시간 동안 스킬이 자동으로 발동함"
+      ],
+      [
+        "홀로 걷는 봄",
+        "공격 속도 +{attack_speed}. 공격 시 적 {attack@max_target}명에게 공격력의 {attack@atk_scale:0%}만큼 물리 대미지를 주고, {attack@stun:0.0}초간 <$ba.stun>기절</> 부여\n즉시 공격 범위 내 다른 아군 오퍼레이터 1명에게 다음 <$ba.triggereffect>발동형 효과</> 부여(이미 부여한 효과가 있으면 즉시 발동)\n효과를 지닌 아군이 스킬을 사용하면, 해당 아군과 토스카의 공격력 +{bonus_init_atk:0%}({bonus_duration}초에 걸쳐 점차 감소). 이후 토스카의 공격 범위 내 SP 비율이 가장 높은 다른 아군에게 효과 이전\n<@ba.rem>토스카의 스킬 지속 중 효과를 지닌 아군은 매초 SP {bonus_sp} 회복</>"
+      ]
+    ],
+    "subProfessionName": "지원 사수"
+  }
+}

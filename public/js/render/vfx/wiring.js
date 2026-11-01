@@ -1,3 +1,4 @@
+import {NorthernFx} from './northernfx.js';
 import {makotoEffectForm} from '../../../../shared/makoto.js';
 import {makotoOfficialFx} from '../makotoFx.js';
 import { KitProjectileFx } from './kitprojectilefx.js';
@@ -354,6 +355,7 @@ export class FxWiring {
     this.projectileKeys = new WeakMap();
     this.bombardAims = new Map();
     this.chenWaves = new Map();
+    this.northernFx = new NorthernFx(this);
     this.windFx = new WindFx(this);
     this.clemntFx = new ClemntFx(this);
     this.aphrisFx = new AphrisFx(this);
@@ -542,6 +544,7 @@ export class FxWiring {
     for (const k of this.skills.keys(views)) keys.add(k);
     for (const k of this.talents.keys(views)) keys.add(k);
     for (const k of this.kitProjectileFx.keys(views)) keys.add(k);
+    for (const k of this.northernFx.keys(views)) keys.add(k);
     for (const k of this.funnels.keys(views)) keys.add(k);
     for (const k of this.aphrisFx.keys(views)) keys.add(k);   // 谬因's S2 beam path (render/vfx/aphrisfx.js)   // the 驭械术士's floating units (render/vfx/funnelfx.js)
     for (const view of views) for (const key of costumePreloadKeys(this.idx,this.costumeOf(view))) keys.add(key);
@@ -813,7 +816,7 @@ export class FxWiring {
       }
       return c;
     };
-    if (!o.track) opts.playChild = (key, skip) => this.playOn(key, v, { loop: o.loop, important: o.important, follow: !!(o.follow || P.follow || P.keep), skip, speed: o.speed, data: o.data });
+    if (!o.track) opts.playChild = (key, skip) => this.playOn(key, v, { loop: o.loop, important: o.important, follow: !!(o.follow || P.follow || P.keep), spawn: o.spawn, skip, speed: o.speed, data: o.data });
     return this.ofx.spawn(k, place, opts);
   }
 
@@ -830,7 +833,7 @@ export class FxWiring {
    * prefab —: it moves with the unit.
    */
   _placing(def, sum, o) {
-    const spawn = def ? def.spawn : Number.isInteger(sum?.spawn) ? sum.spawn : 2;
+    const spawn = Number.isInteger(o.spawn) ? o.spawn : def ? def.spawn : Number.isInteger(sum?.spawn) ? sum.spawn : 2;
     const fmp = def ? (def.follow && !def.follow.owner ? def.follow : null) : Number.isInteger(sum?.follow) ? { mount: sum.follow } : null;
     const follow = fmp || (o.follow && def?.follow) || null;
     let rotKind = null, rotFollow = false;
@@ -1873,6 +1876,7 @@ export class FxWiring {
     if (!this.idx) return false;
     const owner = this.view(extra?.src ?? extra?.id);
     if (owner?.info && !this.hasOfficialUnit(owner)) return false;
+    if(this.northernFx.simFx(kind,x,y,extra,owner))return true;
     const makoto=makotoOfficialFx(this,owner,kind,x,y,extra);
     if(makoto!==null)return makoto;
     if(kind==='iceSpikeImpact'){
@@ -2036,6 +2040,7 @@ export class FxWiring {
     this.walls.clear();
     this.flights.clear();
     this.bombardAims.clear();
+    this.northernFx.clear();
     this.windFx.clear();
     this.clemntFx.clear();
     this.aphrisFx.clear();
@@ -2066,6 +2071,7 @@ export class FxWiring {
   /** Called once per frame: delayed actions on the battle clock (and the frame count the skills' same-frame rules use). */
   tick() {
     this.skills.frame++;
+    this.northernFx.tick();
     this.windFx.tick();
     this.clemntFx.tick();
     this.aphrisFx.tick();

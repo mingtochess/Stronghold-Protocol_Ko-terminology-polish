@@ -52,23 +52,42 @@ def write_skeleton(env,sda,out,sub,groups):
     return {'files':paths,'skeleton':'/assets/local/'+sub+'/'+stem+'.skel','atlas':'/assets/local/'+sub+'/'+stem+'.atlas'}
 
 
+def model_jobs(game, catalog, base_ids, token_index=None):
+    """Named character bundles plus packed token bundles selected by their logical prefab id."""
+    game=Path(game);chars={s['charId'] for s in catalog}|set(base_ids)
+    bundles={p for p in game.rglob('*.ab') if any(cid in p.as_posix().lower() for cid in chars)
+             and any(part in p.as_posix().lower() for part in ('chararts','charpack','skin','token'))}
+    for cid in base_ids:
+        if cid.startswith('token_') and (token_index or {}).get(cid):bundles.add(game/token_index[cid])
+    return sorted(bundles)
+
+
+def model_owner(rel, container, base_ids):
+    rel,container=rel.lower().replace('\\','/'),container.lower().replace('\\','/')
+    for cid in base_ids:
+        if cid.startswith('token_'):
+            if container.rsplit('/',1)[-1].removesuffix('.prefab')==cid or container.endswith('/'+cid+'/defaultskin.prefab'):return cid
+        elif (rel=='charpack/'+cid+'.ab' or container.endswith('/'+cid+'/defaultskin.prefab')):
+            return cid
+    return None
+
+
 def export_models(game,out,catalog,base_ids,log=print):
     game,out=Path(game),Path(out);out.mkdir(parents=True,exist_ok=True)
-    chars={s['charId'] for s in catalog}|set(base_ids);cabs=fx.scan_cabs(game,dirs=fx.CAB_DIRS+('refs/arts','chararts','charpack'))
+    cabs=fx.scan_cabs(game,dirs=fx.CAB_DIRS+('refs/arts','chararts','charpack'))
     rows,errors,groups=[],[],{};matched=set()
     def diagnostic_log(line):
         log(line)
         if str(line).strip().lower().startswith(('warn ','fail ')):errors.append({'exportWarning':str(line)})
     env=fx.AssetEnv(game,cabs);exporter=fx.Exporter(env,out/'raw-graphics',diagnostic_log)
-    bundles=[p for p in sorted(game.rglob('*.ab')) if any(cid in p.as_posix().lower() for cid in chars)
-             and any(part in p.as_posix().lower() for part in ('chararts','charpack','skin'))]
+    token_index=fx.container_index(game,(fx.TOKEN_GLOB,),out/'.cache/tokens.json',1,log) if any(cid.startswith('token_') for cid in base_ids) else {}
+    bundles=model_jobs(game,catalog,base_ids,token_index)
     for n,path in enumerate(bundles,1):
         rel=path.relative_to(game).as_posix()
         try:
             for container,root in env.prefabs(rel,full=True).items():
                 skins=matching_skins(container,rel,catalog)
-                base=next((cid for cid in base_ids if cid in (rel+'/'+container).lower() and
-                           ('charpack/' in rel.lower() or container.lower().endswith('/defaultskin.prefab'))),None)
+                base=model_owner(rel,container,base_ids)
                 if not skins and not base:continue
                 key=fx.fx_file((skins[0]['skinId'] if skins else base)+'-'+hashlib.sha256((rel+container).encode()).hexdigest()[:10])
                 components,_=skin_components(env,root,set())
@@ -103,11 +122,13 @@ def export_models(game,out,catalog,base_ids,log=print):
                 if row['renderer']:
                     desc=json.loads((exporter.out/row['renderer']['file']).read_text())
                     meshes=desc.get('meshes',[])
-                if row['skeletons'] or meshes:matched.update(row['skinIds'])
+                row['hasRenderableModel']=bool(row['skeletons'] or meshes)
+                if row['hasRenderableModel']:matched.update(row['skinIds'])
         except Exception as e:errors.append({'bundle':rel,'error':str(e)})
         if n%10==0:log(f'Model bundles {n}/{len(bundles)}; records {len(rows)}')
     report={'models':rows,'textures':exporter.textures,'meshes':exporter.meshes,'groups':groups,'errors':errors,
-            'missingSkinModels':[s['skinId'] for s in catalog if s['skinId'] not in matched]}
+            'missingSkinModels':[s['skinId'] for s in catalog if s['skinId'] not in matched],
+            'missingBaseModels':sorted(set(base_ids)-{r['baseCharId'] for r in rows if r.get('baseCharId') and r.get('hasRenderableModel')})}
     (out/'models.json').write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding='utf-8')
     return report
 

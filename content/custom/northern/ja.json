@@ -1,0 +1,94 @@
+{
+  "talulah": {
+    "name": "タルラ",
+    "subProfessionName": "本源衛士",
+    "trait": "敵を2体ブロックし、<@ba.kw>元素ダメージ</>を与えられる。",
+    "talents": [
+      [
+        "決して妥協しない",
+        "通常攻撃が術ダメージになり、術ダメージの{ep_damage_ratio:0%}の灼熱損傷を与える。攻撃停止から{arcane_idle_delay}秒後、術・元素ダメージが徐々に上昇（最大{arcane_max:0%}）、攻撃するたびに1段階低下。"
+      ],
+      [
+        "我こそが炎",
+        "配置中、灼熱損傷の爆発から5秒間、敵は通行可能な地上マスに炎の足跡を残す。最大{max_count}マス、{field_duration}秒持続し、{field_interval:0.0}秒ごとに攻撃力の{field_atk_scale:0%}の術ダメージ。"
+      ]
+    ],
+    "skills": [
+      [
+        "白夜を照らす閃光",
+        "対象マスの地上敵全員に攻撃力の<@ba.vup>{atk_scale:0%}</>の術ダメージを与え、{fear:0.0}秒間恐怖状態にする。"
+      ],
+      [
+        "吹雪を断つ壁",
+        "<@ba.vup>{damage_resistance:0%}</>の加護を獲得（{shelter_hold_duration:0.0}秒後から減衰）。攻撃者の周囲に攻撃力の{retaliate_atk_scale:0%}の術ダメージを与え、与ダメージの{heal_ratio:0%}のHPを回復。その後{stack_duration}秒間、ブロック中の敵全員を攻撃し、攻撃力・防御力<@ba.vup>+{atk:0%}</>（最大{max_stack_cnt}重複）。\n<@ba.rem>被攻撃時に発動、{max_stack_cnt}回チャージ可能。</>"
+      ],
+      [
+        "灼熱のコロナ",
+        "攻撃力<@ba.vup>+{atk:0%}</>。攻撃を停止し、{normal_interval:0.00}秒ごとに配置方向へ5列の炎を放つ。衝突時に攻撃力の{heatwave_atk_scale:0%}の範囲術ダメージ。灼熱損傷の爆発中の敵には元素ダメージに変化。\nオーバードライブ：間隔が{overload_interval}秒、最大13列に拡大。同じ波の2回目以降の命中は{same_wave_repeat_damage_scale:0%}のダメージ。"
+      ]
+    ]
+  },
+  "territoriya": {
+    "name": "テリトリヤ",
+    "subProfessionName": "潜伏者",
+    "trait": "攻撃範囲内の<@ba.kw>敵全員</>を攻撃。物理・術回避率50%、敵に狙われにくい。",
+    "moduleAdditional": "攻撃範囲内の敵の移動速度<@ba.vdown>-20%</>。",
+    "talents": [
+      [
+        "実質崩壊",
+        "攻撃範囲に「領域」を展開。領域上の地上敵は攻撃速度{attack_speed}、毎秒攻撃力の{atk_scale:0%}の術ダメージを受ける。"
+      ],
+      [
+        "この身こそ境界",
+        "撤退時、領域内の地上敵全員に攻撃力の{atk_scale:0%}の術ダメージと{stun}秒のスタンを与え、その後すべての領域を消す。"
+      ]
+    ],
+    "skills": [
+      [
+        "止まれ",
+        "攻撃速度<@ba.vup>+{attack_speed}</>。敵が初めて領域に入ったとき、{sluggish}秒間足止め。"
+      ],
+      [
+        "処刑",
+        "攻撃範囲拡大、攻撃力<@ba.vup>+{atk:0%}</>。領域内の敵は物理・術攻撃を回避できなくなる。\n<@ba.rem>2回目以降はさらに攻撃速度+{attack_speed}、持続時間無限。</>"
+      ],
+      [
+        "誰もいない国",
+        "攻撃範囲拡大、攻撃力<@ba.vup>+{atk:0%}</>、攻撃速度<@ba.vup>+{attack_speed}</>。領域上の地上敵全員を同時攻撃。領域上のユニットが地上敵から攻撃されると、攻撃者の上下左右4マスへ領域を拡大し、攻撃力の{attack@aoe_atk_scale:0%}の物理ダメージ（{attack@cd}秒ごとに最大1回）。\n<@ba.rem>スキル終了時に領域をリセット。</>"
+      ]
+    ],
+    "modules": {
+      "uniequip_001_dminon": "テリトリヤの記章",
+      "uniequip_002_dminon": "空き瓶と空き缶"
+    }
+  },
+  "toska": {
+    "name": "トスカ",
+    "subProfessionName": "支援射手",
+    "trait": "<@ba.kw>トリガー効果</>で味方を支援する。",
+    "talents": [
+      [
+        "夜の沈黙",
+        "自身のトリガー効果が発動するたびにSPを{sp}回復し、範囲内の味方オペレーター1人のHPを攻撃力の{heal_scale:0%}回復。"
+      ],
+      [
+        "雪の痕跡",
+        "トリガー効果を付与した後の次の通常攻撃が範囲ダメージになり、対象に{attack@t2_buff_duration}秒間20%の虚弱と、毎秒攻撃力の{attack@t2_magic_atk_scale:0%}の術ダメージを与える。"
+      ]
+    ],
+    "skills": [
+      [
+        "何も持たない者",
+        "範囲内で同じ効果を持たない味方{max_target}人に付与：攻撃されたとき、トスカの攻撃力の{shield_atk_scale:0%}のバリアを獲得（{shield_time}秒で減衰）し、攻撃者を{stun}秒スタンさせる。"
+      ],
+      [
+        "慟哭する心",
+        "戦場全体から同じ効果を持たない味方{max_target}人に付与：スキルが使用可能になると{buff_duration}秒間攻撃速度<@ba.vup>+{attack_speed}</>、期間中はスキルが自動発動する。"
+      ],
+      [
+        "独り歩む春",
+        "攻撃速度<@ba.vup>+{attack_speed}</>。敵{attack@max_target}体に攻撃力の{attack@atk_scale:0%}の物理ダメージと{attack@stun}秒のスタンを与える。範囲内の別の味方にトリガー効果を付与（既にある場合は即発動）。\n所持者がスキルを発動すると、自身とトスカの攻撃力<@ba.vup>+{bonus_init_atk:0%}</>（{bonus_duration}秒で減衰）。効果は範囲内でSP比率が最も高い別の味方へ移り、トスカのスキル中は所持者が毎秒SPを{bonus_sp}回復。"
+      ]
+    ]
+  }
+}

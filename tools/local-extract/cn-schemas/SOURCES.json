@@ -1,0 +1,17 @@
+{
+  "source": "https://github.com/ArknightsAssets/ArknightsFlatbuffers",
+  "upstream": "https://github.com/MooncellWiki/OpenArknightsFBS",
+  "commit": "f6835296647f294c9b313c8abbf4565187729d58",
+  "note": "CN binary layout schemas only; no online game-table data is substituted. Original generated schema comments are preserved.",
+  "sha256": {
+    "character_table.fbs": "6ffea39c3ce768548ea314c60e3223846baa8a4dd59b81a1ed969f58dcf56c73",
+    "skill_table.fbs": "8ce74cf97b7bc2e7e344b95f41f69a78f7ed0a6fe449dff5f01f4ca13eceb929",
+    "skin_table.fbs": "c5122b78d41413e552860886161c486841cece260bb99c66bf60138fa6e6191a",
+    "audio_data.fbs": "4b9f03ebd056794e3e6c4fc767ffef59c9ce83ce798049a8501aee85d7d09264",
+    "charword_table.fbs": "530ac62cf4cc8f70918a240551553a699f37929edf4f5fbd35df6872421ccc11",
+    "char_patch_table.fbs": "1b2d0d4eb5ccbe5a408c47f2172f9af2465244d83e82e3c1f91de303d23f1a42",
+    "uniequip_table.fbs": "784fffa158afd81f96e23c365d64aa08d10cc4a37a86c0b9f48dbae9ac4747ce",
+    "battle_equip_table.fbs": "5061fb194e2a2d49172bbfe380682002e83844a71b021351b26a348fb0c7001f",
+    "handbook_info_table.fbs": "374a67144fdf66d038e2c4bdbfae7a127978e3159bdaaa4ce04232a0a58467b9"
+  }
+}

@@ -1,3 +1,4 @@
+import {northernSimpleFx,updateNorthernSimpleFx,clearNorthernSimpleFx} from './northernFx.js';
 import {makotoSimpleFx} from './makotoFx.js';
 import { damageNumberMode, showDamageNumber, roundedDamageNumber } from '../../../shared/damageDisplay.js';
 import { skillRangeStyle, loadRangeArtColor } from './units.js';
@@ -1783,6 +1784,7 @@ export class FxSystem {
    * element, n, scale, kind, tiles.
    */
   _simFx(kind, x, y, extra) {
+    if(northernSimpleFx(this,kind,x,y,extra||{}))return;
     if(makotoSimpleFx(this,kind,x,y,extra||{}))return;
     if(kind==='orbitProjectile')return;
     if(kind==='moteState'){
@@ -2436,6 +2438,7 @@ export class FxSystem {
   }
 
   clear() {
+    clearNorthernSimpleFx(this);
     for(const sweep of this.sweeps)sweep.g.destroy();this.sweeps.length=0;
     for(const g of this.noteSprites?.values()||[])g.destroy();this.noteSprites?.clear();
     for(const rec of this.weaponTrails.values())rec.g.destroy();this.weaponTrails.clear();
@@ -2474,6 +2477,7 @@ export class FxSystem {
   }
 
   update(dt) {
+    updateNorthernSimpleFx(this,dt);
     this._updateWeaponTrails();
     this._updateSweeps(dt);
     this.dedicatedBursts=this.dedicatedBursts.filter(b=>{

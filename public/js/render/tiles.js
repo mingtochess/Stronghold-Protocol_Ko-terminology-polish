@@ -33,6 +33,7 @@
 import { tileAtlas, fxAtlas, rng, groundTexture } from './textures.js';
 import { GLYPH, TILEKEY_GLYPH, TILE_H, COLORS, ORIGINIUM } from './style.js';
 import { parsePenRect, PEN_RECT } from './pen.js';
+import {officialRangeHeight,raisedRangeTiles} from './rangeHeight.js';
 
 /**
  * Depth-sort key (unit layer zIndex) of block row `row`: the row's far edge. Units use
@@ -584,8 +585,9 @@ export class TileField {
     if (!cam || !this.highlights.size) { this.markSink?.([]); return; }
     const p = this._p;
     // 设置 접근성「타일 표시 방식」 공식: the client's marks fill the whole tile; the range is its sliding orange bands on
-    // their own layer above the other marks, all at the ground's height
+    // their own layer above the other marks, on stable ground / high-ground display planes
     const official = this.officialMarks === true;
+    const raisedRange = official && !this.markSink ? raisedRangeTiles(this._stageDevices()) : null;
     const inset = official ? 0 : 0.05;
     // a tile under both a unit's range and a fixed boss's (red) range: one band in a dark orange (RANGE_STRIPE.overlap)
     let both = null;
@@ -627,7 +629,8 @@ export class TileField {
           this._stripesLive = true;
           const k = r * 100 + c, dual = both?.has(k);
           if (dual) { if (drawn.has(k)) continue; drawn.add(k); }
-          drawStripes(this.hlStripeGfx, cam, r, c, 0.012, inset, -((this.time * RANGE_STRIPE.speed) % RANGE_STRIPE.step), p, dual ? RANGE_STRIPE.overlap : style.stripeColor);
+          const z=officialRangeHeight(this.tile(r,c),raisedRange.has(`${r},${c}`))+.012;
+          drawStripes(this.hlStripeGfx, cam, r, c, z, inset, -((this.time * RANGE_STRIPE.speed) % RANGE_STRIPE.step), p, dual ? RANGE_STRIPE.overlap : style.stripeColor);
           continue;
         }
         const h = this.heightAt(r, c);

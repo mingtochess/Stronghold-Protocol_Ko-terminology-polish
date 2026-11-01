@@ -32,6 +32,7 @@ import { surfaceUV } from './atlas.js';
 import { focusUniforms, addFocus, makeTexture, boardMaterial, glassMaterial, decalMaterial, pipeMaterial, unlitMaterial, gateMaterial, glowMaterial, waterMaterial, mireMaterial, infectionMaterial, infectionGlowMaterial, infectionRiseMaterial, thicketRiseMaterial, smogMaterial, dashTexture, environmentMap, nativePhysicalLighting, addShadowContrast, sceneMaterial, sceneWaterMaterial, sceneEnvTexture, sceneWaterDecalMaterial, applyWaterMaterial, trapMaterial } from './materials.js';
 import { syncThreeCamera } from '../projection.js';
 import { TILE_H } from '../style.js';
+import {officialRangeHeight,raisedRangeTiles} from '../rangeHeight.js';
 import { mergeSceneChunks, sceneMaterialKey, sceneWaterInfo, isSceneWater, BOARD_THEMES } from './load.js';
 
 /** Lighting rig (tuned against the official screenshots: bright even tops, darker sides, soft shadows). */
@@ -1635,9 +1636,9 @@ export class BoardScene {
 
   /** Red leak flash on the objective box at (r, c). */
   /**
-   * 设置 접근성「타일 표시 방식」 공식 on the 3D board: the drag marks drawn on the tiles' own top surfaces (in the board's
+   * 设置 접근성「타일 표시 방식」 공식 on the 3D board: placement fills on the tiles' own tops, range bands on fixed planes (in the board's
    * depth, under the units of the Pixi layer) — `groups` [{ tiles: [[r, c]], color, alpha, stripes }]: an even fill, or
-   * the range's sliding diagonal bands (MARK_STRIPE). [] clears.
+   * the range's sliding diagonal bands (MARK_STRIPE) at normalized display heights. [] clears.
    */
   setMarks(groups = []) {
     const T = this.THREE;
@@ -1652,11 +1653,13 @@ export class BoardScene {
     if (this._markHeightsBoard !== board) { hc.clear(); this._markHeightsBoard = board; }
     // never under the ground's level: a flooded tile's sunken basin (침수 구역) shows its marks at the ground's height
     const top = (r, c) => { const k = r * 100 + c; if (!hc.has(k)) hc.set(k, Math.max(0, this._nativeTileHeight(board, r, c) ?? 0)); return hc.get(k); };
+    const raisedRange=raisedRangeTiles(board.devices);
     groups.forEach((g, gi) => {
       if (!g?.tiles?.length) return;
       const pos = [], idx = [];
       for (const [r, c] of g.tiles) {
-        const z = top(r, c) + 0.004, b = pos.length / 3;
+        // Range bands use stable display planes, never a decorative mesh's raycast height.
+        const z = (g.stripes ? officialRangeHeight(board.grid?.[r]?.[c],raisedRange.has(`${r},${c}`)) : top(r,c)) + 0.004, b = pos.length / 3;
         pos.push(c - 0.5, r - 0.5, z, c + 0.5, r - 0.5, z, c + 0.5, r + 0.5, z, c - 0.5, r + 0.5, z);
         idx.push(b, b + 1, b + 2, b, b + 2, b + 3);
       }
@@ -1674,7 +1677,8 @@ export class BoardScene {
           '  gl_FragColor = vec4(uColor, uAlpha);',
           '}',
         ].join('\n'),
-        transparent: true, depthWrite: false, side: T.DoubleSide, polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4,
+        // An overlay at the normalized height must not disappear inside a taller prop.
+        transparent: true, depthWrite: false, depthTest: !g.stripes, side: T.DoubleSide, polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4,
       });
       const mesh = new T.Mesh(geo, mat);
       mesh.renderOrder = 20 + gi;

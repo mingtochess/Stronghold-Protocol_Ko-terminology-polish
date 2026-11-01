@@ -2,11 +2,12 @@
 
 > 현재 본 Readme의 번역은 GPT에 의해 생성되었습니다. 추후 수정/검수가 필요합니다.
 
-![version](https://img.shields.io/badge/version-0.3.3g1-2ea44f)
+![version](https://img.shields.io/badge/version-0.3.3h-2ea44f)
 ![license](https://img.shields.io/badge/code%20license-GPL--3.0--or--later-blue)
 ![node](https://img.shields.io/badge/node-22%20%7C%2024-339933)
 
 Claude Code 개발 안내: [설정·실행](docs/CLAUDE-CODE.md) · [현재 작업 인계](docs/CLAUDE-HANDOFF.md).
+중국 신규 오퍼레이터 추출: [실행·결과 안내](docs/CN-NEW-OPERATORS-EXTRACTION.md).
 
 ## 고지사항
 

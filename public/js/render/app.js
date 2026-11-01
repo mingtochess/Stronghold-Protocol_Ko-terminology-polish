@@ -684,6 +684,7 @@ export async function createFieldView(host, options = {}) {
   const fx = new FxSystem({
     P, layers, cam: () => cam, settings, assets, heightAt, redVignette: bg.red, surfaceLayer: ctx.surfaceLayer,
     timeScale: () => ctx.timeScale(),
+    gameTime: () => interp.renderT,
     loadLevel: () => loadLevel,
     fieldRect: () => (mode === 'battle' && battleMeta && !battleMeta.prep ? battleMeta.rect : null),
     subProfOf: (defId) => data.chess(defId)?.subProfessionId || null,
@@ -707,6 +708,7 @@ export async function createFieldView(host, options = {}) {
     record: info => info ? ctx.lookupDef(info) : null, speed: projSpeed, ofx });
   setupCleanup.push(() => pluginFx.destroy());
   const wiring = new FxWiring(ofx, {
+    gameTime: () => interp.renderT,
     speed: projSpeed,
     // the index unit of a battle unit: the drawn operator (a stand-in's, a 自选 pick's), the chess' operator, the enemy / token
     unitKey: (info) => {

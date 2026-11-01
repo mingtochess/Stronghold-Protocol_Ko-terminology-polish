@@ -1738,6 +1738,14 @@ export class AudioManager {
         if (kind === 'spawn') { this._track(e[1]); continue; }
         if (kind === 'layer') {
           this.layerGain(e[2], e[3], 'battle');
+        } else if (kind === 'atkStart') {
+          const u=this.units.get(e[1]),cid=u?.baseDef||u?.def;
+          if(['char_4247_oxi','char_4246_dminon'].includes(cid)){
+            const sounds=this.getManifest()?.audio?.sfx?.units?.[u.def],url=u.skillActive?sounds?.attackStarts?.[u.skillIndex]||sounds?.attackStart:sounds?.attackStart;
+            u.northernStartPlayed=typeof url==='string';if(u.northernStartPlayed)this._playUnitUrl(url,`${e[1]}:attackStart`);
+          }
+        } else if (kind === 'atkCancel') {
+          const u=this.units.get(e[1]);if(u)u.northernStartPlayed=false;
         } else if (kind === 'atk') {
           // a chain bounce: its first id is the previous target, whose attack sound this is not (see header)
           if (CHAIN_KINDS.has(e[3])) { this.lastAttacker.delete(e[2]); continue; }
@@ -1746,9 +1754,11 @@ export class AudioManager {
           if(src.def==='char_4182_oblvns')continue; // Note release/hit events carry the actual projectile mode.
           // only a hostile attack authors the target's next impact (a heal — an ally aiming at an ally — never does)
           const tgt = this.units.get(e[2]);
-          const form=src.form==='makoto_s1'&&tgt?.side===src.side?'makoto_s1_heal':src.form;
+          const cid=src.baseDef||src.def;
+          const form=cid==='char_4244_tocka'&&e[3]==='projectile_chr_tocka_t2'?'toska_t2':cid==='char_4247_oxi'?src.northernAttackForm:src.form==='makoto_s1'&&tgt?.side===src.side?'makoto_s1_heal':src.form;
           if (tgt) this.lastAttacker.set(e[2], { def: src.def, at: now, skillIndex: src.skillIndex ?? null, skillActive: !!src.skillActive, form });
-          if (!this.unit(src.def, 'attack', e[1], src.skillIndex ?? undefined, src.skillActive, form) && src.side === 'enemy') this.battle('enemyHit', { unitKey: `${e[1]}:atk`, volume: 0.35 });
+          const startOnly=cid==='char_4247_oxi'&&(src.northernStartPlayed||src.northernReleaseAt===now);if(startOnly)src.northernReleaseAt=now;src.northernStartPlayed=false;
+          if (!startOnly && !this.unit(src.def, 'attack', e[1], src.skillIndex ?? undefined, src.skillActive, form) && src.side === 'enemy') this.battle('enemyHit', { unitKey: `${e[1]}:atk`, volume: 0.35 });
         } else if (kind === 'dmg') {
           const by = this.lastAttacker.get(e[1]);
           if (!by || !IMPACT_TYPES.has(e[3])) continue;
@@ -1765,6 +1775,7 @@ export class AudioManager {
             u.skillActive = !!e[2];
             if (!e[2]) continue;
             this.unit(u.def, 'skill', e[1], u.skillIndex ?? undefined);
+            if(['char_4244_tocka','char_4246_dminon'].includes(u.baseDef||u.def)){const url=this.getManifest()?.audio?.sfx?.units?.[u.def]?.skillAbilityStarts?.[u.skillIndex];if(url)this._playUnitUrl(url,`${e[1]}:skillAbilityStart`);}
             // 作战中N: the equipped skill's own slot (0-based; 作战中4 is the fallback of a 4th slot)
             if (unitSoundClass(u) === 'char') {
               const banks=this.getManifest()?.audio?.voice;
@@ -1781,6 +1792,10 @@ export class AudioManager {
             // turning ON is a cast; a hold for a unit that never appears goes with the field (`setFieldUnits`).
             if (this.pendingSkill.size >= PENDING_SKILL_MAX) this.pendingSkill.delete(this.pendingSkill.keys().next().value);
             this.pendingSkill.set(e[1], e);
+          }
+        } else if (kind === 'skillImpact') {
+          const u=this.units.get(e[1]);if((u?.baseDef||u?.def)==='char_4244_tocka'){
+            const url=this.getManifest()?.audio?.sfx?.units?.[u.def]?.skillReleases?.[u.skillIndex];if(url)this._playUnitUrl(url,`${e[1]}:skillRelease`);
           }
         } else if (kind === 'engage') {
           // 行动开始: the first attack a unit makes on an enemy (the sim's ENGAGE, official ENCOUNTER_ENEMY, 3 s apart)
@@ -1832,11 +1847,19 @@ export class AudioManager {
         } else if (kind === 'fx') {
           // a summon used up by its own effect (香槟炸弹 exploding: `consumed`): its impact sound now, no death sound
           const ex = e[4];
+          if(e[1]==='talulahAttackMode'){const u=this.units.get(ex?.id);if((u?.baseDef||u?.def)==='char_4247_oxi')u.northernAttackForm=ex.buffed?'talulah_buffed':null;continue;}
           if(ex?.id!=null){const u=this.units.get(ex.id);if(u?.baseDef==='char_4217_makoto'){
             if(e[1]==='substitute'){u.form=ex.form||null;if(['makoto_s1','makoto_s2','makoto_s3a','makoto_change'].includes(u.form))this._playUnitUrl(this.getManifest()?.audio?.sfx?.units?.[u.def]?.fx?.persona,`${ex.id}:persona`);}
             else if(e[1]==='swap'&&ex.form==null)u.form=null;
             const url=this.getManifest()?.audio?.sfx?.units?.[u.def]?.fx?.[e[1]];if(url)this._playUnitUrl(url,`${ex.id}:${e[1]}`);
           }}
+          if(/^(talulah|territoriya|toska)/.test(e[1])&&ex?.id!=null){
+            const u=this.units.get(ex.id),cid=u?.baseDef||u?.def;
+            if(['char_4247_oxi','char_4246_dminon','char_4244_tocka'].includes(cid)&&(e[1]!=='talulahWave'||ex.lane===0)){
+              const entry=this.getManifest()?.audio?.sfx?.units?.[u.def]?.fx?.[e[1]],url=typeof entry==='string'?entry:entry?.[ex.kind];
+              if(url)this._playUnitUrl(url,`${ex.id}:${e[1]}`);
+            }
+          }
           if(e[1]==='iceSpikeImpact'&&ex){const u=this.units.get(ex.id),url=this.getManifest()?.audio?.sfx?.units?.[u?.def]?.fx?.iceSpike;if(typeof url==='string')this._play(url,{volume:.55,limited:true,unitKey:`${ex.id}:iceSpike`});continue;}
           if(['sakikoNoteSound','sakikoNoteHit'].includes(e[1])){
             const owner=this.units.get(ex?.id);if(owner?.def!=='char_4182_oblvns')continue;

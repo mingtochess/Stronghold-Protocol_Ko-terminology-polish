@@ -132,6 +132,7 @@ export function attackWindup(unit) {
 // Independent one-shot casts whose kit used to resolve its impact inside onStart.
 // Do not include next-attack enhancements, immediate stat buffs or explicitly timed Sword Rain.
 export const IMPACT_CAST_SKILLS = new Set([
+ 'skchr_oxi_1','skchr_oxi_2','skchr_tocka_1','skchr_tocka_2',
  'skchr_pinecn_1','skchr_podego_2','skchr_tinman_1','skchr_tinman_2',
  'skchr_shotst_2','skchr_gnosis_2','skchr_lionhd_2','skchr_blaze2_1',
  'skchr_sbell2_1','skchr_snhunt_2','skchr_blkkgt_2',
