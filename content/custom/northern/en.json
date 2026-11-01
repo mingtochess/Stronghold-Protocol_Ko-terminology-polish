@@ -19,7 +19,7 @@
         "Deal <@ba.vup>{atk_scale:0%}</> ATK as Arts damage to all ground enemies on the target tile and inflict Fear for {fear:0.0}s."
       ],
       [
-        "Sever the Sudden Snow",
+        "Against the Snowstorm",
         "Gain <@ba.vup>{damage_resistance:0%}</> Shelter, maintained for {shelter_hold_duration:0.0}s before decaying. Retaliate with {retaliate_atk_scale:0%} ATK as area Arts damage and heal for {heal_ratio:0%} of damage dealt. For {stack_duration}s, attack all blocked enemies and gain <@ba.vup>+{atk:0%}</> ATK and DEF, stacking up to {max_stack_cnt} times.\n<@ba.rem>Triggered by incoming attacks; stores {max_stack_cnt} charges.</>"
       ],
       [
@@ -49,11 +49,11 @@
         "ASPD <@ba.vup>+{attack_speed}</>. Slow each enemy for {sluggish}s when it first enters Territory."
       ],
       [
-        "Submit to Slaughter",
+        "Execution",
         "Expand attack range, ATK <@ba.vup>+{atk:0%}</>. Enemies on Territory cannot dodge Physical or Arts attacks.\n<@ba.rem>From the second use onward, also gain +{attack_speed} ASPD and unlimited duration.</>"
       ],
       [
-        "An Uninhabited Territory",
+        "No Man’s Realm",
         "Expand attack range, ATK <@ba.vup>+{atk:0%}</>, ASPD <@ba.vup>+{attack_speed}</>. Attack all ground enemies on Territory. When a ground enemy attacks a unit on Territory, expand Territory to the four adjacent tiles around the attacker and deal {attack@aoe_atk_scale:0%} ATK as Physical damage (at most once every {attack@cd}s).\n<@ba.rem>Reset Territory when the skill ends.</>"
       ]
     ],
@@ -82,11 +82,11 @@
         "Apply a Trigger Effect to {max_target} allied Operators in range who do not have it: when attacked, gain a Barrier equal to {shield_atk_scale:0%} of Toska's ATK, decaying over {shield_time}s, and Stun the attacker for {stun}s."
       ],
       [
-        "A Heart That Longs to Howl",
+        "A Heart Yearning to Howl",
         "Apply a Trigger Effect to {max_target} allied Operator anywhere on the field who does not have it: when their skill is ready, gain <@ba.vup>+{attack_speed}</> ASPD for {buff_duration}s and automatically activate skills during this period."
       ],
       [
-        "Spring That Walks Alone",
+        "A Solitary Spring",
         "ASPD <@ba.vup>+{attack_speed}</>. Attacks deal {attack@atk_scale:0%} ATK as Physical damage to {attack@max_target} enemies and Stun for {attack@stun}s. Apply a Trigger Effect to another ally in range, or trigger the existing one immediately.\nWhen the holder activates a skill, the holder and Toska gain <@ba.vup>+{bonus_init_atk:0%}</> ATK, decaying over {bonus_duration}s. Transfer the effect to another Operator in Toska's range with the highest SP ratio. While Toska's skill is active, the holder gains {bonus_sp} SP per second."
       ]
     ]

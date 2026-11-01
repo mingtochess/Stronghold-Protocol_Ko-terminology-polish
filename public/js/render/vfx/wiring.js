@@ -816,7 +816,7 @@ export class FxWiring {
       }
       return c;
     };
-    if (!o.track) opts.playChild = (key, skip) => this.playOn(key, v, { loop: o.loop, important: o.important, follow: !!(o.follow || P.follow || P.keep), skip, speed: o.speed, data: o.data });
+    if (!o.track) opts.playChild = (key, skip) => this.playOn(key, v, { loop: o.loop, important: o.important, follow: !!(o.follow || P.follow || P.keep), spawn: o.spawn, skip, speed: o.speed, data: o.data });
     return this.ofx.spawn(k, place, opts);
   }
 
@@ -833,7 +833,7 @@ export class FxWiring {
    * prefab —: it moves with the unit.
    */
   _placing(def, sum, o) {
-    const spawn = def ? def.spawn : Number.isInteger(sum?.spawn) ? sum.spawn : 2;
+    const spawn = Number.isInteger(o.spawn) ? o.spawn : def ? def.spawn : Number.isInteger(sum?.spawn) ? sum.spawn : 2;
     const fmp = def ? (def.follow && !def.follow.owner ? def.follow : null) : Number.isInteger(sum?.follow) ? { mount: sum.follow } : null;
     const follow = fmp || (o.follow && def?.follow) || null;
     let rotKind = null, rotFollow = false;

@@ -68,3 +68,15 @@ test('Talulah reactive cast uses the authored Cambat clip while S3 uses the exis
  const r=data.chess[key('talulah')],asset=data.assets.chars[r.charId].spine;
  for(const side of ['front','back']){assert.equal(asset[side].anims.skills[1].loop,'Skill_2_Cambat');assert.equal(asset[side].anims.skills[2].begin,'Skill_3_Begin');assert.equal(asset[side].anims.skills[2].end,'Skill_3_End');assert.ok(Math.abs(r.attackTiming[side].skills[1].hit-.167)<1e-8);}
 });
+
+test('Talulah overdrive uses the same two duration gauges and overheated flag as existing overdrive skills',async()=>{
+ const {unitTuple}=await import('../../server/sim/snapshot.js');const {UF}=await import('../../shared/constants.js');
+ const {h,u}=scenario('talulah',2);u.skill.gainSp(1000);u.skill.activate('test');
+ for(const [fraction,shown,hot]of [[1,1,false],[.75,.5,false],[.5,1,true],[.25,.5,true]]){
+  u.skill.timeLeft=u.skill.duration*fraction;const row=unitTuple(u,h.b.time);assert.ok(Math.abs(row[5]/row[6]-shown)<1e-6);assert.equal(!!(row[7]&UF.OVERHEATED),hot);
+ }
+});
+test('Territoriya publishes the default country before any skill or attack',()=>{
+ const {h,u}=scenario('territoriya',2);u.skill.noSkill=true;
+ const events=h.eventsOf('fx');assert.ok(events.some(e=>e[1]==='territoriyaArea'));assert.ok(u.mem.territoriya.cells.size>0);
+});

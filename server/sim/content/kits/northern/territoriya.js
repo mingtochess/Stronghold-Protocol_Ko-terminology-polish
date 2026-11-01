@@ -10,7 +10,7 @@ export function territoriyaKit(_bb,raw){
     if(s.index===1&&++st.s2Casts>=2){skill.timeLeft=Infinity;const running=u.findBuff(skill._buffKey);if(running){running.timeLeft=Infinity;running.duration=Infinity;}b.addBuff(u,{key:'territoriya:permanent-speed',mods:{aspd:num(bb.attack_speed)},duration:Infinity});}
     fx(b,u,'territoriyaArea',{tiles:[...u.rangeKeys],dur:skill.timeLeft,skill:s.index});
    },
-   onEnd({battle:b,unit:u,reason}){if(s.index===2){if(reason==='death')u.mem.territoriya.retireCells=new Set([...u.rangeKeys,...u.mem.territoriya.extra]);else{u.mem.territoriya.extra.clear();fx(b,u,'territoriyaReset');}}},
+   onEnd({battle:b,unit:u,reason}){if(s.index===2){if(reason==='death')u.mem.territoriya.retireCells=new Set([...u.rangeKeys,...u.mem.territoriya.extra]);else{u.mem.territoriya.shownCells=null;u.mem.territoriya.extra.clear();fx(b,u,'territoriyaReset');}}},
   }];
  }));
  return{skills,install(b,u){
@@ -33,7 +33,7 @@ export function territoriyaKit(_bb,raw){
    fx(b,u,'territoriyaSpread',{tiles:newCells,target:c.source.id,x:c.source.x,y:c.source.y});
   },{owner:u});
   b.on('tick',({dt})=>{
-   if(!alive(u))return;cells();st.clock+=dt;const pulse=st.clock>=1-1e-9;if(pulse)st.clock-=1;
+   if(!alive(u))return;cells();const signature=[...st.cells].sort((a,b)=>a-b).join(',');if(st.shownCells!==signature){st.shownCells=signature;fx(b,u,'territoriyaArea',{tiles:[...st.cells]});}st.clock+=dt;const pulse=st.clock>=1-1e-9;if(pulse)st.clock-=1;
    for(const enemy of inCells(b,u,st.cells)){
     updateBuff(b,enemy,`territoriya:aspd:${u.id}`,{aspd:num(talent.attack_speed)});
     if(pulse)b.dealDamage(u,enemy,{amount:u.s.atk*num(talent.atk_scale),type:'arts',isSkill:false,tags:['territoriya-territory','dot']});
@@ -41,7 +41,7 @@ export function territoriyaKit(_bb,raw){
    }
    if(num(module.move_speed))for(const enemy of inCells(b,u,new Set(u.rangeKeys)))updateBuff(b,enemy,`territoriya:module:${u.id}`,{moveMul:Math.max(0,1+num(module.move_speed))});
   },{owner:u});
-  b.on('deploy',c=>{if(c.unit===u){st.s2Casts=0;st.extra.clear();st.cells.clear();st.entered.clear();delete st.retireCells;st.clock=0;st.lastSpread=-Infinity;}},{owner:u});
+  b.on('deploy',c=>{if(c.unit===u){st.shownCells=null;st.s2Casts=0;st.extra.clear();st.cells.clear();st.entered.clear();delete st.retireCells;st.clock=0;st.lastSpread=-Infinity;}},{owner:u});
   b.on('death',c=>{
    if(c.unit!==u)return;
    // Death/retreat hooks still see the previous territory; remove it only after its retirement burst.
