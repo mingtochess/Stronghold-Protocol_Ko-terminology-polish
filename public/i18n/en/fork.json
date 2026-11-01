@@ -3530,5 +3530,18 @@
   "세 오퍼레이터의 재능·스킬·모듈과 공식·간소 전투 이펙트 및 스킬별 효과음을 구현했습니다.": "Implemented their talents, skills, modules, official and simplified combat effects, and skill-specific sound effects.",
   "세 오퍼레이터는 우르수스 맹약을 사용하며, 우르수스가 비활성화된 게임에서는 협동방어 맹약으로 변경됩니다.": "These operators use Ursus and switch to Cooperative Defense when Ursus is disabled.",
   "공식 공격 범위 표시의 높이를 일반 지면과 언덕 기준으로 통일했습니다. 장애물과 사격대 타일의 범위 표시도 언덕 높이를 따릅니다.": "Official attack-range overlays now use consistent ground and high-ground levels. Obstacles and ranged platforms use the high-ground display level.",
-  "공식 HP바의 원소 피해 게이지 크기를 줄이고 카메라 배율에 맞춰 조절되도록 수정했습니다.": "Reduced the official elemental gauge size and made it scale with camera zoom."
+  "공식 HP바의 원소 피해 게이지 크기를 줄이고 카메라 배율에 맞춰 조절되도록 수정했습니다.": "Reduced the official elemental gauge size and made it scale with camera zoom.",
+  "현재 선발과 같음": "Matches current lineup",
+  "미적용": "Not applied",
+  "선발 편집은 자동 저장됩니다. 게임에 반영하려면 ‘게임에 적용’을 누르세요.": "Lineup edits are saved automatically. Select “Apply to game” to use this lineup.",
+  "게임에 적용": "Apply to game",
+  "현재 선발 가져오기": "Copy current lineup",
+  "이 프리셋을 현재 선발 구성으로 바꿀까요?": "Replace this preset with your current lineup?",
+  "가져오기": "Import",
+  "이번 판의 선발은 확정되었습니다. 프리셋 편집은 다음 판에 사용할 수 있습니다.": "Recruit selection is locked for this match. Preset edits can be used next match.",
+  "오퍼레이터 선택": "Choose operator",
+  "오퍼레이터 변경": "Change operator",
+  "스킬·모듈은 오퍼레이터 설정과 공유됩니다.": "Skills and modules are shared with Operator Settings.",
+  "선발 프리셋 만들기": "Create recruit preset",
+  "5·6단계에 선발할 오퍼레이터를 각각 2명까지 고르세요.": "Choose up to two recruits for each of tiers 5 and 6."
 }
