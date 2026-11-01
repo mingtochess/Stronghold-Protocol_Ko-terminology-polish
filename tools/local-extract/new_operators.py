@@ -96,14 +96,28 @@ def load_tables(game, output, supplied=None, installed=None, log=print):
                 name = table_name(path.name)
                 if name and name not in claimed and path.is_file():
                     accept(name, path.read_bytes(), {'source': 'local-file', 'file': str(path)})
+    # PC builds may keep loose tables outside the historical gamedata/excel path.
+    # Inspect named table files only; don't decode arbitrary installation files.
+    if installed:
+        for area in ('PersistentData', 'StreamingAssets'):
+            parent = Path(installed)/'Arknights_Data'/area
+            directories = sorted({p.parent for p in parent.rglob('*')
+                                  if p.is_file() and table_name(p.name)}) if parent.is_dir() else []
+            (roots if area == 'PersistentData' else fallback).extend(directories)
     loose(roots)
     if REQUIRED-set(result):
-        bundles = sorted(p for p in Path(game).rglob('*') if p.suffix.lower() in ('.ab', '.bin')
-                         and any(n in p.relative_to(game).as_posix().lower() for n in ('gamedata', 'excel', 'table')))
+        # Bundle filenames can be opaque/packed. Prefer likely paths, but never
+        # conclude that tables are absent without inspecting remaining bundles.
+        bundles = sorted((p for p in Path(game).rglob('*') if p.is_file() and p.suffix.lower() in ('.ab', '.bin')),
+                         key=lambda p: (not any(n in p.relative_to(game).as_posix().lower()
+                                                for n in ('gamedata', 'excel', 'table')), str(p)))
+        log(f'Client table search: {len(bundles)} bundles; loose tables decoded {len(result)}/{len(TABLES)}')
+        write(Path(output)/'tables/bundle-inventory.json', [p.relative_to(game).as_posix() for p in bundles])
         if bundles:
             import aklz4  # noqa: F401 (UnityPy decoder registration)
             import UnityPy
         for i, path in enumerate(bundles, 1):
+            if REQUIRED <= claimed: break
             try:
                 env = UnityPy.load(str(path))
                 for obj in env.objects:
@@ -121,6 +135,9 @@ def load_tables(game, output, supplied=None, installed=None, log=print):
     report = {'sources': sources, 'missingRequired': sorted(REQUIRED-set(result)), 'missingOptional': sorted(set(TABLES)-REQUIRED-set(result)),
               'errors': errors, 'onlineTablesUsed': False}
     write(Path(output)/'tables/table-report.json', report)
+    log(f'Client tables decoded {len(result)}/{len(TABLES)}; read errors {len(errors)}')
+    if report['missingRequired']: log('Missing required client tables: '+', '.join(report['missingRequired']))
+    for error in errors[:5]: log('Table read error: '+str(error))
     return result, report
 
 
@@ -398,6 +415,7 @@ def run(kit, game, output, requested, supplied=None, installed=None, plan_only=F
         loaded = stage('client tables', lambda: load_tables(game, output, supplied, installed, say))
         tables, tr = loaded if loaded else ({}, {'missingRequired': sorted(REQUIRED)})
         plan = make_plan(tables, requested); write(output/'operator-plan.json', plan)
+        if plan['unresolvedOperators']: say('Operators not found in decoded client tables: '+', '.join(plan['unresolvedOperators']))
         report['tableReport'] = tr; report['unresolvedOperators'] = plan['unresolvedOperators']; report['operators'] = plan['operators']; report['missingSkills'] = plan['missingSkills']; report['missingRanges'] = plan['missingRanges']; report['missingModules'] = plan['missingModules']
         if plan['operators'] and not plan_only:
             # A new standalone root restricts the existing exporter to these units; no game roster baseline is used.

@@ -41,6 +41,28 @@ def tables():
 
 
 class Planning(unittest.TestCase):
+    def test_tables_in_opaque_bundle_are_scanned_and_inventory_retained(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp); game = root/'view'; game.mkdir()
+            bundle = game/'pkgrps'/'opaque_123.ab'; bundle.parent.mkdir(); bundle.write_bytes(b'fixture')
+            obj = NS(type=NS(name='TextAsset'), read=lambda:NS(m_Name='character_table', m_Script=json.dumps({TAL:{'name':'塔露拉'}}).encode()))
+            messages = []
+            with patch.dict(sys.modules, {'aklz4':NS(), 'UnityPy':NS(load=lambda p:NS(objects=[obj]))}):
+                values, report = new.load_tables(game, root/'out', log=messages.append)
+            self.assertIn(TAL, values['character_table'])
+            self.assertEqual(report['sources']['character_table']['bundle'], 'pkgrps/opaque_123.ab')
+            self.assertEqual(new.read(root/'out/tables/bundle-inventory.json'), ['pkgrps/opaque_123.ab'])
+            self.assertTrue(any('Missing required' in m for m in messages))
+
+    def test_nested_installed_loose_tables_outside_old_excel_path(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp); game = root/'view'; game.mkdir()
+            folder = root/'install/Arknights_Data/PersistentData/new-layout/data'
+            folder.mkdir(parents=True)
+            (folder/'character_table.bytes').write_text(json.dumps({TAL:{'name':'塔露拉'}}))
+            values, _ = new.load_tables(game, root/'out', installed=root/'install', log=lambda s:None)
+            self.assertIn(TAL, values['character_table'])
+
     def test_default_targets_are_three_people_and_both_frozen_river_names_resolve_identically(self):
         self.assertEqual(new.DEFAULT_TARGETS, ['塔露拉', '国度', '冻河'])
         self.assertEqual(new.select_targets(tables()['character_table'], new.DEFAULT_TARGETS), ([TAL, LAND, TOSKA], []))

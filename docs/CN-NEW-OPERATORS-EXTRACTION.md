@@ -86,3 +86,7 @@ node --test test/local-extract-new-operators.test.js test/local-extract-cn-launc
 ```
 
 원본 게임 자료가 없는 합성 fixture로 대상 별칭, 소환물/모듈/범위 의존 관계, Unicode 경로, 최신 소스 우선순위, 불명 형식 원본 보존, 다른 캐릭터 음성 혼입 방지, 번들 순환, 단독 ZIP과 `--client` 준비 경로를 검증한다. 실제 신규 중국 클라이언트와 PowerShell 실행은 사용자 PC에서 확인해야 한다. 이를 확인한 것처럼 보고하지 않는다.
+
+### 테이블 단계에서 멈췄던 경우
+
+테이블 검색은 설치 폴더의 다른 하위 경로와 이름이 불명확한 번들 내부까지 확인합니다. 전체 번들을 확인할 때는 시간이 걸리며, `Client table bundles` 진행률이 출력됩니다. 해석할 수 없는 테이블은 원본을 보존하고 `PARTIAL`로 보고합니다. `tables/bundle-inventory.json`에는 검색한 번들 목록이 들어갑니다.
