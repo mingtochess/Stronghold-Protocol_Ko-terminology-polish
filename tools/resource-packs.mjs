@@ -2,7 +2,12 @@ import{readFile,writeFile,mkdir,copyFile}from'node:fs/promises';
 import{resolve,dirname,relative,isAbsolute}from'node:path';
 import{createHash}from'node:crypto';
 import{isDeepStrictEqual}from'node:util';
-export function preservesIndex(before,after){return Object.entries(before).every(([group,entries])=>!entries||typeof entries!=='object'||Array.isArray(entries)||Object.entries(entries).every(([k,v])=>isDeepStrictEqual(v,after[group]?.[k])));}
+// Generated indexes add mount aliases inside existing entries as well as new entries.
+// Preserve every existing leaf (including ordered arrays), while allowing additive fields.
+export function preservesIndex(before,after){
+ if(!before||typeof before!=='object'||Array.isArray(before))return isDeepStrictEqual(before,after);
+ return !!after&&typeof after==='object'&&!Array.isArray(after)&&Object.entries(before).every(([key,value])=>Object.hasOwn(after,key)&&preservesIndex(value,after[key]));
+}
 const sha=b=>createHash('sha256').update(b).digest('hex');
 export const managedIndexes=new Set(['/assets/local/fx/index.json','/assets/local/fx/textures.json']);
 export function resourcePath(root,path){const p=resolve(root,path.replace(/^\//,'')),rel=relative(resolve(root,'assets'),p);if(!path.startsWith('/assets/')||rel.startsWith('..')||isAbsolute(rel))throw Error('Unsafe asset path: '+path);return p;}

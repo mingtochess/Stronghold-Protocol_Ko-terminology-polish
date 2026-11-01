@@ -33,3 +33,9 @@
 - 4인·8인 맵의 방향별 줄·끝까지 비행 테스트는 유지한다. 원래 후방에서 출발하므로 즉시 소환이 즉시 적중을 뜻하지는 않는다.
 
 최종 관련 테스트 243개 통과. 배포 라우팅 검사 66개 통과·브라우저 전용 2개 건너뜀, 정적 import·공백·배포 셸 구문 검사 통과. 이번 변경에서는 버전 파일과 패치노트를 수정하지 않았다.
+
+### Clean-build index validation
+
+The official v0.3.0 importer writes the upstream FX index before the two supplement stages. The hosted canonical index adds nested mount aliases to some existing skin entries. Exact whole-entry equality incorrectly rejected these additions in the Docker build. Validation now recursively preserves every existing leaf and ordered array, while allowing additional object fields; changed or removed values still fail. The installer integration test includes a nested mount-alias addition after supplement hydration.
+
+Verified against a clean Git export: vendor → prepared catalogue → SHA-verified official release import → local FX supplement → hosted resources (exact pinned base checkout and verified pack payloads) → Korean UI → language packs → resource-origin application. The original validator reproduced the CI failure; the corrected validator completed the same stages. Related tests: 20 passed; lint and strict import checks passed.
