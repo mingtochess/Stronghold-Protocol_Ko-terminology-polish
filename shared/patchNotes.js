@@ -8,6 +8,13 @@ const RELEASES = [
   "date": "2026-11-01",
   "status": "released",
   "title": "선발 오퍼레이터 3종 · 공식 범위 표시",
+  "hotfixes": [{
+    "version": "0.3.3h1",
+    "date": "2026-11-01",
+    "status": "released",
+    "title": "탈룰라 3스킬 자동 발동 핫픽스",
+    "sections": [{"title": "전투", "items": ["탈룰라 3스킬이 일반 공격 범위 밖이라도 불덩이가 닿는 범위에 식별 가능한 적이 있으면 자동으로 발동하도록 수정했습니다."]}]
+  }],
   "sections": [
     {
       "title": "선발 오퍼레이터",

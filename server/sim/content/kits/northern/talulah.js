@@ -1,7 +1,30 @@
 // PRTS 塔露拉 + local char_4247_oxi data, 2026-11-01. All tunable values are blackboard values.
 import {acquireTargets} from '../../../ai.js';
 import {dirVec} from '../../../dir.js';
+import {canTargetEnemy} from '../../../targeting.js';
 import {alive,num,talentBb,keyOf,fx,groundProfile,inCells} from './common.js';
+
+// Match the fired lanes, including their rear origin and travel beyond the far edge.
+function wavePaths(b,u,bb,half){
+ const paths=[],[dr,dc]=dirVec(u.dir);
+ for(let lane=-half;lane<=half;lane++){
+  const row=u.tileR+dc*lane,col=u.tileC-dr*lane;if(!b.grid.inRect(row,col))continue;
+  let back=0;while(back<11&&b.grid.inRect(row-dr*(back+1),col-dc*(back+1)))back++;
+  const x=col-dc*back,y=row-dr*back,edge=dr?(dr>0?b.rect.r1+.5:b.rect.r0-.5):(dc>0?b.rect.c1+.5:b.rect.c0-.5);
+  paths.push({x,y,dr,dc,left:Math.abs(edge-(dr?y:x))+num(bb.wave_exit_distance,5),lane});
+ }
+ return paths;
+}
+function hasWaveTargets(b,u,bb){
+ // A cast includes both its normal and overdrive volleys. Use their complete footprint,
+ // but retain the engine's identification and ground-target selection rules.
+ const paths=wavePaths(b,u,bb,Math.floor(Math.max(num(bb.normal_half_width),num(bb.overload_half_width)))),radius=num(bb.projectile_range,.5);
+ return b.enemies.some(e=>canTargetEnemy(u,e,groundProfile)&&paths.some(p=>{
+  const along=Math.max(0,Math.min(p.left,(e.x-p.x)*p.dc+(e.y-p.y)*p.dr));
+  const dx=e.x-p.x-p.dc*along,dy=e.y-p.y-p.dr*along;
+  return dx*dx+dy*dy<=radius*radius;
+ }));
+}
 
 export function talulahKit(_bb,raw){
  const skills=Object.fromEntries(raw.skills.map(s=>{
@@ -22,7 +45,7 @@ export function talulahKit(_bb,raw){
    }
    fx(b,u,'talulahGuard',{target:target?.id,dur:num(bb.skill_duration)});
   }}];
-  return[s.skillId,{kind:'duration',duration:s.duration,mods:{atkPct:num(bb.atk)},attack:{noAttack:true},onStart({battle:b,unit:u,skill}){
+  return[s.skillId,{kind:'duration',duration:s.duration,hasTargets:({battle,unit})=>hasWaveTargets(battle,unit,bb),mods:{atkPct:num(bb.atk)},attack:{noAttack:true},onStart({battle:b,unit:u,skill}){
    const st=u.mem.talulah;st.waveClock=0;st.channelSeq=u.deploySeq;st.wavePhase=0;
    // Skill runtime retains its regular duration; overdrive starts exactly at its midpoint.
    st.waveDuration=skill.duration;fx(b,u,'talulahChannel',{dur:skill.duration});st.emitWave();
@@ -46,12 +69,10 @@ export function talulahKit(_bb,raw){
   b.on('damaged',c=>{if(c.source===u&&c.type==='arts'&&c.amount>0&&alive(c.target))b.dealDamage(u,c.target,{type:'element',element:'burn',amount:c.amount*num(t.ep_damage_ratio),tags:['talulah-burn']});},{owner:u});
   b.on('elementBurst',c=>{if(alive(u)&&c.element==='burn'&&c.target.side==='enemy'&&num(trail.max_count)>0)st.burning.set(c.target,b.time+5);},{owner:u});
   function wave(){
-   const half=Math.floor(num(st.wavePhase?bb.overload_half_width:bb.normal_half_width)),[dr,dc]=dirVec(u.dir),serial=++st.waveSerial,seen=new Set();
-   for(let lane=-half;lane<=half;lane++){
-    const row=u.tileR+dc*lane,col=u.tileC-dr*lane;if(!b.grid.inRect(row,col))continue;
-    let back=0;while(back<11&&b.grid.inRect(row-dr*(back+1),col-dc*(back+1)))back++;
-    const x=col-dc*back,y=row-dr*back,edge=dr?(dr>0?b.rect.r1+.5:b.rect.r0-.5):(dc>0?b.rect.c1+.5:b.rect.c0-.5),range=Math.abs(edge-(dr?y:x))+num(bb.wave_exit_distance,5);
-    st.waves.push({x,y,dr,dc,left:range,serial,seen,lane});
+   const half=Math.floor(num(st.wavePhase?bb.overload_half_width:bb.normal_half_width)),serial=++st.waveSerial,seen=new Set();
+   for(const path of wavePaths(b,u,bb,half)){
+    const {x,y,dr,dc,left:range,lane}=path;
+    st.waves.push({...path,serial,seen});
     fx(b,u,'talulahWave',{born:b.time,x,y,dx:dc,dy:dr,speed:num(bb.wave_speed),dur:range/num(bb.wave_speed),wave:serial,lane});
    }
   }
