@@ -7,7 +7,7 @@ import{parseSkel}from'./assets/skel.mjs';
 import{atlasInfo}from'./assets/atlas.mjs';
 import{resolveRoles}from'./assets/anim-roles.mjs';
 import{indexAudio,VOICE_SLOTS}from'./assets/audio.mjs';
-import{unitCombatSounds}from'./assets/unit-combat-sounds.mjs';
+import{northernCombatSounds}from'./northern-audio.mjs';
 import{attachAttackTimings}from'../shared/attackTiming.js';
 import{NORTHERN_OPERATORS}from'./build-northern-recruits.mjs';
 const root=process.cwd(),incoming=resolve(process.argv[2]||'/workspace/incoming/cn-operators-20261101-133603-390700');
@@ -66,21 +66,9 @@ async function remap(value){
  if(value&&typeof value==='object'){const o={};for(const[k,v]of Object.entries(value))o[k]=await remap(v);return o;}
  return value;
 }
-const bankPath=key=>{const path=audio.bank(key)?.[0];return path?'/assets/audio/sfx/'+path:null;};
 for(const op of NORTHERN_OPERATORS){
- const record=Object.values(chess).find(c=>c.charId===op.charId),{unit}=unitCombatSounds(audio,op.charId,record.skills);
- if(op.key==='talulah'){
-  unit.skills[0]=bankPath('battle.ON_ABILITY_START.skchr_oxi_1');
-  unit.skills[1]=bankPath('battle.ON_ABILITY_START.skchr_oxi_2');
-  unit.fx={talulahS1:bankPath('battle.ON_ABILITY_HIT.skchr_oxi_1'),talulahGuard:bankPath('battle.ON_ABILITY_HIT.skchr_oxi_2'),talulahWave:bankPath('battle.ON_PROJECTILE_BORN.projectile_chr_oxi_s_3_heatwave'),talulahWaveHit:bankPath('battle.ON_PROJECTILE_HIT.projectile_chr_oxi_s_3_heatwave'),talulahTrail:bankPath('battle.ON_CUSTOM_TRIGGER.oxi_fire_field_create'),talulahOverdrive:bankPath('battle.ON_CUSTOM_TRIGGER.oxi_s_3_overload')};
- }else if(op.key==='territoriya')unit.fx={territoriyaSpread:bankPath('battle.ON_CUSTOM_TRIGGER.dminon_s3_expand'),territoriyaRetreat:bankPath('battle.ON_PROJECTILE_REACH.projectile_chr_dminon_withdraw')};
- else{
-  unit.skills[0]=bankPath('battle.ON_ABILITY_START.skchr_tocka_1');
-  unit.skills[1]=bankPath('battle.ON_ABILITY_START.skchr_tocka_2');
-  unit.attack=bankPath('battle.ON_ABILITY_ON.char_4244_tocka.attack.0.2');
-  unit.fx={toskaMark:{1:bankPath('battle.ON_PROJECTILE_HIT.projectile_chr_tocka_s2')},toskaTrigger:{0:bankPath('battle.ON_BUFF_SHOW_EFFECT.tocka_s1_shield_start_audio'),1:bankPath('battle.ON_BUFF_SHOW_EFFECT.tocka_s2_auto_skill_audio'),2:bankPath('battle.ON_BUFF_SHOW_EFFECT.tocka_s3_bonus_start_audio')}};
- }
- patch.audio.sfx.units[op.charId]=await remap(unit);
+ const record=Object.values(chess).find(c=>c.charId===op.charId);
+ patch.audio.sfx.units[op.charId]=await remap(northernCombatSounds(audio,op,record));
 }
 const words=await read(incoming+'/tables/client/charword_table.json');
 for(const op of NORTHERN_OPERATORS){const slots={};for(const word of Object.values(words.charWords).filter(w=>w.charId===op.charId&&VOICE_SLOTS[w.placeType]&&w.voiceAsset)){

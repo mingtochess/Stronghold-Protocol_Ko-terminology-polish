@@ -43,10 +43,11 @@ export function territoriyaKit(_bb,raw){
   },{owner:u});
   b.on('deploy',c=>{if(c.unit===u){st.shownCells=null;st.s2Casts=0;st.extra.clear();st.cells.clear();st.entered.clear();delete st.retireCells;st.clock=0;st.lastSpread=-Infinity;}},{owner:u});
   b.on('death',c=>{
-   if(c.unit!==u)return;
+   if(c.unit!==u)return;fx(b,u,'territoriyaRetreatStart');
    // Death/retreat hooks still see the previous territory; remove it only after its retirement burst.
-   for(const enemy of inCells(b,u,st.retireCells||cells())){b.dealDamage(u,enemy,{amount:u.s.atk*num(retreat.atk_scale),type:'arts',isSkill:false,tags:['territoriya-retreat']});if(alive(enemy))b.applyStatus(enemy,'stun',{source:u,duration:num(retreat.stun)});}
-   st.extra.clear();st.cells.clear();fx(b,u,'territoriyaRetreat');
+   const targets=inCells(b,u,st.retireCells||cells());
+   for(const enemy of targets){b.dealDamage(u,enemy,{amount:u.s.atk*num(retreat.atk_scale),type:'arts',isSkill:false,tags:['territoriya-retreat']});if(alive(enemy))b.applyStatus(enemy,'stun',{source:u,duration:num(retreat.stun)});}
+   if(targets.length)fx(b,u,'territoriyaRetreatHit');st.extra.clear();st.cells.clear();fx(b,u,'territoriyaRetreat');
   },{owner:u});
  }};
 }

@@ -13,6 +13,7 @@ export class NorthernFx{
  _keep(key,handle,owner,dur=Infinity,independent=false){if(!handle)return false;this._stop(key);this.live.set(key,{handle,owner,independent,until:this.w.ofx.time+dur});return true;}
  simFx(kind,x,y,e,owner){
   if(!isNorthern(kind))return false;
+  if(kind==='talulahAttackMode'||kind==='territoriyaRetreatStart'||kind==='territoriyaRetreatHit')return true;
   const w=this.w;if(!w.ofx.active||!owner)return false;
   const id=owner.id??owner.info?.id,at={x,y,z:0},target=w.view(e.target),play=(key,v=at)=>!!w.playOn(key,v,{flipFrom:owner,...(v.root?{depthOwner:v,unitLayer:true}:{})});
   if(kind==='talulahWave'){

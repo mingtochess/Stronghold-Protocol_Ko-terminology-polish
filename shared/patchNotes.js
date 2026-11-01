@@ -4,6 +4,29 @@
 // integrated note (kind 'integrated', generated below from its updates and their hotfixes, never written by hand).
 const RELEASES = [
 {
+  "version": "0.3.3h",
+  "date": "2026-11-01",
+  "status": "released",
+  "title": "선발 오퍼레이터 3종 · 공식 범위 표시",
+  "sections": [
+    {
+      "title": "선발 오퍼레이터",
+      "items": [
+        "선발 오퍼레이터에 탈룰라, 테리토리야, 토스카를 추가했습니다.",
+        "세 오퍼레이터의 재능·스킬·모듈과 공식·간소 전투 이펙트 및 스킬별 효과음을 구현했습니다.",
+        "세 오퍼레이터는 우르수스 맹약을 사용하며, 우르수스가 비활성화된 게임에서는 협동방어 맹약으로 변경됩니다."
+      ]
+    },
+    {
+      "title": "전투 표시",
+      "items": [
+        "공식 공격 범위 표시의 높이를 일반 지면과 언덕 기준으로 통일했습니다. 장애물과 사격대 타일의 범위 표시도 언덕 높이를 따릅니다.",
+        "공식 HP바의 원소 피해 게이지 크기를 줄이고 카메라 배율에 맞춰 조절되도록 수정했습니다."
+      ]
+    }
+  ]
+},
+{
   "version": "0.3.3g",
   "date": "2026-10-31",
   "status": "released",

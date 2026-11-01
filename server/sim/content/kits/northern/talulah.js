@@ -33,7 +33,7 @@ export function talulahKit(_bb,raw){
   const st=u.mem.talulah={arcane:0,attackArcane:0,lastAttack:b.time,arcaneClock:0,stacks:[],counterAt:-Infinity,fields:new Map(),burning:new Map(),fieldClock:0,waves:[],waveClock:0,waveSerial:0,wavePhase:0};
   u.profile.dmgType='arts';const original={...u.profile};
   u.profile.acquireTargets=(battle,unit)=>st.stacks.length?battle.blockedTargets(unit,unit.profile).length?battle.blockedTargets(unit,unit.profile):acquireTargets(battle,unit,original):acquireTargets(battle,unit,original);
-  b.on('beforeAttack',c=>{if(c.attacker!==u)return;st.attackArcane=st.arcane;},{owner:u});
+  b.on('beforeAttack',c=>{if(c.attacker!==u)return;st.attackArcane=st.arcane;if(raw.skill.index===1)fx(b,u,'talulahAttackMode',{buffed:st.stacks.length>0});},{owner:u});
   b.on('attack',c=>{if(c.attacker!==u)return;st.arcane=Math.max(0,st.arcane-num(t.arcane_step));st.lastAttack=b.time;st.arcaneClock=0;},{owner:u});
   b.on('hit',c=>{
    if(c.source===u&&(c.dmg.type==='arts'||c.dmg.type==='elemental'))c.dmg.mul=(c.dmg.mul??1)*(1+(c.dmg.isAttack?st.attackArcane:st.arcane));

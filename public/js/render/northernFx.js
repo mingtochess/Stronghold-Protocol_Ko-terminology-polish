@@ -14,6 +14,7 @@ export function clearNorthernSimpleFx(fx){for(const key of fx._northernWaves?.ke
 
 export function northernSimpleFx(fx,kind,x,y,e={}){
  if(!known(kind))return false;
+ if(kind==='talulahAttackMode'||kind==='territoriyaRetreatStart'||kind==='territoriyaRetreatHit')return true;
  const owner=fx._viewOf(e.src??e.id),ts=fx._ts();
  const target=fx._viewOf(e.target)||owner;
  const pulse=(at,color,r=.65)=>{const p=at||{x,y},z=fx._groundZ(p.x,p.y);fx.ring(p.x,p.y,z+.015,.08,r,color,.35/ts);};

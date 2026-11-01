@@ -3523,5 +3523,12 @@
   "전장 내 아군 오퍼레이터 1명에게 다음 발동형 효과 부여(같은 효과를 지닌 대상 제외)\n스킬을 사용할 수 있게 되면 15초간 공격 속도 +35. 지속시간 동안 스킬이 자동으로 발동함": "Apply a Trigger Effect to 1 allied Operator anywhere on the field who does not have it: when their skill is ready, gain +35 ASPD for 15s and automatically activate skills during this period.",
   "전장 내 아군 오퍼레이터 <@ba.vup>1</>명에게 다음 <$ba.triggereffect>발동형 효과</> 부여(같은 효과를 지닌 대상 제외)\n스킬을 사용할 수 있게 되면 <@ba.vup>15</>초간 공격 속도 +<@ba.vup>35</>. 지속시간 동안 스킬이 자동으로 발동함": "Apply a Trigger Effect to <@ba.vup>1</> allied Operator anywhere on the field who does not have it: when their skill is ready, gain <@ba.vup>+35</> ASPD for <@ba.vup>15</>s and automatically activate skills during this period.",
   "작열하는 광관": "Blazing Corona",
-  "작열하는 광환": "Blazing Corona"
+  "작열하는 광환": "Blazing Corona",
+  "선발 오퍼레이터 3종 · 공식 범위 표시": "Three New Optional Recruits · Official Range Display",
+  "선발 오퍼레이터": "Optional Recruits",
+  "선발 오퍼레이터에 탈룰라, 테리토리야, 토스카를 추가했습니다.": "Added Talulah, Территория, and Тоска as optional recruits.",
+  "세 오퍼레이터의 재능·스킬·모듈과 공식·간소 전투 이펙트 및 스킬별 효과음을 구현했습니다.": "Implemented their talents, skills, modules, official and simplified combat effects, and skill-specific sound effects.",
+  "세 오퍼레이터는 우르수스 맹약을 사용하며, 우르수스가 비활성화된 게임에서는 협동방어 맹약으로 변경됩니다.": "These operators use Ursus and switch to Cooperative Defense when Ursus is disabled.",
+  "공식 공격 범위 표시의 높이를 일반 지면과 언덕 기준으로 통일했습니다. 장애물과 사격대 타일의 범위 표시도 언덕 높이를 따릅니다.": "Official attack-range overlays now use consistent ground and high-ground levels. Obstacles and ranged platforms use the high-ground display level.",
+  "공식 HP바의 원소 피해 게이지 크기를 줄이고 카메라 배율에 맞춰 조절되도록 수정했습니다.": "Reduced the official elemental gauge size and made it scale with camera zoom."
 }
