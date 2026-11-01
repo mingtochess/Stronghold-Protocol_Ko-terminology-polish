@@ -12,17 +12,19 @@ import {setGameData} from '../server/sim/content/support/index.js';
 import {customExtensionCatalog} from '../shared/customExtensions.js';
 import {startServer} from '../server/index.js';
 import {previewHandler} from './ursus-preview-http.mjs';
+import {resolveResourcePacks,installResourcePacks} from '../tools/resource-packs.mjs';
+import {applyOrigin} from '../tools/resource-origin.mjs';
 const dataDir=fileURLToPath(new URL('../content/production/data/',import.meta.url));
 const data=loadData(dataDir);
 const preparedResources=new URL('../content/production/resources.json',import.meta.url);
 const cachedOfficialRoot=new URL('../.cache/local-production/',import.meta.url);
 const cachedIndex=new URL('public/vendor/browser-resources.json',cachedOfficialRoot);
 const hasCachedOfficial=await access(cachedIndex).then(()=>true,()=>false);
-const resourceFile=process.env.STRONGHOLD_LOCAL_RESOURCES?new URL('file://'+process.env.STRONGHOLD_LOCAL_RESOURCES):hasCachedOfficial?cachedIndex:preparedResources;
-const resourceBody=await readFile(resourceFile);
-const resources=JSON.parse(resourceBody);
+const resourceFile=process.env.STRONGHOLD_LOCAL_RESOURCES?new URL('file://'+process.env.STRONGHOLD_LOCAL_RESOURCES):preparedResources;
+const originConfig=JSON.parse(await readFile(new URL('../content/custom/resource-origin.json',import.meta.url))),packs=await resolveResourcePacks(fileURLToPath(new URL('../',import.meta.url)),originConfig),packFiles=new Map(packs.flatMap(p=>p.files.map(f=>[f.path,{pack:p,file:f}]))),packLoads=new Map();
+const resources=applyOrigin(JSON.parse(await readFile(resourceFile)),{...originConfig,resolvedPacks:packs}),resourceBody=Buffer.from(JSON.stringify(resources));
 const prepared=JSON.parse(await readFile(preparedResources));
-const preparedPaths=new Set(prepared.files.filter(f=>f.local).map(f=>f.path));
+const preparedPaths=new Set((await Promise.all(prepared.files.filter(f=>f.local).map(async f=>await access(new URL('../content/production'+f.path,import.meta.url)).then(()=>f.path,()=>null)))).filter(Boolean));
 const officialRoot=process.env.STRONGHOLD_LOCAL_OFFICIAL_ROOT?new URL('file://'+process.env.STRONGHOLD_LOCAL_OFFICIAL_ROOT.replace(/\/$/,'')+'/'):hasCachedOfficial?cachedOfficialRoot:null;
 const localResources=new Map(resources.files.filter(f=>f.local).map(f=>[f.path,preparedPaths.has(f.path)?new URL('../content/production'+f.path,import.meta.url):new URL('public'+f.path,officialRoot||rootUrl())]));
 function rootUrl(){return new URL('../',import.meta.url);}
@@ -64,7 +66,11 @@ const server=await startServer({dataDir,host:process.env.HOST||'127.0.0.1',port,
   res.end(req.method==='HEAD'?undefined:path.endsWith('.json')?resourceBody:resources.fontCss);return true;
  }
  let resourcePath;try{resourcePath=decodeURIComponent(path);}catch{return false;}
- const file=localResources.get(resourcePath);if(!file)return false;
+ let file=localResources.get(resourcePath);if(!file)return false;
+ const pinned=packFiles.get(resourcePath);if(pinned&&!preparedPaths.has(resourcePath)){
+  if(!packLoads.has(resourcePath))packLoads.set(resourcePath,installResourcePacks(fileURLToPath(root),[{...pinned.pack,files:[pinned.file]}]).catch(error=>{packLoads.delete(resourcePath);throw error;}));
+  await packLoads.get(resourcePath);file=new URL('public'+resourcePath,root);
+ }
  const ext=path.split('.').at(-1);const mime={png:'image/png',webp:'image/webp',jpg:'image/jpeg',mp3:'audio/mpeg',ogg:'audio/ogg',json:'application/json',atlas:'text/plain',woff2:'font/woff2',ttf:'font/ttf',otf:'font/otf'};
  res.setHeader('Content-Type',mime[ext]||'application/octet-stream');res.setHeader('Cache-Control','public,max-age=31536000,immutable');
  if(req.method==='HEAD')res.end();else await pipeline(createReadStream(file),res);return true;

@@ -5,11 +5,12 @@ import {fileURLToPath} from 'node:url';
 import {createHash} from 'node:crypto';
 import {spawnSync} from 'node:child_process';
 import {installSupplement} from './fx-supplement.mjs';
+import {resolveResourcePacks,installResourcePacks} from './resource-packs.mjs';
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'..');
 const hash=b=>createHash('sha256').update(b).digest('hex');
 const read=async p=>JSON.parse(await readFile(p,'utf8'));
 function safe(base,path){const dest=resolve(base,path.replace(/^\//,'')),rel=relative(base,dest);if(rel.startsWith('..')||isAbsolute(rel))throw Error('Unsafe hosted resource path');return dest;}
-export async function installHostedResources(directory=root,configPath=resolve(directory,'content/custom/resource-origin.json'),archiveRoot=null){
+export async function installHostedResources(directory=root,configPath=resolve(directory,'content/custom/resource-origin.json'),archiveRoot=null,{packSourceRoot=null}={}){
  const config=await read(configPath);
  if(!config.repository||!config.commit)return null;
  if(!/^[\w.-]+\/[\w.-]+$/.test(config.repository)||!/^[a-f0-9]{40}$/.test(config.commit))throw Error('Hosted resources require a repository and full immutable commit SHA');
@@ -37,6 +38,10 @@ export async function installHostedResources(directory=root,configPath=resolve(d
  await copyFile(resolve(stage,'metadata/costume-supplement.json'),resolve(pack,'supplement.json'));
  try{await symlink(resolve(stage,'public/assets/local/fx'),resolve(pack,'files'),process.platform==='win32'?'junction':'dir');}catch(e){if(e.code!=='EEXIST')throw e;}
  const result=await installSupplement(directory,pack);
- return {files:inventory.files,bytes:inventory.bytes,costumeResources:result.resources};
+ const packs=await resolveResourcePacks(directory,config),additions=await installResourcePacks(directory,packs,{sourceRoot:packSourceRoot});
+ const catalogPath=resolve(directory,'public/vendor/browser-resources.json'),catalog=await read(catalogPath),entries=new Map(catalog.files.map(f=>[f.path,f]));
+ for(const p of packs)for(const f of p.files)entries.set(f.path,{...entries.get(f.path),...f,local:true,sources:[f.path]});
+ catalog.files=[...entries.values()];catalog.version=hash(JSON.stringify(catalog.files)).slice(0,20);await writeFile(catalogPath,JSON.stringify(catalog));
+ return {files:inventory.files,bytes:inventory.bytes,costumeResources:result.resources,packResources:additions.length};
 }
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url))console.log(await installHostedResources(process.argv[2]||root,process.argv[3],process.argv[4]));

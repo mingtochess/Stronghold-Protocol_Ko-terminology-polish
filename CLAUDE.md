@@ -62,7 +62,8 @@
 - 배포/라우터 프로토콜을 바꿀 때 운영 서버 스크립트와 라우터의 동시 갱신 필요성을 검토하고 정확한 명령을 제공한다. 구버전의 진행 중인 방을 보호한다.
 - `.env`, API 키, 세션 쿠키, SSH 키, Cloudflare 토큰 등은 문서·아카이브·커밋에 넣지 않는다.
 - `.claude/settings.local.json` 등 개인별 설정은 Git에서 제외한다. 개인 인증은 각 PC에서 Claude Code로 진행한다.
-- 리소스 저장소: `https://github.com/moring-m/Stronghold-Protocol_Ko_Arca_assets`.
+- 리소스 저장소: `https://github.com/moring-m/Stronghold-Protocol_Ko_Arca_assets`. **모든 신규 에셋은 이 저장소에 업로드하고 불변 커밋 SHA로 연결한다. 게임 저장소에는 연결 메타데이터만 넣으며 신규 페이로드를 `content/production/assets` 등에 커밋하지 않는다.**
+- 추출·변환 결과는 `.cache/`에 준비한 후 `tools/publish-resource-pack.mjs`로 파일 크기·SHA-256·기존 키 보존을 검증해 에셋 저장소에 반영한다. 업로드 후 `content/custom/resource-origin.json`의 `packs`에 manifest와 커밋을 등록하고 CDN 다운로드 및 빌드 설치를 검증한다. 기존 팩의 참조를 통째로 최신으로 바꿔 다른 에셋을 변경하지 않는다.
 - 로컬 테스트에도 운영과 같은 카탈로그를 사용한다. 로딩을 빨리 보이게 하려고 리소스 목록을 줄이거나 다른 목록으로 바꾸지 않는다.
 - `.cache/`, `node_modules/`, 공식 클라이언트 원본과 추출 중간 결과는 개인 환경 자료다. 저장소 소스와 구분한다.
 - 검색은 `rg`를 우선하되 대형 단일 행 JSON 전체를 출력하지 않는다. Node/Python으로 필요한 키만 조회한다.

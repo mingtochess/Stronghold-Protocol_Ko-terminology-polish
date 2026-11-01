@@ -5,5 +5,13 @@
     "https://raw.githubusercontent.com/moring-m/Stronghold-Protocol_Ko_Arca_assets/9448a1576e07440f94e483f501d3eec478533c94/public",
     "https://cdn.jsdelivr.net/gh/moring-m/Stronghold-Protocol_Ko_Arca_assets@9448a1576e07440f94e483f501d3eec478533c94/public"
   ],
-  "fallbackToServer": false
+  "fallbackToServer": false,
+  "packs": [
+    {
+      "name": "northern-recruits",
+      "repository": "moring-m/Stronghold-Protocol_Ko_Arca_assets",
+      "commit": "ed607c846868f44b03eea3b1c14235cf4eb7c7cd",
+      "manifest": "content/custom/northern/assets.json"
+    }
+  ]
 }

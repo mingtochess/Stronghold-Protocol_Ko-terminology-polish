@@ -10,8 +10,10 @@ function fire({eight=false,stageId='custom_snowfield',dir='UP',col=10,over=true}
  const stage=eight?eightUniteStage(data.stages[stageId]):data.stages[stageId];
  const h=makeBattle({data,stage,kind:'unite',rect:eight?EIGHT_UNITE_RECT:undefined,units:[{chessId:id,row:10,col,dir,skillIndex:2}],enemies:[],autoFinish:false,timeLimit:120});
  h.run(1.2);const u=h.unit(id);u.skill.gainSp(1000);assert.ok(u.skill.activate('test'));
- if(over)u.skill.timeLeft=u.skill.duration*.49;
- u.mem.talulah.waveClock=Number(u.skill.bb[over?'overload_interval':'normal_interval']);h.step();
+ if(over){
+  // Isolate the overdrive volley after separately testing the immediate normal volley.
+  u.mem.talulah.waves=[];h.eventsOf('fx');h.events.length=0;u.skill.timeLeft=u.skill.duration*.49;u.mem.talulah.waveClock=Number(u.skill.bb.overload_interval);h.step();
+ }
  const waves=u.mem.talulah.waves.slice();assert.ok(waves.length);return{h,u,waves};
 }
 for(const eight of [false,true])for(const stageId of ['custom_snowfield','act1autochess_m01','act2autochess_m01'])for(const dir of ['UP','DOWN','LEFT','RIGHT'])for(const over of [false,true])for(const position of ['left','middle','right'])test(`${eight?8:4}p ${stageId} ${dir} ${over?'overdrive':'normal'} ${position}: no missing in-field lanes, fired waves reach the far edge`,()=>{
@@ -40,4 +42,8 @@ test('overlapping casts retain unique wave identities instead of replacing the p
 test('retreating the caster does not freeze or erase an already-fired projectile',()=>{
  const {h,u,waves}=fire({eight:true,dir:'RIGHT',col:2});const first=waves[0],x=first.x;
  h.b.retreat(u,{reason:'test'});assert.ok(waves.every(w=>u.mem.talulah.waves.includes(w)));h.run(.5);assert.ok(first.x>x);h.run(30);assert.equal(u.mem.talulah.waves.length,0);assert.deepEqual(h.b.errors,[]);
+});
+
+for(const dir of ['UP','DOWN','LEFT','RIGHT'])test(`Talulah ${dir}: first volley spawns on activation, second volley waits the normal interval`,()=>{
+ const {h,u}=fire({dir,over:false});const born=h.eventsOf('fx').filter(e=>e[1]==='talulahWave');assert.ok(born.length);assert.equal(u.mem.talulah.waveSerial,1);assert.ok(born.every(e=>Math.abs(e[4].born-h.b.time)<1e-9));const interval=Number(u.skill.bb.normal_interval);h.run(interval-.1);assert.equal(u.mem.talulah.waveSerial,1);h.run(.2);assert.equal(u.mem.talulah.waveSerial,2);
 });

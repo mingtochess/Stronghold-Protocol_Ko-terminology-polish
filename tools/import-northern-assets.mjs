@@ -10,14 +10,14 @@ import{indexAudio,VOICE_SLOTS}from'./assets/audio.mjs';
 import{northernCombatSounds}from'./northern-audio.mjs';
 import{attachAttackTimings}from'../shared/attackTiming.js';
 import{NORTHERN_OPERATORS}from'./build-northern-recruits.mjs';
-const root=process.cwd(),incoming=resolve(process.argv[2]||'/workspace/incoming/cn-operators-20261101-133603-390700');
+const root=process.cwd(),payloadRoot=resolve(process.argv[3]||'.cache/northern-asset-staging'),incoming=resolve(process.argv[2]||'/workspace/incoming/cn-operators-20261101-133603-390700');
 const read=async p=>JSON.parse(await readFile(resolve(root,p),'utf8'));
 const write=async(p,x)=>{await mkdir(dirname(resolve(root,p)),{recursive:true});await writeFile(resolve(root,p),JSON.stringify(x));};
 const assets=await read('content/production/data/assets.json'),chess=await read('content/production/data/chess.json'),manifest=await read('content/production/resources.json');
 const fileMap=new Map(manifest.files.map(f=>[f.path,f])),newFiles=new Map(),patch={chars:{},skills:{},modules:{},audio:{sfx:{units:{}},voice:{jp:{},kr:{}}}};
 async function payload(url,from){
- const dest=resolve(root,'content/production'+url);await mkdir(dirname(dest),{recursive:true});
- if(from&&resolve(from)!==dest)await copyFile(from,dest);
+ const dest=resolve(payloadRoot,url.slice(1));await mkdir(dirname(dest),{recursive:true});
+ from??=resolve(root,'content/production'+url);if(resolve(from)!==dest)await copyFile(from,dest);
  const bytes=await readFile(dest),entry={path:url,local:true,sources:[url],bytes:bytes.length,sha256:createHash('sha256').update(bytes).digest('hex')};
  fileMap.set(url,entry);newFiles.set(url,entry);return url;
 }
@@ -26,7 +26,7 @@ for(const row of models.models)for(const skeleton of row.skeletons||[])for(const
 for(const op of NORTHERN_OPERATORS){
  const model=models.models.find(r=>r.baseCharId===op.charId&&r.skeletons.some(s=>/FaceSwitcher\/(Front|Back)$/.test(s.node)));
  if(!model)throw Error('Missing front/back model: '+op.charId);
- const spine={};for(const s of model.skeletons.filter(s=>/FaceSwitcher\/(Front|Back)$/.test(s.node))){const a=atlasInfo(await readFile(resolve(root,'content/production'+s.atlas),'utf8')),sk=parseSkel(await readFile(resolve(root,'content/production'+s.skeleton)),new Set(a.regions));if(sk.missingRegions.length)throw Error('Missing atlas regions '+op.charId+': '+sk.missingRegions.join(','));spine[s.node.endsWith('/Front')?'front':'back']={skel:s.skeleton,atlas:s.atlas,textures:s.files.filter(x=>x.endsWith('.png')),pma:true,animations:sk.durations,hits:sk.hits,bounds:sk.bounds,anims:resolveRoles(sk.animations,{skillIndices:[0,1,2],durations:sk.durations})};}
+ const spine={};for(const s of model.skeletons.filter(s=>/FaceSwitcher\/(Front|Back)$/.test(s.node))){const a=atlasInfo(await readFile(resolve(payloadRoot,s.atlas.slice(1)),'utf8')),sk=parseSkel(await readFile(resolve(payloadRoot,s.skeleton.slice(1))),new Set(a.regions));if(sk.missingRegions.length)throw Error('Missing atlas regions '+op.charId+': '+sk.missingRegions.join(','));spine[s.node.endsWith('/Front')?'front':'back']={skel:s.skeleton,atlas:s.atlas,textures:s.files.filter(x=>x.endsWith('.png')),pma:true,animations:sk.durations,hits:sk.hits,bounds:sk.bounds,anims:resolveRoles(sk.animations,{skillIndices:[0,1,2],durations:sk.durations})};}
  if(op.charId==='char_4247_oxi')for(const model of Object.values(spine))model.anims.skills[1]={begin:null,loop:'Skill_2_Cambat',end:null,index:1,idle:null};
  patch.chars[op.charId]={spine};patch.chars[op.charId+'_2']={spine};
 }
@@ -59,7 +59,7 @@ await write('content/production/assets/local/fx/index.json',base);await write('c
 await payload('/assets/local/fx/index.json');await payload('/assets/local/fx/textures.json');await write('content/production/data/local-fx.json',local);
 const audio=indexAudio(await read(incoming+'/tables/client/audio_data.json')),report=await read(incoming+'/audio/audio-report.json');
 const clips=new Map(report.files.filter(x=>x.kind==='sfx').map(x=>[x.name.toLowerCase(),x]));
-async function encode(row,url){const dest=resolve(root,'content/production'+url);await mkdir(dirname(dest),{recursive:true});execFileSync('ffmpeg',['-v','error','-y','-i',resolve(incoming,'audio',row.file.replaceAll('\\','/')),'-codec:a','libmp3lame','-b:a','128k',dest]);return payload(url);}
+async function encode(row,url){const dest=resolve(payloadRoot,url.slice(1));await mkdir(dirname(dest),{recursive:true});execFileSync('ffmpeg',['-v','error','-y','-i',resolve(incoming,'audio',row.file.replaceAll('\\','/')),'-codec:a','libmp3lame','-b:a','128k',dest]);return payload(url,dest);}
 async function remap(value){
  if(typeof value==='string'&&value.startsWith('/assets/audio/sfx/')){const name=basename(value,'.mp3').toLowerCase(),row=clips.get(name);if(!row)throw Error('Missing exact SFX '+name);return encode(row,'/assets/local/northern/sfx/'+name+'.mp3');}
  if(Array.isArray(value))return Promise.all(value.map(remap));
