@@ -327,6 +327,10 @@ export class Match {
     this.data = applyCustomExtensions(this.data, this.customExtensions);
     this.excludedChessIds=new Set(Object.keys(unfilteredChess).filter(id=>!this.data.chess?.[id]));
     if(this.mode==='coop8')this.data={...this.data,config:{...this.data.config,coop8:true}};
+    // 동기화 시뮬레이션 (opts.sync, an alliance room): the team's HP is shared, a round's LP loss has no cap, there is no
+    // 联防, and every field fights one wave whose enemies share their HP across the fields (sync.js)
+    this.sync = this.mode !== 'solo' && opts.sync === true;
+    if(this.sync)this.data={...this.data,config:{...this.data.config,sync:true,lpCapPerRound:1e9,customRules:{...(this.data.config?.customRules||{}),sharedHp:true}}};
     /** the room's content hash (opts.cs, DESIGN §32): every BattleSpec carries it */
     this.cs = isContentHash(opts.cs) ? opts.cs : null;
     /** the room's visual set (opts.vs, DESIGN §32.6): every BattleSpec names it */
@@ -2534,7 +2538,7 @@ if (this.test === true) {
    */
   _afterCombat() {
     if (this.phase !== PHASE.COMBAT) return;
-    const plan = planUnite(this, this.lastResults);
+    const plan = this.sync ? null : planUnite(this, this.lastResults);   // (동기화: no 联防)
     if (plan) this.startUnite(plan);
     else this.settle(null, null);
   }

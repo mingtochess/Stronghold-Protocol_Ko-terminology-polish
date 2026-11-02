@@ -481,3 +481,6 @@ html:not([lang="ko"]) .mode-cards .mode-card--lab .mode-card__name{font-size:.24
  .public-rooms-screen .public-room__actions .btn .icon { width:15px; height:15px; }
 }
 @media(max-width:600px){ .lobby-presence { flex-direction:column; align-items:flex-start; gap:2px; } }
+/* 동기화 시뮬레이션 rooms: a violet card so they never pass for an alliance room */
+.public-room.is-sync { background: linear-gradient(135deg, rgba(150, 96, 255, .26), rgba(70, 40, 140, .32)), var(--panel-bg, #11161a); border-color: rgba(176, 132, 255, .7); }
+.public-room__sync { display: inline-block; margin-left: .06rem; padding: 0 .06rem; border-radius: 3px; background: #8e63f0; color: #fff; font-size: max(.11rem, 10px); font-weight: 700; }

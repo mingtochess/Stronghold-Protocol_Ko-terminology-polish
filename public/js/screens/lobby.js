@@ -79,6 +79,8 @@ export function stageNote(stages) {
   return Number.isInteger(stages) && stages > 1 ? `战场随机（共${stages}张）` : '';
 }
 
+const syncMode = (m) => m === 'sync' || m === 'sync8';
+
 const MODE_CARDS = [
   {
     id: 'solo', name: '独立模拟', en: 'SOLO SIMULATION', icon: 'user',
@@ -89,6 +91,11 @@ const MODE_CARDS = [
     id: 'coop', name: '同盟模拟', en: 'ALLIANCE SIMULATION', icon: 'users',
     desc: '최대 4명의 박사가 오퍼레이터 풀을 공유하며 함께 전투합니다.',
     points: [`1–${4} 名博士 · 可由 AI 队友补位`, '联防阶段 · 最终攻势合并生命值'],
+  },
+  {
+    id: 'sync', name: '동기화 시뮬레이션', en: 'SYNC SIMULATION', icon: 'link',
+    desc: '모든 박사의 전장에 같은 적이 나타나고, 각 적의 HP를 모든 전장이 함께 공유합니다.',
+    points: ['박사 1–4명 · HP 공유', '연합 방어 없음 · HP 감소 상한 없음'],
   },
   { id: 'laboratory', name: '실험실', en: 'LABORATORY', icon: 'flask', desc: '맵·보스·전략을 직접 고르고 원하는 조합을 시험합니다.', points: ['솔로 플레이 · 밴 없음', '한 라운드 전투 · 결과 통계 기록'] },
   { id:'practice',name:'연습실',en:'PRACTICE',icon:'flask',desc:'원하는 라운드부터 일반 게임처럼 연습합니다.',points:['솔로 플레이 · 무제한 자금','라운드·적 특훈·맹약 밴 선택'] },
@@ -241,7 +248,9 @@ function TipsPanel() {
 
 function ModeCard({ card, selected, onSelect, coopSize=4, onCoopSize, publicOn, onPublicChange }) {
   if(card.id==='coop'&&coopSize===8)card={...card,desc:'최대 8명의 박사가 오퍼레이터 풀을 공유하며 함께 전투합니다.',points:['박사 1–8명 · 빈자리는 AI 팀원으로','협력방어 최대 4명']};
-  return html`<div class="mode-card-tip"><div role="button" tabindex="0" class=${`mode-card brackets${['laboratory','practice'].includes(card.id)?' mode-card--lab':''}${selected ? ' is-selected' : ''}`} onClick=${() => onSelect(card.id==='coop'&&coopSize===8?'coop8':card.id)} onKeyDown=${e=>{if(e.target===e.currentTarget&&['Enter',' '].includes(e.key)){e.preventDefault();onSelect(card.id==='coop'&&coopSize===8?'coop8':card.id);}}}
+  if(card.id==='sync'&&coopSize===8)card={...card,points:['박사 1–8명 · HP 공유','연합 방어 없음 · HP 감소 상한 없음']};
+  const sized=card.id==='coop'||card.id==='sync';
+  return html`<div class="mode-card-tip"><div role="button" tabindex="0" class=${`mode-card brackets${['laboratory','practice'].includes(card.id)?' mode-card--lab':''}${selected ? ' is-selected' : ''}`} onClick=${() => onSelect(sized&&coopSize===8?card.id+'8':card.id)} onKeyDown=${e=>{if(e.target===e.currentTarget&&['Enter',' '].includes(e.key)){e.preventDefault();onSelect(sized&&coopSize===8?card.id+'8':card.id);}}}
       aria-pressed=${selected ? 'true' : 'false'}>
     <span class="mode-card__bg" aria-hidden="true"></span>
     <span class="mode-card__icon"><${Icon} name=${card.icon} /></span>
@@ -252,7 +261,7 @@ function ModeCard({ card, selected, onSelect, coopSize=4, onCoopSize, publicOn, 
       <span class="mode-card__points">${card.points.map((p) => html`<span key=${p}>${p}</span>`)}</span>
     </span>
     <span class="mode-card__check" aria-hidden="true"><${Icon} name="check" />已选定</span>
-    ${card.id==='coop'?html`<div class="mode-card__controls">
+    ${sized?html`<div class="mode-card__controls">
       <span class="mode-card__sizes" role="group" aria-label="협동 인원">${[4,8].map(n=>html`<button type="button" aria-pressed=${coopSize===n} onClick=${e=>{e.stopPropagation();onCoopSize(n);}}>${t('{0}인',[n])}</button>`)}</span>
       <label class="mode-card__spectate mode-card__public create-box__check" onClick=${e=>e.stopPropagation()} onKeyDown=${e=>e.stopPropagation()}>
         <input type="checkbox" role="switch" class="ui-switch" aria-label="공개" checked=${publicOn} onChange=${e=>onPublicChange(!!e.currentTarget.checked)}/><${Icon} name="users"/><span>공개</span>
@@ -262,7 +271,7 @@ function ModeCard({ card, selected, onSelect, coopSize=4, onCoopSize, publicOn, 
 }
 
 function DifficultyCard({ roomMode, difficulty, selected, onSelect }) {
-  const info = difficultyInfo(['laboratory','practice'].includes(roomMode)?'solo':roomMode, difficulty);
+  const info = difficultyInfo(['laboratory','practice'].includes(roomMode)?'solo':syncMode(roomMode)?roomMode.replace('sync','coop'):roomMode, difficulty);
   return html`<button type="button" class=${`diff-card${selected ? ' is-selected' : ''}`}
       style=${`--d-color:${DIFFICULTY_COLORS[difficulty]}`} onClick=${() => onSelect(difficulty)} aria-pressed=${selected ? 'true' : 'false'}>
     <span class="diff-card__bar" aria-hidden="true"></span>
@@ -285,8 +294,8 @@ export function LobbyScreen() {
   const me = useStore((s) => s.me, shallowEqual);
   const conn = useStore((s) => s.connection, shallowEqual);
   useData('config');
-  const [coopSize,setCoopSize]=useState(()=>loadPref('lobby.mode','coop')==='coop8'?8:4);
-  const [roomMode, setRoomMode] = useState(() => (['solo','coop','coop8','laboratory','practice'].includes(loadPref('lobby.mode','coop'))?loadPref('lobby.mode','coop'):'coop'));
+  const [coopSize,setCoopSize]=useState(()=>/8$/.test(loadPref('lobby.mode','coop'))?8:4);
+  const [roomMode, setRoomMode] = useState(() => (['solo','coop','coop8','sync','sync8','laboratory','practice'].includes(loadPref('lobby.mode','coop'))?loadPref('lobby.mode','coop'):'coop'));
   const [difficulty, setDifficulty] = useState(() => {
     const d = loadPref('lobby.difficulty', 'FUNNY');
     return DIFFICULTIES.includes(d) ? d : 'FUNNY';
@@ -328,9 +337,11 @@ export function LobbyScreen() {
     }
   };
   const create = () => ['laboratory','practice'].includes(roomMode) ? store.patch('ui', { laboratorySetup: { difficulty,practice:roomMode==='practice' } }) : run('create',()=>net.request('room.create',{
-    mode:roomMode,difficulty,gameplayMode:'custom',titleLocale:lang,
+    // 동기화 시뮬레이션: an alliance room (4 / 8 seats) with the sync rules
+    mode:syncMode(roomMode)?roomMode.replace('sync','coop'):roomMode,difficulty,gameplayMode:'custom',titleLocale:lang,
     customExtensions:loadCustomExtensionPrefs(),
-    ...(['coop','coop8'].includes(roomMode)?{isPublic:publicOn,spectators:MAX_SPECTATOR_SEATS}:{})
+    ...(syncMode(roomMode)?{sync:true}:{}),
+    ...(['coop','coop8','sync','sync8'].includes(roomMode)?{isPublic:publicOn,spectators:MAX_SPECTATOR_SEATS}:{})
   }));
   const join = (c = code) => {
     // `onClick=${join}` hands the click EVENT as the first argument, and a default parameter only applies to
@@ -409,7 +420,7 @@ export function LobbyScreen() {
       <section class="lobby-left">
         <div class="section-label"><span class="section-label__idx num">01</span>模拟方式<${MicroLabel}>MODE<//></div>
         <div class="mode-cards">
-          ${MODE_CARDS.map((c) => html`<${ModeCard} key=${c.id} card=${c} selected=${roomMode === c.id || c.id==='coop'&&roomMode==='coop8'} onSelect=${pickMode} coopSize=${coopSize} onCoopSize=${n=>{setCoopSize(n);pickMode(n===8?'coop8':'coop');}} publicOn=${publicOn} onPublicChange=${on=>{setPublicOn(on);savePref('lobby.publicOn',on);}} />`)}
+          ${MODE_CARDS.map((c) => html`<${ModeCard} key=${c.id} card=${c} selected=${roomMode === c.id || roomMode===c.id+'8'} onSelect=${pickMode} coopSize=${coopSize} onCoopSize=${n=>{setCoopSize(n);pickMode((c.id==='sync'?'sync':'coop')+(n===8?'8':''));}} publicOn=${publicOn} onPublicChange=${on=>{setPublicOn(on);savePref('lobby.publicOn',on);}} />`)}
           <button type="button" class="public-rooms-entry mode-card brackets" onClick=${()=>setPublicOpen(true)}><span class="mode-card__bg" aria-hidden="true"></span><span class="mode-card__icon"><${Icon} name="users"/></span><span class="mode-card__text"><${MicroLabel}>PUBLIC ROOMS<//><span class="mode-card__name">탐색</span><span class="mode-card__desc">공개된 연합 방에 참가하거나 관전합니다.</span></span><span class="public-rooms-entry__total"><span class="public-rooms-entry__count" aria-label="참가 가능한 방 수">${conn.status==='online'&&publicRoomCount!==null?publicRoomCount.joinable:'—'}</span><span class="public-rooms-entry__all" aria-label="전체 방 수">/${conn.status==='online'&&publicRoomCount!==null?publicRoomCount.total:'—'}</span></span></button>
         </div>
 

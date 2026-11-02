@@ -511,7 +511,7 @@ export const C2S = {
   hello: { name: (v) => isStr(v, NAME_MAX_LEN) && v.trim().length > 0, token: (v) => v == null || isStr(v, 64), version: (v) => v == null || isInt(v, 0, 1e6),
     noReplace: isBool, claimAt: (v) => isNum(v, 0, Number.MAX_SAFE_INTEGER), $optional: ['token', 'version', 'noReplace', 'claimAt'] },
   ping: { c: (v) => typeof v === 'number' && Number.isFinite(v) },
-  'room.create': { titleLocale:v=>['ko','en','ja','zh'].includes(v),isPublic:v=>typeof v==='boolean',title:isRoomTitle, gameplayMode:isGameplayMode, mode: (v) => v === 'solo' || v === 'coop' || v === 'coop8', difficulty: (v) => DIFFICULTIES.includes(v), spectators: isSpectatorCap, customExtensions: extensionSelectionShape, test: (v) => v === true, $optional: ['spectators','customExtensions','test','gameplayMode','title','titleLocale','isPublic'] },
+  'room.create': { titleLocale:v=>['ko','en','ja','zh'].includes(v),isPublic:v=>typeof v==='boolean',title:isRoomTitle, gameplayMode:isGameplayMode, mode: (v) => v === 'solo' || v === 'coop' || v === 'coop8', sync: (v) => v === true, difficulty: (v) => DIFFICULTIES.includes(v), spectators: isSpectatorCap, customExtensions: extensionSelectionShape, test: (v) => v === true, $optional: ['spectators','customExtensions','test','gameplayMode','title','titleLocale','isPublic','sync'] },
   'room.join': { testAck: (v) => v === true, $optional: ['testAck'], code: (v) => isStr(v, ROOM_CODE_LEN + 2) && /^[A-Za-z0-9]+$/.test(v) },
   'room.leave': {},
   'room.commend': {playerId:isId,matchNo:(v)=>isInt(v,1,2**31)},
