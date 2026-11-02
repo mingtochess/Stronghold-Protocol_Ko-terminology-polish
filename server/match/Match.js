@@ -3626,7 +3626,7 @@ if (this.test === true) {
       ps.stats.healing += Number(r.healingDone) || 0;
       if (r.perfect !== false && counted === 0) ps.stats.perfectRounds++;
       // bounty coins (own battle + unite kills) are credited to the next prep
-      let coins = Math.max(0, Math.trunc(Number(r.coins) || 0)) + (syncSt ? syncSt.paid : 0);
+      let coins = Math.max(0, Math.trunc(Number(r.coins) || 0)) + (syncSt ? syncSt.paidBy.get(ps.playerId) || 0 : 0);
       const up = uniteResult && uniteResult.perPlayer && uniteResult.perPlayer[ps.playerId];
       if (up) {
         coins += Math.max(0, Math.trunc(Number(up.coins) || 0));
@@ -3635,7 +3635,9 @@ if (this.test === true) {
       }
       ps.creditedKills += creditedKillsOf(r) + creditedKillsOf(up);
       // perfect-payout bounties (战术特训): own phase perfect
-      for (const b of ps.bounties) if (b.card.payout === 'perfect' && counted === 0 && r.perfect !== false) coins += b.card.coin;
+      // (동기화: the own field's every counted leak, the shared ones too — `counted` above leaves those to the team)
+      const ownLeaks = syncSt ? (r.leaked || []).filter((l) => l && l.counted !== false).length : counted;
+      for (const b of ps.bounties) if (b.card.payout === 'perfect' && ownLeaks === 0 && r.perfect !== false) coins += b.card.coin;
       if (coins > 0) { ps.pendingFunds += coins; ps.stats.fundsGained += coins; }
       for (const b of ps.bounties) b.roundsLeft--;
       ps.bounties = ps.bounties.filter((b) => b.roundsLeft > 0);

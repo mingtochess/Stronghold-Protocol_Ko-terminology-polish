@@ -82,3 +82,28 @@ for (const clientCombat of [false, true]) test(`a sync match of bots runs its no
   assert.ok(m._sync && m._sync.pools.pools.size > 0, 'shared pools were made');
   m.dispose();
 });
+
+test('sync bounty: pays only the player who picked it, once per bounty enemy, whoever killed it', async (t) => {
+  const { syncRound, syncCredit } = await import('../server/match/sync.js');
+  const { buildNormalWave } = await import('../server/match/waves.js');
+  const h = makeMatch({ mode: 'coop', sync: true, humans: 2, fake: true });
+  t.after(() => h.m.dispose());
+  const m = h.m;
+  m.round = 3; m.wave = buildNormalWave(m.gd, m.rngWaves, m.factions, 3);
+  const [a, b] = m.order;
+  const key = m.wave.spawns.find((s) => m.gd.enemy(s.enemyKey))?.enemyKey;
+  m.addBounty(a, { enemyKey: key, coin: 3, count: 2, payout: 'kill' });
+  const st = syncRound(m);
+  const keys = st.spawns.filter((s) => s.tag === 'bounty').map((s) => s.syncKey);
+  assert.equal(keys.length >= 1, true);
+  const units = st.spawns.filter((s) => s.tag === 'bounty').flatMap((s) => Array.from({ length: s.count || 1 }, (_, i) => `${s.syncKey}.${i}`));
+  assert.equal(units.length, 2);
+  // b's field kills the first, a's field the second; both report again afterwards
+  for (const [fid, k] of [['n:' + b.playerId, units[0]], ['n:' + a.playerId, units[1]]]) {
+    syncCredit(m, fid, { [k]: 1e9 }, { [k]: 1000 }, []);
+    syncCredit(m, fid, { [k]: 2e9 }, { [k]: 1000 }, []);
+    syncCredit(m, 'n:other', { [k]: 1e9 }, { [k]: 1000 }, []);
+  }
+  assert.equal(st.paidBy.get(a.playerId), 6);
+  assert.equal(st.paidBy.get(b.playerId) || 0, 0);
+});

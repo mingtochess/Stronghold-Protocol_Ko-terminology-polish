@@ -489,7 +489,10 @@ html:not([lang="ko"]) .mode-cards .mode-card--lab .mode-card__name{font-size:.24
    height); bottom row = join | difficulty + create */
 .lobby-body { grid-template-columns: minmax(0, 10fr) minmax(0, 1.6fr) minmax(0, 6.8fr); grid-template-areas: "modes modes quick" "join diff diff"; column-gap: .24rem; row-gap: .3rem; }
 /* the difficulty tabs line up with the join panel (under its section label) */
-.lg-diff { padding-top: calc(var(--section-label-h, .44rem)); justify-content: flex-start; gap: .12rem; }
+.lg-diff { padding-top: calc(var(--section-label-h, .44rem)); justify-content: flex-start; gap: .14rem; }
+/* (the tabs' own bottom margin would add to that gap) */
+.lg-diff .diff-tabs { margin-bottom: 0; }
+.lg-diff .create-box { margin-top: 0; }
 .lg-diff .diff-tab { padding: .16rem .06rem; font-size: max(.18rem, 15px); }
 .lobby-left, .lobby-right { display: contents; }
 .lg-modes { grid-area: modes; display: flex; flex-direction: column; min-width: 0; }

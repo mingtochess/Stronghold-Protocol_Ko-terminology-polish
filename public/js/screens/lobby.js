@@ -427,7 +427,7 @@ export function LobbyScreen() {
         </div>
 
         </div>
-        <div class="lg-join"><div class="section-label"><span class="section-label__idx num">03</span>加入同盟<${MicroLabel}>JOIN WITH ALLIANCE KEY<//></div>
+        <div class="lg-join"><div class="section-label"><span class="section-label__idx num">02</span>加入同盟<${MicroLabel}>JOIN WITH ALLIANCE KEY<//></div>
         <${Panel} class="join-panel" tone="amber">
           <div class="join-row">
             <${TextField} ascii=${true} size="code" icon="key" value=${code} placeholder="输入同盟密钥 / 粘贴邀请链接"

@@ -5,7 +5,8 @@
 //   * HP: every non-bounty enemy × the living players, a bounty enemy × (1 + 0.5 per extra living player).
 //   * A leak costs the team LP once per enemy, and only if its shared HP is still left at settlement (it may be killed on
 //     another field after it got through here).
-//   * A bounty enemy whose shared HP runs out pays its coins to every living player.
+//   * A bounty enemy whose shared HP runs out pays its coins once, to the player who picked that bounty (whoever's field
+//     dealt the last hit).
 import { withBounties } from './waves.js';
 import { SharedSyncPools } from '../sim/syncPools.js';
 
@@ -21,8 +22,8 @@ export function syncHpFactor(alive, bounty) {
 export function syncRound(m) {
   if (m._sync && m._sync.round === m.round) return m._sync;
   const alive = m.alivePlayers();
-  const bounties = [];
-  for (const ps of alive) for (const b of ps.bounties || []) bounties.push(b);
+  const bounties = [], ownerOf = new Map();
+  for (const ps of alive) for (const b of ps.bounties || []) { bounties.push(b); if (b && b.id != null) ownerOf.set(b.id, ps.playerId); }
   const coins = new Map();
   const spawns = withBounties(m.gd, m.round, m.wave, bounties, null).map((s, j) => {
     const out = { ...s, mods: s.mods ? { ...s.mods } : {} };
@@ -31,16 +32,18 @@ export function syncRound(m) {
     out.mods.hpMul = (Number.isFinite(out.mods.hpMul) ? out.mods.hpMul : 1) * syncHpFactor(alive.length, bounty);
     out.syncKey = `s${j}`;
     const c = s.bounty && typeof s.bounty === 'object' ? Math.trunc(Number(s.bounty.coins) || 0) : 0;
-    if (c > 0) coins.set(out.syncKey, c);
+    const owner = ownerOf.get(s.mods && s.mods.bountyId);
+    if (c > 0 && owner) coins.set(out.syncKey, { coins: c, owner });
     return out;
   });
   const st = {
-    round: m.round, spawns, coins, paid: 0, leaks: new Map(), alive: alive.length,
+    round: m.round, spawns, coins, paidBy: new Map(), leaks: new Map(), alive: alive.length,
     pools: new SharedSyncPools({
+      // a pool runs out once (SharedSyncPools.credit: only on the alive → dead step), so each bounty unit pays once
       onDepleted: (key) => {
         const root = ROOT.exec(key);
-        const c = root ? coins.get(root[1]) : 0;
-        if (c > 0) st.paid += c;
+        const c = root ? coins.get(root[1]) : null;
+        if (c) st.paidBy.set(c.owner, (st.paidBy.get(c.owner) || 0) + c.coins);
       },
     }),
   };
