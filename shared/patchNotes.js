@@ -8,6 +8,7 @@ const RELEASES = [
   "date": "2026-11-02",
   "status": "released",
   "title": "동기화 시뮬레이션 · 로비 개편",
+  "hotfixes": [{"version": "0.3.3i1", "date": "2026-11-02", "status": "released", "title": "동기화 시뮬레이션 누수 정산 핫픽스", "sections": [{"title": "동기화 시뮬레이션", "items": ["동기화 시뮬레이션에서 공유 적을 놓친 전장마다 팀 HP가 감소하고, 그 적이 어느 전장에서든 처치되면 1회분이 취소되도록 변경했습니다(예: 2개 전장에서 놓친 적이 처치되면 1회분만 감소)."]}]}],
   "sections": [
     {
       "title": "동기화 시뮬레이션",
