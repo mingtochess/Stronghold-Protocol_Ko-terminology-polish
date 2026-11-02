@@ -1,4 +1,5 @@
 import { combatMetrics } from '../../shared/combatStats.js';
+import { LocalSyncPools } from './syncPools.js';
 import { customFactionData } from '../../shared/customFactions.js';
 import { applyCustomExtensions, normalizeCustomExtensions } from '../../shared/customExtensions.js';
 // server/sim/spec.js — BattleSpec: the JSON description of one battle, built by the server and simulated identically
@@ -176,6 +177,7 @@ export function createBattleFromSpec(spec, dataSource, opts = {}) {
     spawns: s.spawns ?? [],
     routes: s.routes ?? [],
     sharedBoss,
+    syncPools: opts.syncPools ?? (s.sync ? new LocalSyncPools(s.sync.pools || {}) : null),
     flags: s.flags ?? {},
     fieldId: s.fieldId,
     enemyOverrides: s.enemyOverrides ?? {},
@@ -325,6 +327,10 @@ export function battleProgress(battle) {
     done: !!(battle && battle.finished),
   };
   if (battle && ['normal','unite'].includes(battle.kind) && battle.flags?.augments?.enemies?.some(a=>a.effect.kind==='leak'))out.leaksCountBy=Object.fromEntries(Object.entries(pp).map(([id,p])=>[id,(p.leaked||[]).filter(l=>l.entered===true).length]));
+  if (battle && battle.syncPools && typeof battle.syncPools.report === 'function') {
+    out.sync = battle.syncPools.report();
+    out.syncLeaks = (battle.syncLeaks || []).slice(0, 2000);
+  }
   if (battle && battle.kind === 'unite') {
     const left = uniteLeft(battle);
     if (left) out.left = left;
