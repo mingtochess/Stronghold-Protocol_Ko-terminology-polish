@@ -538,6 +538,7 @@ export function createBattleRunner(deps) {
         e.syncField = true;
         msg.syncDmg = p.sync.dmg;
         msg.syncMax = p.sync.max;
+        if (p.sync.heal && Object.keys(p.sync.heal).length) msg.syncHeal = p.sync.heal;
         if (p.syncLeaks && p.syncLeaks.length) msg.syncLeaks = p.syncLeaks;
       }
     }

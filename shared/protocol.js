@@ -643,8 +643,9 @@ export const C2S = {
     // shared enemies that reached this field's goal (server/sim/syncPools.js LocalSyncPools.report, Battle.syncLeaks)
     syncDmg: (v) => isMap(v, SYNC_KEYS, isId, (x) => isNum(x, 0, BIG)),
     syncMax: (v) => isMap(v, SYNC_KEYS, isId, (x) => isNum(x, 0, BIG)),
+    syncHeal: (v) => isMap(v, SYNC_KEYS, isId, (x) => isNum(x, 0, BIG)),
     syncLeaks: (v) => Array.isArray(v) && v.length <= SYNC_KEYS && v.every((l) => isPlain(l) && isId(l.key) && isNum(l.lpr, 0, 1000)),
-    $optional: ['resolved', 'leaks', 'bossDmg', 'by', 'done', 'left', 'leaksBy', 'leaksCountBy', 'syncDmg', 'syncMax', 'syncLeaks'],
+    $optional: ['resolved', 'leaks', 'bossDmg', 'by', 'done', 'left', 'leaksBy', 'leaksCountBy', 'syncDmg', 'syncMax', 'syncHeal', 'syncLeaks'],
   },
   // `cs` (DESIGN §32, optional): the content hash the reporting browser ran the battle on — its spec's `cs`. In a room
   // with gameplay plugins (P1c, DESIGN §32.6) the match refuses a result without it or with another one (and runs the

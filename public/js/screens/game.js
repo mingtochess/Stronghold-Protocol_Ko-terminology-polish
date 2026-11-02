@@ -380,8 +380,9 @@ function MatchScreen() {
   const leaker = phase === PHASE.UNITE && Array.isArray(pub?.unite?.leakers) && pub.unite.leakers.includes(myId);
   const localLeft = leaker && uniteLocal ? (uniteLocal[myId] ?? 0) : undefined;
   const liveLpNow = liveLp(lpBaseRef.current, {
-    phase, round: pub?.round, lp: pub?.customExtensions?.rules?.includes('sharedHp')?pub.teamLp:priv?.lp, statsLeaks: priv?.stats?.leaks, alive,
-    leaks: ownLeaks(localLeaks, (meP?.pendingLp||0)/(pub?.augments?.leakHpCost||1)), cap: gd.config?.lpCapPerRound,
+    phase, round: pub?.round, lp: pub?.customExtensions?.rules?.includes('sharedHp')||pub?.sync===true?pub.teamLp:priv?.lp, statsLeaks: priv?.stats?.leaks, alive,
+    // 동기화: the team's shared leaks (an enemy that got through here may still die on another field)
+    leaks: pub?.sync===true ? (Number(pub.syncPendingLp)||0)/(pub?.augments?.leakHpCost||1) : ownLeaks(localLeaks, (meP?.pendingLp||0)/(pub?.augments?.leakHpCost||1)), cap: gd.config?.lpCapPerRound,
     uniteLeft: leaker?uniteRemaining(localLeft,meP?.uniteLeft):null,
     leakHpCost:pub?.augments?.leakHpCost||1,
     immediateLeaks:!!pub?.augments?.selectedEnemies?.some(a=>a.kind==='leak'),

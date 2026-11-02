@@ -25,7 +25,7 @@ test('local pools: report / sync round trip', () => {
   const p = lp.get('k.0', 1000);
   p.damage('p1', 250);
   assert.equal(p.hp, 750);
-  assert.deepEqual(lp.report(), { dmg: { 'k.0': 250 }, max: { 'k.0': 1000 } });
+  assert.deepEqual(lp.report(), { dmg: { 'k.0': 250 }, max: { 'k.0': 1000 }, heal: {} });
   lp.sync({ hp: { 'k.0': 400 }, acked: { f1: { 'k.0': 250 } } }, 'f1'); // other field dealt 350
   assert.equal(p.hp, 400);
   p.damage('p1', 100);
@@ -66,4 +66,40 @@ test('a display replica does not count its own replayed damage twice', () => {
   p.damage('p1', 300);
   lp.sync({ hp: { 'k.0': 600 } }, null);
   assert.equal(p.hp, 600);
+});
+
+test('healing: a field heals the shared HP by what it healed there, never past the max nor a dead pool', () => {
+  const sp = new SharedSyncPools();
+  sp.credit('a', 'k.0', 600, 1000);
+  sp.creditHeal('b', 'k.0', 200);
+  assert.equal(sp.hp('k.0'), 600);
+  sp.creditHeal('b', 'k.0', 200); // same report again
+  assert.equal(sp.hp('k.0'), 600);
+  sp.creditHeal('a', 'k.0', 900);
+  assert.equal(sp.hp('k.0'), 1000);
+  sp.credit('a', 'k.0', 1600, 1000);
+  assert.equal(sp.hp('k.0'), 0);
+  sp.creditHeal('b', 'k.0', 500);
+  assert.equal(sp.hp('k.0'), 0, 'dead stays dead');
+  const lp = new LocalSyncPools();
+  const p = lp.get('k.1', 1000);
+  p.damage('x', 400); p.heal(150);
+  assert.equal(p.hp, 750);
+  assert.deepEqual(lp.report().heal, { 'k.1': 150 });
+  lp.sync({ hp: { 'k.1': 750 }, acked: { f: { 'k.1': 400 } }, healAcked: { f: { 'k.1': 150 } } }, 'f');
+  assert.equal(p.hp, 750);
+});
+
+test('an enemy healer heals a synced enemy through its shared pool', async () => {
+  const { heal } = await import('../server/sim/damage.js');
+  const shared = new SharedSyncPools();
+  const h = makeBattle({ fieldId: 'A', syncPools: new FieldSyncPools(shared, 'A'), autoFinish: false, enemies: [{ key: ENEMY, time: 0, route: 0, syncKey: 's0' }] });
+  h.step(2);
+  const e = h.enemies()[0], max = e.s.maxHp;
+  e.bossPool.damage('x', max * 0.5);
+  h.battle._syncBossHp(e);
+  const got = heal(h.battle, e, e, max * 0.2);
+  assert.ok(Math.abs(got - max * 0.2) < 1e-6);
+  assert.ok(Math.abs(shared.hp('s0.0') - max * 0.7) < 1e-6);
+  assert.ok(Math.abs(e.hp - max * 0.7) < 1e-6);
 });

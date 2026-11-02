@@ -54,7 +54,7 @@ export function syncSpawns(m, playerId) {
 }
 
 /** A field's reported shared damage (b.progress syncDmg / syncMax) and leaks. */
-export function syncCredit(m, fieldId, dmg, max, leaks) {
+export function syncCredit(m, fieldId, dmg, max, leaks, heal = null) {
   const st = m._sync;
   if (!st) return;
   if (dmg && typeof dmg === 'object') for (const [k, cum] of Object.entries(dmg)) {
@@ -63,6 +63,8 @@ export function syncCredit(m, fieldId, dmg, max, leaks) {
     if (mx == null && !st.pools.pools.has(k)) continue;
     st.pools.credit(fieldId, k, cum, mx);
   }
+  // healing after the damage of the same report: a pool the damage emptied stays dead
+  if (heal && typeof heal === 'object') for (const [k, cum] of Object.entries(heal)) if (/^s\d+\.\d+(?::\d+)*$/.test(k)) st.pools.creditHeal(fieldId, k, cum);
   syncNoteLeaks(m, leaks);
 }
 
@@ -91,5 +93,6 @@ export function syncMessage(m, fieldId) {
   const st = m._sync;
   if (!st) return null;
   const s = st.pools.state();
-  return { t: 'b.sync', round: st.round, hp: s.hp, max: s.max, acked: fieldId && s.acked[fieldId] ? { [fieldId]: s.acked[fieldId] } : {} };
+  const own = (map) => (fieldId && map[fieldId] ? { [fieldId]: map[fieldId] } : {});
+  return { t: 'b.sync', round: st.round, hp: s.hp, max: s.max, acked: own(s.acked), healAcked: own(s.healAcked) };
 }

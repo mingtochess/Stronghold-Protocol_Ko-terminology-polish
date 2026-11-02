@@ -1160,6 +1160,14 @@ export class Match {
       }),
     };
     if (this.teamLp != null) v.teamLp = Math.max(0, Math.round(this.teamLp));
+    // 동기화 시뮬레이션: the team LP this round's shared leaks will cost (once per enemy still alive; sync.js)
+    if (this.sync) {
+      v.sync = true;
+      if (this.phase === PHASE.COMBAT && this._sync && this._sync.round === this.round) {
+        const loss = Math.round(syncLeakLoss(this) * (this.augments?.leakHpCost() || 1));
+        if (loss > 0) v.syncPendingLp = loss;
+      }
+    }
     // Boss-round prep (回合开始 / 机变 / 休整期): the seat pairs are already planned (_planBossWaves) — publish them so
     // the team panel can frame the co-field players while the fight is still being prepared (user playtest #5: nothing
     // on screen said who you fight the boss beside until the assault banner flashed once). Gone at the next round's
@@ -2730,10 +2738,8 @@ if (this.test === true) {
       return loss > 0 ? { uniteLeft: left, pendingLp: loss } : { uniteLeft: left };
     }
     if (this.sync && this._sync && this._sync.round === this.round && this.phase === PHASE.COMBAT) {
-      // 동기화: the team's shared leaks so far (charged once, at settlement) — shown on the first living player's row
-      if (this.alivePlayers()[0] !== ps) return {};
-      const loss = syncLeakLoss(this) * (this.augments?.leakHpCost() || 1);
-      return loss > 0 ? { pendingLp: loss } : {};
+      // 동기화: no player's own loss — the team's shared leaks are m.public syncPendingLp
+      return {};
     }
     let n = 0;
     if (this.lastResults.has(ps.playerId)) n = counted(this.lastResults.get(ps.playerId));
@@ -3145,8 +3151,8 @@ if (this.test === true) {
       return OK;
     }
     if (Number.isFinite(msg.leaks)) p.leaks = Math.max(p.leaks, msg.leaks);
-    if (this.sync && f.kind === 'normal' && (msg.syncDmg || msg.syncLeaks)) {
-      syncCredit(this, f.fieldId, msg.syncDmg, msg.syncMax, msg.syncLeaks);
+    if (this.sync && f.kind === 'normal' && (msg.syncDmg || msg.syncLeaks || msg.syncHeal)) {
+      syncCredit(this, f.fieldId, msg.syncDmg, msg.syncMax, msg.syncLeaks, msg.syncHeal);
       this._broadcastSync(false);
     }
     this.augments.creditLeaks(f,msg.leaksCountBy);
@@ -3601,7 +3607,11 @@ if (this.test === true) {
     const syncSt = this.sync && this._sync && this._sync.round === this.round ? this._sync : null;
     if (syncSt) {
       const loss = syncLeakLoss(this) * (this.augments?.leakHpCost() || 1);
-      if (loss > 0) { this.teamLp = Math.max(0, this.teamLp - loss); if (alive[0]) alive[0].stats.lpLost += loss; }
+      if (loss > 0) {
+        this.teamLp = Math.max(0, this.teamLp - loss);
+        // the stats split it like the rows of the shared LP
+        for (const ps of alive) ps.stats.lpLost += Math.round(loss / alive.length);
+      }
     }
     for (const ps of alive) {
       const r = this.lastResults.get(ps.playerId) || { leaked: [], perfect: true, coins: 0, layerGains: {}, killed: 0, damageDealt: 0 };

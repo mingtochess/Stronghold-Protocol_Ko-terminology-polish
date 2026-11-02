@@ -20,6 +20,13 @@ class Pool {
     this.hp -= dealt;
     return dealt;
   }
+  heal(amount) {
+    const a = num(amount);
+    if (!(a > 0) || this.hp <= 0) return 0;
+    const add = Math.min(a, this.maxHp - this.hp);
+    this.hp += add;
+    return add;
+  }
 }
 
 export class SharedSyncPools {
@@ -28,6 +35,8 @@ export class SharedSyncPools {
     this.pools = new Map();
     /** fieldId → key → damage already credited from that field */
     this.acked = new Map();
+    /** fieldId → key → healing already credited from that field */
+    this.healAcked = new Map();
     this.onDepleted = onDepleted;
   }
   pool(key, maxHp) {
@@ -49,6 +58,17 @@ export class SharedSyncPools {
     if (wasAlive && p.hp <= 0 && this.onDepleted) { try { this.onDepleted(key); } catch { /* reported by the caller */ } }
     return dealt;
   }
+  /** A field's cumulative healing on `key`: the part not credited yet goes back into the pool (never a dead one). */
+  creditHeal(fieldId, key, cum) {
+    const p = this.pools.get(key);
+    if (!p) return 0;
+    let f = this.healAcked.get(fieldId);
+    if (!f) { f = new Map(); this.healAcked.set(fieldId, f); }
+    const before = f.get(key) || 0, c = num(cum);
+    if (!(c > before)) return 0;
+    f.set(key, c);
+    return p.heal(c - before);
+  }
   hp(key) { const p = this.pools.get(key); return p ? p.hp : null; }
   alive(key) { const p = this.pools.get(key); return !p || p.hp > 0; }
   /** b.sync payload: every pool's HP and, per field, what of its damage is credited. */
@@ -57,7 +77,9 @@ export class SharedSyncPools {
     for (const [k, p] of this.pools) { hp[k] = Math.max(0, p.hp); max[k] = p.maxHp; }
     const acked = {};
     for (const [fid, m] of this.acked) acked[fid] = Object.fromEntries(m);
-    return { hp, max, acked };
+    const healAcked = {};
+    for (const [fid, m] of this.healAcked) healAcked[fid] = Object.fromEntries(m);
+    return { hp, max, acked, healAcked };
   }
 }
 
@@ -69,13 +91,14 @@ export class FieldSyncPools {
     if (v) return v;
     const shared = this.shared, fieldId = this.fieldId;
     shared.pool(key, maxHp);
-    let cum = 0;
+    let cum = 0, healCum = 0;
     v = {
       get hp() { return shared.hp(key) ?? 0; },
       set hp(x) { void x; },
       get maxHp() { return shared.pools.get(key)?.maxHp ?? maxHp; },
       get cum() { return cum; },
       damage(_pid, amount) { const a = num(amount); if (!(a > 0)) return 0; cum += a; return shared.credit(fieldId, key, cum, maxHp); },
+      heal(amount) { const a = num(amount); if (!(a > 0)) return 0; const before = healCum; healCum += a; const add = shared.creditHeal(fieldId, key, healCum); if (!(add > 0)) healCum = before; return add; },
     };
     this.views.set(key, v);
     return v;
@@ -89,8 +112,20 @@ class LocalPool {
     this.serverHp = Number.isFinite(num(hp)) ? Math.max(0, Math.min(this.maxHp, num(hp))) : this.maxHp;
     this.cum = 0;
     this.acked = 0;
+    this.healCum = 0;
+    this.healAcked = 0;
   }
-  get hp() { const h = this.serverHp - Math.max(0, this.cum - this.acked); return h < BOSS_POOL_MIN_HP ? 0 : h; }
+  get hp() {
+    const h = this.serverHp - Math.max(0, this.cum - this.acked) + Math.max(0, this.healCum - this.healAcked);
+    return h < BOSS_POOL_MIN_HP ? 0 : Math.min(this.maxHp, h);
+  }
+  heal(amount) {
+    const a = num(amount), left = this.hp;
+    if (!(a > 0) || left <= 0) return 0;
+    const add = Math.min(a, this.maxHp - left);
+    this.healCum += add;
+    return add;
+  }
   set hp(v) { const n = num(v); if (Number.isFinite(n)) this.serverHp = Math.max(0, n) + Math.max(0, this.cum - this.acked); }
   damage(_pid, amount) {
     const a = num(amount), left = this.hp;
@@ -111,20 +146,24 @@ export class LocalSyncPools {
   }
   /** b.progress: each key's cumulative damage here and its max HP (the server makes the pool from the first report). */
   report() {
-    const dmg = {}, max = {};
-    for (const [k, p] of this.pools) { if (p.cum > 0) dmg[k] = p.cum; max[k] = p.maxHp; }
-    return { dmg, max };
+    const dmg = {}, max = {}, heal = {};
+    for (const [k, p] of this.pools) { if (p.cum > 0) dmg[k] = p.cum; if (p.healCum > 0) heal[k] = p.healCum; max[k] = p.maxHp; }
+    return { dmg, max, heal };
   }
   /** b.sync: the server's HP of every pool and what of this field's damage it has credited. */
   sync(msg = {}, fieldId = null) {
     const acked = fieldId != null && msg.acked ? msg.acked[fieldId] || {} : {};
+    const healAcked = fieldId != null && msg.healAcked ? msg.healAcked[fieldId] || {} : {};
     for (const [k, h] of Object.entries(msg.hp || {})) {
       if (!this.pools.has(k)) { this.state.hp[k] = h; if (msg.max?.[k]) this.state.max[k] = msg.max[k]; continue; }
       const p = this.pools.get(k), n = num(h), a = num(acked[k]);
       if (Number.isFinite(n)) p.serverHp = Math.max(0, Math.min(p.maxHp, n));
       // a display replica (no field of its own): the server's HP already holds whatever its authority dealt
-      if (fieldId == null) p.acked = p.cum;
-      else if (Number.isFinite(a) && a >= 0) p.acked = a;
+      const ha = num(healAcked[k]);
+      if (fieldId == null) { p.acked = p.cum; p.healAcked = p.healCum; } else {
+        if (Number.isFinite(a) && a >= 0) p.acked = a;
+        if (Number.isFinite(ha) && ha >= 0) p.healAcked = ha;
+      }
     }
   }
 }

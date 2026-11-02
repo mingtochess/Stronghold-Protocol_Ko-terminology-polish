@@ -655,7 +655,7 @@ export function reduceElement(target, amount, el = null) {
  * Mon3tr(凯尔希的召唤物) "持有禁疗（可被凯尔希…无视）"; her heal selection takes it too, Battle.injuredAlliesInKeys).
  */
 export function heal(battle, source, target, amount, opts = {}) {
-  if (!target || !target.alive || target.removed || !target.deployed || target.bossPool) return 0;
+  if (!target || !target.alive || target.removed || !target.deployed || (target.bossPool && !target.syncKey)) return 0;
   const self = source === target || (!source && !!opts.self);
   const regen = !!opts.regen;
   if (!self && !regen && target.kind === 'device') return 0;
@@ -672,8 +672,13 @@ export function heal(battle, source, target, amount, opts = {}) {
     if (!target.alive || !target.deployed) return 0;
   }
   const max = target.s.maxHp;
-  const actual = Math.max(0, Math.min(amt, max - target.hp));
-  target.hp = Math.min(max, target.hp + actual);
+  let actual = Math.max(0, Math.min(amt, max - target.hp));
+  if (target.bossPool) {
+    // 동기화: a shared enemy heals its shared HP (the pool's own units; syncPools.js) and shows the pool's ratio
+    const pool = target.bossPool, scale = max > 0 && pool.maxHp > 0 ? pool.maxHp / max : 1;
+    actual = typeof pool.heal === 'function' ? pool.heal(actual * scale) / scale : 0;
+    battle._syncBossHp(target);
+  } else target.hp = Math.min(max, target.hp + actual);
   if (opts.overheal && amt > actual) {
     // overheal becomes a shield (capped at max HP) so hp stays within [0, maxHp]
     const cur = target.findBuff('overheal');
