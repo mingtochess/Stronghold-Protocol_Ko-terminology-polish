@@ -53,7 +53,7 @@ test('sync round spawns: the same keyed list on every field, HP × living player
   assert.equal(syncHpFactor(4, false), 4);
 });
 
-test('sync settlement: a leak costs the team once, and nothing when the enemy died on another field', async (t) => {
+test('sync settlement: each field a shared enemy got through costs the team, a kill takes one back', async (t) => {
   const { syncRound, syncCredit, syncNoteLeaks, syncLeakLoss } = await import('../server/match/sync.js');
   const { buildNormalWave } = await import('../server/match/waves.js');
   const h = makeMatch({ mode: 'coop', sync: true, humans: 2, fake: true });
@@ -61,9 +61,13 @@ test('sync settlement: a leak costs the team once, and nothing when the enemy di
   const m = h.m;
   m.round = 3; m.wave = buildNormalWave(m.gd, m.rngWaves, m.factions, 3);
   syncRound(m);
-  syncNoteLeaks(m, [{ key: 's0.0', lpr: 1 }, { key: 's0.0', lpr: 1 }, { key: 's1.0', lpr: 2 }]);
-  assert.equal(syncLeakLoss(m), 3);
-  syncCredit(m, 'n:b', { 's1.0': 500 }, { 's1.0': 500 }, []);
+  // s0.0 got through on fields a and b (a reports it twice), s1.0 (LP 2) on a alone
+  syncNoteLeaks(m, [{ key: 's0.0', lpr: 1 }, { key: 's0.0', lpr: 1 }, { key: 's1.0', lpr: 2 }], 'n:a');
+  syncNoteLeaks(m, [{ key: 's0.0', lpr: 1 }], 'n:b');
+  assert.equal(syncLeakLoss(m), 4);
+  syncCredit(m, 'n:b', { 's1.0': 500 }, { 's1.0': 500 }, []); // s1.0 killed: its one leak is taken back
+  assert.equal(syncLeakLoss(m), 2);
+  syncCredit(m, 'n:c', { 's0.0': 1e9 }, { 's0.0': 500 }, []); // s0.0 killed: 2 leaks − 1
   assert.equal(syncLeakLoss(m), 1);
 });
 
