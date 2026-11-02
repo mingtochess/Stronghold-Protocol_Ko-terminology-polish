@@ -645,7 +645,10 @@ export class Battle {
         const pp = this._pp(owner);
         const def = this.data.getEnemy(p.enemyKey);
         if (pp) {
-          pp.leaked.push({enemyKey:p.enemyKey,mods:p.mods ?? null,lpr:(def?.lpr ?? 1),sourcePlayerId:p.sourcePlayerId ?? owner,tag:p.tag ?? null,counted:!!p.counted,spawned:false});
+          // (동기화: a shared enemy that never came out is a leak of it on this field — Match sync.js)
+          const syncKey = this.syncPools && p.syncKey ? p.syncKey : null;
+          if (syncKey && !this.syncLeaks.some((l) => l.key === syncKey)) this.syncLeaks.push({ key: syncKey, lpr: def?.lpr ?? 1 });
+          pp.leaked.push({enemyKey:p.enemyKey,mods:p.mods ?? null,lpr:(def?.lpr ?? 1),sourcePlayerId:p.sourcePlayerId ?? owner,tag:p.tag ?? null,counted:!!p.counted,spawned:false,...(syncKey?{syncKey}:null)});
           if (p.counted) pp.perfect=false;
           if (p.inTotal) pp.leakedInTotal++;
         }
