@@ -64,13 +64,15 @@ for (const [cid, op] of ops) {
     const strike = m == null ? [] : [...modeFiles(`battle.ON_ABILITY_START.${cid}.attack.${m}`), ...modeFiles(`battle.ON_ABILITY_ON.${cid}.attack.${m}`)];
     const own = modeFiles(`battle.ON_ABILITY_START.${sid}`).filter((f) => f.startsWith('p_atk_'));   // not its buff / field cues
     const want = { attack: [...new Set([...strike, ...own])],
-      hit: m == null ? [] : modeFiles(`battle.ON_ABILITY_HIT.${cid}.attack.${m}`), start: bankFiles(`battle.ON_SKILL_START.${sid}`) };
+      hit: [...new Set([...(m == null ? [] : modeFiles(`battle.ON_ABILITY_HIT.${cid}.attack.${m}`)), ...modeFiles(`battle.ON_ABILITY_HIT.${sid}`)])], start: bankFiles(`battle.ON_SKILL_START.${sid}`) };
     // every sound of this operator's banks, to tell a borrowed sound from one the data does not name
     const anyOf = (re) => { const out = new Set(); for (const [name, b] of banks) if (re.test(name)) for (const x of b.sounds || []) out.add(base(x.asset)); return out; };
     const opSounds = anyOf(new RegExp(`\\.(?:${cid}|skchr_${cid.replace(/^char_\d+_/, '')}_\\d)(?:\\.|$)`));
     // a slot without its own strike / impact plays the unit's default one
-    const have = { attack: base(sfx.attacks?.[i]) || base(sfx.attack), hit: base(sfx.hits?.[i]) || base(sfx.hit), start: base(sfx.skills?.[i]) };
-    const slotOwn = { attack: !!sfx.attacks?.[i], hit: !!sfx.hits?.[i], start: !!sfx.skills?.[i] };
+    // (public/js/audio.js: while the skill runs its skillCombat sounds come first, then the slot's, then the unit's)
+    const sc = sfx.skillCombat?.[i] || {};
+    const have = { attack: base(sc.attack) || base(sfx.attacks?.[i]) || base(sfx.attack), hit: base(sc.hit) || base(sfx.hits?.[i]) || base(sfx.hit), start: base(sfx.skills?.[i]) };
+    const slotOwn = { attack: !!(sc.attack || sfx.attacks?.[i]), hit: !!(sc.hit || sfx.hits?.[i]), start: !!sfx.skills?.[i] };
     r.sfx = { want, have };
     for (const role of ['attack', 'hit', 'start']) {
       const w = want[role], h = have[role];

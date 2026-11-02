@@ -8,7 +8,8 @@
 //   attack  a strike file (p_atk_*) of ON_ABILITY_ON / ON_ABILITY_START, else a p_skill_* file of ON_ABILITY_ON (an
 //           ability's own cue — 焰尾 S2's p_skill_lightsword); never a generic buff cue (b_char_*) or the skill's
 //           activation sound (skills[slot], ON_SKILL_START)
-//   hit     the projectile's hit / reach file, else an impact file (p_imp_*) of ON_ABILITY_HIT / ON_ABILITY_ON
+//   hit     the projectile's hit / reach file, else an impact file (p_imp_*) of ON_ABILITY_HIT / ON_ABILITY_ON, else any
+//           (non-generic) file of the skill's own ON_ABILITY_HIT bank
 // Loops (_loop / _lp) are skipped; of a numbered bank's files the first. New files join content/production/resources.json
 // with the voice repository source (HEAD-checked; a missing one is left out).
 //
@@ -55,7 +56,8 @@ for (const [cid, recs] of Map.groupBy(Object.values(chess), (c) => c.charId)) {
     const activation = typeof u.skills?.[i] === 'string' ? leaf(u.skills[i]) : null;
     const usable = (p) => !/^b_char_/.test(leaf(p)) && leaf(p) !== activation;
     const attack = [...on, ...start].find((p) => /^p_atk_/.test(leaf(p)) && usable(p)) || on.find((p) => /^p_skill_/.test(leaf(p)) && usable(p)) || null;
-    const hit = projHit.find(usable) || [...hitB, ...on].find((p) => /^p_imp_/.test(leaf(p)) && usable(p)) || null;
+    // (a skill's own hit bank may hold a strike-named file: 银灰 S1's ON_ABILITY_HIT.skchr_svrash_1 is p_atk_hawk_h)
+    const hit = projHit.find(usable) || [...hitB, ...on].find((p) => /^p_imp_/.test(leaf(p)) && usable(p)) || hitB.find(usable) || null;
     const cur = u.skillCombat?.[i] || {};
     const fill = {};
     if (attack && !cur.attack) fill.attack = url(attack);
