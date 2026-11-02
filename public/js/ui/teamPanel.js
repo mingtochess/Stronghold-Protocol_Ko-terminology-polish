@@ -55,6 +55,8 @@ export function rowLp(p, pub, self = null, { uniteLocal = null, normalLeaks = nu
   const rawLeft = pub.phase !== PHASE.UNITE ? null : self ? self.left : local != null ? local : p.uniteLeft;
   const left = Number.isFinite(rawLeft) && rawLeft >= 0 ? Math.trunc(rawLeft) : null;
   if (lp == null) return { lp, pending: 0, unite: false, left };
+  // 동기화 시뮬레이션: a loss of the team, not of a row (the top bar shows m.public syncPendingLp)
+  if (pub.sync === true) return { lp, pending: 0, unite: false, left };
   const leakHpCost = pub.augments?.leakHpCost || 1;
   const normalPending = pub.phase === PHASE.COMBAT && normalLeaks && Number.isFinite(normalLeaks[`n:${p.playerId}`]) ? Math.min(cap, normalLeaks[`n:${p.playerId}`]*leakHpCost) : 0;
   const raw = self ? self.pending : local != null ? Math.min(cap, local*leakHpCost) : Math.max(Number(p.pendingLp) || 0, normalPending);
@@ -126,7 +128,7 @@ export function TeamPanel({ pub, myId, watching, bubbles, onWatch, compact = fal
   const phaseKey = `${pub?.phase}:${pub?.round}`;
   useEffect(() => { setOpenPid(null); }, [phaseKey, watching, observe?.observing]);
   const players = sortedPlayers(pub);
-  const shared=pub?.customExtensions?.rules?.includes('sharedHp');
+  const shared=pub?.customExtensions?.rules?.includes('sharedHp')||pub?.sync===true;
   if (!players.length) return null;
   // the shared-field phases (最终攻势 / 隐秘核心 / 联防): mark the rows fighting next to the viewer (user playtest #5)
   const mates = new Set(sameFieldmates(pub, myId));

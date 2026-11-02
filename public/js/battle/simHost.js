@@ -54,6 +54,8 @@ export class InPageSimHost {
     }));
   }
   syncPool(hp, acked) { this.battle?.sharedBoss?.sync?.(hp, acked); }
+  // 동기화 시뮬레이션 b.sync: the shared enemies' HP (fieldId null: a display replica — its own damage is not counted again)
+  syncShared(msg, fieldId) { this.battle?.syncPools?.sync?.(msg, fieldId); }
   forceEnd(reason) { this.battle?.forceEnd(reason); }
   stop() { this.battle = null; }
 }
@@ -131,6 +133,7 @@ export class WorkerSimHost {
   }
   ownerOps(pid) { return this.packet?.ops?.[pid] || []; }
   syncPool(hp, acked) { return this.rpc('syncPool', [hp, acked]).catch(() => {}); }
+  syncShared(msg, fieldId) { return this.rpc('syncShared', [msg, fieldId]).catch(() => {}); }
   async forceEnd(reason) { this.accept(await this.rpc('forceEnd', [reason])); }
   stop(err = failure('PLUGIN_WORKER_STOPPED', 'simulation worker stopped')) {
     if (this.stopped) return;

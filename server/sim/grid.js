@@ -122,7 +122,9 @@ export function normalizeLegendEntry(glyph, e) {
   const heightRaw = e.height ?? e.heightType;
   const height = heightRaw == null ? base.height : (/HIGH/i.test(String(heightRaw)) ? 'HIGH' : 'LOW');
   const buildRaw = e.build ?? e.buildable ?? e.buildableType;
-  const build = DEPLOY_REFUSED_TILES.has(key) ? 'NONE'
+  // the bench tiles (tile_achand: the hand and the temporary bench) hold pieces, never a battle's deployment, whatever the
+  // level's buildableType (ALL): the boss field's rect (rows 0–5) holds its bench rows, and 에벤홀츠 S2 placed 旧日残影 there
+  const build = DEPLOY_REFUSED_TILES.has(key) || key === 'tile_achand' ? 'NONE'
     : buildRaw == null ? base.build : (buildRaw === true ? 'ALL' : buildRaw === false ? 'NONE' : String(buildRaw).toUpperCase());
   let pass;
   if (e.pass != null) pass = normPass(e.pass);

@@ -137,6 +137,10 @@ export class Battle {
       this.flags[k] = this.flags[k] != null && Number.isFinite(v) && v >= 0 ? v : DP_DEFAULTS[k];
     }
     this.sharedBoss = opts.sharedBoss ?? null;
+    // 동기화 시뮬레이션 (Match.sync): every scheduled enemy carries a syncKey and shares one HP pool per key with its copies on
+    // the other fields (syncPools.get(key, maxHp) → a pool like sharedBoss); syncLeaks: [{ key, lpr }] of the keys leaked here
+    this.syncPools = opts.syncPools ?? null;
+    this.syncLeaks = [];
     this.routes = (opts.routes ?? []).map((r) => normalizeRoute(r));
     /** Per-template enemy overrides `{ [enemyKey]: { stats: {…partial} } }` (waves.json `overrides`). */
     this.enemyOverrides = opts.enemyOverrides ?? {};
@@ -924,6 +928,7 @@ export class Battle {
         time: Math.max(0, fin(s.time, 0)) + i * interval, enemyKey: s.enemyKey, routeIndex: s.routeIndex ?? 0, route: s.route ?? null,
         mods: s.mods ?? null, sourcePlayerId: s.sourcePlayerId ?? null, bounty: s.bounty ?? null, tag: s.tag ?? null,
         ownerPlayerId: s.ownerPlayerId ?? null, pos: s.pos ?? null, seq: ++this._spawnSeq, countInTotal: s.countInTotal,
+        syncKey: s.syncKey != null ? `${s.syncKey}.${i}` : null,
       };
       p.counted = p.countInTotal ?? (!(def && def.notCountInTotal) && p.tag !== 'boss' && p.tag !== 'part');
       // inTotal: the enemies THIS STAGE scheduled that count — the HUD capsule's own set (DESIGN §14 "顶栏胶囊"). A
@@ -1067,12 +1072,18 @@ export class Battle {
       e.isBoss = true;
       if (this.sharedBoss) { e.bossPool = this.sharedBoss; this._syncBossHp(e); }
     }
+    e.syncKey = typeof opts.syncKey === 'string' && !e.bossPool ? opts.syncKey : null;
     e.hp = e.bossPool ? e.hp : e.s.maxHp;
     this.units.push(e);
     this.enemies.push(e);
     this._ev(['spawn', unitInfo(e)]);
     if (this._hooks.deploy) this.emit('deploy', { unit: e, initial: false });
     if (this._hooks.enemySpawn) this.emit('enemySpawn', { enemy: e });
+    // the shared pool is joined after the spawn hooks (the enemy augments' HP grade is in its max HP by then)
+    if (this.syncPools && e.syncKey && e.alive && !e.bossPool) {
+      const pool = this.syncPools.get(e.syncKey, e.s.maxHp);
+      if (pool) { e.bossPool = pool; this._syncBossHp(e); }
+    }
     return e;
   }
 
@@ -1227,7 +1238,8 @@ export class Battle {
           if (pp) pp.killedInTotal++;
         }
         if (killer) killer.stats.kills++;
-        if (unit.bounty && unit.bounty.coins > 0) {
+        // (a synced bounty pays every player from the match once its shared HP is gone: Match sync.js)
+        if (unit.bounty && unit.bounty.coins > 0 && !(this.syncPools && unit.syncKey)) {
           const payee = killer && killer.side === 'ally' && killer.ownerId != null ? killer.ownerId : (unit.bounty.ownerPlayerId ?? unit.ownerId);
           this.addCoins(payee, unit.bounty.coins, [unit.x,unit.y]);
         }
@@ -1335,10 +1347,11 @@ export class Battle {
   }
 
   _recordLeak(e, timeout) {
+    if (this.syncPools && e.syncKey && !this.syncLeaks.some((l) => l.key === e.syncKey)) this.syncLeaks.push({ key: e.syncKey, lpr: e.lpr ?? 1 });
     const owner = timeout ? e.ownerId : this._ownerForTile([Math.round(e.y), Math.round(e.x)]) ?? e.ownerId;
     const pp = this._pp(owner) ?? this._pp(e.ownerId);
     if (pp) {
-      pp.leaked.push({ enemyKey: e.defId, mods: e.mods ?? null, lpr: e.lpr ?? 1, sourcePlayerId: e.sourcePlayerId ?? e.ownerId, tag: e.tag ?? null, counted: !!e.counted || e.isBoss, boss: e.isBoss || undefined, spawned: true, entered: !timeout });
+      pp.leaked.push({ enemyKey: e.defId, mods: e.mods ?? null, lpr: e.lpr ?? 1, sourcePlayerId: e.sourcePlayerId ?? e.ownerId, tag: e.tag ?? null, counted: !!e.counted || e.isBoss, boss: e.isBoss || undefined, spawned: true, entered: !timeout, ...(this.syncPools && e.syncKey ? { syncKey: e.syncKey } : null) });
       if (e.counted || e.isBoss) pp.perfect = false;
     }
     if (e.counted) this.leakedCount++;
@@ -2641,7 +2654,8 @@ export class Battle {
   _syncBossHp(e) {
     const pool = e.bossPool;
     if (!pool) return;
-    if (Number.isFinite(pool.maxHp) && pool.maxHp > 0 && e.base.maxHp !== pool.maxHp) { e.base.maxHp = pool.maxHp; e.markDirty(); }
+    // (a synced enemy keeps its own max HP — its buffs may change it — and shows the pool's ratio)
+    if (!e.syncKey && Number.isFinite(pool.maxHp) && pool.maxHp > 0 && e.base.maxHp !== pool.maxHp) { e.base.maxHp = pool.maxHp; e.markDirty(); }
     // a broken pool (NaN hp) must not leak NaN into the unit: show it full until the pool is sane again
     const ratio = pool.maxHp > 0 ? (Number.isFinite(pool.hp) ? Math.max(0, pool.hp) / pool.maxHp : 1) : 0;
     e.hp = e.s.maxHp * Math.min(1, ratio);
@@ -2655,7 +2669,7 @@ export class Battle {
   }
 
   _bossSync() {
-    if (!this.sharedBoss) return;
+    if (!this.sharedBoss && !this.syncPools) return;
     for (const e of this.enemies) if (e.alive && e.bossPool) {
       this._syncBossHp(e);
       if (e.bossPool.hp <= 0) this.kill(e, null);

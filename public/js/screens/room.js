@@ -252,6 +252,7 @@ function AiLastToggle({ option, busy, onToggle }) {
 /** Room screen component. */
 export function RoomScreen() {
   const [extensionsOpen,setExtensionsOpen] = useState(false);
+  const [syncInfoOpen,setSyncInfoOpen] = useState(false); // 동기화 시뮬레이션: the mode's rules
   const room = useStore((s) => s.room);
   const me = useStore((s) => s.me, shallowEqual);
   const conn = useStore((s) => s.connection, shallowEqual);
@@ -384,13 +385,13 @@ export function RoomScreen() {
       </div>
       <div class="topbar__center">
         <${MicroLabel} tone="mint">${coop ? 'ALLIANCE LOBBY' : 'SOLO SIMULATION'}<//>
-        <h1 class="topbar__title">${coop ? t('同盟模拟') : t('独立模拟')}${room.test ? html` <${TestMark} />` : null}<span class="topbar__sep"></span><${DifficultyTag} difficulty=${room.difficulty} size="lg" />
+        <h1 class="topbar__title">${room.sync ? html`<${Tooltip} placement="bottom" text=${t('동기화 시뮬레이션 소개')}><${Button} variant="secondary" size="sm" square=${true} icon="info" class="sync-info-btn" aria-label=${t('동기화 시뮬레이션 소개')} onClick=${()=>setSyncInfoOpen(true)} /><//>` : null}${room.sync ? t('동기화 시뮬레이션') : coop ? t('同盟模拟') : t('独立模拟')}${room.test ? html` <${TestMark} />` : null}<span class="topbar__sep"></span><${DifficultyTag} difficulty=${room.difficulty} size="lg" />
           ${room.content?.modeId ? html`<span class="room-mode" data-testid="room-mode">${(room.content.modes || []).find((m) => m.id === room.content.modeId)?.name || room.content.modeId}</span>` : null}</h1>
 
       </div>
       <div class="topbar__right">
         ${coop?html`<${Tooltip} placement="bottom" text=${room.isPublic?'비공개로 전환':'공개 방 목록에 표시합니다.'}><button class="room-publish" disabled=${!facts.isHost||!!busy||!online} onClick=${()=>run('publish',async()=>{const isPublic=!room.isPublic;await net.request('room.publish',{isPublic});savePref('lobby.publicOn',isPublic);})}><${Icon} name="users" />${room.isPublic?'공개 방':'비공개 방'}</button><//>`:null}
-        <div class="room-gameplay-modes" role="radiogroup" aria-label="게임 모드">${GAMEPLAY_MODES.map(mode=>html`<${Tooltip} placement="bottom" text=${({classic:"기본 규칙으로 진행합니다. 커스텀 설정과 증강은 적용하지 않습니다.",augment:html`<div class="gameplay-mode-tip"><p>증강으로 조합을 강화하고, 더 강한 적에 도전합니다.</p><ul><li>${AUGMENT_ROUNDS.join('·')}라운드에 아군 증강 → 적 증강 선택·투표 (보스전 이전까지)</li><li>일반 적: 기본 HP 100% × 등장 등급 배율 (실버 1.1 · 골드 1.15 · 프리즘 1.2) · 공격력/방어력 기본 100%, 증강 선택마다 공격력·방어력 각각 +5% · 원래 마법 저항에 증강 선택마다 +3 합산</li><li>보스: 기본 HP 100% × 등장 등급 배율 (실버 1.3 · 골드 1.5 · 프리즘 1.7) · 공격력/방어력 120% · 마법 저항 150%</li><li>실버/골드/프리즘 가중치 2/5/3 · 커스텀 변경 불가</li></ul></div>`,custom:"저장한 커스텀 설정으로 진행합니다. 규칙을 자유롭게 변경할 수 있습니다."})[mode]}><button type="button" role="radio" data-gameplay-mode=${mode} aria-checked=${normalizeGameplayMode(room.gameplayMode)===mode} disabled=${!facts.isHost||!!busy||!online||!canSwitchPublicMode(room.gameplayMode,mode,room.isPublic)} onClick=${()=>run('gameplayMode',async()=>{await net.request('room.setGameplayMode',{gameplayMode:mode});setExtensionsOpen(false);})}>${GAMEPLAY_MODE_NAMES[mode]}</button><//>`)}</div>
+        <div class="room-gameplay-modes" role="radiogroup" aria-label="게임 모드">${GAMEPLAY_MODES.map(mode=>html`<${Tooltip} placement="bottom" text=${({classic:"기본 규칙으로 진행합니다. 커스텀 설정과 증강은 적용하지 않습니다.",augment:html`<div class="gameplay-mode-tip"><p>증강으로 조합을 강화하고, 더 강한 적에 도전합니다.</p><ul><li>${AUGMENT_ROUNDS.join('·')}라운드에 아군 증강 → 적 증강 선택·투표 (보스전 이전까지)</li><li>일반 적: 기본 HP 100% × 등장 등급 배율 (실버 1.1 · 골드 1.15 · 프리즘 1.2) · 공격력/방어력 기본 100%, 증강 선택마다 공격력·방어력 각각 +5% · 원래 마법 저항에 증강 선택마다 +3 합산</li><li>보스: 기본 HP 100% × 등장 등급 배율 (실버 1.3 · 골드 1.5 · 프리즘 1.7) · 공격력/방어력 120% · 마법 저항 120%</li><li>실버/골드/프리즘 가중치 2/5/3 · 커스텀 변경 불가</li></ul></div>`,custom:"저장한 커스텀 설정으로 진행합니다. 규칙을 자유롭게 변경할 수 있습니다."})[mode]}><button type="button" role="radio" data-gameplay-mode=${mode} aria-checked=${normalizeGameplayMode(room.gameplayMode)===mode} disabled=${!facts.isHost||!!busy||!online||!canSwitchPublicMode(room.gameplayMode,mode,room.isPublic)} onClick=${()=>run('gameplayMode',async()=>{await net.request('room.setGameplayMode',{gameplayMode:mode});setExtensionsOpen(false);})}>${GAMEPLAY_MODE_NAMES[mode]}</button><//>`)}</div>
         ${coop ? html`<${InviteBox} code=${room.code} name=${me.name} difficulty=${room.difficulty} />` : html`<div class="solo-note"><${MicroLabel}>SINGLE OPERATOR<//><span>仅限 1 名博士</span></div>`}
       </div>
     </header>
@@ -414,6 +415,7 @@ export function RoomScreen() {
 
     <${CustomExtensionsDialog} open=${extensionsOpen} room=${room} isHost=${facts.isHost} disabled=${!!busy || !online || normalizeGameplayMode(room.gameplayMode)!=='custom'} onClose=${()=>setExtensionsOpen(false)}
       onSave=${selection=>run('extensions',async()=>{await net.request('room.setCustomExtensions',{selection});saveCustomExtensionPrefs(selection);setExtensionsOpen(false);})} />
+      <${SyncInfoDialog} open=${syncInfoOpen} onClose=${()=>setSyncInfoOpen(false)} />
     <footer class="room-bar" ref=${footerRef}>
       <div class="room-bar__left">
         <div class="room-bar__difficulty">
@@ -516,4 +518,21 @@ function RoomTitleEditor({title,disabled,onSave}){
  return html`<form class="room-title-editor" onSubmit=${async e=>{e.preventDefault();if(!disabled&&value.trim()!==title)await onSave(value);setEditing(false);}}>
  ${editing?html`<input aria-label="방 제목" maxlength="15" value=${value} autoFocus onInput=${e=>setValue(e.target.value)} onKeyDown=${e=>{if(e.key==='Escape'){setValue(title);setEditing(false);}}}/><${Button} type="submit" size="sm" variant="secondary" icon="check" aria-label="방 제목 저장" title="방 제목 저장"/>`:html`<strong data-room-title data-i18n-skip>${title}</strong><${Button} size="sm" variant="ghost" icon="edit" aria-label="방 제목 수정" title="방 제목 수정" disabled=${disabled} onClick=${e=>{e.preventDefault();setEditing(true);}}/>`}
  </form>`;
+}
+
+/** 동기화 시뮬레이션 소개 (room topbar ⓘ): the rules of a sync room. */
+function SyncInfoDialog({ open, onClose }) {
+  const rules = [
+    '모든 인원이 HP를 공유합니다. 라운드당 HP 감소 상한은 없습니다.',
+    '연합 방어 단계가 없습니다.',
+    '라운드마다 모든 전장에 같은 적이 등장합니다. 모든 인원의 수배 적도 포함됩니다.',
+    '같은 적은 모든 전장에서 HP를 공유합니다. 어느 전장에서든 처치하면 모든 전장에서 사라집니다.',
+    '방어 포인트에 들어간 적은 팀 HP를 한 번만 감소시키며, 정산 전에 다른 전장에서 처치되면 감소하지 않습니다.',
+    '적 HP는 생존 인원수에 비례해 증가합니다. 수배 적은 1인당 +50%입니다.',
+    '수배 적을 처치하면 어느 전장에서 처치했든 그 수배를 고른 사람이 자금을 받습니다.',
+    '보스 라운드는 연합 시뮬레이션과 같습니다.',
+  ];
+  return html`<${Modal} open=${open} title=${t('동기화 시뮬레이션')} micro="SYNC SIMULATION" onClose=${onClose} width=${520}>
+    <ul class="sync-info-list">${rules.map(r=>html`<li>${t(r)}</li>`)}</ul>
+  <//>`;
 }

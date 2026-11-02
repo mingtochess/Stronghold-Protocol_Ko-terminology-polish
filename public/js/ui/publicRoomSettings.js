@@ -23,7 +23,7 @@ export function PublicRoomSettings({room,onClose}){
  useEffect(()=>{let live=true;const keys=['config','chess','items','bonds','bands','bosses','stages'];Promise.all(keys.map(k=>data.load(k))).then(()=>{if(live)setTables(Object.fromEntries(keys.map(k=>[k,data.get(k)])));}).catch(()=>{if(live)setError('설정 정보를 불러오지 못했습니다. 다시 열어주세요.');});return()=>{live=false;};},[room.code]);
  const groups=tables?roomSettingsGroups(room.customExtensions,tables):[];
  return html`<${Modal} open=${true} title="적용된 설정" micro="ROOM SETTINGS" class="room-settings-view" width="min(10rem,94vw)" onClose=${onClose} actions=${html`<${Button} variant="secondary" onClick=${onClose}>닫기<//>`}>
- <p class="room-settings-view__title" data-i18n-skip>${room.title===defaultRoomTitle(room.mode)?tr(room.title):room.title}</p>
+ <p class="room-settings-view__title" data-i18n-skip>${room.title===defaultRoomTitle(room.mode,undefined,undefined,room.sync)?tr(room.title):room.title}</p>
  ${error?html`<p role="alert">${error}</p>`:!tables?html`<p>설정을 불러오는 중…</p>`:html`${!groups.length?html`<p class="room-settings-view__empty">기본 설정과 동일합니다.</p>`:null}<div class="room-settings-view__groups">${groups.map(group=>html`<section class="room-settings-group" data-category=${group.id}><h3>${group.name}</h3><dl>${group.entries.map(entry=>html`<div><dt>${tr(entry.name)}</dt><dd>${tr(entry.value)}</dd></div>`)}</dl></section>`)}</div>`}
  <//>`;
 }

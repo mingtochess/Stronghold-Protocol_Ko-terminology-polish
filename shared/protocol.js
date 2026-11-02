@@ -40,6 +40,8 @@ const isScalar = (v) => isStr(v, 64) || isNum(v) || isBool(v);
 // ---- client-side combat (DESIGN §14): b.progress / b.result payloads -------------------------------------------
 
 /** Size limits of a b.result payload (the whole frame also obeys the 64 KB inbound limit). */
+/** 동기화 시뮬레이션: most shared-enemy keys one b.progress may carry. */
+const SYNC_KEYS = 2000;
 export const RESULT_LIMITS = Object.freeze({ players: 8, leaked: 3200, unitsEnd: 256, unitStats: 160, layerGains: 40, mods: 16, unspawned: 3200 });
 const BIG = 1e13;
 const isStat = (v) => v === undefined || isNum(v, 0, BIG);
@@ -47,7 +49,7 @@ const isModVal = (v) => v === null || isNum(v, -BIG, BIG) || isStr(v, 64) || isB
 const isLeak = (l) => isPlain(l) && isId(l.enemyKey)
   && (l.mods === undefined || l.mods === null || isMap(l.mods, RESULT_LIMITS.mods, (k) => isStr(k, 32), isModVal))
   && optional((v) => isNum(v, 0, 1000))(l.lpr) && nullable(isId)(l.sourcePlayerId) && nullable((v) => isStr(v, 16))(l.tag)
-  && optional(isBool)(l.counted) && optional(isBool)(l.boss) && optional(isBool)(l.spawned) && optional(isBool)(l.uniteRuntime) && optional(isBool)(l.entered);
+  && optional(isBool)(l.counted) && optional(isBool)(l.boss) && optional(isBool)(l.spawned) && optional(isBool)(l.uniteRuntime) && optional(isBool)(l.entered) && optional(isId)(l.syncKey);
 const isUnitEnd = (u) => isPlain(u) && nullable(isUid)(u.uid) && isNum(u.hpPct, 0, 1) && isNum(u.sp, 0, 1e5) && isBool(u.alive)
   && optional(isBool)(u.skillActive) && nullable(isId)(u.defId);
 const isUnitStat = (u) => isPlain(u) && nullable(isUid)(u.uid) && nullable(isId)(u.defId) && optional((v) => isStr(v, 16))(u.kind)
@@ -511,7 +513,7 @@ export const C2S = {
   hello: { name: (v) => isStr(v, NAME_MAX_LEN) && v.trim().length > 0, token: (v) => v == null || isStr(v, 64), version: (v) => v == null || isInt(v, 0, 1e6),
     noReplace: isBool, claimAt: (v) => isNum(v, 0, Number.MAX_SAFE_INTEGER), $optional: ['token', 'version', 'noReplace', 'claimAt'] },
   ping: { c: (v) => typeof v === 'number' && Number.isFinite(v) },
-  'room.create': { titleLocale:v=>['ko','en','ja','zh'].includes(v),isPublic:v=>typeof v==='boolean',title:isRoomTitle, gameplayMode:isGameplayMode, mode: (v) => v === 'solo' || v === 'coop' || v === 'coop8', difficulty: (v) => DIFFICULTIES.includes(v), spectators: isSpectatorCap, customExtensions: extensionSelectionShape, test: (v) => v === true, $optional: ['spectators','customExtensions','test','gameplayMode','title','titleLocale','isPublic'] },
+  'room.create': { titleLocale:v=>['ko','en','ja','zh'].includes(v),isPublic:v=>typeof v==='boolean',title:isRoomTitle, gameplayMode:isGameplayMode, mode: (v) => v === 'solo' || v === 'coop' || v === 'coop8', sync: (v) => v === true, difficulty: (v) => DIFFICULTIES.includes(v), spectators: isSpectatorCap, customExtensions: extensionSelectionShape, test: (v) => v === true, $optional: ['spectators','customExtensions','test','gameplayMode','title','titleLocale','isPublic','sync'] },
   'room.join': { testAck: (v) => v === true, $optional: ['testAck'], code: (v) => isStr(v, ROOM_CODE_LEN + 2) && /^[A-Za-z0-9]+$/.test(v) },
   'room.leave': {},
   'room.commend': {playerId:isId,matchNo:(v)=>isInt(v,1,2**31)},
@@ -637,7 +639,13 @@ export const C2S = {
     left: (v) => isMap(v, RESULT_LIMITS.players, isId, (x) => isInt(x, 0, 1e5)),
     leaksCountBy: (v) => isMap(v, RESULT_LIMITS.players, isId, (x) => isInt(x, 0, 1e5)),
     leaksBy: (v) => isMap(v, RESULT_LIMITS.players, isId, (x) => isNum(x, 0, 1e6)),
-    $optional: ['resolved', 'leaks', 'bossDmg', 'by', 'done', 'left', 'leaksBy', 'leaksCountBy'],
+    // 동기화 시뮬레이션: each shared enemy's cumulative damage on this field and its max HP (syncKey → number), the
+    // shared enemies that reached this field's goal (server/sim/syncPools.js LocalSyncPools.report, Battle.syncLeaks)
+    syncDmg: (v) => isMap(v, SYNC_KEYS, isId, (x) => isNum(x, 0, BIG)),
+    syncMax: (v) => isMap(v, SYNC_KEYS, isId, (x) => isNum(x, 0, BIG)),
+    syncHeal: (v) => isMap(v, SYNC_KEYS, isId, (x) => isNum(x, 0, BIG)),
+    syncLeaks: (v) => Array.isArray(v) && v.length <= SYNC_KEYS && v.every((l) => isPlain(l) && isId(l.key) && isNum(l.lpr, 0, 1000)),
+    $optional: ['resolved', 'leaks', 'bossDmg', 'by', 'done', 'left', 'leaksBy', 'leaksCountBy', 'syncDmg', 'syncMax', 'syncHeal', 'syncLeaks'],
   },
   // `cs` (DESIGN §32, optional): the content hash the reporting browser ran the battle on — its spec's `cs`. In a room
   // with gameplay plugins (P1c, DESIGN §32.6) the match refuses a result without it or with another one (and runs the
@@ -667,7 +675,9 @@ export const S2C = [
   // client-side combat (DESIGN §14): b.start { battleId, fieldId, kind, spec, authoritative, startAt, serverNow, elapsed,
   // speed, watch? } · b.pool { hp, max, teamLp, acked: { [fieldId]: cumulative boss damage counted } } ·
   // b.end { battleId, fieldId, reason }
-  'b.start', 'b.pool', 'b.end',
+  // b.sync { round, hp: { [syncKey]: shared HP }, max: { [syncKey]: max HP }, acked: { [fieldId]: { [syncKey]: credited } } }
+  // (동기화 시뮬레이션: one pool per scheduled enemy shared by every field; server/sim/syncPools.js)
+  'b.start', 'b.pool', 'b.sync', 'b.end',
   // a delegated bot layout rehearsal (DESIGN §14): b.rehearsal { taskId, playerId, cap, specs } — the host's browser
   // runs the candidate BattleSpecs off the page's main thread and answers with a C2S b.rehearsalResult ·
   // b.rehearsalCancel { taskId } — the server dropped that task (it timed out, the host changed, the prep ended):

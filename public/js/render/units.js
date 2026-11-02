@@ -3222,7 +3222,8 @@ export class ItemView {
     this.placed = true;
     if (!lifted) p.y += p.s * STAND_DROP;   // on the ground: the units' standing height (STAND_DROP)
     this.root.position.set(p.x, p.y);
-    this.root.zIndex = unitDepthKey(cam, this.x, this.y, this.lift);
+    // a plate being dragged is drawn above every unit (it is in the player's hand, not standing among them)
+    this.root.zIndex = this.dragged ? Number.MAX_SAFE_INTEGER : unitDepthKey(cam, this.x, this.y, this.lift);
     const size = p.s * 0.62;
     this.plate.scale.set(size / 128);
     this.plate.anchor.set(0.5, lifted ? 0.5 : 1);

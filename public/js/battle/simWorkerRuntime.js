@@ -53,6 +53,7 @@ export function createSimWorker({ loadSim, prepareScripts = browserScripts } = {
       case 'unitStats': return host.unitStats(args[0]);
       case 'ownerOps': return host.ownerOps(args[0]);
       case 'syncPool': host.syncPool(...args); return true;
+      case 'syncShared': host.syncShared(...args); return true;
       case 'forceEnd': host.forceEnd(args[0]); return packet();
       case 'stop': host.stop(); return true;
       default: throw new Error('unknown simulation command');

@@ -3,7 +3,7 @@ import {PresetLinks,PresetLinkIcons} from './presetLinks.js';
 import { tr } from '../i18n/i18n.js';
 import { matchesKoreanSearch } from '../../../shared/search.js';
 import { PresetManager, PresetNameField, PresetLinkChips } from './settingsFrame.js';
-import { normalizePresetFactions } from './factionPresetModel.js';
+import { normalizePresetFactions, withDefaultPreset } from './factionPresetModel.js';
 import { useEffect, useState } from '../../vendor/hooks.module.js';
 import { html, Modal, Button, Icon } from './components.js';
 import { createStore, loadPref, savePref, useStore, store } from '../store.js';
@@ -12,7 +12,7 @@ import { Img } from './gameComponents.js';
 import { chessPortraitUrl, itemIconUrl } from './assetUrls.js';
 const KEY='sp.pref.favorites';
 export function normalizeFavorites(raw){
- const presets=normalizePresetStrategies(normalizePresetFactions((Array.isArray(raw?.presets)?raw.presets:[]).filter(p=>typeof p?.id==='string').slice(0,30).map(p=>({id:p.id,name:String(p.name||'프리셋').slice(0,40),operators:[...new Set((Array.isArray(p.operators)?p.operators:[]).filter(x=>typeof x==='string'))],faction:p.faction,strategy:p.strategy,items:[...new Set((Array.isArray(p.items)?p.items:[]).filter(x=>typeof x==='string'))]}))));
+ const presets=withDefaultPreset(normalizePresetStrategies(normalizePresetFactions((Array.isArray(raw?.presets)?raw.presets:[]).filter(p=>typeof p?.id==='string'&&!p.builtin&&p.id!=='default').slice(0,30).map(p=>({id:p.id,name:String(p.name||'프리셋').slice(0,40),operators:[...new Set((Array.isArray(p.operators)?p.operators:[]).filter(x=>typeof x==='string'))],faction:p.faction,strategy:p.strategy,items:[...new Set((Array.isArray(p.items)?p.items:[]).filter(x=>typeof x==='string'))]})))),{operators:[],items:[]});
  return {presets,active:presets.some(p=>p.id===raw?.active)?raw.active:presets[0]?.id||null};
 }
 export const favoritesStore=createStore({...normalizeFavorites(loadPref(KEY,{})),open:false});
@@ -40,14 +40,15 @@ export function FavoritesHost(){
  const p=s.presets.find(p=>p.id===s.active),m=data.get('assets');
  const available=Object.values(data.get(tab==='operators'?'chess':'items')||{}).filter(c=>tab==='operators'?(!c.isGolden&&!c.isHidden&&!c.isDiy&&!c.optionalRecruit&&c.visible):(!c.isGolden&&!c.hideInShop&&!c.shopExcluded&&c.visible!==false));
  const rows=tab==='operators'?filterFavoriteOperators(available,{query,bond,tier}):available.filter(c=>(matchesKoreanSearch(tr(c.name||''),query)||matchesKoreanSearch(c.name||'',query)));
- const update=(patch)=>save({...s,presets:s.presets.map(x=>x.id===p.id?{...x,...patch}:x)});
- const create=()=>{const id=`fav-${Date.now()}-${Math.random().toString(36).slice(2,7)}`;save({...s,active:id,presets:[...s.presets,{id,name:`프리셋 ${s.presets.length+1}`,operators:[],items:[]}]});};
+ const update=(patch)=>{if(p?.builtin)return;save({...s,presets:s.presets.map(x=>x.id===p.id?{...x,...patch}:x)});};
+ const create=()=>{const id=`fav-${Date.now()}-${Math.random().toString(36).slice(2,7)}`;save({...s,active:id,presets:[...s.presets,{id,name:`프리셋 ${s.presets.length}`,operators:[],items:[]}]});};
  return html`<${Modal} class="favorites-modal ui-editor" width="min(15rem,96vw)" open=${true} title="선호 오퍼레이터·장비" micro="FAVORITE PRESETS" onClose=${()=>favoritesStore.set({open:false})} actions=${html`<${Button} onClick=${()=>favoritesStore.set({open:false})}>닫기<//>`}>
  <p class="lo-note">활성 프리셋의 오퍼레이터·장비를 상점에서 별표로 표시합니다. 자동 저장됩니다.</p>
- <div class="favorites-layout"><${PresetManager} kind="stronghold.favorites" state=${s} presets=${s.presets} active=${s.active} manifest=${m} disabled=${!ready} onSelect=${id=>save({...s,active:id})} onCreate=${create} onDuplicate=${x=>{const id=`fav-${Date.now()}`;save({...s,active:id,presets:[...s.presets,{...x,id,faction:null,strategy:null,name:(x.name+' 복사').slice(0,40)}]});}} onDelete=${x=>save({...s,presets:s.presets.filter(y=>y.id!==x.id)})} onImport=${value=>save(normalizeFavorites(value))}/><section class="favorites-editor">
- ${p?html`<div class="favorites-toolbar favorites-titlebar"><${PresetNameField} preset=${p} onRename=${name=>update({name})}/></div>`:null}
- ${p?html`<${PresetLinks} preset=${p} presets=${s.presets} onChange=${presets=>save({...s,presets})}/>`:null}
- ${p?html`<div class="favorites-toolbar lo-seg">${['operators','items'].map(t=>html`<${Button} variant="ghost" class=${t===tab?'is-on':''} onClick=${()=>setTab(t)}>${t==='operators'?'오퍼레이터':'장비'} (${p[t].length})<//>`)}<input aria-label="선호 목록 검색" placeholder="이름 검색" value=${query} onInput=${e=>setQuery(e.target.value)}/></div>
+ <div class="favorites-layout"><${PresetManager} kind="stronghold.favorites" state=${s} presets=${s.presets} active=${s.active} manifest=${m} disabled=${!ready} onSelect=${id=>save({...s,active:id})} onCreate=${create} onDuplicate=${x=>{const id=`fav-${Date.now()}`;save({...s,active:id,presets:[...s.presets,{...x,id,builtin:false,faction:null,strategy:null,name:(x.name+' 복사').slice(0,40)}]});}} onDelete=${x=>{if(!x.builtin)save({...s,presets:s.presets.filter(y=>y.id!==x.id)});}} onImport=${value=>save(normalizeFavorites(value))}/><section class="favorites-editor">
+ ${p?.builtin?html`<div class="favorites-toolbar favorites-titlebar"><strong class="preset-builtin-name">${p.name}</strong></div><p class="lo-note">기본 프리셋은 선호 오퍼레이터·장비가 없으며 수정하거나 진영·전략에 연동할 수 없습니다.</p>`:null}
+ ${p&&!p.builtin?html`<div class="favorites-toolbar favorites-titlebar"><${PresetNameField} preset=${p} onRename=${name=>update({name})}/></div>`:null}
+ ${p&&!p.builtin?html`<${PresetLinks} preset=${p} presets=${s.presets} onChange=${presets=>save({...s,presets})}/>`:null}
+ ${p&&!p.builtin?html`<div class="favorites-toolbar lo-seg">${['operators','items'].map(t=>html`<${Button} variant="ghost" class=${t===tab?'is-on':''} onClick=${()=>setTab(t)}>${t==='operators'?'오퍼레이터':'장비'} (${p[t].length})<//>`)}<input aria-label="선호 목록 검색" placeholder="이름 검색" value=${query} onInput=${e=>setQuery(e.target.value)}/></div>
  ${tab==='operators'?html`<div class="favorites-toolbar"><select aria-label="맹약 필터" value=${bond} onChange=${e=>setBond(e.target.value)}><option value="">모든 맹약</option>${Object.entries(data.get('bonds')||{}).map(([id,b])=>html`<option value=${id}>${b.name||id}</option>`)}</select><select aria-label="등급 필터" value=${tier} onChange=${e=>setTier(e.target.value)}><option value="">모든 등급</option>${[1,2,3,4,5,6].map(t=>html`<option value=${t}>${t}단계</option>`)}</select><${Button} variant="ghost" onClick=${()=>{setBond('');setTier('');setQuery('');}}>필터 초기화<//></div>`:null}
  <div class="favorites-grid">${ready?rows.map(c=>{const id=c.chessId||c.itemId||c.id||c.key;if(!id)return null;const checked=p[tab].includes(id);return html`<button type="button" class=${`favorites-card ${checked?'is-on':''}`} aria-pressed=${checked} title=${c.name||id} onClick=${()=>update({[tab]:checked?p[tab].filter(x=>x!==id):[...p[tab],id]})}><${Img} src=${tab==='operators'?chessPortraitUrl(m,c):itemIconUrl(m,c)} /><span>${c.name||id}</span><b>${checked?'★':'☆'}</b></button>`;}):'목록 불러오는 중…'}</div>`:html`<p>새 프리셋을 만들어 선호 목록을 추가하세요.</p>`}
  </section></div><//>`;

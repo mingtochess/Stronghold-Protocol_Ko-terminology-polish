@@ -107,6 +107,10 @@ export class SkillRuntime {
       this.initSp*=Number.isFinite(rules.allyInitSp)?rules.allyInitSp/100:1;
     }
     this.maxCharges = Math.max(1, Math.floor(boundedCount(s.charges ?? d.maxCharges ?? 1, fieldCap('skill.maxCharges'), 1)));
+    // 蓄力 (simdata `charged`): the stored "charges" are SP past the cost, not casts — cast at the cost it spends the cost
+    // (no charged effect); cast at twice the cost (the 蓄力 mark) it has the charged effect and spends ALL the SP, so it is
+    // never cast again at once from a second stored charge
+    this.chargeHold = this.maxCharges > 1 && !!(s.chargeHold ?? d.charged);
     this.spType = s.spType ?? d.spType ?? 'time';
     const trig = typeof s.trigger === 'string' ? { rule: s.trigger } : (s.trigger || d.trigger || {});
     this.rule = String(trig.rule ?? 'DEFAULT').toUpperCase();
@@ -582,8 +586,10 @@ export class SkillRuntime {
     const u = this.unit;
     if (!u.alive || !u.deployed) return false;
     if (reason !== 'deploy' && this.battle.time < (u.mem.skillCastUntil || 0)) return false;
+    let chargedCast = false;
     if (!free) {
       const wasFull = this.charges >= this.maxCharges;
+      chargedCast = this.chargeHold && wasFull;
       this.charges--;
       if (this.maxCharges === 1 || wasFull) this.sp = 0;
     }
@@ -609,8 +615,11 @@ export class SkillRuntime {
     const cast = !this.isTimed ? skillImpactTiming(u) : null;
     b._ev(cast ? ['skill', u.id, 1, { cast: true }] : ['skill', u.id, 1]);
     u.skillAnimUntil = b.time + SKILL_ANIM_WINDOW;
+    // 蓄力: after the kit's onStart (it reads the stored charges to pick the charged effect) all the SP is spent
+    const spendAll = () => { if (chargedCast) { this.charges = 0; this.sp = 0; } };
     const finishStart = () => {
       this._call('onStart', { reason });
+      spendAll();
       if (!this.isTimed && !this.pending) {
         if (showsSkillArea(u)) u.mem.skillArea = {keys:skillAreaKeys(u).slice(),until:b.time+Math.max(.5,Number(this.spec.areaDuration)||0)};
         this.end('instant');
@@ -633,6 +642,8 @@ export class SkillRuntime {
       },{owner:u});
     } else this._call('onStart', { reason });
     if (b._hooks.skillStart) b.emit('skillStart', { unit: u, skill: this, reason });
+    // (a cast without a cast motion: after the skillStart handlers too — 卡涅利安 生命之餐 reads the stored charges there)
+    if (!cast) spendAll();
     // bullets added in skillStart (拉特兰's ×(1.05 + 0.015 × layers), 逃犯引渡手续, talents): the bar's full mark
     // (community report #35: the extra bullets sat above a full bar until fewer than the base count were left)
     if (this.active && this.ammoLeft > this.ammoMax) this.ammoMax = this.ammoLeft;

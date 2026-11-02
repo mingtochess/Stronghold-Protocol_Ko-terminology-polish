@@ -1,4 +1,5 @@
 import { combatMetrics } from '../../shared/combatStats.js';
+import { LocalSyncPools } from './syncPools.js';
 import { customFactionData } from '../../shared/customFactions.js';
 import { applyCustomExtensions, normalizeCustomExtensions } from '../../shared/customExtensions.js';
 // server/sim/spec.js — BattleSpec: the JSON description of one battle, built by the server and simulated identically
@@ -94,6 +95,8 @@ export function buildBattleSpec(o = {}) {
     ...(isContentHash(o.vs) ? { vs: o.vs } : {}),
     // morphPairing plus only. An official spec grows no key (identity and extra-field tests).
     ...(o.morphPairing === 'plus' ? { morphPairing: 'plus' } : {}),
+    // 동기화 시뮬레이션: the field's scheduled enemies share their HP with the other fields (syncPools.js)
+    ...(o.sync ? { sync: { pools: o.syncState && typeof o.syncState === 'object' ? o.syncState : {} } } : {}),
   };
   const out = JSON.parse(JSON.stringify(spec, specReplacer));
   for (const p of out.players) for (const u of (p && Array.isArray(p.units) ? p.units : [])) if (u && typeof u === 'object') sanitizeUnitLoadout(u);
@@ -176,6 +179,7 @@ export function createBattleFromSpec(spec, dataSource, opts = {}) {
     spawns: s.spawns ?? [],
     routes: s.routes ?? [],
     sharedBoss,
+    syncPools: opts.syncPools ?? (s.sync ? new LocalSyncPools(s.sync.pools || {}) : null),
     flags: s.flags ?? {},
     fieldId: s.fieldId,
     enemyOverrides: s.enemyOverrides ?? {},
@@ -325,6 +329,10 @@ export function battleProgress(battle) {
     done: !!(battle && battle.finished),
   };
   if (battle && ['normal','unite'].includes(battle.kind) && battle.flags?.augments?.enemies?.some(a=>a.effect.kind==='leak'))out.leaksCountBy=Object.fromEntries(Object.entries(pp).map(([id,p])=>[id,(p.leaked||[]).filter(l=>l.entered===true).length]));
+  if (battle && battle.syncPools && typeof battle.syncPools.report === 'function') {
+    out.sync = battle.syncPools.report();
+    out.syncLeaks = (battle.syncLeaks || []).slice(0, 2000);
+  }
   if (battle && battle.kind === 'unite') {
     const left = uniteLeft(battle);
     if (left) out.left = left;
@@ -432,6 +440,7 @@ export function compactResult(res) {
         if (l.uniteRuntime) o.uniteRuntime = true; // born on a 联防 field: the server must not bill it (unite.js uniteSurvivors)
         if (l.boss) o.boss = true;
         if (l.spawned) o.spawned = true;
+        if (typeof l.syncKey === 'string' && l.syncKey.length <= 64) o.syncKey = l.syncKey; // 동기화: the shared enemy it was
         return o;
       }),
       perfect: !!p.perfect,

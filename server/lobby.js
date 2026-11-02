@@ -376,6 +376,7 @@ export class Room {
       code: this.code,
       hostId: this.hostId,
       mode: this.mode,
+      sync: this.sync === true,
       difficulty: this.difficulty,
       rerollLimit: this.rerollLimit,
       rerollsUsed: this.rerollsUsed,
@@ -784,7 +785,9 @@ export class Lobby {
   // room.* handlers
   // ---------------------------------------------------------------------------------------------------
 
-  create(session, { mode, difficulty, spectators, customExtensions, test, gameplayMode, title, titleLocale, isPublic } = {}) {
+  create(session, { mode, difficulty, spectators, customExtensions, test, gameplayMode, title, titleLocale, isPublic, sync } = {}) {
+    // 동기화 시뮬레이션: an alliance room (coop / coop8) with the sync rules (Match opts.sync)
+    if(sync!==undefined&&(sync!==true||mode==='solo'))return fail(ERR.BAD_MSG);
     if(titleLocale!==undefined&&!['ko','en','ja','zh'].includes(titleLocale))return fail(ERR.BAD_MSG);
     if(isPublic!==undefined&&typeof isPublic!=='boolean')return fail(ERR.BAD_MSG);
     if(isPublic&&mode==='solo')return fail(ERR.BAD_MSG);
@@ -817,7 +820,8 @@ export class Lobby {
     room.test=test===true;
     room.customExtensionCatalog = customExtensionCatalog(this.safeData());
     room.gameplayMode=normalizeGameplayMode(gameplayMode);
-    room.titleLocale=titleLocale||'ko';room.title=title?.trim()||defaultRoomTitle(mode,session.name,room.titleLocale);room.isPublic=isPublic===true;
+    room.sync=sync===true;
+    room.titleLocale=titleLocale||'ko';room.title=title?.trim()||defaultRoomTitle(mode,session.name,room.titleLocale,room.sync);room.isPublic=isPublic===true;
     room.savedCustomExtensions=modeExtensionSelection(normalizeCustomExtensions(customExtensions,this.safeData()),mode);
     room.customExtensions = initialSelection;
     room.customFactions = room.customExtensions.bonds.includes('ursus') && !(room.customExtensions.disabledBonds||[]).includes('ursusShip');
@@ -965,7 +969,7 @@ export class Lobby {
   listPublicRooms() {
     const all=[...this.rooms.values()];
     return { counts:{total:all.length,joinable:all.filter(r=>r.isPublic&&!r.match&&r.seats.filter(Boolean).length<r.seats.length).length},rooms: [...this.rooms.values()].filter(r=>r.isPublic&&r.mode!=='solo').slice(0,200).map(r=>({
-      code:r.code,title:r.title||defaultRoomTitle(r.mode),mode:r.mode,difficulty:r.difficulty,gameplayMode:r.gameplayMode,
+      code:r.code,title:r.title||defaultRoomTitle(r.mode,undefined,undefined,r.sync),mode:r.mode,sync:r.sync===true,difficulty:r.difficulty,gameplayMode:r.gameplayMode,
       hostName:r.seats.find(s=>s?.playerId===r.hostId)?.name||'방장',
       players:r.seats.filter(s=>s&&!s.isBot&&!s.left).length,
       capacity:r.seats.length,bots:r.seats.filter(s=>s?.isBot).length,
@@ -975,11 +979,11 @@ export class Lobby {
 
   setRoomTitle(session,{title}) {
     const room=this.roomOf(session);if(!room)return fail(ERR.NOT_IN_ROOM);if(room.hostId!==session.playerId)return fail(ERR.NOT_HOST);if(room.match)return fail(ERR.ROOM_STARTED);if(!isRoomTitle(title))return fail(ERR.BAD_MSG);
-    room.title=title.trim()||defaultRoomTitle(room.mode,session.name,room.titleLocale);this.broadcastState(room);return OK;
+    room.title=title.trim()||defaultRoomTitle(room.mode,session.name,room.titleLocale,room.sync);this.broadcastState(room);return OK;
   }
   inspectRoom(session,{code}) {
     const room=this.rooms.get(code.toUpperCase());if(!room?.isPublic||room.mode==='solo')return fail(ERR.ROOM_NOT_FOUND);
-    return {room:{code:room.code,title:room.title,mode:room.mode,difficulty:room.difficulty,gameplayMode:room.gameplayMode,customExtensions:structuredClone(room.customExtensions)}};
+    return {room:{code:room.code,title:room.title,mode:room.mode,sync:room.sync===true,difficulty:room.difficulty,gameplayMode:room.gameplayMode,customExtensions:structuredClone(room.customExtensions)}};
   }
   publishRoom(session,{isPublic=true}={}) {
     if(typeof isPublic!=='boolean')return fail(ERR.BAD_MSG);
@@ -1606,6 +1610,8 @@ export class Lobby {
         roomCode: room.code,
         getHostId:()=>room.hostId,
         mode: room.mode,
+        // 동기화 시뮬레이션 (Match: shared HP, no 联防, no round LP cap, one shared wave with per-enemy shared HP)
+        ...(room.sync === true ? { sync: true } : {}),
         difficulty: room.difficulty,
         customFactions: room.customFactions,
         gameplayMode: room.gameplayMode,

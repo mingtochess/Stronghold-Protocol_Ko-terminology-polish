@@ -475,11 +475,12 @@ export function TopBar({ battleEnd = null, pub, priv, conn, hud, total, drawer, 
   const phase = pub?.phase;
   const boss = isBossPhase(phase);
   const playerId = spectator ? watchedPlayerId : myId;
-  const shared=pub?.customExtensions?.rules?.includes('sharedHp');
+  const shared=pub?.customExtensions?.rules?.includes('sharedHp')||pub?.sync===true;
   const lp = (boss||shared) && Number.isFinite(liveTeamLp ?? pub?.teamLp) ? (liveTeamLp ?? pub.teamLp) : currentPlayerLp(pub, priv, playerId);
   const watched = spectator ? pub?.players?.find(p => p.playerId === playerId) : null;
   // normal rounds: the leaks of the own battle so far (boss rounds: the team LP above already moves live)
-  const pending = !boss && Number.isFinite(lp) ? Math.min(lp,shared?(pub.players||[]).filter(p=>p.alive!==false).reduce((n,p)=>n+Math.max(0,Number(p.playerId===playerId&&!spectator?Math.max(p.pendingLp||0,live?.pending||0):p.pendingLp)||0),0):Math.max(0, Number(spectator ? watched?.pendingLp : live?.pending) || 0)) : 0;
+  // 동기화 시뮬레이션: the team's shared leaks (m.public syncPendingLp), never a field's own count
+  const pending = !boss && Number.isFinite(lp) && pub?.sync===true ? Math.min(lp, Math.max(0, Number(pub.syncPendingLp) || 0)) : !boss && Number.isFinite(lp) ? Math.min(lp,shared?(pub.players||[]).filter(p=>p.alive!==false).reduce((n,p)=>n+Math.max(0,Number(p.playerId===playerId&&!spectator?Math.max(p.pendingLp||0,live?.pending||0):p.pendingLp)||0),0):Math.max(0, Number(spectator ? watched?.pendingLp : live?.pending) || 0)) : 0;
   const hidden = phase === PHASE.HIDDEN_CORE || (Number.isFinite(pub?.lastRound) && pub.round > pub.lastRound);
   const roundText = hidden ? '??' : pub?.round > 0 ? String(pub.round) : '--';
   // a spectator seat (no m.private, community report #26) never readies

@@ -239,6 +239,7 @@ export function makeBattle(opts = {}) {
       time: e.time ?? 0, enemyKey: e.key, routeIndex, route, count: e.count ?? 1, interval: e.interval ?? 0,
       mods: e.mods ?? null, tag: e.tag ?? null, bounty: e.bounty ?? null, sourcePlayerId: e.sourcePlayerId ?? null,
       ownerPlayerId: e.ownerPlayerId ?? null, pos: e.pos ?? null, countInTotal: e.countInTotal,
+      ...(e.syncKey != null ? { syncKey: e.syncKey } : null),
     });
   }
   if (extraRoutes.length) routes = routes.concat(extraRoutes);
@@ -253,7 +254,7 @@ export function makeBattle(opts = {}) {
   const battle = new Battle({
     seed: opts.seed ?? 1, kind, modeId: opts.modeId ?? 'mode_multi_normal', round: opts.round ?? 1, stage, rect: opts.rect,
     timeLimit: timeLimit ?? (kind === 'boss' || kind === 'hidden' ? Infinity : 60), players, spawns, routes,
-    sharedBoss: opts.sharedBoss ?? null, flags: { startOpCooldown: 0, ...opts.flags }, fieldId: opts.fieldId ?? 'test', data,
+    sharedBoss: opts.sharedBoss ?? null, syncPools: opts.syncPools ?? null, flags: { startOpCooldown: 0, ...opts.flags }, fieldId: opts.fieldId ?? 'test', data,
     content: opts.content ?? 'full', recordEvents: opts.recordEvents !== false, logger: opts.logger ?? quietLogger(opts.verbose),
     quiet: opts.verbose ? false : true, devices: opts.devices,
     autoFinish: opts.autoFinish ?? spawns.length > 0, kits: opts.kits, extraContent: opts.extraContent,

@@ -2,7 +2,9 @@ import {test} from 'node:test';import assert from 'node:assert/strict';
 import {normalizeFavorites,isFavorite,favoritesStore} from '../../public/js/ui/favorites.js';
 test('favorite presets retain separate operators and items, deduplicate and fall back after deletion',()=>{
  const s=normalizeFavorites({active:'deleted',presets:[{id:'one',name:'계획',operators:['op','op'],items:['gear']},{id:'two',operators:'bad',items:null}]});
- assert.equal(s.active,'one');assert.deepEqual(s.presets[0].operators,['op']);assert.deepEqual(s.presets[1].operators,[]);
+ // (the fixed empty 기본 preset heads the list and is the fallback of a stale active ID)
+ assert.equal(s.presets[0].id,'default');assert.equal(s.presets[0].builtin,true);assert.deepEqual(s.presets[0].operators,[]);
+ assert.equal(s.active,'default');assert.deepEqual(s.presets[1].operators,['op']);assert.deepEqual(s.presets[2].operators,[]);
 });
 test('only the active preset marks shop cards; elite cards share the base operator preference',()=>{
  const before=favoritesStore.get();try{favoritesStore.set({active:'one',presets:[{id:'one',operators:['base'],items:['gear']},{id:'two',operators:['other'],items:[]}]});
