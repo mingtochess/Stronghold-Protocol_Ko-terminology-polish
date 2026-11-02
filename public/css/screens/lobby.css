@@ -485,23 +485,39 @@ html:not([lang="ko"]) .mode-cards .mode-card--lab .mode-card__name{font-size:.24
 .public-room.is-sync { background: linear-gradient(135deg, rgba(150, 96, 255, .26), rgba(70, 40, 140, .32)), var(--panel-bg, #11161a); border-color: rgba(176, 132, 255, .7); }
 .public-room__sync { display: inline-block; margin-left: .06rem; padding: 0 .06rem; border-radius: 3px; background: #8e63f0; color: #fff; font-size: max(.11rem, 10px); font-weight: 700; }
 
-/* Lobby layout (2026-11): modes + join on the left; browse, laboratory / practice, difficulty and create on the right */
-.mode-cards.mode-cards--main { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+/* Lobby layout (2026-11): top row = the three simulation cards | browse + laboratory / practice (same card style, same
+   height); bottom row = join | difficulty + create */
+.lobby-body { grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); grid-template-areas: "modes quick" "join diff"; row-gap: .3rem; }
+.lobby-left, .lobby-right { display: contents; }
+.lg-modes { grid-area: modes; display: flex; flex-direction: column; min-width: 0; }
+.lg-quick { grid-area: quick; min-width: 0; }
+.lg-join { grid-area: join; min-width: 0; }
+.lg-diff { grid-area: diff; display: flex; flex-direction: column; min-width: 0; }
+.mode-cards.mode-cards--main { grid-template-columns: repeat(3, minmax(0, 1fr)); margin-bottom: 0; flex: 1; }
 .mode-cards--main .mode-card-tip:nth-child(n) { grid-column: auto; grid-row: auto; width: 100%; justify-self: stretch; }
-.mode-cards--main .mode-card { min-height: 3.6rem; }
-.lobby-quick { display: flex; flex-direction: column; gap: .14rem; margin-bottom: .22rem; }
-.lobby-quick .public-rooms-entry { grid-column: auto; grid-row: auto; min-height: 1.9rem; flex-direction: row; align-items: center; gap: .2rem; padding: .18rem .24rem; text-align: left; }
-.lobby-quick .public-rooms-entry .public-rooms-entry__total { margin: 0 0 0 auto; align-self: center; }
-.lobby-quick__labs { display: grid; grid-template-columns: 1fr 1fr; gap: .14rem; }
-.lobby-quick__labs .mode-card--lab { grid-column: auto; min-height: 0; padding: .14rem .18rem; }
-.lobby-quick__labs .mode-card--lab .mode-card__desc { display: none; }
-.lobby-quick__labs .mode-card--lab .mode-card__name { font-size: clamp(18px, calc(1.5 * var(--ui-vw, 1vw)), 26px); }
-.lobby-quick__labs .mode-card--lab .mode-card__icon { width: .42rem; height: .42rem; }
+/* the right block starts at the cards' top (under the same section-label height) and ends with them */
+.lobby-quick { display: grid; grid-template-rows: minmax(0, 1fr) minmax(0, 1fr); gap: .14rem; padding-top: calc(var(--section-label-h, .44rem)); }
+.lobby-quick .public-rooms-entry { grid-column: auto; grid-row: auto; min-height: 0; text-align: left; }
+.lobby-quick__labs { display: grid; grid-template-columns: 1fr 1fr; gap: .14rem; min-height: 0; }
+.lobby-quick__labs .mode-card-tip, .lobby-quick__labs .mode-card { min-height: 0; height: 100%; }
+.lobby-quick .mode-card__points { display: none; }
+.lobby-quick .mode-card__icon { width: .5rem; height: .5rem; }
+.lobby-quick .mode-card__name { font-size: clamp(18px, calc(1.5 * var(--ui-vw, 1vw)), 28px); }
 .diff-tabs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .08rem; margin-bottom: .1rem; }
 .diff-tab { display: flex; align-items: center; justify-content: center; gap: .06rem; padding: .1rem .06rem; border: 1px solid var(--line-2, rgba(255,255,255,.12)); background: rgba(255,255,255,.03); color: var(--text-md, #c9d1d0); font: inherit; font-weight: 700; cursor: pointer; border-radius: 2px; white-space: nowrap; }
 .diff-tab:hover { border-color: var(--d-color); }
 .diff-tab.is-selected { border-color: var(--d-color); color: var(--d-color); background: color-mix(in srgb, var(--d-color) 14%, transparent); box-shadow: inset 0 -3px 0 var(--d-color); }
 .diff-tab__glyph { width: 18px; height: 18px; }
 .diff-list--one .diff-card { cursor: default; }
-@media (max-width: 900px) { .mode-cards.mode-cards--main { grid-template-columns: 1fr; }
-  .lobby-quick__labs { grid-template-columns: 1fr; } .diff-tabs { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 900px) {
+  .lobby-body { grid-template-columns: 1fr; grid-template-areas: "modes" "quick" "diff" "join"; }
+  .mode-cards.mode-cards--main { grid-template-columns: 1fr; }
+  .lobby-quick { padding-top: 0; }
+  .diff-tabs { grid-template-columns: 1fr 1fr; }
+}
+/* (the right block's cards: the same card, icon beside the text, so the two rows fit the simulation cards' height) */
+.lobby-quick .mode-card { min-height: 0; flex-direction: row; align-items: center; gap: .18rem; padding: .16rem .22rem; }
+.lobby-quick .mode-card__icon { flex: none; margin: 0; }
+.lobby-quick .mode-card__text { min-width: 0; }
+.lobby-quick .public-rooms-entry .public-rooms-entry__total { margin: 0 0 0 auto; align-self: center; }
+.lobby-quick .mode-card__desc { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
