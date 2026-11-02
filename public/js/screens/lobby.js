@@ -454,13 +454,11 @@ export function LobbyScreen() {
           ${MODE_CARDS.filter((c) => !MAIN_MODES.includes(c.id)).map((c) => html`<${ModeCard} key=${c.id} full=${true} card=${c} selected=${roomMode === c.id || roomMode===c.id+'8'} onSelect=${pickMode} coopSize=${coopSize} onCoopSize=${n=>{setCoopSize(n);pickMode((c.id==='sync'?'sync':'coop')+(n===8?'8':''));}} publicOn=${publicOn} onPublicChange=${on=>{setPublicOn(on);savePref('lobby.publicOn',on);}} />`)}
           </div>
         </div>
-        <div class="lg-diff"><div class="section-label"><span class="section-label__idx num">02</span>模拟难度<${MicroLabel}>DIFFICULTY<//></div>
+        <div class="lg-diff">
         <div class="diff-tabs" role="radiogroup" aria-label="난이도">
           ${DIFFICULTIES.map((d) => html`<button key=${d} type="button" role="radio" aria-checked=${difficulty === d} class=${`diff-tab${difficulty === d ? ' is-selected' : ''}`} style=${`--d-color:${DIFFICULTY_COLORS[d]}`} onClick=${() => pickDifficulty(d)}><${DifficultyIcon} difficulty=${d} class="diff-tab__glyph" /><span>${t(DIFFICULTY_NAMES[d]||'').replace(/\s*시뮬레이션$/,'')}</span></button>`)}
         </div>
-        <div class="diff-list diff-list--one">
-          <${DifficultyCard} key=${difficulty} roomMode=${roomMode} difficulty=${difficulty} selected=${true} onSelect=${pickDifficulty} />
-        </div>
+
         <div class="create-box">
           <${Tooltip} block=${true} text=${online || ['laboratory','practice'].includes(roomMode) ? null : '正在连接服务器…'}>
             <${Button} class="lobby-create" variant="primary" size="xl" block=${true} iconRight="chevrons" loading=${busy === 'create'} disabled=${!['laboratory','practice'].includes(roomMode)&&!online} onClick=${create}>
