@@ -112,7 +112,7 @@ test('sync bounty: pays only the player who picked it, once per bounty enemy, wh
   assert.equal(st.paidBy.get(b.playerId) || 0, 0);
 });
 
-test('sync 8-player rooms: a kill takes back up to three leaks', async (t) => {
+test('sync 8-player rooms: a kill takes back up to two leaks', async (t) => {
   const { syncRound, syncCredit, syncNoteLeaks, syncLeakLoss } = await import('../server/match/sync.js');
   const { buildNormalWave } = await import('../server/match/waves.js');
   const h = makeMatch({ mode: 'coop8', sync: true, humans: 8, fake: true });
@@ -124,7 +124,7 @@ test('sync 8-player rooms: a kill takes back up to three leaks', async (t) => {
   syncNoteLeaks(m, [{ key: 's1.0', lpr: 1 }], 'n:1'); syncNoteLeaks(m, [{ key: 's1.0', lpr: 1 }], 'n:2');
   assert.equal(syncLeakLoss(m), 7);
   syncCredit(m, 'n:6', { 's0.0': 1e9, 's1.0': 1e9 }, { 's0.0': 100, 's1.0': 100 }, []);
-  assert.equal(syncLeakLoss(m), 2, '5 − 3 and 2 − 2');
+  assert.equal(syncLeakLoss(m), 3, '5 − 2 and 2 − 2');
 });
 
 test('sync surrender: the replay bills its leaks as shared ones (unspawned enemies too), killed elsewhere ⇒ taken back', async (t) => {

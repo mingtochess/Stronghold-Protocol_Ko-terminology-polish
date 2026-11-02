@@ -4,7 +4,7 @@
 // `:<n>` for a child by content spawnChildren).
 //   * HP: every non-bounty enemy × the living players, a bounty enemy × (1 + 0.5 per extra living player).
 //   * A leak costs the team LP once per field it got through on; if the enemy is killed (its shared HP runs out on any
-//     field) one of those is taken back (8-player rooms: up to three): 2 fields let A through, then A is killed ⇒ the
+//     field) one of those is taken back (8-player rooms: up to two): 2 fields let A through, then A is killed ⇒ the
 //     team loses A's LP once.
 //   * A bounty enemy whose shared HP runs out pays its coins once, to the player who picked that bounty (whoever's field
 //     dealt the last hit).
@@ -39,7 +39,7 @@ export function syncRound(m) {
   });
   const st = {
     round: m.round, spawns, coins, paidBy: new Map(), leaks: new Map(), alive: alive.length,
-    refund: m.mode === 'coop8' ? 3 : 1, // leaks a kill takes back
+    refund: m.mode === 'coop8' ? 2 : 1, // leaks a kill takes back
     pools: new SharedSyncPools({
       // a pool runs out once (SharedSyncPools.credit: only on the alive → dead step), so each bounty unit pays once
       onDepleted: (key) => {
@@ -90,7 +90,7 @@ export function syncNoteLeaks(m, leaks, fieldId = null) {
 }
 
 /** The team LP the round's shared leaks cost so far: per enemy, its LP × (the fields it got through on − the refund if
- *  killed: 1, 8-player rooms up to 3). */
+ *  killed: 1, 8-player rooms up to 2). */
 export function syncLeakLoss(m) {
   const st = m._sync;
   if (!st) return 0;
