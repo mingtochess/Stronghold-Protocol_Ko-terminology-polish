@@ -55,16 +55,16 @@ export function downloadUrls(url, { source = 'direct', proxyPrefix = DEFAULT_GIT
   return [...new Set([proxy, url, mirrorUrl(url)].filter(Boolean))];
 }
 
-/** Raw base URLs (always end with '/'). */
+/** Raw base URLs (always end with '/'), each at a fixed commit: a moving branch changes files under the catalog. */
 export const RAW = Object.freeze({
-  yuanyan: 'https://raw.githubusercontent.com/yuanyan3060/ArknightsGameResource/main/',
-  fexli: 'https://raw.githubusercontent.com/fexli/ArknightsResource/main/',
-  arkModels: 'https://raw.githubusercontent.com/isHarryh/Ark-Models/main/',
+  yuanyan: 'https://raw.githubusercontent.com/yuanyan3060/ArknightsGameResource/0f5efc6352337e2d63f81c0d2ca6d469b2ce3d96/',
+  fexli: 'https://raw.githubusercontent.com/fexli/ArknightsResource/490d33d97204b26946a7c26330abe928750f2dcd/',
+  arkModels: 'https://raw.githubusercontent.com/isHarryh/Ark-Models/e65fb9147846b64bcf2df956b8cd8da77a51b9b8/',
   // a fixed commit, not the moving cn branch: the branch's files change under the catalog (its bondboardicon sprites became
   // bare arc cut-outs, so a fresh download drew the HUD bond boards without their disc)
   aa2: 'https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets2/44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/',
-  aa2voice: 'https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets2/voice/assets/dyn/audio/sound_beta_2/',
-  fonts: 'https://raw.githubusercontent.com/TimWangZi/The-font-of-Arknights/master/font/',
+  aa2voice: 'https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets2/2c7efe3c96ff8eb96af777ff7508144b4485654a/assets/dyn/audio/sound_beta_2/',
+  fonts: 'https://raw.githubusercontent.com/TimWangZi/The-font-of-Arknights/83ed0f61c0e3853cbc54cc3f5dd591505f906229/font/',
   gamedata: 'https://raw.githubusercontent.com/Kengxxiao/ArknightsGameData/master/zh_CN/gamedata/',
 });
 

@@ -37,9 +37,9 @@ function download(file, cache, resources) {
 
 const mutableFxIndex = path => /^\/assets\/local\/fx\/(?:index|textures)\.json$/.test(path);
 const reusableBase = (response, file) => response && (!mutableFxIndex(file.path) || response.headers.get('X-SP-Resource-Hash') === file.sha256);
-// ArknightsAssets2 files were taken from its moving `cn` branch until the catalog pinned a commit: a copy saved meanwhile
-// can be the branch's later art (the HUD bond boards as bare arcs). Such a copy is kept only at the catalog's size.
-const branchDrift = (file) => file.bytes > 0 && (file.sources || []).some((s) => /ArknightsAssets\/ArknightsAssets2(@|\/)[0-9a-f]{40}\//.test(s));
+// The mirror repositories were read from moving branches until the catalog pinned commits: a copy saved meanwhile can be
+// a branch's later file (ArknightsAssets2's HUD bond boards as bare arcs). Such a copy is kept only at the catalog's size.
+const branchDrift = (file) => file.bytes > 0 && !file.atlas && !file.path?.endsWith(".atlas") && (file.sources || []).some((s) => /^https:\/\/(?:raw\.githubusercontent\.com\/[^/]+\/[^/]+\/|cdn\.jsdelivr\.net\/gh\/[^/@]+\/[^/@]+@)[0-9a-f]{40}\//.test(s));
 const reusable = async (response, file) => {
   if (!reusableBase(response, file)) return false;
   if (!branchDrift(file)) return true;
