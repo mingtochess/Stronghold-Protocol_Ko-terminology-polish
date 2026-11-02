@@ -221,7 +221,7 @@ import { FieldRunner, DeadBattle, GAME_SPEED, snapFrame, timelineAt, HeadlessPac
 import { buildBattleSpec, createBattleFromSpec, resultDigest, compactResult as compactForVerify, battleProgress, uniteLeft } from '../sim/spec.js';
 import { CreditPool } from './finalAssault.js';
 import { syncSpawns, syncCredit, syncNoteLeaks, syncLeakLoss, syncMessage } from './sync.js';
-import { FieldSyncPools } from '../sim/syncPools.js';
+import { FieldSyncPools, LocalSyncPools } from '../sim/syncPools.js';
 import { buildResult } from './results.js';
 import { botPrepBeginSteps, botPrepEndSteps, botPickBand, botPickCard } from './bot.js';
 
@@ -1459,7 +1459,9 @@ if (this.test === true) {
     const reported = Math.max(0,Number(f.progress?.gt)||0);
     const observed = f.authority===ps.playerId && Number.isFinite(gt) && gt>=0 ? Math.max(reported,gt) : reported;
     const elapsed = Math.max(.01,f.mode==='client'?Math.min(wallElapsed,observed):wallElapsed);
-    const battle = this._specBattle(f.spec);
+    // 동기화: the replay keys its leaks like the live field (its own pools: the replayed hits were already reported, they
+    // must not reach the shared pools a second time; settlement reads the shared ones)
+    const battle = this._specBattle(f.spec, this.sync && f.kind === 'normal' && f.spec?.sync ? { syncPools: new LocalSyncPools() } : {});
     const job = new HeadlessJob(battle,{players:f.players,onError:e=>this.reportError('end battle',e)});
     job.cap = Math.max(1,Math.ceil(elapsed / (battle.dt || 1/30)));
     job.capReason = 'surrender';

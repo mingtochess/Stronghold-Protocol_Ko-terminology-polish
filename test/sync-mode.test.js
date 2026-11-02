@@ -111,3 +111,42 @@ test('sync bounty: pays only the player who picked it, once per bounty enemy, wh
   assert.equal(st.paidBy.get(a.playerId), 6);
   assert.equal(st.paidBy.get(b.playerId) || 0, 0);
 });
+
+test('sync 8-player rooms: a kill takes back up to three leaks', async (t) => {
+  const { syncRound, syncCredit, syncNoteLeaks, syncLeakLoss } = await import('../server/match/sync.js');
+  const { buildNormalWave } = await import('../server/match/waves.js');
+  const h = makeMatch({ mode: 'coop8', sync: true, humans: 8, fake: true });
+  t.after(() => h.m.dispose());
+  const m = h.m;
+  m.round = 3; m.wave = buildNormalWave(m.gd, m.rngWaves, m.factions, 3);
+  syncRound(m);
+  for (const f of ['n:1', 'n:2', 'n:3', 'n:4', 'n:5']) syncNoteLeaks(m, [{ key: 's0.0', lpr: 1 }], f);
+  syncNoteLeaks(m, [{ key: 's1.0', lpr: 1 }], 'n:1'); syncNoteLeaks(m, [{ key: 's1.0', lpr: 1 }], 'n:2');
+  assert.equal(syncLeakLoss(m), 7);
+  syncCredit(m, 'n:6', { 's0.0': 1e9, 's1.0': 1e9 }, { 's0.0': 100, 's1.0': 100 }, []);
+  assert.equal(syncLeakLoss(m), 2, '5 − 3 and 2 − 2');
+});
+
+test('sync surrender: the replay bills its leaks as shared ones (unspawned enemies too), killed elsewhere ⇒ taken back', async (t) => {
+  const { PHASE } = await import('../shared/constants.js');
+  const { syncLeakLoss } = await import('../server/match/sync.js');
+  const h = makeMatch({ mode: 'coop', sync: true, humans: 2, clientCombat: true, clients: false, instant: false });
+  t.after(() => h.m.dispose());
+  const m = h.m;
+  h.start();
+  h.run(() => m.phase === PHASE.COMBAT, { maxSteps: 2e6 });
+  const [a] = m.order;
+  const f = m.fields.find((x) => x.players.includes(a.playerId));
+  assert.ok(f && f.spec.sync);
+  h.sched.advance(2000);
+  assert.equal(m.endBattle(a, f.fieldId, 1).ok ?? true, true);
+  h.run(() => f.done, { maxSteps: 2e6 });
+  const leaked = Object.values(f.result.perPlayer).flatMap((p) => p.leaked || []);
+  assert.ok(leaked.length > 0, 'a surrender leaks the field');
+  assert.ok(leaked.every((l) => typeof l.syncKey === 'string'), 'every leak is a shared one');
+  assert.ok(leaked.some((l) => l.spawned === false), 'unspawned enemies too');
+  // the round's leaks reach the shared tally when combat finishes
+  h.run(() => m.phase !== PHASE.COMBAT, { maxSteps: 3e6 });
+  assert.ok(m._sync.leaks.size > 0);
+  assert.ok(syncLeakLoss(m) >= 0);
+});
