@@ -1700,6 +1700,7 @@ export async function createFieldView(host, options = {}) {
     const v = views.get(key);
     if (!v) return;
     dragState = { uid: p.uid, key, view: v, from: p.from, home: v._home || { x: v.x, y: v.y, z: v.z } };
+    if (v instanceof ItemView) v.dragged = true;
     v.lift = 0.3;
     v._tween = null;
     // (the official marks: no frame on the tile the piece came from)
@@ -1761,6 +1762,7 @@ export async function createFieldView(host, options = {}) {
       v._tween = { fx: v.x, fy: v.y, fz: v.z, tx: h.x, ty: h.y, tz: h.z, t: 0 };
     }
     v.lift = 0;
+    v.dragged = false;
     clearHl('dragFrom'); clearHl('dragTarget'); clearHl('legal');
     dragState = null;
   }
@@ -1770,7 +1772,7 @@ export async function createFieldView(host, options = {}) {
       const v = dragState.view;
       const h = dragState.home;
       if (cancelled && v && !v.destroyed) v._tween = { fx: v.x, fy: v.y, fz: v.z, tx: h.x, ty: h.y, tz: h.z, t: 0 };
-      if (v) v.lift = 0;
+      if (v) { v.lift = 0; v.dragged = false; }
     }
     dragState = null;
     clearHl('dragFrom'); clearHl('dragTarget'); clearHl('legal');
