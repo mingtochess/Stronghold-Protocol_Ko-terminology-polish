@@ -36,13 +36,21 @@ function download(file, cache, resources) {
 }
 
 const mutableFxIndex = path => /^\/assets\/local\/fx\/(?:index|textures)\.json$/.test(path);
-const reusable = (response, file) => response && (!mutableFxIndex(file.path) || response.headers.get('X-SP-Resource-Hash') === file.sha256);
+const reusableBase = (response, file) => response && (!mutableFxIndex(file.path) || response.headers.get('X-SP-Resource-Hash') === file.sha256);
+// ArknightsAssets2 files were taken from its moving `cn` branch until the catalog pinned a commit: a copy saved meanwhile
+// can be the branch's later art (the HUD bond boards as bare arcs). Such a copy is kept only at the catalog's size.
+const branchDrift = (file) => file.bytes > 0 && (file.sources || []).some((s) => /ArknightsAssets\/ArknightsAssets2(@|\/)[0-9a-f]{40}\//.test(s));
+const reusable = async (response, file) => {
+  if (!reusableBase(response, file)) return false;
+  if (!branchDrift(file)) return true;
+  try { return (await response.clone().blob()).size === file.bytes; } catch { return true; }
+};
 
 async function downloadOne(file, cache, resources) {
   const startedGeneration=generation;
-  if (reusable(await cache.match(file.path), file)) return;
+  if (await reusable(await cache.match(file.path), file)) return;
   const previous=await caches.match(file.path);
-  if(reusable(previous,file))return; // Reuse previous assets without duplicating gigabytes on every patch.
+  if(await reusable(previous,file))return; // Reuse previous assets without duplicating gigabytes on every patch.
   let lastError;
   const sourceErrors = [];
   for (const source of file.sources) {

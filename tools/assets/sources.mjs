@@ -60,7 +60,9 @@ export const RAW = Object.freeze({
   yuanyan: 'https://raw.githubusercontent.com/yuanyan3060/ArknightsGameResource/main/',
   fexli: 'https://raw.githubusercontent.com/fexli/ArknightsResource/main/',
   arkModels: 'https://raw.githubusercontent.com/isHarryh/Ark-Models/main/',
-  aa2: 'https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets2/cn/assets/dyn/',
+  // a fixed commit, not the moving cn branch: the branch's files change under the catalog (its bondboardicon sprites became
+  // bare arc cut-outs, so a fresh download drew the HUD bond boards without their disc)
+  aa2: 'https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets2/44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/',
   aa2voice: 'https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets2/voice/assets/dyn/audio/sound_beta_2/',
   fonts: 'https://raw.githubusercontent.com/TimWangZi/The-font-of-Arknights/master/font/',
   gamedata: 'https://raw.githubusercontent.com/Kengxxiao/ArknightsGameData/master/zh_CN/gamedata/',
