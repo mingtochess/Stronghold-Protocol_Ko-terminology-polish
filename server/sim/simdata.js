@@ -140,6 +140,9 @@ export function normalizeSkill(rec) {
     spCost: Math.max(0, num(s.spCost, 0)),
     initSp: Math.max(0, num(s.initSp, 0)),
     maxCharges: Math.max(1, num(s.maxChargeTime ?? s.maxCharges ?? s.charges, 1)),
+    // 蓄力 (gamedata_const ba.charged: "技力达到上限可继续回复，回复至上限2倍时进入蓄力状态…任何时候开启均消耗全部技力"):
+    // not a charge skill — its SP runs on to the 蓄力 mark (skills.js chargeHold)
+    charged: s.charged === true || /ba\.charged/.test(String(s.descRaw ?? '')),
     rangeGrid: toArrayOfPairs(s.rangeGrid),
     // `allies` (data: an ally row, tools/build-data.mjs TRIGGER_ALLY_RULES — 黍 S3) — skills.js `trigger.allies`
     trigger: typeof trig === 'object' && trig.allies === true ? { rule, grid: trigGrid, allies: true } : { rule, grid: trigGrid },
