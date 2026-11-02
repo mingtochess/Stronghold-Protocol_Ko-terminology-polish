@@ -59,3 +59,11 @@ test('a battle without sync pools is unchanged (no syncKey)', () => {
   assert.equal(e.bossPool, null);
   assert.equal(e.hp, e.s.maxHp);
 });
+
+test('a display replica does not count its own replayed damage twice', () => {
+  const lp = new LocalSyncPools();
+  const p = lp.get('k.0', 1000);
+  p.damage('p1', 300);
+  lp.sync({ hp: { 'k.0': 600 } }, null);
+  assert.equal(p.hp, 600);
+});

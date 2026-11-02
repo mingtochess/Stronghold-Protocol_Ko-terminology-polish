@@ -317,7 +317,7 @@ export function spawnChildren(b, parent, key, n, opts = {}) {
     const off = cnt > 1 ? (i - (cnt - 1) / 2) * 0.2 : 0;
     const pos = opts.pos ?? [parent.y, parent.x + off];
     // (동기화: a child of a synced enemy shares its HP with the same child on the other fields)
-    const syncKey = parent.syncKey ? `${parent.syncKey}/${key}#${(parent._syncChildren = (parent._syncChildren || 0) + 1)}` : undefined;
+    const syncKey = parent.syncKey && parent.syncKey.length < 56 ? `${parent.syncKey}:${(parent._syncChildren = (parent._syncChildren || 0) + 1)}` : undefined;
     const c = b.spawnEnemy(key, {
       pos, route, mods, tag: opts.tag ?? null, countInTotal, syncKey,
       ownerPlayerId: parent.ownerId ?? null, sourcePlayerId: parent.sourcePlayerId ?? null,

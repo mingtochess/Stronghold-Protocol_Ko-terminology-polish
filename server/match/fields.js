@@ -861,6 +861,7 @@ export function validateClientResult(spec, raw, { gd = null } = {}) {
         if (typeof l.entered==='boolean')e.entered=l.entered;
         if (keepRuntime) e.uniteRuntime = true; // stored only after the derived take succeeded, and only for a 联防 spec
         if (l.boss) e.boss = true;
+        if (spec.sync && typeof l.syncKey === 'string' && /^s\d+\.\d+(?::\d+)*$/.test(l.syncKey) && l.syncKey.length <= 64) e.syncKey = l.syncKey;
         leaked.push(e);
       }
       const countedLeaks = leaked.filter((l) => l.counted !== false).length;

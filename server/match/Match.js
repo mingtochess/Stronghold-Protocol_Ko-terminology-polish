@@ -220,6 +220,8 @@ import { pairPlayers, bossPoolHp, SharedBossPool, hiddenEligible, BOSS_HIT_STEPS
 import { FieldRunner, DeadBattle, GAME_SPEED, snapFrame, timelineAt, HeadlessPacer, syntheticResult, validateClientResult, RESULT_GRACE_MS, BOSS_SILENCE_MS, HARD_CAP_SECONDS, HeadlessJob, HEADLESS_SLICE_MS, CATCHUP_TICKS_PER_INTERVAL, uniteBillBounds } from './fields.js';
 import { buildBattleSpec, createBattleFromSpec, resultDigest, compactResult as compactForVerify, battleProgress, uniteLeft } from '../sim/spec.js';
 import { CreditPool } from './finalAssault.js';
+import { syncSpawns, syncCredit, syncNoteLeaks, syncLeakLoss, syncMessage } from './sync.js';
+import { FieldSyncPools } from '../sim/syncPools.js';
 import { buildResult } from './results.js';
 import { botPrepBeginSteps, botPrepEndSteps, botPickBand, botPickCard } from './bot.js';
 
@@ -2430,7 +2432,10 @@ if (this.test === true) {
     return out;
   }
 
-  _normalBattle(ps) { return this.newBattle(this._normalOpts(ps)); }
+  _normalBattle(ps) {
+    const opts = this._normalOpts(ps);
+    return this.newBattle(this.sync && this._sync ? { ...opts, syncPools: new FieldSyncPools(this._sync.pools, opts.fieldId) } : opts);
+  }
 
   /** Battle options of a player's normal field (after the onBattleStart handlers). */
   _normalOpts(ps, { preview = false, board = ps.board } = {}) {
@@ -2438,7 +2443,8 @@ if (this.test === true) {
     if (preview) ps = previewPlayer(ps, board);
     const input = ps.battleInput({ side: 'L', colOffset: 0 });
     // the client's list: bounty units inserted among their host action's own units, which are re-timed around them
-    const spawns = withBounties(this.gd, this.round, wave, ps.bounties, ps.playerId).map((s) => ({ ...s, ownerPlayerId: ps.playerId }));
+    // 동기화: every field the same list (all the living players' bounties), each enemy keyed for its shared HP (sync.js)
+    const spawns = this.sync ? syncSpawns(this, ps.playerId) : withBounties(this.gd, this.round, wave, ps.bounties, ps.playerId).map((s) => ({ ...s, ownerPlayerId: ps.playerId }));
     const waveSpawns = (wave.spawns || []).map(s => ({...s, mods:s.mods?{...s.mods}:undefined}));
     const ev = { input, kind: 'normal', round: this.round, spawns, waveSpawns, ...(preview ? { preview: true } : {}) };
     // Preview construction failures go to the rehearsal's discard path, never Match.dispatch's live error sink.
@@ -2460,6 +2466,7 @@ if (this.test === true) {
       fieldId: `n:${ps.playerId}`,
       enemyOverrides: wave.overrides,
       waveId: wave.templateId,
+      ...(this.sync ? { sync: true } : {}),
     };
   }
 
@@ -2477,6 +2484,7 @@ if (this.test === true) {
   startCombat() {
     if (this.clientCombat) { this._startCombatClient(); return; }
     this.phase = PHASE.COMBAT;
+    this._sync = null;
     const alive = this.alivePlayers();
     this.lastResults = new Map();
     this.fields = alive.map((ps) => ({ fieldId: `n:${ps.playerId}`, kind: 'normal', players: [ps.playerId], battle: this._normalBattle(ps), live: true }));
@@ -2524,6 +2532,10 @@ if (this.test === true) {
         const gains = pp && pp.layerGains && typeof pp.layerGains === 'object' ? pp.layerGains : null;
         if (ps && gains && Object.keys(gains).length) { ps.pendingLayerGains = { ...gains }; ps.dirty(); }
       }
+    }
+    if (this.sync) for (const f of this.fields) {
+      const res = resultOf(f);
+      for (const pp of Object.values((res && res.perPlayer) || {})) syncNoteLeaks(this, ((pp && pp.leaked) || []).filter((l) => l && l.syncKey));
     }
     for (const f of this.fields) f.live = false;
     this.deadline = 0;
@@ -2606,6 +2618,7 @@ if (this.test === true) {
     if (this._bossPubTimer) { this.cancel(this._bossPubTimer); this._bossPubTimer = null; this._syncTeamLp(); this.markPublic(); }
     this._clearPause();
     if (this._poolTimer) { this.cancel(this._poolTimer); this._poolTimer = null; }
+    if (this._syncTimer) { this.cancel(this._syncTimer); this._syncTimer = null; }
     if (this.pacer) { try { this.pacer.stop(); } catch { /* ignore */ } this.pacer = null; }
     for (const f of this.fields) this._clearFieldTimers(f);
   }
@@ -2644,9 +2657,9 @@ if (this.test === true) {
   }
 
   /** A battle built from a spec on the server (headless / takeover / verification); never throws. */
-  _specBattle(spec, { sharedBoss = null } = {}) {
+  _specBattle(spec, { sharedBoss = null, syncPools = null } = {}) {
     try {
-      return createBattleFromSpec(spec, this.ds, { BattleClass: this.BattleClass, sharedBoss, logger: this.log, recordEvents: false });
+      return createBattleFromSpec(spec, this.ds, { BattleClass: this.BattleClass, sharedBoss, syncPools, logger: this.log, recordEvents: false });
     } catch (e) {
       this.reportError(`battle ${spec && spec.fieldId} construct`, e);
       return new DeadBattle({ fieldId: spec && spec.fieldId, kind: spec && spec.kind, players: (spec && spec.players) || [], rect: spec && spec.rect, stageId: spec && spec.stageId }, 'forced');
@@ -2715,6 +2728,12 @@ if (this.test === true) {
     if (left != null) {
       const loss = Math.min(this.gd.lpCapPerRound, left*(this.augments?.leakHpCost()||1));
       return loss > 0 ? { uniteLeft: left, pendingLp: loss } : { uniteLeft: left };
+    }
+    if (this.sync && this._sync && this._sync.round === this.round && this.phase === PHASE.COMBAT) {
+      // 동기화: the team's shared leaks so far (charged once, at settlement) — shown on the first living player's row
+      if (this.alivePlayers()[0] !== ps) return {};
+      const loss = syncLeakLoss(this) * (this.augments?.leakHpCost() || 1);
+      return loss > 0 ? { pendingLp: loss } : {};
     }
     let n = 0;
     if (this.lastResults.has(ps.playerId)) n = counted(this.lastResults.get(ps.playerId));
@@ -2899,6 +2918,7 @@ if (this.test === true) {
     // the former authority (still online after a timeout / an invalid result) stops reporting and keeps its view
     if (prev) this.sendTo(prev, { t: 'b.end', battleId: f.battleId, fieldId: f.fieldId, reason: 'takeover' });
     if (f.kind === 'boss' || f.kind === 'hidden') { this._bossServerRun(f); return; }
+    if (this.sync && f.kind === 'normal' && f.spec && f.spec.sync && this._sync) { this._syncServerRun(f); return; }
     const job = new HeadlessJob(this._specBattle(f.spec), { onError: (e) => this.reportError(`field ${f.fieldId} step`, e), players: f.players });
     f.job = job;
     f.battle = job.battle;
@@ -2931,6 +2951,57 @@ if (this.test === true) {
       f.sliceTimer = this.later(0, slice);
     }
     this._armProgressTicker();
+  }
+
+  /**
+   * 동기화: a server-run normal field shares its enemies' HP with the live fields, so it runs in real time on the pacer
+   * (like a boss field), fast-forwarded to the field's clock on a takeover; its damage goes straight into the pools.
+   */
+  _syncServerRun(f) {
+    const battle = this._specBattle(f.spec, { syncPools: new FieldSyncPools(this._sync.pools, f.fieldId) });
+    f.battle = battle;
+    f.timeline = null;
+    if (!this.pacer) this.pacer = new HeadlessPacer(this);
+    const entry = this.pacer.add({
+      battle,
+      onDone: () => {
+        if (f.done) return;
+        let res = null;
+        try { res = battle.result(); } catch (e) { this.reportError('sync result', e); }
+        f.result = res && res.perPlayer ? res : syntheticResult(f.players, {});
+        f.resultSource = 'server';
+        f.endGt = Number(battle.time) || 0;
+        this._broadcastSync(true);
+        this._fieldDone(f);
+      },
+      onTick: () => {
+        try {
+          const bp = battleProgress(battle);
+          Object.assign(f.progress, { gt: bp.gt, killed: bp.killed, total: bp.total, resolved: bp.resolved ?? f.progress.resolved, leaks: bp.leaks });
+        } catch { /* keep the last numbers */ }
+        this._broadcastSync(false);
+      },
+    });
+    const gt = this._fieldElapsed(f);
+    if (gt > 0 && !entry.done) this.pacer.skipTo(entry, gt, { budgetTicks: this.sched.virtual ? Infinity : CATCHUP_TICKS_PER_INTERVAL });
+    this._armProgressTicker();
+  }
+
+  /** 동기화: b.sync (the shared enemies' HP) to every human in the match, ≤ 4 Hz unless `force`. */
+  _broadcastSync(force) {
+    if (!this.sync || !this._sync) return;
+    const now = this.sched.now();
+    if (!force && this._syncSentAt != null && now - this._syncSentAt < 250) {
+      if (!this._syncTimer) this._syncTimer = this.later(250, () => { this._syncTimer = null; this._broadcastSync(true); });
+      return;
+    }
+    this._syncSentAt = now;
+    for (const ps of [...this.players.values(), ...this.spectators.values()]) {
+      if (!ps || ps.isBot || ps.left || !ps.connected) continue;
+      const own = this.fields.find((x) => x && x.kind === 'normal' && x.authority === ps.playerId);
+      const msg = syncMessage(this, own ? own.fieldId : null);
+      if (msg) this.sendTo(ps.playerId, msg);
+    }
   }
 
   /** m.public ~1 Hz while server-run fields progress along their timelines. */
@@ -2980,6 +3051,7 @@ if (this.test === true) {
 
   _startCombatClient() {
     this.phase = PHASE.COMBAT;
+    this._sync = null; // 동기화: the round's list is made from the bounties held now (sync.js)
     const alive = this.alivePlayers();
     this.lastResults = new Map();
     this.watchers.clear();
@@ -3073,6 +3145,10 @@ if (this.test === true) {
       return OK;
     }
     if (Number.isFinite(msg.leaks)) p.leaks = Math.max(p.leaks, msg.leaks);
+    if (this.sync && f.kind === 'normal' && (msg.syncDmg || msg.syncLeaks)) {
+      syncCredit(this, f.fieldId, msg.syncDmg, msg.syncMax, msg.syncLeaks);
+      this._broadcastSync(false);
+    }
     this.augments.creditLeaks(f,msg.leaksCountBy);
     // 联防: the leakers' enemies still standing (the latest report; clamped where it is read, _uniteLeft)
     if (f.kind === 'unite' && msg.left && typeof msg.left === 'object') p.left = { ...msg.left };
@@ -3141,7 +3217,8 @@ if (this.test === true) {
       this._fieldDone(f);
       if (bossLike) { this._checkFinalEnd(); this._broadcastPool(false); }
     };
-    if (bossLike) accept(result);
+    // (동기화: the field's enemies took damage on the other fields — a re-simulation of it alone cannot reproduce it)
+    if (bossLike || (this.sync && f.kind === 'normal' && f.spec && f.spec.sync)) accept(result);
     else this._verifyResult(f, result, accept);
     return OK;
   }
@@ -3519,9 +3596,16 @@ if (this.test === true) {
         : `联防结束：还有 ${through} 只敌人突破防线`, FLOW_TICKER_PRIORITY);
     }
     const alive = this.alivePlayers();
+    // 동기화 (sync.js): the shared enemies' leaks cost the team once each, and only while their shared HP is left; a
+    // bounty whose shared HP ran out pays every living player
+    const syncSt = this.sync && this._sync && this._sync.round === this.round ? this._sync : null;
+    if (syncSt) {
+      const loss = syncLeakLoss(this) * (this.augments?.leakHpCost() || 1);
+      if (loss > 0) { this.teamLp = Math.max(0, this.teamLp - loss); if (alive[0]) alive[0].stats.lpLost += loss; }
+    }
     for (const ps of alive) {
       const r = this.lastResults.get(ps.playerId) || { leaked: [], perfect: true, coins: 0, layerGains: {}, killed: 0, damageDealt: 0 };
-      const counted = (r.leaked || []).filter((l) => l && l.counted !== false).length;
+      const counted = (r.leaked || []).filter((l) => l && l.counted !== false && !(syncSt && l.syncKey)).length;
       const loss = uniteRan && plan.leakers.includes(ps) ? Math.min(cap, (survivors.get(ps.playerId) || 0)*(this.augments?.leakHpCost()||1)) : Math.min(cap, counted*(this.augments?.leakHpCost()||1));
       if(this.gd.config.customRules?.sharedHp)this.teamLp=Math.max(0,this.teamLp-loss);
       else ps.lp -= loss;
@@ -3532,7 +3616,7 @@ if (this.test === true) {
       ps.stats.healing += Number(r.healingDone) || 0;
       if (r.perfect !== false && counted === 0) ps.stats.perfectRounds++;
       // bounty coins (own battle + unite kills) are credited to the next prep
-      let coins = Math.max(0, Math.trunc(Number(r.coins) || 0));
+      let coins = Math.max(0, Math.trunc(Number(r.coins) || 0)) + (syncSt ? syncSt.paid : 0);
       const up = uniteResult && uniteResult.perPlayer && uniteResult.perPlayer[ps.playerId];
       if (up) {
         coins += Math.max(0, Math.trunc(Number(up.coins) || 0));

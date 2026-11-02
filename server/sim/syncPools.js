@@ -122,7 +122,9 @@ export class LocalSyncPools {
       if (!this.pools.has(k)) { this.state.hp[k] = h; if (msg.max?.[k]) this.state.max[k] = msg.max[k]; continue; }
       const p = this.pools.get(k), n = num(h), a = num(acked[k]);
       if (Number.isFinite(n)) p.serverHp = Math.max(0, Math.min(p.maxHp, n));
-      if (Number.isFinite(a) && a >= 0) p.acked = a;
+      // a display replica (no field of its own): the server's HP already holds whatever its authority dealt
+      if (fieldId == null) p.acked = p.cum;
+      else if (Number.isFinite(a) && a >= 0) p.acked = a;
     }
   }
 }

@@ -252,6 +252,7 @@ export function createBattleRunner(deps) {
   let rafH = null;
   let ivH = null;
   let lastPool = null;
+  let lastSync = null; // 동기화 시뮬레이션: the latest b.sync
   /** solo pause: the runner clock's instant when m.public.paused turned true (null while running) */
   let pausedAt = null;
   /** a normal field's leak count (or a battle's bond layers) changed since the last publishState() */
@@ -505,7 +506,7 @@ export function createBattleRunner(deps) {
   function progress(e, force = false) {
     if (!e.authoritative || e.resultSent || !net) return;
     const t = now();
-    const every = bossLike(e) ? 250 : 1000;
+    const every = bossLike(e) || e.syncField ? 250 : 1000;
     if (!force && t - e.lastProgressAt < every) return;
     e.lastProgressAt = t;
     e.meter = e.host.meter;
@@ -532,6 +533,13 @@ export function createBattleRunner(deps) {
       if(p.leaksCountBy)msg.leaksCountBy=p.leaksCountBy;
       // 联防: the leakers' enemies still standing (shared/protocol.js b.progress `left`, ≤ 8 players)
       if (p.left) msg.left = Object.fromEntries(Object.entries(p.left).slice(0, 8));
+      // 동기화 시뮬레이션: the shared enemies' damage here and the ones that got through (server/match/sync.js)
+      if (p.sync) {
+        e.syncField = true;
+        msg.syncDmg = p.sync.dmg;
+        msg.syncMax = p.sync.max;
+        if (p.syncLeaks && p.syncLeaks.length) msg.syncLeaks = p.syncLeaks;
+      }
     }
     try { net.send('b.progress', msg); } catch { /* offline */ }
   }
@@ -836,6 +844,7 @@ export function createBattleRunner(deps) {
       if (metricsEnabled() && !e.host.remote) e.combatMetrics = trackCombat(battle);
       e.t0 = clock() - (e.elapsed / e.speed) * 1000;
       if (lastPool) await e.host.syncPool(lastPool.hp, lastPool.acked ? lastPool.acked[e.fieldId] : undefined);
+      if (lastSync && e.spec && e.spec.sync && lastSync.round === e.spec.round && e.host.syncShared) await e.host.syncShared(lastSync, e.authoritative ? e.fieldId : null);
       if (e.endReason) await endBattle(e);
       // silent catch-up to the field's clock before it is shown (a reconnect / observing a running field) — for the view
       // asked for; a superseded authority catches up in the background (advance)
@@ -879,6 +888,16 @@ export function createBattleRunner(deps) {
       }
     }
     emit('pool', msg);
+  }
+
+  /** 동기화 시뮬레이션 b.sync: every field's shared enemies take the server's HP (an enemy whose HP ran out dies). */
+  function onSync(msg) {
+    if (!msg || typeof msg !== 'object' || !msg.hp) return;
+    lastSync = msg;
+    for (const e of [...entries.values(), ...pending.values()]) {
+      if (!e.host || typeof e.host.syncShared !== 'function' || !e.spec || !e.spec.sync || e.spec.round !== msg.round) continue;
+      try { e.host.syncShared(msg, e.authoritative ? e.fieldId : null); } catch { /* the next b.sync */ }
+    }
   }
 
   function onEnd(msg) {
@@ -937,6 +956,7 @@ export function createBattleRunner(deps) {
     if (!keepMetrics) {combatHistory.clear();practiceEpochs.clear();}
     cur = null;
     lastPool = null;
+    lastSync = null;
     if (rafH != null) { caf(rafH); rafH = null; }
     if (ivH != null) { clearIv(ivH); ivH = null; }
     publishState();
@@ -946,6 +966,7 @@ export function createBattleRunner(deps) {
   if (net && typeof net.on === 'function') {
     offs.push(net.on('b.start', (m) => { onStart(m).catch((err) => console.warn('[runner] b.start failed', err)); }));
     offs.push(net.on('b.pool', onPool));
+    offs.push(net.on('b.sync', onSync));
     offs.push(net.on('b.end', onEnd));
     // the session is back (reconnect / resume): results lost with the old socket go out again
     offs.push(net.on('status', (st) => { if (st && st.status === 'online') redeliver(); }));
