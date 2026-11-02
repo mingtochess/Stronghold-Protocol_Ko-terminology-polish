@@ -1,8 +1,14 @@
 import { chatFaction } from '../../../shared/chat.js';
 
+/** The fixed first preset of the favorite and recruit lists: empty, never edited, renamed, linked or deleted. */
+export const DEFAULT_PRESET_ID='default';
+export function withDefaultPreset(presets, empty) {
+ return [{ id: DEFAULT_PRESET_ID, name: '기본', builtin: true, faction: null, strategy: null, ...empty }, ...presets.filter(p=>p.id!==DEFAULT_PRESET_ID)];
+}
+
 // One owner per faction. Assigning a new owner removes the old link.
 export function bindPresetFaction(presets, id, faction) {
- if(!presets.some(p=>p.id===id))return presets;
+ if(!presets.some(p=>p.id===id&&!p.builtin))return presets;
  const selected=chatFaction(faction);const value=selected&&selected.presetLink!==false?selected.name:null;
  return presets.map(p=>p.id===id?{...p,faction:value}:value&&p.faction===value?{...p,faction:null}:p);
 }

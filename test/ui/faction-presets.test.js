@@ -66,8 +66,8 @@ test('duplicate preset IDs retain separate faction links and activate the matchi
   {id:'same',name:'라이타니엔 목록',faction:'라이타니엔',operators:['leithanien']},
   {id:'same~2',name:'우르수스 목록',faction:'우르수스',operators:['ursus']},
  ]});
- assert.equal(new Set(normalized.presets.map(p=>p.id)).size,3);
- assert.deepEqual(normalized.presets.map(p=>p.faction),['염국','라이타니엔','우르수스']);
+ assert.equal(new Set(normalized.presets.map(p=>p.id)).size,4);
+ assert.deepEqual(normalized.presets.map(p=>p.faction),[null,'염국','라이타니엔','우르수스'],'the fixed 기본 preset first, never linked');
  assert.deepEqual(normalizeFavorites(normalized),normalized,'repair is stable across saves/reloads');
  favoritesStore.set(normalized);
  for(const [faction,op]of [['염국','yan'],['라이타니엔','leithanien'],['우르수스','ursus']]){
@@ -81,10 +81,17 @@ test('duplicate preset IDs retain separate faction links and activate the matchi
 test('recruit presets also repair duplicate IDs without moving links or dropping entries',()=>{
  const raw={active:'same',presets:[{id:'same',faction:'염국',entries:{yan:{selected:true}}},{id:'same',faction:'라이타니엔',entries:{leithanien:{selected:true}}}]};
  const next=normalizeRecruitPresets(raw);
- assert.notEqual(next.presets[0].id,next.presets[1].id);
- assert.deepEqual(next.presets.map(p=>p.faction),['염국','라이타니엔']);
- assert.deepEqual(next.presets.map(p=>p.entries),raw.presets.map(p=>p.entries));
+ const own=next.presets.filter(p=>!p.builtin);
+ assert.equal(next.presets[0].id,'default');assert.deepEqual(next.presets[0].entries,{});
+ assert.notEqual(own[0].id,own[1].id);
+ assert.deepEqual(own.map(p=>p.faction),['염국','라이타니엔']);
+ assert.deepEqual(own.map(p=>p.entries),raw.presets.map(p=>p.entries));
  assert.deepEqual(normalizeRecruitPresets(next),next);
+});
+
+test('the fixed 기본 preset never takes a faction link',()=>{
+ const presets=[{id:'default',builtin:true,faction:null},{id:'a',faction:null}];
+ assert.deepEqual(bindPresetFaction(presets,'default','염국'),presets);
 });
 
 test('a stale preset ID cannot remove another presets faction link',()=>{

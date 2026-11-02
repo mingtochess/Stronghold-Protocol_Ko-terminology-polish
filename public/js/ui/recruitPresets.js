@@ -7,7 +7,7 @@ import { data } from '../data.js';
 import { useEffect, useState } from '../../vendor/hooks.module.js';
 import { loadoutStore, setEntries, flushPendingLoadout } from './loadoutSync.js';
 import { checkLoadout } from '../../../shared/protocol.js';
-import { normalizePresetFactions, canApplyRecruitPreset, replaceRecruitEntries } from './factionPresetModel.js';
+import { normalizePresetFactions, canApplyRecruitPreset, replaceRecruitEntries, withDefaultPreset } from './factionPresetModel.js';
 import { toast } from './toasts.js';
 import { Img } from './gameComponents.js';
 import { chessPortraitUrl } from './assetUrls.js';
@@ -17,7 +17,7 @@ import {matchesKoreanSearch} from '../../../shared/search.js';
 import {tr} from '../i18n/i18n.js';
 const KEY='recruitPresets';
 export function normalizeRecruitPresets(raw){
- const presets=normalizePresetStrategies(normalizePresetFactions((Array.isArray(raw?.presets)?raw.presets:[]).filter(p=>typeof p?.id==='string').slice(0,30).map(p=>({id:p.id,name:String(p.name||'선발 프리셋').slice(0,40),faction:p.faction,strategy:p.strategy,entries:Object.fromEntries(Object.entries(p.entries||{}).filter(([id,e])=>typeof id==='string'&&e&&typeof e==='object'&&!Array.isArray(e)&&e.selected===true))}))));
+ const presets=withDefaultPreset(normalizePresetStrategies(normalizePresetFactions((Array.isArray(raw?.presets)?raw.presets:[]).filter(p=>typeof p?.id==='string'&&!p.builtin&&p.id!=='default').slice(0,30).map(p=>({id:p.id,name:String(p.name||'선발 프리셋').slice(0,40),faction:p.faction,strategy:p.strategy,entries:Object.fromEntries(Object.entries(p.entries||{}).filter(([id,e])=>typeof id==='string'&&e&&typeof e==='object'&&!Array.isArray(e)&&e.selected===true))})))),{entries:{}});
  return {presets,active:presets.some(p=>p.id===raw?.active)?raw.active:presets[0]?.id||null};
 }
 export const recruitPresetStore=createStore({...normalizeRecruitPresets(loadPref(KEY,{})),open:false});
@@ -67,8 +67,8 @@ export function RecruitPresetsHost(){
  useEffect(()=>{if(!s.open)return;let live=true;Promise.all(['chess','assets','bands'].map(k=>data.load(k))).then(()=>{if(live)setReady(true);}).catch(()=>{if(live)toast('선발 목록을 불러오지 못했습니다. 다시 열어주세요.','warn');});return()=>{live=false;};},[s.open]);
  if(!s.open)return null;
  const p=s.presets.find(p=>p.id===s.active),locked=!canApplyRecruitPreset(app);
- const update=patch=>save({...s,presets:s.presets.map(x=>x.id===p.id?{...x,...patch}:x)});
- const create=()=>{const id=`recruit-${Date.now()}-${Math.random().toString(36).slice(2,7)}`;save({...s,active:id,presets:[...s.presets,{id,name:`선발 프리셋 ${s.presets.length+1}`,entries:capture()}]});};
+ const update=patch=>{if(p?.builtin)return;save({...s,presets:s.presets.map(x=>x.id===p.id?{...x,...patch}:x)});};
+ const create=()=>{const id=`recruit-${Date.now()}-${Math.random().toString(36).slice(2,7)}`;save({...s,active:id,presets:[...s.presets,{id,name:`선발 프리셋 ${s.presets.length}`,entries:capture()}]});};
  const getChess=id=>data.lookup('chess',id),same=p&&sameRecruitSelection(p.entries,live.entries);
  const edit=(chess,tier,replacing)=>{
   const result=editRecruitPreset(p.entries,chess,tier,replacing,getChess);
@@ -77,8 +77,8 @@ export function RecruitPresetsHost(){
  };
  const configure=(c,patch)=>setEntries(setRecruitChoice(loadoutStore.get().entries,c,patch,getChess));
  return html`<${Modal} class="favorites-modal recruit-presets-modal ui-editor" width="min(12rem,96vw)" open=${true} title="선발 오퍼레이터 프리셋" micro="RECRUIT PRESETS" onClose=${()=>recruitPresetStore.set({open:false})} actions=${html`<${Button} onClick=${()=>recruitPresetStore.set({open:false})}>닫기<//>`}>
- <div class="favorites-layout"><${PresetManager} kind="stronghold.recruit-presets" state=${s} presets=${s.presets} active=${s.active} manifest=${data.get('assets')} disabled=${!ready} createLabel="새 프리셋" onSelect=${id=>save({...s,active:id})} onCreate=${create} onDuplicate=${x=>{const id=`recruit-${Date.now()}`;save({...s,active:id,presets:[...s.presets,{...x,id,faction:null,strategy:null,entries:{...x.entries},name:(x.name+' 복사').slice(0,40)}]});}} onDelete=${x=>save({...s,presets:s.presets.filter(y=>y.id!==x.id)})} onImport=${value=>save(normalizeRecruitPresets(value))}/>
- <section class="favorites-editor">${p?html`<div class="favorites-toolbar favorites-titlebar"><${PresetNameField} preset=${p} label="선발 프리셋 이름" onRename=${name=>update({name})}/><span class=${`recruit-preset-status ${same?'is-applied':''}`} role="status">${same?'현재 선발과 같음':'미적용'}</span></div>
+ <div class="favorites-layout"><${PresetManager} kind="stronghold.recruit-presets" state=${s} presets=${s.presets} active=${s.active} manifest=${data.get('assets')} disabled=${!ready} createLabel="새 프리셋" onSelect=${id=>save({...s,active:id})} onCreate=${create} onDuplicate=${x=>{const id=`recruit-${Date.now()}`;save({...s,active:id,presets:[...s.presets,{...x,id,builtin:false,faction:null,strategy:null,entries:{...x.entries},name:(x.name+' 복사').slice(0,40)}]});}} onDelete=${x=>{if(!x.builtin)save({...s,presets:s.presets.filter(y=>y.id!==x.id)});}} onImport=${value=>save(normalizeRecruitPresets(value))}/>
+ <section class="favorites-editor">${p?.builtin?html`<div class="favorites-toolbar favorites-titlebar"><strong class="preset-builtin-name">${p.name}</strong></div><p class="recruit-preset-help">기본 프리셋은 선발한 오퍼레이터가 없으며 수정하거나 진영·전략에 연동할 수 없습니다. ‘게임에 적용’을 누르면 선발을 모두 해제합니다.</p><div class="recruit-preset-actions"><${Button} variant="primary" icon="check" disabled=${locked||!ready} onClick=${()=>{const r=applyRecruitPreset(p.id);toast(r.ok?'선발 프리셋을 적용했습니다.':r.detail||'선발 프리셋을 적용하지 못했습니다.',r.ok?'info':'warn');}}>게임에 적용<//></div>`:p?html`<div class="favorites-toolbar favorites-titlebar"><${PresetNameField} preset=${p} label="선발 프리셋 이름" onRename=${name=>update({name})}/><span class=${`recruit-preset-status ${same?'is-applied':''}`} role="status">${same?'현재 선발과 같음':'미적용'}</span></div>
  <p class="recruit-preset-help">선발 편집은 자동 저장됩니다. 게임에 반영하려면 ‘게임에 적용’을 누르세요.</p>
  <div class="recruit-preset-actions"><${Button} variant="primary" icon="check" disabled=${locked||!ready} onClick=${()=>{const r=applyRecruitPreset(p.id);toast(r.ok?'선발 프리셋을 적용했습니다.':r.detail||'선발 프리셋을 적용하지 못했습니다.',r.ok?'info':'warn');}}>게임에 적용<//><${Button} variant="secondary" icon="copy" disabled=${!ready} onClick=${async()=>{if(Object.keys(p.entries).length&&!same&&!await confirmDialog({title:'현재 선발 가져오기',text:'이 프리셋을 현재 선발 구성으로 바꿀까요?',okText:'가져오기'}))return;update({entries:capture()});toast('현재 선발 구성을 저장했습니다.');}}>현재 선발 가져오기<//></div>
  ${locked?html`<p class="lo-locknote">이번 판의 선발은 확정되었습니다. 프리셋 편집은 다음 판에 사용할 수 있습니다.</p>`:null}

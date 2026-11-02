@@ -529,6 +529,8 @@
 /* shared preset manager */
 .preset-manager__head { display:flex; align-items:baseline; justify-content:space-between; }
 .preset-manager__count { color:var(--text-lo); font-size:max(.13rem,11px); }
+.preset-builtin-tag { margin-left:auto; font-size:max(.12rem,10px); color:var(--text-lo); border:1px solid currentColor; border-radius:3px; padding:0 4px; }
+.preset-builtin-name { font-size:max(.16rem,13px); }
 .preset-manager__row { display:flex; align-items:stretch; gap:2px; }
 .preset-manager__row > .favorites-preset { flex:1; min-width:0; }
 .preset-manager__tools { display:flex; gap:2px; }
