@@ -81,6 +81,9 @@ export function stageNote(stages) {
 
 const syncMode = (m) => m === 'sync' || m === 'sync8';
 
+/** The simulation kinds of the left column; the other cards (laboratory, practice) are the right column's quick entries. */
+const MAIN_MODES = ['solo', 'coop', 'sync'];
+
 const MODE_CARDS = [
   {
     id: 'solo', name: '独立模拟', en: 'SOLO SIMULATION', icon: 'user',
@@ -94,7 +97,7 @@ const MODE_CARDS = [
   },
   {
     id: 'sync', name: '동기화 시뮬레이션', en: 'SYNC SIMULATION', icon: 'link',
-    desc: '모든 박사의 전장에 같은 적이 나타나고, 각 적의 HP를 모든 전장이 함께 공유합니다.',
+    desc: '모든 전장에 같은 적이 나오고, 적의 HP를 함께 공유합니다.',
     points: ['박사 1–4명 · HP 공유', '연합 방어 없음 · HP 감소 상한 없음'],
   },
   { id: 'laboratory', name: '실험실', en: 'LABORATORY', icon: 'flask', desc: '맵·보스·전략을 직접 고르고 원하는 조합을 시험합니다.', points: ['솔로 플레이 · 밴 없음', '한 라운드 전투 · 결과 통계 기록'] },
@@ -419,9 +422,8 @@ export function LobbyScreen() {
     <div class="lobby-body screen__scroll">
       <section class="lobby-left">
         <div class="section-label"><span class="section-label__idx num">01</span>模拟方式<${MicroLabel}>MODE<//></div>
-        <div class="mode-cards">
-          ${MODE_CARDS.map((c) => html`<${ModeCard} key=${c.id} card=${c} selected=${roomMode === c.id || roomMode===c.id+'8'} onSelect=${pickMode} coopSize=${coopSize} onCoopSize=${n=>{setCoopSize(n);pickMode((c.id==='sync'?'sync':'coop')+(n===8?'8':''));}} publicOn=${publicOn} onPublicChange=${on=>{setPublicOn(on);savePref('lobby.publicOn',on);}} />`)}
-          <button type="button" class="public-rooms-entry mode-card brackets" onClick=${()=>setPublicOpen(true)}><span class="mode-card__bg" aria-hidden="true"></span><span class="mode-card__icon"><${Icon} name="users"/></span><span class="mode-card__text"><${MicroLabel}>PUBLIC ROOMS<//><span class="mode-card__name">탐색</span><span class="mode-card__desc">공개된 연합 방에 참가하거나 관전합니다.</span></span><span class="public-rooms-entry__total"><span class="public-rooms-entry__count" aria-label="참가 가능한 방 수">${conn.status==='online'&&publicRoomCount!==null?publicRoomCount.joinable:'—'}</span><span class="public-rooms-entry__all" aria-label="전체 방 수">/${conn.status==='online'&&publicRoomCount!==null?publicRoomCount.total:'—'}</span></span></button>
+        <div class="mode-cards mode-cards--main">
+          ${MODE_CARDS.filter((c) => MAIN_MODES.includes(c.id)).map((c) => html`<${ModeCard} key=${c.id} card=${c} selected=${roomMode === c.id || roomMode===c.id+'8'} onSelect=${pickMode} coopSize=${coopSize} onCoopSize=${n=>{setCoopSize(n);pickMode((c.id==='sync'?'sync':'coop')+(n===8?'8':''));}} publicOn=${publicOn} onPublicChange=${on=>{setPublicOn(on);savePref('lobby.publicOn',on);}} />`)}
         </div>
 
         <div class="section-label"><span class="section-label__idx num">03</span>加入同盟<${MicroLabel}>JOIN WITH ALLIANCE KEY<//></div>
@@ -444,9 +446,18 @@ export function LobbyScreen() {
       </section>
 
       <section class="lobby-right">
+        <div class="lobby-quick">
+          <button type="button" class="public-rooms-entry mode-card brackets" onClick=${()=>setPublicOpen(true)}><span class="mode-card__bg" aria-hidden="true"></span><span class="mode-card__icon"><${Icon} name="users"/></span><span class="mode-card__text"><${MicroLabel}>PUBLIC ROOMS<//><span class="mode-card__name">탐색</span><span class="mode-card__desc">공개된 연합 방에 참가하거나 관전합니다.</span></span><span class="public-rooms-entry__total"><span class="public-rooms-entry__count" aria-label="참가 가능한 방 수">${conn.status==='online'&&publicRoomCount!==null?publicRoomCount.joinable:'—'}</span><span class="public-rooms-entry__all" aria-label="전체 방 수">/${conn.status==='online'&&publicRoomCount!==null?publicRoomCount.total:'—'}</span></span></button>
+          <div class="lobby-quick__labs">
+          ${MODE_CARDS.filter((c) => !MAIN_MODES.includes(c.id)).map((c) => html`<${ModeCard} key=${c.id} card=${c} selected=${roomMode === c.id || roomMode===c.id+'8'} onSelect=${pickMode} coopSize=${coopSize} onCoopSize=${n=>{setCoopSize(n);pickMode((c.id==='sync'?'sync':'coop')+(n===8?'8':''));}} publicOn=${publicOn} onPublicChange=${on=>{setPublicOn(on);savePref('lobby.publicOn',on);}} />`)}
+          </div>
+        </div>
         <div class="section-label"><span class="section-label__idx num">02</span>模拟难度<${MicroLabel}>DIFFICULTY<//></div>
-        <div class="diff-list">
-          ${DIFFICULTIES.map((d) => html`<${DifficultyCard} key=${d} roomMode=${roomMode} difficulty=${d} selected=${difficulty === d} onSelect=${pickDifficulty} />`)}
+        <div class="diff-tabs" role="radiogroup" aria-label="난이도">
+          ${DIFFICULTIES.map((d) => html`<button key=${d} type="button" role="radio" aria-checked=${difficulty === d} class=${`diff-tab${difficulty === d ? ' is-selected' : ''}`} style=${`--d-color:${DIFFICULTY_COLORS[d]}`} onClick=${() => pickDifficulty(d)}><${DifficultyIcon} difficulty=${d} class="diff-tab__glyph" /><span>${t(DIFFICULTY_NAMES[d]||'').replace(/\s*시뮬레이션$/,'')}</span></button>`)}
+        </div>
+        <div class="diff-list diff-list--one">
+          <${DifficultyCard} key=${difficulty} roomMode=${roomMode} difficulty=${difficulty} selected=${true} onSelect=${pickDifficulty} />
         </div>
         <div class="create-box">
           <${Tooltip} block=${true} text=${online || ['laboratory','practice'].includes(roomMode) ? null : '正在连接服务器…'}>
