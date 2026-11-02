@@ -2543,7 +2543,7 @@ if (this.test === true) {
     }
     if (this.sync) for (const f of this.fields) {
       const res = resultOf(f);
-      for (const pp of Object.values((res && res.perPlayer) || {})) syncNoteLeaks(this, ((pp && pp.leaked) || []).filter((l) => l && l.syncKey));
+      for (const pp of Object.values((res && res.perPlayer) || {})) syncNoteLeaks(this, ((pp && pp.leaked) || []).filter((l) => l && l.syncKey), f.fieldId);
     }
     for (const f of this.fields) f.live = false;
     this.deadline = 0;

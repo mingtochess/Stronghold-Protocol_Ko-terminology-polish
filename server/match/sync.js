@@ -3,8 +3,8 @@
 // (server/sim/syncPools.js, keyed by the spawn's syncKey: `s<entry>` here, `.<instance>` by Battle._queueSpawn,
 // `:<n>` for a child by content spawnChildren).
 //   * HP: every non-bounty enemy × the living players, a bounty enemy × (1 + 0.5 per extra living player).
-//   * A leak costs the team LP once per enemy, and only if its shared HP is still left at settlement (it may be killed on
-//     another field after it got through here).
+//   * A leak costs the team LP once per field it got through on; if the enemy is killed (its shared HP runs out on any
+//     field) one of those is taken back: 2 fields let A through, then A is killed ⇒ the team loses A's LP once.
 //   * A bounty enemy whose shared HP runs out pays its coins once, to the player who picked that bounty (whoever's field
 //     dealt the last hit).
 import { withBounties } from './waves.js';
@@ -58,6 +58,7 @@ export function syncSpawns(m, playerId) {
 
 /** A field's reported shared damage (b.progress syncDmg / syncMax) and leaks. */
 export function syncCredit(m, fieldId, dmg, max, leaks, heal = null) {
+  if (Array.isArray(leaks)) leaks = leaks.map((l) => (l && typeof l === 'object' ? { ...l, fieldId } : l));
   const st = m._sync;
   if (!st) return;
   if (dmg && typeof dmg === 'object') for (const [k, cum] of Object.entries(dmg)) {
@@ -71,23 +72,27 @@ export function syncCredit(m, fieldId, dmg, max, leaks, heal = null) {
   syncNoteLeaks(m, leaks);
 }
 
-export function syncNoteLeaks(m, leaks) {
+/** Leaks of shared enemies: per key, its LP and the fields it got through on (a field counts once per enemy). */
+export function syncNoteLeaks(m, leaks, fieldId = null) {
   const st = m._sync;
   if (!st || !Array.isArray(leaks)) return;
   for (const l of leaks) {
     const key = l && (l.key ?? l.syncKey);
-    if (typeof key !== 'string' || st.leaks.has(key)) continue;
+    const fid = (l && l.fieldId) ?? fieldId;
+    if (typeof key !== 'string' || typeof fid !== 'string') continue;
     const lpr = Number.isFinite(l.lpr) && l.lpr >= 0 ? Math.min(1000, l.lpr) : 1;
-    st.leaks.set(key, lpr);
+    let e = st.leaks.get(key);
+    if (!e) { e = { lpr, fields: new Set() }; st.leaks.set(key, e); }
+    e.fields.add(fid);
   }
 }
 
-/** The team LP the round's shared leaks cost so far (each leaked enemy whose shared HP is left, once). */
+/** The team LP the round's shared leaks cost so far: per enemy, its LP × (the fields it got through on − 1 if killed). */
 export function syncLeakLoss(m) {
   const st = m._sync;
   if (!st) return 0;
   let n = 0;
-  for (const [key, lpr] of st.leaks) if (st.pools.alive(key)) n += lpr;
+  for (const [key, e] of st.leaks) n += e.lpr * Math.max(0, e.fields.size - (st.pools.alive(key) ? 0 : 1));
   return n;
 }
 
