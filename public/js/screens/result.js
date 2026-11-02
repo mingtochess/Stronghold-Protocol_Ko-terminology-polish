@@ -52,7 +52,7 @@ function PlayerCard({ p, myId, titles, best, solo = false, recommend=null, recom
   const stats = STAT_ROWS.filter(([k]) => Number.isFinite(p.stats[k])).slice(0, 7);
   const band = p.bandId ? gd.band(p.bandId) : null;
   const lineup = p.lineup.slice(0, 10);
-  const bonds = p.bonds.filter((b) => b.active || b.layers > 0).sort((a, b) => (b.layers || 0) - (a.layers || 0)).slice(0, 6);
+  const bonds = p.bonds.filter((b) => b.active || b.layers > 0).sort((a, b) => (b.active ? 1 : 0) - (a.active ? 1 : 0) || (b.layers || 0) - (a.layers || 0)).slice(0, 6);
   return html`<article class=${cx('rcard', p.playerId === myId && 'is-self', p.alive === false && 'is-dead')}>
     <header class="rcard__head">
       <${PlayerAvatar} player=${p} self=${p.playerId === myId} />

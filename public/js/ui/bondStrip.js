@@ -44,7 +44,8 @@ export function bondBoardKey(thresholds, tier) {
  *  threshold>_<members, capped>`, the full lit disc once that first threshold is met (the bond is active). */
 export function bondBoardProgress(th, count, active) {
   const n = Math.max(1, Math.min(4, Number(th?.[0]) || 1));
-  return { n, t: active ? n : Math.max(0, Math.min(n, count | 0)) };
+  // an inactive bond at or past its first threshold is a downward one over its cap (独行 with 2+): an unlit board
+  return { n, t: active ? n : (count | 0) >= n ? 0 : Math.max(0, count | 0) };
 }
 
 /**
