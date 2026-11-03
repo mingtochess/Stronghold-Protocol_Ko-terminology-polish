@@ -35,6 +35,7 @@ import { html, Button, Icon, MicroLabel, TextField, PingPill } from '../ui/compo
 import { SettingsButton } from '../ui/settings.js';
 import { PatchNotesButton } from '../ui/patchNotes.js';
 import { GuideButton } from '../ui/guide.js';
+import { UiThemePicker } from '../ui/uiThemePicker.js';
 
 import { toast } from '../ui/toasts.js';
 import { net, identity } from '../net.js';
@@ -264,6 +265,7 @@ export function TitleScreen() {
             onClick=${() => setSettingsOpen(true)}><${GIcon} name="gear" /></button>
           <${FullscreenButton} class="title-fs" />
         </div>
+        <${UiThemePicker} />
       </div>
       <div class="title-assets">
         <${AssetDownloadButton} />

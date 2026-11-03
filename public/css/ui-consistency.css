@@ -63,7 +63,7 @@ html body header.app-topbar.lo-top .lo-title-tabs button { padding-top:0; paddin
 .language-entry{display:inline-flex;align-items:center;max-width:100%;}
 .language-entry .lang-toggle{display:inline-flex;max-width:100%;}
 .language-entry select,.resource-consent__choice select{
- appearance:none;color:var(--text-hi,#e3efeb);background-color:var(--bg-0,#0c1713);
+ appearance:none;color:var(--text-hi,var(--ink-hi, #e3efeb));background-color:var(--bg-0,var(--surf-2, #0c1713));
  border:1px solid var(--line,rgba(156,196,180,.3));border-radius:0;
  min-height:var(--ui-control-height,32px);padding:5px 30px 5px 12px;
  font:inherit;font-size:12px;line-height:1.4;cursor:pointer;
@@ -72,7 +72,7 @@ html body header.app-topbar.lo-top .lo-title-tabs button { padding-top:0; paddin
 }
 .language-entry select:hover,.resource-consent__choice select:hover{border-color:var(--mint-400,#34e8c0);}
 .language-entry select:focus-visible,.resource-consent__choice select:focus-visible{outline:1px solid var(--mint-400,#34e8c0);outline-offset:2px;}
-.language-entry option,.resource-consent__choice option{background:#0c1713;color:#e3efeb;}
+.language-entry option,.resource-consent__choice option{background:var(--surf-2, #0c1713);color:var(--ink-hi, #e3efeb);}
 .title-tools .language-entry select{
  height:.36rem;min-height:0;padding:0 .32rem 0 .16rem;font-size:calc(.15 * var(--t));
  background-position:calc(100% - .15rem) 50%,calc(100% - .11rem) 50%;background-size:.04rem .04rem;

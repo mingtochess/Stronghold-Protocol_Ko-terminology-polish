@@ -44,7 +44,8 @@ import { GIcon } from './gameComponents.js';
 import { useLayoutEffect, useState } from '../../vendor/hooks.module.js';
 import { html, Modal, Button, Icon, MicroLabel } from './components.js';
 import { createStore, useStore, loadPref, savePref } from '../store.js';
-import { sanitizeSettings, migrateSavedSettings, TEXT_SIZES, UI_THEMES } from './gameLogic.js';
+import { sanitizeSettings, migrateSavedSettings, TEXT_SIZES } from './gameLogic.js';
+import { applyUiTheme } from './uiThemes.js';
 import { audio } from '../audio.js';
 import { CHAT_NOTIFICATION_SOUNDS, defaultChatCooldown } from '../chatNotificationSounds.js';
 import { openGuide } from './guide.js';
@@ -63,13 +64,6 @@ export const settingsStore = createStore(migrateSavedSettings(loadPref('settings
 export function applyTextSize(v) {
   const el = globalThis.document?.documentElement;
   if (el) el.dataset.text = TEXT_SIZES.includes(v) ? v : 'sm';
-}
-
-/** 설정 → UI 테마: <html data-ui-theme> (css/theme.css presets); the default theme sets no attribute. */
-export function applyUiTheme(v) {
-  const el = globalThis.document?.documentElement;
-  if (!el) return;
-  if (UI_THEMES.includes(v) && v !== 'default') el.dataset.uiTheme = v; else delete el.dataset.uiTheme;
 }
 
 settingsStore.subscribe((s) => {
@@ -421,8 +415,6 @@ export function SettingsModal({ open, onClose }) {
       <${Toggle} label=${t('弹药数量')} micro="AMMO COUNT" value=${s.ammoCount} onChange=${(v) => updateSettings({ ammoCount: v })} />
       <p class="set-hint">${t('弹药类技能开启时，在弹药条下方显示剩余弹药 / 总弹药数（如 13/14）。官方界面没有这个数字。')}</p>
       <p class="set-hint" data-i18n-skip>합산: 연속 피해를 묶어 표시 · 모두: 타격마다 표시 · 기본: 명일방주의 붉은 대미지 표시 판정(예상 피해의 1.5배 이상)을 적용합니다.</p>
-      <${Choice} testId="ui-theme" label=${t('UI 테마')} value=${s.uiTheme} options=${[['default',t('기본')],['abyss',t('심해')],['violet',t('보라')],['ember',t('주황')],['crimson',t('진홍')]]} onChange=${v=>updateSettings({uiTheme:v})} />
-      <p class="set-hint">${t('메뉴·HUD 등 화면 UI의 배경과 강조색을 바꿉니다. 전장·유닛·이펙트 색은 바뀌지 않습니다.')}</p>
       <${Choice} testId="text-size" label="글자 크기" value=${s.textSize} options=${[['sm','작게'],['md','보통'],['lg','크게'],['xl','아주 크게']]} onChange=${v=>updateSettings({textSize:v})} />
     </section></div>
   <//>`;

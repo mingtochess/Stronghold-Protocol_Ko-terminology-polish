@@ -40,8 +40,7 @@ import { DAMAGE_NUMBER_MODES, damageNumberMode } from '../../../shared/damageDis
 
 import { sanitizeVoiceOverrides } from '../voicePrefs.js';
 export const TEXT_SIZES=Object.freeze(['sm','md','lg','xl']);
-/** 설정 → UI 테마 (css/theme.css :root[data-ui-theme]): 'default' is the original near-black green-grey with mint. */
-export const UI_THEMES=Object.freeze(['default','abyss','violet','ember','crimson']);
+import { UI_THEMES } from './uiThemes.js';
 export const VOICE_LANGS=Object.freeze(['kr','jp']);
 import { GEO, PHASE, UF } from '../../../shared/constants.js';
 import { chatNotificationSound, defaultChatCooldown } from '../chatNotificationSounds.js';

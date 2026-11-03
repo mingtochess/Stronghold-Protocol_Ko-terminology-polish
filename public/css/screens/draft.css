@@ -51,13 +51,13 @@
 
 .draft-detail {
   display: flex; flex-direction: column; align-items: center; gap: .12rem; padding: .26rem .26rem .22rem; min-height: 0;
-  background: linear-gradient(180deg, rgba(20, 30, 26, .9), rgba(10, 13, 12, .92)); border: 1px solid var(--line-2);
+  background: linear-gradient(180deg, rgba(var(--surf-2-rgb, 20, 30, 26), .9), rgba(var(--surf-1-rgb, 10, 13, 12), .92)); border: 1px solid var(--line-2);
 }
 .draft-detail__art { position: relative; padding: .06rem; border: 1px solid var(--mint-800); background: radial-gradient(circle, rgba(var(--accent-rgb),.14), transparent 70%); }
 .draft-detail__art .bandicon { --bi: 2rem; }
 .draft-detail__hp { display: flex; align-items: center; gap: .12rem; font-size: calc(.16 * var(--t)); color: var(--text-lo); }
 .draft-detail__name { font-size: calc(.42 * var(--t)); font-weight: 900; letter-spacing: .1em; }
-.draft-detail__eff { align-self: stretch; display: flex; flex-direction: column; gap: .06rem; padding: .12rem .14rem; background: rgba(0, 0, 0, .3); border-left: 3px solid var(--mint-500); flex: 1; min-height: 0; overflow: auto; }
+.draft-detail__eff { align-self: stretch; display: flex; flex-direction: column; gap: .06rem; padding: .12rem .14rem; background: rgba(var(--dim-rgb, 0, 0, 0), .3); border-left: 3px solid var(--mint-500); flex: 1; min-height: 0; overflow: auto; }
 .draft-detail__eff b { font-size: calc(.2 * var(--t)); color: var(--mint-400); }
 .draft-detail__desc { font-size: calc(.16 * var(--t)); line-height: 1.7; color: var(--text-md); }
 .draft-detail__actions { align-self: stretch; display: flex; flex-direction: column; gap: .1rem; }
@@ -79,9 +79,9 @@
 /* a strategy built around a bond this mode switches off (bandDraft.js BandOffTag / BandOffNote, DESIGN §21.26 — the
    §21.7 本局禁用 look: dim, dashed, the bond struck through): information only, it stays selectable. Px floors keep it
    readable on phones (1rem = 40 px). */
-.dband__off { font-size: max(calc(.12 * var(--t)), 8px); line-height: 1.5; padding: 0 .05rem; color: var(--text-dim); border: 1px dashed rgba(255, 255, 255, .28); white-space: nowrap; }
+.dband__off { font-size: max(calc(.12 * var(--t)), 8px); line-height: 1.5; padding: 0 .05rem; color: var(--text-dim); border: 1px dashed rgba(var(--ink-rgb, 255, 255, 255), .28); white-space: nowrap; }
 .draft-detail__off { align-self: stretch; display: flex; align-items: flex-start; gap: .06rem; margin: 0; padding: .06rem .1rem;
-  font-size: max(calc(.14 * var(--t)), 9px); line-height: 1.5; color: var(--text-lo); background: rgba(255, 255, 255, .03); border-left: 2px solid rgba(255, 255, 255, .28); }
+  font-size: max(calc(.14 * var(--t)), 9px); line-height: 1.5; color: var(--text-lo); background: rgba(var(--ink-rgb, 255, 255, 255), .03); border-left: 2px solid rgba(var(--ink-rgb, 255, 255, 255), .28); }
 .draft-detail__off .icon { width: max(.16rem, 10px); height: max(.16rem, 10px); flex: none; margin-top: .02rem; }
 .draft-detail__offname { color: var(--text-dim); text-decoration: line-through; text-decoration-color: rgba(255, 84, 84, .6); }
 

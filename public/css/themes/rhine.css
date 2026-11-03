@@ -1,0 +1,57 @@
+/* themes/rhine.css — 라인 생명: a clinical laboratory look — white sheets ruled with thin black lines, a millimetre grid,
+   square corners, tick marks and a signal-yellow accent (ui/uiThemes.js). Drawn with CSS only, no official artwork. */
+:root[data-ui-theme="rhine"] {
+  --bond-filter: grayscale(1) invert(1) contrast(1.4); --bond-name: #111312;
+
+
+  color-scheme: light;
+  --bg-0: #f4f5f2; --bg-1: #fafbf8; --bg-2: #ffffff; --bg-3: #ecede9; --bg-4: #e0e2dc;
+  --bg-deep: #e9eae5; --bg-panel: #ffffff; --bg-panel-2: #f7f8f4; --bg-tint: #f6f7e6;
+  --bg-0-rgb: 244, 245, 242; --bg-1-rgb: 250, 251, 248; --bg-glass-rgb: 255, 255, 255; --shade-rgb: 250, 251, 248;
+  --line: #1a1c1b; --line-2: #3a3d3b; --line-3: #6b6f6c;
+  --accent-rgb: 26, 28, 27; --glow-rgb: 214, 196, 0;
+  --mint-500: #1a1c1b; --mint-400: #2c2f2d; --mint-350: #252826; --mint-600: #111312; --mint-glow: #d6c400;
+  --mint-700: #4a4e4b; --mint-800: #d9dbd5; --mint-900: #eeefea; --text-on-mint: #f4f5f2;
+  --text-hi: #111312; --text-md: #353937; --text-lo: #626764; --text-dim: #8c918d;
+  --ink-hi: #111312; --ink-md: #3d413e; --ink-lo: #6b706c; --ink-rgb: 17, 19, 18;
+  --surf-0: #e9eae5; --surf-1: #f1f2ee; --surf-2: #f8f9f5; --surf-3: #ffffff; --surf-hi: #ffffff;
+  --surf-0-rgb: 233, 234, 229; --surf-1-rgb: 241, 242, 238; --surf-2-rgb: 248, 249, 245; --surf-3-rgb: 255, 255, 255;
+  --dim-rgb: 150, 160, 168;
+  --gold: #a98b00; --gold-2: #9a7f00; --amber: #b87600;
+  --rhine-signal: #e8d400;
+  --rhine-grid: rgba(17, 19, 18, .05);
+  --rhine-grid-major: rgba(17, 19, 18, .09);
+  --text-dim: #6b706c; --text-lo: #545955; --ice: #0a6fb5; --red-premium: #c62828; --amber: #a36000; --gold: #8a6d00;
+  --rt-vup: #0a6fb5;
+}
+/* the sheet: a millimetre grid with a major line every 10 */
+:root[data-ui-theme="rhine"] body {
+  background-color: var(--bg-0);
+  background-image:
+    linear-gradient(var(--rhine-grid-major) 1px, transparent 1px),
+    linear-gradient(90deg, var(--rhine-grid-major) 1px, transparent 1px),
+    linear-gradient(var(--rhine-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--rhine-grid) 1px, transparent 1px);
+  background-size: .8rem .8rem, .8rem .8rem, .08rem .08rem, .08rem .08rem;
+}
+:root[data-ui-theme="rhine"] .screen:not(.gm) { background: transparent; }
+/* panels: flat white sheets, a hairline frame, a corner tick and no shadow */
+:root[data-ui-theme="rhine"] .panel,
+:root[data-ui-theme="rhine"] .modal__box {
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: 0;
+  box-shadow: 4px 4px 0 rgba(17, 19, 18, .08);
+}
+:root[data-ui-theme="rhine"] .panel::before,
+:root[data-ui-theme="rhine"] .modal__box::before {
+  content: ''; position: absolute; left: -1px; top: -1px; width: .24rem; height: .05rem; background: var(--rhine-signal); pointer-events: none;
+}
+:root[data-ui-theme="rhine"] .modal { background: rgba(244, 245, 242, .72); }
+:root[data-ui-theme="rhine"] :is(.btn--secondary, .btn--ghost) { --btn-bg: #ffffff; --btn-bg-hover: #f4f5ef; --btn-bd: var(--line); border-radius: 0; }
+:root[data-ui-theme="rhine"] .btn--primary { --btn-bg: var(--line); --btn-bg-hover: #000; --btn-fg: var(--rhine-signal); }
+:root[data-ui-theme="rhine"] .btn--primary:hover { color: var(--rhine-signal); }
+/* numbers and micro labels in the lab's mono face */
+:root[data-ui-theme="rhine"] .micro,
+:root[data-ui-theme="rhine"] .num { font-family: var(--font-mono); letter-spacing: .08em; }
+:root[data-ui-theme="rhine"] .micro::before { content: '// '; color: var(--text-dim); }

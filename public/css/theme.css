@@ -119,46 +119,87 @@
   --bk-w: 2px;
 }
 
-/* ---- UI themes (설정 → 접근성 → UI 테마; ui/settings.js applyUiTheme) ----------------------------------------------
-   Dark presets only: the surfaces, lines and the accent family (the mint tokens — every hard-coded mint and surface
-   colour of the stylesheets reads them). The battlefield, the units, the effects and the official HP bars are drawn by
-   the renderer and keep their colours. */
-:root[data-ui-theme="abyss"] {
-  --bg-0: #0a0e14; --bg-1: #111722; --bg-2: #19212f; --bg-3: #202a3b; --bg-4: #283447;
-  --bg-deep: #080b11; --bg-panel: #121927; --bg-panel-2: #0e141e; --bg-tint: #0e1726;
-  --bg-0-rgb: 10, 14, 20; --bg-1-rgb: 17, 23, 34; --bg-glass-rgb: 13, 18, 27; --shade-rgb: 6, 9, 14;
-  --line: #2a3648; --line-2: #384760; --line-3: #50627d;
-  --accent-rgb: 97, 182, 255; --glow-rgb: 64, 196, 255;
-  --mint-500: #61b6ff; --mint-400: #84c9ff; --mint-350: #78c2ff; --mint-600: #4aa6f2; --mint-glow: #40c4ff;
-  --mint-700: #2f78b8; --mint-800: #163a5c; --mint-900: #0d2136; --text-on-mint: #04101c;
+/* ---- UI themes: css/themes/<id>.css (ui/uiThemes.js), loaded only when chosen on the title screen ---------------- */
+
+/* the HUD bonds (ui/bondStrip.js) in a theme: the official boards, icons and stack mattes keep their shapes; a theme only
+   tints them (--bond-filter: the board and matte sprites, --bond-name: the label) */
+:root[data-ui-theme] .hbond__board,
+:root[data-ui-theme] .bpop__disc.has-board { filter: var(--bond-filter, none); }
+:root[data-ui-theme] .hbond .hbond__num.has-matte { filter: var(--bond-filter, none); }
+:root[data-ui-theme] .hbond .hbond__name { color: var(--bond-name, var(--ink-hi, #fff)); }
+
+/* light themes (ui/uiThemes.js `light`: <html data-ui-light>): colours made for a dark page darkened enough to read —
+   difficulty / mode accents, the chat buttons, the level card (measured with WCAG contrast ≥ 3 on every screen) */
+:root[data-ui-light] :is(.dtag, .dpick__opt.is-active, .diff-card__name, .diff-tab.is-selected, .diff-tab[aria-checked="true"]) { color: var(--d-color); color: color-mix(in srgb, var(--d-color) 58%, #000); }
+:root[data-ui-light] .game-chat button { color: var(--mint-700); }
+:root[data-ui-light] .room-gameplay-modes button[data-gameplay-mode="augment"] { --mode-color: #6f3fc4; }
+:root[data-ui-light] .public-room__details dd[data-mode="augment"] { color: #6f3fc4; }
+:root[data-ui-light] .lvcard { color: #04140f; }
+
+/* the battlefield (fallback DOM board) is play, not UI: every theme token back at its default inside it */
+:root[data-ui-theme] .ff {
+  color-scheme: dark;
+  --accent-rgb: 78, 216, 175;
+  --amber: #f6a329;
+  --bg-0: #0c0f0e;
+  --bg-0-rgb: 12, 15, 14;
+  --bg-1: #141816;
+  --bg-1-rgb: 20, 24, 22;
+  --bg-2: #1e2421;
+  --bg-3: #252c29;
+  --bg-4: #2d3632;
+  --bg-deep: #0a0d0c;
+  --bg-glass-rgb: 16, 20, 18;
+  --bg-panel: #151a18;
+  --bg-panel-2: #111513;
+  --bg-tint: #101b18;
+  --bond-disc: initial;
+  --bond-icon: initial;
+  --bond-icon-full: initial;
+  --bond-name-shadow: initial;
+  --bond-num-bg: initial;
+  --bond-radius: initial;
+  --bond-ring: initial;
+  --bond-shadow: initial;
+  --dim-rgb: initial;
+  --glow-rgb: 23, 249, 183;
+  --gold: #ffc600;
+  --gold-2: #f2bd3e;
+  --ink-hi: initial;
+  --ink-lo: initial;
+  --ink-md: initial;
+  --ink-rgb: initial;
+  --line: #2f3a35;
+  --line-2: #3e4b45;
+  --line-3: #58675f;
+  --mint-350: #4af2c4;
+  --mint-400: #59f4ca;
+  --mint-500: #4ed8af;
+  --mint-600: #35d8b4;
+  --mint-700: #2a9e7f;
+  --mint-800: #145443;
+  --mint-900: #0d2c24;
+  --mint-glow: #17f9b7;
+  --rhine-grid: initial;
+  --rhine-grid-major: initial;
+  --rhine-signal: initial;
+  --shade-rgb: 8, 11, 10;
+  --surf-0: initial;
+  --surf-0-rgb: initial;
+  --surf-1: initial;
+  --surf-1-rgb: initial;
+  --surf-2: initial;
+  --surf-2-rgb: initial;
+  --surf-3: initial;
+  --surf-3-rgb: initial;
+  --surf-hi: initial;
+  --text-dim: #5d6863;
+  --text-hi: #f2f2f2;
+  --text-lo: #8a948f;
+  --text-md: #c3cbc7;
+  --text-on-mint: #06110d;
 }
-:root[data-ui-theme="violet"] {
-  --bg-0: #0e0c13; --bg-1: #16131d; --bg-2: #201b29; --bg-3: #282232; --bg-4: #312a3d;
-  --bg-deep: #0b0a10; --bg-panel: #18141f; --bg-panel-2: #131019; --bg-tint: #17111f;
-  --bg-0-rgb: 14, 12, 19; --bg-1-rgb: 22, 19, 29; --bg-glass-rgb: 18, 15, 24; --shade-rgb: 10, 8, 14;
-  --line: #342d40; --line-2: #443b53; --line-3: #5f5472;
-  --accent-rgb: 178, 140, 255; --glow-rgb: 190, 120, 255;
-  --mint-500: #b28cff; --mint-400: #c8a9ff; --mint-350: #c09eff; --mint-600: #a079f2; --mint-glow: #be78ff;
-  --mint-700: #7650c0; --mint-800: #3c2766; --mint-900: #22163a; --text-on-mint: #120a20;
-}
-:root[data-ui-theme="ember"] {
-  --bg-0: #110d0a; --bg-1: #191410; --bg-2: #231c16; --bg-3: #2b231b; --bg-4: #342a21;
-  --bg-deep: #0d0a08; --bg-panel: #1a1511; --bg-panel-2: #15110d; --bg-tint: #1d150e;
-  --bg-0-rgb: 17, 13, 10; --bg-1-rgb: 25, 20, 16; --bg-glass-rgb: 21, 16, 12; --shade-rgb: 12, 9, 7;
-  --line: #3b3127; --line-2: #4c3f32; --line-3: #6a5a49;
-  --accent-rgb: 255, 168, 76; --glow-rgb: 255, 176, 64;
-  --mint-500: #ffa84c; --mint-400: #ffc07a; --mint-350: #ffb86a; --mint-600: #f2953a; --mint-glow: #ffb040;
-  --mint-700: #b86a20; --mint-800: #5c3410; --mint-900: #361e0a; --text-on-mint: #1c0e02;
-}
-:root[data-ui-theme="crimson"] {
-  --bg-0: #110b0c; --bg-1: #1a1213; --bg-2: #241a1b; --bg-3: #2d2122; --bg-4: #37292a;
-  --bg-deep: #0d0809; --bg-panel: #1b1314; --bg-panel-2: #160f10; --bg-tint: #1f1012;
-  --bg-0-rgb: 17, 11, 12; --bg-1-rgb: 26, 18, 19; --bg-glass-rgb: 22, 14, 15; --shade-rgb: 12, 7, 8;
-  --line: #3e2c2e; --line-2: #503a3c; --line-3: #6e5254;
-  --accent-rgb: 255, 102, 112; --glow-rgb: 255, 80, 96;
-  --mint-500: #ff6670; --mint-400: #ff8a92; --mint-350: #ff7e87; --mint-600: #f2525d; --mint-glow: #ff5060;
-  --mint-700: #b83a44; --mint-800: #5c1c22; --mint-900: #361014; --text-on-mint: #1c0406;
-}
+
 
 /* ---- root scale ----------------------------------------------------------------------------- */
 html {
@@ -278,7 +319,7 @@ h1, h2, h3, h4, p { margin: 0; }
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: repeating-linear-gradient(0deg, rgba(255, 255, 255, .028) 0 1px, transparent 1px 3px);
+  background: repeating-linear-gradient(0deg, rgba(var(--ink-rgb, 255, 255, 255), .028) 0 1px, transparent 1px 3px);
   mix-blend-mode: screen;
   z-index: 0;
 }
@@ -302,8 +343,8 @@ h1, h2, h3, h4, p { margin: 0; }
   pointer-events: none;
   background:
     radial-gradient(120% 80% at 50% 110%, rgba(var(--glow-rgb),.10), transparent 55%),
-    radial-gradient(80% 60% at 50% 40%, rgba(40, 60, 52, .35), transparent 70%),
-    linear-gradient(180deg, #0b0e0d 0%, #0e1311 55%, var(--bg-deep) 100%);
+    radial-gradient(80% 60% at 50% 40%, rgba(var(--surf-3-rgb, 40, 60, 52), .35), transparent 70%),
+    linear-gradient(180deg, var(--surf-1, #0b0e0d) 0%, var(--surf-1, #0e1311) 55%, var(--bg-deep) 100%);
 }
 .app-bg::before {
   /* faint survey grid */
@@ -322,8 +363,8 @@ h1, h2, h3, h4, p { margin: 0; }
   position: absolute;
   inset: 0;
   background:
-    repeating-linear-gradient(0deg, rgba(255, 255, 255, .02) 0 1px, transparent 1px 3px),
-    radial-gradient(130% 100% at 50% 50%, transparent 55%, rgba(0, 0, 0, .65) 100%),
+    repeating-linear-gradient(0deg, rgba(var(--ink-rgb, 255, 255, 255), .02) 0 1px, transparent 1px 3px),
+    radial-gradient(130% 100% at 50% 50%, transparent 55%, rgba(var(--dim-rgb, 0, 0, 0), .65) 100%),
     url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .75  0 0 0 0 .85  0 0 0 0 .8  0 0 0 .6 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='.35'/></svg>");
   opacity: .9;
 }
@@ -441,7 +482,7 @@ h1, h2, h3, h4, p { margin: 0; }
 
 /* Native select popups must retain the dark palette, including Windows menus. */
 select { color-scheme: dark; }
-select option, select optgroup { background-color: var(--bg-2, #111b17); color: var(--text-hi, #e2efea); }
+select option, select optgroup { background-color: var(--bg-2, var(--surf-2, #111b17)); color: var(--text-hi, var(--ink-hi, #e2efea)); }
 
 /* Desktop CSS zoom keeps viewport-sized panels within the visible window. */
 :root { --ui-vw:calc(1vw / var(--ui-viewport-scale,1)); --ui-vh:calc(1vh / var(--ui-viewport-scale,1)); --ui-dvh:calc(1dvh / var(--ui-viewport-scale,1)); --ui-svh:calc(1svh / var(--ui-viewport-scale,1)); }

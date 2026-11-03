@@ -1,0 +1,28 @@
+/* themes/white.css — 화이트: a light theme for every menu and HUD panel (ui/uiThemes.js). The battlefield, the units,
+   the effects and the official HP bars are drawn by the renderer and keep their colours. */
+:root[data-ui-theme="white"] {
+  --bond-filter: invert(1) hue-rotate(180deg) brightness(1.05); --bond-name: #1b2228;
+
+
+  color-scheme: light;
+  --bg-0: #eef1f3; --bg-1: #f6f8f9; --bg-2: #ffffff; --bg-3: #e6eaed; --bg-4: #dbe0e4;
+  --bg-deep: #e3e7ea; --bg-panel: #ffffff; --bg-panel-2: #f4f6f8; --bg-tint: #eaf5f2;
+  --bg-0-rgb: 238, 241, 243; --bg-1-rgb: 246, 248, 249; --bg-glass-rgb: 255, 255, 255; --shade-rgb: 246, 248, 249;
+  --line: #d3d9de; --line-2: #bcc4cb; --line-3: #98a2ab;
+  --accent-rgb: 0, 150, 125; --glow-rgb: 0, 190, 160;
+  --mint-500: #00967d; --mint-400: #00a88c; --mint-350: #00a185; --mint-600: #008a73; --mint-glow: #00be9f;
+  --mint-700: #00735f; --mint-800: #b9e3da; --mint-900: #e2f4f0; --text-on-mint: #ffffff;
+  --text-hi: #1b2228; --text-md: #3d4852; --text-lo: #66717b; --text-dim: #8d97a0;
+  --ink-hi: #1b2228; --ink-md: #46515b; --ink-lo: #6e7983; --ink-rgb: 20, 30, 40;
+  --surf-0: #e8ecef; --surf-1: #f0f3f5; --surf-2: #f7f9fa; --surf-3: #ffffff; --surf-hi: #ffffff;
+  --surf-0-rgb: 232, 236, 239; --surf-1-rgb: 240, 243, 245; --surf-2-rgb: 247, 249, 250; --surf-3-rgb: 255, 255, 255;
+  --dim-rgb: 150, 160, 168;
+  --gold: #c08a00; --gold-2: #b07d10; --amber: #c9790a;
+  --text-dim: #6a747d; --text-lo: #55606a; --mint-400: #00806b; --mint-350: #00846f; --ice: #0a6fb5; --red-premium: #c62828; --amber: #a36000; --gold: #946c00; --text-on-mint: #ffffff;
+  --rt-vup: #0a6fb5;
+}
+:root[data-ui-theme="white"] body { background: var(--bg-0); }
+:root[data-ui-theme="white"] .panel,
+:root[data-ui-theme="white"] .modal__box { box-shadow: 0 .06rem .24rem rgba(20, 30, 40, .12); }
+:root[data-ui-theme="white"] .modal { background: rgba(30, 40, 50, .35); }
+:root[data-ui-theme="white"] :is(.btn--secondary, .btn--ghost) { --btn-bg: #ffffff; --btn-bg-hover: #f0f4f6; }

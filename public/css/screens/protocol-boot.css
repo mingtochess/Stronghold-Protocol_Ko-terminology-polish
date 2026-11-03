@@ -7,7 +7,7 @@
   --teal: #3fd6b4;
   --teal-deep: #0c2a25;
   position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; overflow: hidden; pointer-events: none;
-  background: radial-gradient(ellipse at 50% 42%, #0d2621, #040b0a 70%);
+  background: radial-gradient(ellipse at 50% 42%, #0d2621, var(--surf-1, #040b0a) 70%);
 }
 .pboot.is-leaving { animation: pboot-out 350ms ease-in forwards; }
 .pboot__stage { position: relative; width: calc(1920 * var(--px)); height: calc(1080 * var(--px)); }
@@ -50,7 +50,7 @@
 .pboot__num { font-family: var(--font-display); font-size: calc(54 * var(--px)); font-weight: 700; }
 .pboot__done { font-family: var(--font-display); font-size: calc(16 * var(--px)); letter-spacing: .06em; margin-top: calc(2 * var(--px)); }
 .pboot__check { display: grid; place-items: center; width: calc(26 * var(--px)); height: calc(26 * var(--px)); margin-top: calc(10 * var(--px));
-  background: var(--teal-deep); color: #fff; }
+  background: var(--teal-deep); color: var(--ink-hi, #fff); }
 .pboot__check .icon { width: 80%; height: 80%; }
 .pboot__face { flex: none; width: calc(119 * var(--px)); height: calc(119 * var(--px)); border: calc(2 * var(--px)) solid #e9fffa; background: var(--teal-deep); overflow: hidden; }
 .pboot__face .pavatar { --pa: 100%; width: 100%; height: 100%; }
@@ -63,7 +63,7 @@
   animation: pboot-in 200ms 1200ms both; }
 .pboot__conn { right: calc(165 * var(--px)); top: calc(995 * var(--px)); font-size: calc(26 * var(--px)); color: rgba(63, 214, 180, .7); animation: pboot-in 200ms 1200ms both; }
 .pboot__dots::after { content: '…'; display: inline-block; width: 1.2em; overflow: hidden; vertical-align: bottom; animation: pboot-dots 1.2s steps(4, end) infinite; }
-.pboot__veil { inset: 0; position: absolute; background: #000; animation: pboot-veil 260ms ease-out both; }
+.pboot__veil { inset: 0; position: absolute; background: var(--surf-0, #000); animation: pboot-veil 260ms ease-out both; }
 @keyframes pboot-veil { from { opacity: 1; } to { opacity: 0; } }
 @keyframes pboot-in { from { opacity: 0; } }
 @keyframes pboot-show { to { opacity: 1; } }
@@ -99,7 +99,7 @@
   --ink: #0b1f1b;
   position: fixed; inset: 0; z-index: 70; pointer-events: none;
 }
-.tbanner__dim { position: absolute; inset: 0; background: rgba(0, 0, 0, .55); animation: tbanner-dim 1700ms linear both; }
+.tbanner__dim { position: absolute; inset: 0; background: rgba(var(--dim-rgb, 0, 0, 0), .55); animation: tbanner-dim 1700ms linear both; }
 .tbanner__band { position: absolute; left: 0; right: 0; top: calc(50% - 110 * var(--px)); height: calc(220 * var(--px)); display: flex;
   gap: calc(12 * var(--px)); padding-right: calc(15 * var(--px)); transform-origin: 50% 50%; animation: tbanner-band 1700ms both; }
 .tbanner__bar { position: relative; flex: 1; overflow: hidden; }
@@ -124,7 +124,7 @@
 .tbanner__cross--bl { left: calc(18 * var(--px)); bottom: calc(18 * var(--px)); }
 .tbanner__cross--tr { right: calc(18 * var(--px)); top: calc(18 * var(--px)); }
 .tbanner__cross--br { right: calc(18 * var(--px)); bottom: calc(18 * var(--px)); }
-.tbanner__bot { flex: none; width: calc(250 * var(--px)); display: grid; place-items: center; background: #0f1f1d;
+.tbanner__bot { flex: none; width: calc(250 * var(--px)); display: grid; place-items: center; background: var(--surf-2, #0f1f1d);
   box-shadow: inset 0 0 calc(30 * var(--px)) rgba(82, 214, 176, .25); }
 .tbanner__head { width: calc(120 * var(--px)); height: auto; image-rendering: pixelated; }
 @keyframes tbanner-dim { 0% { opacity: 0; } 9% { opacity: 1; } 91% { opacity: 1; } 100% { opacity: 0; } }

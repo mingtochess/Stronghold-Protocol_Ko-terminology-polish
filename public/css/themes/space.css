@@ -1,0 +1,45 @@
+/* themes/space.css — 우주: deep-space surfaces of translucent glass over a starfield and a nebula (ui/uiThemes.js). The
+   starfield is CSS; the nebula is an optional downloaded image (--space-nebula, set by ui/uiThemes.js once loaded). */
+:root[data-ui-theme="space"] {
+  --bond-filter: hue-rotate(62deg) saturate(1.15);
+
+
+  --bg-0: #05060d; --bg-1: #0a0c18; --bg-2: #121528; --bg-3: #181c33; --bg-4: #20253f;
+  --bg-deep: #04050b; --bg-panel: #0d1022; --bg-panel-2: #0a0c1b; --bg-tint: #0c1024;
+  --bg-0-rgb: 5, 6, 13; --bg-1-rgb: 10, 12, 24; --bg-glass-rgb: 12, 14, 30; --shade-rgb: 6, 7, 16;
+  --line: #262c4a; --line-2: #343c62; --line-3: #4f5986;
+  --accent-rgb: 132, 170, 255; --glow-rgb: 170, 130, 255;
+  --mint-500: #84aaff; --mint-400: #a8c2ff; --mint-350: #9bb9ff; --mint-600: #6f97f5; --mint-glow: #aa82ff;
+  --mint-700: #4c64b8; --mint-800: #222c5c; --mint-900: #131a38; --text-on-mint: #060818;
+  --text-hi: #eef1ff; --text-md: #c2c8e4; --text-lo: #8890b4; --text-dim: #5c6388;
+  --surf-0: #05060d; --surf-1: #0a0c18; --surf-2: #10132a; --surf-3: #181c36;
+  --surf-0-rgb: 5, 6, 13; --surf-1-rgb: 10, 12, 24; --surf-2-rgb: 16, 19, 42; --surf-3-rgb: 24, 28, 54;
+  --space-nebula: none;
+  --text-dim: #7880a8;
+}
+:root[data-ui-theme="space"] body {
+  background-color: var(--bg-0);
+  background-image:
+    radial-gradient(1px 1px at 12% 18%, rgba(255,255,255,.9), transparent 60%),
+    radial-gradient(1px 1px at 72% 34%, rgba(255,255,255,.7), transparent 60%),
+    radial-gradient(1.5px 1.5px at 38% 78%, rgba(200,210,255,.85), transparent 60%),
+    radial-gradient(1px 1px at 88% 82%, rgba(255,255,255,.6), transparent 60%),
+    radial-gradient(1px 1px at 55% 8%, rgba(255,240,220,.7), transparent 60%),
+    var(--space-nebula),
+    radial-gradient(60% 50% at 75% 20%, rgba(120, 80, 220, .18), transparent 70%),
+    radial-gradient(50% 45% at 15% 85%, rgba(60, 120, 255, .16), transparent 70%);
+  background-size: 260px 260px, 340px 340px, 410px 410px, 300px 300px, 520px 520px, cover, 100% 100%, 100% 100%;
+  background-repeat: repeat, repeat, repeat, repeat, repeat, no-repeat, no-repeat, no-repeat;
+  background-position: 0 0, 0 0, 0 0, 0 0, 0 0, center, center, center;
+}
+:root[data-ui-theme="space"] .screen:not(.gm) { background: transparent; }
+:root[data-ui-theme="space"] .panel,
+:root[data-ui-theme="space"] .modal__box {
+  background: linear-gradient(180deg, rgba(22, 26, 56, .62), rgba(10, 12, 28, .7));
+  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+  border: 1px solid rgba(132, 170, 255, .28);
+  border-radius: 6px;
+  box-shadow: 0 0 .3rem rgba(120, 90, 255, .16), inset 0 1px 0 rgba(255, 255, 255, .06);
+}
+:root[data-ui-theme="space"] .btn { border-radius: 4px; }
+:root[data-ui-theme="space"] .btn--primary { background: linear-gradient(90deg, #84aaff, #aa82ff); border-color: transparent; }
