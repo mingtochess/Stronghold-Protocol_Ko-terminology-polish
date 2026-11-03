@@ -3572,5 +3572,21 @@
   "다운로드": "Download",
   "나중에": "Later",
   "테마 리소스를 내려받았습니다.": "Theme resources downloaded.",
-  "테마 리소스를 내려받지 못했습니다. 이미지 없이 표시합니다.": "Could not download the theme resources. Showing it without images."
+  "테마 리소스를 내려받지 못했습니다. 이미지 없이 표시합니다.": "Could not download the theme resources. Showing it without images.",
+  "스타일": "Style",
+  "통합전략": "Integrated Strategies",
+  "진영": "Factions",
+  "사이버펑크": "Cyberpunk",
+  "메뉴·HUD·상점·맹약 목록 등 화면 UI가 바뀝니다. 전장·유닛·이펙트·HP 바는 바뀌지 않습니다.": "Changes the on-screen UI — menus, HUD, shop, bond list. The battlefield, units, effects and HP bars stay as they are.",
+  "염국": "Yan",
+  "라테라노": "Laterano",
+  "에기르": "Aegir",
+  "카시미어": "Kazimierz",
+  "케오베의 버섯 안개 미궁": "Ceobe's Fungimist",
+  "팬텀 & 크림슨 솔리테어": "Phantom & Crimson Solitaire",
+  "미즈키 & 카이룰라 아버": "Mizuki & Caerula Arbor",
+  "탐험가의 은빛 서리 끝자락": "Expeditioner's Jǫklumarkar",
+  "살카즈의 영겁 기담": "Sarkaz's Furnaceside Fables",
+  "쉐이의 기이한 계원": "Sui's Garden of Grotesqueries",
+  "침몰자의 블랙 플로우": "The Black Flow of the Drowning Seekers"
 }

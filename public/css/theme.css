@@ -153,18 +153,13 @@
   --bg-panel: #151a18;
   --bg-panel-2: #111513;
   --bg-tint: #101b18;
-  --bond-disc: initial;
-  --bond-icon: initial;
-  --bond-icon-full: initial;
-  --bond-name-shadow: initial;
-  --bond-num-bg: initial;
-  --bond-radius: initial;
-  --bond-ring: initial;
-  --bond-shadow: initial;
+  --bond-filter: initial;
+  --bond-name: initial;
   --dim-rgb: initial;
   --glow-rgb: 23, 249, 183;
   --gold: #ffc600;
   --gold-2: #f2bd3e;
+  --ice: #9fd4ff;
   --ink-hi: initial;
   --ink-lo: initial;
   --ink-md: initial;
@@ -180,9 +175,11 @@
   --mint-800: #145443;
   --mint-900: #0d2c24;
   --mint-glow: #17f9b7;
+  --red-premium: #ff5454;
   --rhine-grid: initial;
   --rhine-grid-major: initial;
   --rhine-signal: initial;
+  --rt-vup: initial;
   --shade-rgb: 8, 11, 10;
   --surf-0: initial;
   --surf-0-rgb: initial;
@@ -198,6 +195,7 @@
   --text-lo: #8a948f;
   --text-md: #c3cbc7;
   --text-on-mint: #06110d;
+  --ui-accent-2: initial;
 }
 
 
