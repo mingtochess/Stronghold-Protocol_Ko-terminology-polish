@@ -9,7 +9,7 @@
 //   sprite  a filter for the official shop sprites (refresh / freeze plates, cost mattes, their icons)
 // All CSS gradients: no official artwork. Colours are literal so each theme reads on its own.
 import { THEME_ART as ART } from './build-ui-theme-resources.mjs';
-import { GUIDE_TEXTURES, GUIDE_MAT } from './ui-theme-guides.mjs';
+import { GUIDE_TEXTURES, GUIDE_MAT, THEME_FONTS } from './ui-theme-guides.mjs';
 const L = (c, w = 'var(--bk-w)', l = 'var(--bk-l)') => [
   `linear-gradient(${c}, ${c}) top left / ${l} ${w} no-repeat`, `linear-gradient(${c}, ${c}) top left / ${w} ${l} no-repeat`,
   `linear-gradient(${c}, ${c}) top right / ${l} ${w} no-repeat`, `linear-gradient(${c}, ${c}) top right / ${w} ${l} no-repeat`,
@@ -233,6 +233,7 @@ const MAT = {
 
 Object.assign(TEXTURES, GUIDE_TEXTURES);
 Object.assign(MAT, GUIDE_MAT);
+for (const [id, font] of Object.entries(THEME_FONTS)) MAT[id] = { ...MAT[id], font };
 
 /** A background stack's top-level layers (commas inside parentheses are not separators). */
 function topLayers(v) {
@@ -291,7 +292,11 @@ export function textureCss(id, light = false) {
   const m = MAT[id];
   if (m) {
     if (m.font) out.unshift(`@import url("https://fonts.googleapis.com/css2?${m.font.q}&display=swap");`);
-    if (m.font) out.push(`${s} :is(.topbar__title, .modal__title, .panel__title, .mode-card__name, .section-label) { font-family: ${m.font.family}, var(--font-cjk); }`);
+    // the body face for all text (--font-cjk), the display face for titles / buttons / labels (--font-display); numbers
+    // keep the number face
+    if (m.font) out.push(`${s} { --font-cjk: ${m.font.body}, 'Noto Sans KR', 'Noto Sans SC', sans-serif; --font-display: ${m.font.display}, ${m.font.body}, 'Noto Sans KR', sans-serif; }
+${s} body { font-family: var(--font-cjk); }
+${s} :is(.topbar__title, .modal__title, .panel__title, .mode-card__name, .section-label, .btn, .scard__name, .seat__name, .capsule__label, .hbond__name, h1, h2, h3, h4) { font-family: var(--font-display); }`);
     if (m.noise) {
       const n = noise(m.noise);
       out.push(`${s} :is(.panel, .modal__box)::before { background: ${n}, ${x.grain}; background-size: ${m.noise.size || '240px'} auto, auto; }`);

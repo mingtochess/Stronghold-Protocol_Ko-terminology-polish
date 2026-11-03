@@ -71,7 +71,7 @@ export const GUIDE_THEMES = [
     primary: `background: linear-gradient(180deg, #e8be62, #b8863a); color: #1d1206; border-color: #f0c870;`,
     extra: heads('f-victoria', {
       label: `color: #f0c870; letter-spacing: .14em;`,
-      title: `background: linear-gradient(180deg, #fbe3a8, #c99440); -webkit-background-clip: text; background-clip: text; color: transparent;`,
+      title: `color: #f6e0a8; text-shadow: 0 0 .08rem rgba(214, 166, 74, .45);`,
     }),
   },
   {
@@ -404,4 +404,37 @@ export const GUIDE_MAT = {
   'f-sargon': {},
   'ss-unrealized': { noise: { f: .5, o: 3, c: [255, 255, 255], a: .05 } },
   'ss-elegies': { noise: { f: .7, o: 3, c: [201, 174, 114], a: .035 }, font: SERIF_KR },
+};
+
+// ---- fonts: each theme's body (all text: --font-cjk) and display face (titles, buttons, labels: --font-display) ------
+// Korean faces from Google Fonts, picked for the guide's tone; the body face always a readable text face.
+const F = (q, body, display = body) => ({ q, body, display });
+export const THEME_FONTS = {
+  white: F('family=Noto+Sans+KR:wght@400;500;700', "'Noto Sans KR'"),
+  space: F('family=Orbit&family=Noto+Sans+KR:wght@400;500;700', "'Noto Sans KR'", "'Orbit'"),
+  rhine: F('family=IBM+Plex+Sans+KR:wght@400;500;700&family=IBM+Plex+Mono:wght@500', "'IBM Plex Sans KR'", "'IBM Plex Mono', 'IBM Plex Sans KR'"),
+  cyber: F('family=Share+Tech+Mono&family=Nanum+Gothic+Coding:wght@400;700', "'Nanum Gothic Coding'", "'Share Tech Mono', 'Nanum Gothic Coding'"),
+  'is-fungi': F('family=Gaegu:wght@700&family=Gowun+Dodum', "'Gowun Dodum'", "'Gaegu'"),
+  'is-phantom': F('family=Cinzel:wght@700&family=Nanum+Myeongjo:wght@400;700;800', "'Nanum Myeongjo'", "'Cinzel', 'Nanum Myeongjo'"),
+  'is-mizuki': F('family=Gowun+Dodum&family=Sunflower:wght@500;700', "'Gowun Dodum'", "'Sunflower'"),
+  'is-frost': F('family=IBM+Plex+Sans+KR:wght@400;500;700', "'IBM Plex Sans KR'"),
+  'is-sarkaz': F('family=Noto+Serif+KR:wght@400;600;800', "'Noto Serif KR'"),
+  'is-sui': F('family=Gowun+Batang:wght@400;700&family=Song+Myung', "'Gowun Batang'", "'Song Myung'"),
+  'is-blackflow': F('family=Hahmlet:wght@400;600;800', "'Hahmlet'"),
+  'f-yan': F('family=Song+Myung&family=Gowun+Batang:wght@400;700', "'Gowun Batang'", "'Song Myung'"),
+  'f-sargon': F('family=Black+Han+Sans&family=Gothic+A1:wght@400;600;800', "'Gothic A1'", "'Black Han Sans'"),
+  'f-victoria': F('family=Hahmlet:wght@400;600;800', "'Hahmlet'"),
+  'f-kjerag': F('family=IBM+Plex+Sans+KR:wght@400;500;700', "'IBM Plex Sans KR'"),
+  'f-laterano': F('family=Gowun+Dodum&family=Noto+Serif+KR:wght@500;700', "'Gowun Dodum'", "'Noto Serif KR'"),
+  'f-aegir': F('family=Orbit&family=IBM+Plex+Sans+KR:wght@400;500;700', "'IBM Plex Sans KR'", "'Orbit'"),
+  'f-siracusa': F('family=Nanum+Myeongjo:wght@400;700;800&family=Noto+Serif+KR:wght@400;600', "'Noto Serif KR'", "'Nanum Myeongjo'"),
+  'f-kazimierz': F('family=Black+Han+Sans&family=Gothic+A1:wght@400;600;800', "'Gothic A1'", "'Black Han Sans'"),
+  'f-ursus': F('family=Do+Hyeon&family=Nanum+Gothic:wght@400;700;800', "'Nanum Gothic'", "'Do Hyeon'"),
+  'f-leithanien': F('family=Gowun+Batang:wght@400;700', "'Gowun Batang'"),
+  'ss-adele': F('family=Jua&family=Gowun+Dodum', "'Gowun Dodum'", "'Jua'"),
+  'ss-vultures': F('family=Gothic+A1:wght@400;600;900&family=IBM+Plex+Sans+KR:wght@400;500', "'IBM Plex Sans KR'", "'Gothic A1'"),
+  'ss-lonetrail': F('family=Nanum+Gothic+Coding:wght@700&family=IBM+Plex+Sans+KR:wght@400;500;700', "'IBM Plex Sans KR'", "'Nanum Gothic Coding'"),
+  'ss-mendacium': F('family=Diphylleia&family=Nanum+Myeongjo:wght@400;700', "'Nanum Myeongjo'", "'Diphylleia'"),
+  'ss-unrealized': F('family=Sunflower:wght@500;700&family=Gowun+Dodum', "'Gowun Dodum'", "'Sunflower'"),
+  'ss-elegies': F('family=Nanum+Myeongjo:wght@400;700;800&family=Noto+Serif+KR:wght@400;600', "'Noto Serif KR'", "'Nanum Myeongjo'"),
 };

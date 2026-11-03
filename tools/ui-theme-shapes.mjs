@@ -12,7 +12,9 @@ const frame = (body, width = '.12rem', slice = 20, repeat = 'stretch') =>
 const NO_RING = (S) => `${S} .hbond__ring { opacity: 0; }
 ${S} .hbond__board { filter: none; }
 ${S} .hbond.is-disabled .hbond__board { filter: grayscale(1) brightness(.6); }
-${S} .hbond__board::before { content: ''; position: absolute; pointer-events: none; }`;
+${S} .hbond__board::before { content: ''; position: absolute; pointer-events: none; }
+${S} .hbond .hbond__num, ${S} .hbond .hbond__num.has-matte { background: var(--hb-band-bg, rgba(var(--bg-0-rgb), .94)) !important; filter: none; color: var(--hb-band-ink, var(--text-hi));
+  border: calc(1.5 * var(--u)) solid var(--hb-band-line, var(--mint-500)); clip-path: var(--hb-band-clip, none); border-radius: var(--hb-band-radius, 0); font-weight: 700; }`;
 
 const SHAPES = {
   // ---- 우르수스 · 사람들, 우리들 -----------------------------------------------------------------------------------
@@ -60,7 +62,7 @@ ${S} .hbond.is-full .hbond__board::before { background: radial-gradient(circle, 
 ${S} .section-label { padding: .04rem .5rem .04rem .26rem; color: #fff; letter-spacing: .12em;
   background: ${svg(40, 20, `<path d='M2 10 L9 3 L16 10 L9 17Z' fill='%233ec6e0'/>`)} right .08rem center / .3rem .16rem no-repeat,
     repeating-linear-gradient(135deg, rgba(255, 255, 255, .5) 0 1px, transparent 1px 4px) right .44rem center / .5rem .1rem no-repeat,
-    linear-gradient(90deg, #3ec6e0 0 .06rem, #5d6e7b .06rem .1rem, #7a8c9a .1rem); }
+    linear-gradient(90deg, #3ec6e0 0 .06rem, #45535e .06rem .1rem, #566673 .1rem); }
 ${S} :is(.panel, .modal__box) { ${frame(`<path d='M14 1 H46 L59 14 V46 L46 59 H14 L1 46 V14Z' fill='%23fbfcfc' stroke='%23b8c4cc' stroke-width='1'/><path d='M16 5 H44 L55 16 V44 L44 55 H16 L5 44 V16Z' fill='none' stroke='%23d5dde3' stroke-width='1'/>`, '.14rem', 20)} box-shadow: none; filter: drop-shadow(0 .03rem .08rem rgba(60, 80, 95, .12)); }
 ${S} .btn { clip-path: polygon(.08rem 0, calc(100% - .08rem) 0, 100% .08rem, 100% calc(100% - .08rem), calc(100% - .08rem) 100%, .08rem 100%, 0 calc(100% - .08rem), 0 .08rem); }
 ${S} :is(.mode-card, .scard) { clip-path: polygon(.12rem 0, calc(100% - .12rem) 0, 100% .12rem, 100% calc(100% - .12rem), calc(100% - .12rem) 100%, .12rem 100%, 0 calc(100% - .12rem), 0 .12rem); }
@@ -122,7 +124,7 @@ ${S} .hbond.is-full .hbond__icon:not(.hbond__glyph) { filter: brightness(0) inve
   // ---- 사르곤 · 이상적인 도시: 엔드리스 카니발 -------------------------------------------------------------------------
   'f-sargon': (S) => `
 ${S} .section-label { width: fit-content; padding: .04rem .3rem; color: #fff; font-style: italic; font-weight: 900; -webkit-text-stroke: .5px #12345a; text-shadow: .02rem .02rem 0 #12345a;
-  background: radial-gradient(circle, rgba(255, 255, 255, .35) 1px, transparent 1.6px) 0 0 / 5px 5px, linear-gradient(90deg, #2f7fd0, #4b9be8);
+  background: radial-gradient(circle, rgba(255, 255, 255, .22) 1px, transparent 1.6px) 0 0 / 5px 5px, linear-gradient(90deg, #1f5fa8, #2a70c0);
   clip-path: polygon(.1rem 0, 100% 0, calc(100% - .1rem) 100%, 0 100%); transform: rotate(-2deg); }
 ${S} :is(.panel, .modal__box) { border: 0; border-radius: 0; background: radial-gradient(circle, rgba(255, 255, 255, .5) 1px, transparent 1.6px) 0 0 / 6px 6px, linear-gradient(180deg, #fdd552, #f9c330); box-shadow: .05rem .05rem 0 #f19b48, 0 .06rem .2rem rgba(60, 50, 20, .18); }
 ${S} :is(.panel, .modal__box) :is(.panel__body, .modal__body) { color: #24241f; }
@@ -148,7 +150,7 @@ ${S} .hbond.is-full .hbond__icon:not(.hbond__glyph) { filter: brightness(0) inve
 
   // ---- 화산의 꿈 여행 --------------------------------------------------------------------------------------------------
   'ss-adele': (S) => `
-${S} .section-label { justify-content: center; align-items: center; color: #b72f2b; font-size: calc(.24 * var(--t)); }
+${S} .section-label { justify-content: center; align-items: center; color: #b72f2b; font-size: calc(.24 * var(--t)); background: none; box-shadow: none; padding: 0; }
 ${S} .section-label::before, ${S} .section-label::after { content: ''; flex: 1; max-width: 1.4rem; height: .16rem; }
 ${S} .section-label::before { margin-right: .1rem; background: ${svg(140, 16, `<path d='M0 5H110M0 9H110' stroke='%233b2a26' stroke-width='2'/><path d='M138 8L122 2L126 8L122 14Z' fill='%23b72f2b'/><path d='M118 8h8' stroke='%23b72f2b' stroke-width='2'/>`)} right center / 100% 100% no-repeat; }
 ${S} .section-label::after { margin-left: .1rem; background: ${svg(140, 16, `<path d='M30 5H140M30 9H140' stroke='%233b2a26' stroke-width='2'/><path d='M2 8L18 2L14 8L18 14Z' fill='%23b72f2b'/><path d='M14 8h8' stroke='%23b72f2b' stroke-width='2'/>`)} left center / 100% 100% no-repeat; }
@@ -229,9 +231,26 @@ ${S} .hbond.is-full .hbond__board::before { background: radial-gradient(circle, 
 };
 
 /** The shape rules of one theme ('' when the theme has none). */
+const ACCENT_INK = {'f-ursus': '#ec7a7e', 'f-siracusa': '#ea7a80', 'f-kazimierz': '#ff7a86'};
+const BAND = {'f-ursus': '--hb-band-bg: #8f1d22; --hb-band-ink: #fff; --hb-band-line: #d2ccc7; --hb-band-clip: polygon(0 10%, 30% 0, 70% 8%, 100% 0, 98% 100%, 60% 92%, 25% 100%, 2% 92%);',
+  'f-kazimierz': '--hb-band-bg: #1b2f6e; --hb-band-line: #d02b3a; --hb-band-clip: polygon(15% 0, 100% 0, 85% 100%, 0 100%);',
+  'f-aegir': '--hb-band-bg: rgba(16, 20, 24, .94); --hb-band-line: #5fd3d0; --hb-band-radius: 99px;',
+  'f-laterano': '--hb-band-bg: #6f8291; --hb-band-ink: #fff; --hb-band-line: #3ec6e0; --hb-band-clip: polygon(12% 0, 88% 0, 100% 50%, 88% 100%, 12% 100%, 0 50%);',
+  'f-victoria': '--hb-band-bg: #241610; --hb-band-ink: #f0c870; --hb-band-line: #d6a64a;',
+  'f-leithanien': '--hb-band-bg: #2c1d16; --hb-band-ink: #ee9a5a; --hb-band-line: #d4743c; --hb-band-clip: polygon(10% 0, 90% 0, 100% 50%, 90% 100%, 10% 100%, 0 50%);',
+  'f-siracusa': '--hb-band-bg: #d6d2c9; --hb-band-ink: #1c1c1c; --hb-band-line: #b3262e;',
+  'f-yan': '--hb-band-bg: #1d1f1e; --hb-band-ink: #f7f3ee; --hb-band-line: #1d1f1e;',
+  'f-sargon': '--hb-band-bg: #2f7fd0; --hb-band-ink: #fff; --hb-band-line: #fcce46; --hb-band-clip: polygon(12% 0, 100% 0, 88% 100%, 0 100%);',
+  'f-kjerag': '--hb-band-bg: #ffffff; --hb-band-ink: #16206a; --hb-band-line: #9aa8e6; --hb-band-clip: polygon(0 0, 100% 0, 90% 50%, 100% 100%, 0 100%, 10% 50%);',
+  'ss-adele': '--hb-band-bg: #3b2a26; --hb-band-ink: #fff; --hb-band-line: #b72f2b; --hb-band-radius: calc(4 * var(--u));',
+  'ss-vultures': '--hb-band-bg: #182226; --hb-band-ink: #d4d93a; --hb-band-line: #d4d93a;',
+  'ss-lonetrail': '--hb-band-bg: #ee6a2b; --hb-band-ink: #140700; --hb-band-line: #ff8a4c;',
+  'ss-mendacium': '--hb-band-bg: #42372e; --hb-band-ink: #fff4ea; --hb-band-line: #c8622a; --hb-band-radius: 99px;',
+  'ss-unrealized': '--hb-band-bg: #2b525a; --hb-band-ink: #fff; --hb-band-line: #c4333a;',
+  'ss-elegies': '--hb-band-bg: #17142a; --hb-band-ink: #e8cf92; --hb-band-line: #a39274; --hb-band-clip: polygon(12% 0, 88% 0, 100% 50%, 88% 100%, 12% 100%, 0 50%);'};
 export function shapeCss(id) {
   const f = SHAPES[id];
   const S = `:root[data-ui-theme="${id}"]`;
   // (the header's index chip and micro label take the header's own ink: on a drawn header the default mint was lost)
-  return f ? `/* ---- shape layer (tools/ui-theme-shapes.mjs) */${f(S)}\n${S} .section-label :is(.section-label__idx, .micro) { color: inherit; border-color: currentColor; opacity: .85; }\n` : '';
+  return f ? `/* ---- shape layer (tools/ui-theme-shapes.mjs) */${f(S)}\n${BAND[id] ? `${S} { ${BAND[id]} }\n` : ''}${ACCENT_INK[id] ? `${S} :is(.micro--mint, .countdown__label, .gm__bond-toggle, .funds__collapse, .funds__collapse *) { color: ${ACCENT_INK[id]}; }\n` : ''}${S} .section-label :is(.section-label__idx, .micro) { color: inherit; border-color: currentColor; opacity: .85; }\n` : '';
 }
