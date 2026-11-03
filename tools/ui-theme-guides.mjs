@@ -176,19 +176,18 @@ export const GUIDE_THEMES = [
     }),
   },
   {
-    id: 'ss-lonetrail', name: '론 트레일', group: 'side',
-    // matte black lab sheets, signal-orange slab headers with "||" ticks, thin grey frames, big outlined numerals
-    p: { bg: ['#0c0c0c', '#141414', '#1c1c1c', '#242424', '#2d2d2c'], line: ['#2d2d2c', '#454340', '#6b655f'], accent: '#ee6a2b', glow: '#ff8a4c', accent2: '#897a6b', text: ['#f2efec', '#cfcac5', '#9c9690', '#7b7570'], onAccent: '#140700' },
+    id: 'ss-lonetrail', name: '론 트레일', group: 'side', light: true,
+    // Rhine Lab Pioneer Project: the key art's charcoal halftone with three retro stripes (rust red, mustard, teal) and
+    // the event's home theme — cream cards, signal orange, charcoal bars, orange circle icons, black geometric type
+    p: { bg: ['#ece7de', '#f5f1ea', '#fbf9f5', '#e2dcd1', '#d3ccbf'], line: ['#d6cfc3', '#a59d91', '#3a3836'], accent: '#e8602c', glow: '#f07a42', accent2: '#5fa79a', text: ['#1d1b19', '#3a3734', '#5c5852', '#6b665f'], onAccent: '#ffffff' },
     body: `background-color: var(--bg-0);
-  background-image: linear-gradient(rgba(255, 255, 255, .025) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, .025) 1px, transparent 1px), radial-gradient(60% 40% at 90% 0%, rgba(238, 106, 43, .1), transparent 70%), linear-gradient(180deg, #121212, #080808);
-  background-size: .4rem .4rem, .4rem .4rem, 100% 100%, 100% 100%;`,
-    panel: `background: rgba(22, 22, 22, .95); border: 1px solid #454340; border-radius: 0; box-shadow: inset 0 2px 0 #ee6a2b, 0 .06rem .26rem rgba(0, 0, 0, .55);`,
-    btn: `border-radius: 0;`,
-    primary: `background: #ee6a2b; color: #140700; border-color: #ff8a4c;`,
-    extra: heads('ss-lonetrail', {
-      label: `color: #ee6a2b; padding-left: .2rem; background: repeating-linear-gradient(90deg, #ee6a2b 0 2px, transparent 2px 5px) left center / .12rem 70% no-repeat; letter-spacing: .08em;`,
-      title: `letter-spacing: .02em;`,
-    }),
+  background-image: linear-gradient(90deg, transparent 0 calc(100% - .9rem), #a8402e calc(100% - .9rem) calc(100% - .66rem), #e3a23d calc(100% - .66rem) calc(100% - .42rem), #6fb0a3 calc(100% - .42rem) calc(100% - .18rem), transparent calc(100% - .18rem)),
+    radial-gradient(circle, rgba(29, 27, 25, .09) 1px, transparent 1.6px), linear-gradient(180deg, #f1ece4, #e6e0d6);
+  background-size: 100% 100%, 6px 6px, 100% 100%;`,
+    panel: `background: rgba(251, 249, 245, .97); border: 1px solid #d6cfc3; border-radius: .04rem; box-shadow: 0 .03rem .14rem rgba(29, 27, 25, .1);`,
+    btn: `border-radius: .04rem; font-weight: 700;`,
+    primary: `background: #e8602c; color: #ffffff; border-color: #c94d1e;`,
+    extra: '',
   },
   {
     id: 'ss-mendacium', name: '아테누스 복수록', group: 'side', light: true,
@@ -344,12 +343,12 @@ export const GUIDE_TEXTURES = {
     corner: 'linear-gradient(#c0282e, #c0282e) bottom left / .1rem .1rem no-repeat', clip: 'polygon(0 0, 100% 0, 100% 100%, .14rem 100%, 0 calc(100% - .14rem))', sprite: 'hue-rotate(30deg) saturate(.9)',
   },
   'ss-lonetrail': {
-    radius: '0',
-    face: 'repeating-linear-gradient(90deg, rgba(20, 7, 0, .55) 0 3px, transparent 3px 6px) right center / .34rem 100% no-repeat',
-    grain: 'linear-gradient(rgba(255, 255, 255, .02) 1px, transparent 1px) 0 0 / 100% .2rem',
-    card: 'linear-gradient(rgba(255, 255, 255, .04) 1px, transparent 1px) 0 0 / .2rem .2rem, linear-gradient(90deg, rgba(255, 255, 255, .04) 1px, transparent 1px) 0 0 / .2rem .2rem, radial-gradient(60% 40% at 90% 0%, rgba(238, 106, 43, .22), transparent 70%)',
-    stripe: 'linear-gradient(90deg, #ee6a2b 0 .5rem, transparent .5rem .56rem, #ee6a2b .56rem .62rem, transparent .62rem)',
-    corner: L2('#ee6a2b'), clip: 'none', sprite: 'grayscale(.5) sepia(.3)',
+    radius: '.04rem',
+    face: 'linear-gradient(90deg, #a8402e 0 33%, #e3a23d 33% 66%, #6fb0a3 66%) right center / .14rem 100% no-repeat',
+    grain: 'radial-gradient(circle, rgba(29, 27, 25, .05) 1px, transparent 1.6px) 0 0 / 5px 5px',
+    card: 'linear-gradient(90deg, transparent 0 calc(100% - .2rem), #a8402e calc(100% - .2rem) calc(100% - .14rem), #e3a23d calc(100% - .14rem) calc(100% - .08rem), #6fb0a3 calc(100% - .08rem) calc(100% - .02rem), transparent calc(100% - .02rem)), radial-gradient(circle, rgba(255, 255, 255, .08) 1px, transparent 1.6px) 0 0 / 5px 5px',
+    stripe: 'linear-gradient(90deg, #a8402e 0 33%, #e3a23d 33% 66%, #6fb0a3 66%)',
+    corner: 'none', clip: 'none', sprite: 'none',
   },
   'ss-mendacium': {
     radius: '0',
@@ -399,7 +398,7 @@ export const GUIDE_MAT = {
   'f-leithanien': { noise: { f: .7, o: 3, c: [238, 154, 90], a: .04 }, font: SERIF_KR },
   'ss-adele': { noise: { f: .9, o: 2, c: [82, 47, 43], a: .03 } },
   'ss-vultures': { noise: { f: 1, o: 3, c: [212, 217, 58], a: .03 } },
-  'ss-lonetrail': { noise: { f: 1.2, o: 2, c: [255, 255, 255], a: .03 } },
+  'ss-lonetrail': {},
   'ss-mendacium': { noise: { f: .8, o: 4, c: [66, 55, 46], a: .06 }, font: SERIF_KR },
   'f-sargon': {},
   'ss-unrealized': { noise: { f: .5, o: 3, c: [255, 255, 255], a: .05 } },
@@ -433,8 +432,27 @@ export const THEME_FONTS = {
   'f-leithanien': F('family=Gowun+Batang:wght@400;700', "'Gowun Batang'"),
   'ss-adele': F('family=Jua&family=Gowun+Dodum', "'Gowun Dodum'", "'Jua'"),
   'ss-vultures': F('family=Gothic+A1:wght@400;600;900&family=IBM+Plex+Sans+KR:wght@400;500', "'IBM Plex Sans KR'", "'Gothic A1'"),
-  'ss-lonetrail': F('family=Nanum+Gothic+Coding:wght@700&family=IBM+Plex+Sans+KR:wght@400;500;700', "'IBM Plex Sans KR'", "'Nanum Gothic Coding'"),
+  'ss-lonetrail': F('family=Lexend:wght@600;800&family=Gothic+A1:wght@400;600;800', "'Gothic A1'", "'Lexend', 'Gothic A1'"),
   'ss-mendacium': F('family=Diphylleia&family=Nanum+Myeongjo:wght@400;700', "'Nanum Myeongjo'", "'Diphylleia'"),
   'ss-unrealized': F('family=Sunflower:wght@500;700&family=Gowun+Dodum', "'Gowun Dodum'", "'Sunflower'"),
   'ss-elegies': F('family=Nanum+Myeongjo:wght@400;700;800&family=Noto+Serif+KR:wght@400;600', "'Noto Serif KR'", "'Nanum Myeongjo'"),
+};
+
+// the Latin face of each theme's small English labels (.micro: SOLO SIMULATION, MODE…), set with its Korean pair
+const M = (q, family) => ({ q, family });
+export const THEME_MICRO = {
+  white: M('family=Rajdhani:wght@600', "'Rajdhani'"), space: M('family=Orbitron:wght@500', "'Orbitron'"),
+  rhine: M('family=IBM+Plex+Mono:wght@500', "'IBM Plex Mono'"), cyber: M('family=Share+Tech+Mono', "'Share Tech Mono'"),
+  'is-fungi': M('family=Josefin+Slab:wght@600', "'Josefin Slab'"), 'is-phantom': M('family=Cinzel:wght@600', "'Cinzel'"),
+  'is-mizuki': M('family=Quicksand:wght@600', "'Quicksand'"), 'is-frost': M('family=Exo+2:wght@600', "'Exo 2'"),
+  'is-sarkaz': M('family=Marcellus+SC', "'Marcellus SC'"), 'is-sui': M('family=Cormorant+Garamond:wght@600', "'Cormorant Garamond'"),
+  'is-blackflow': M('family=Cormorant+Garamond:wght@600', "'Cormorant Garamond'"),
+  'f-yan': M('family=Noto+Serif:wght@600', "'Noto Serif'"), 'f-sargon': M('family=Bungee', "'Bungee'"),
+  'f-victoria': M('family=Cinzel:wght@600', "'Cinzel'"), 'f-kjerag': M('family=Rajdhani:wght@600', "'Rajdhani'"),
+  'f-laterano': M('family=Cormorant+SC:wght@600', "'Cormorant SC'"), 'f-aegir': M('family=Exo+2:wght@600', "'Exo 2'"),
+  'f-siracusa': M('family=Playfair+Display:ital,wght@1,600', "'Playfair Display'"), 'f-kazimierz': M('family=Barlow+Condensed:wght@700', "'Barlow Condensed'"),
+  'f-ursus': M('family=Oswald:wght@500', "'Oswald'"), 'f-leithanien': M('family=Cinzel:wght@600', "'Cinzel'"),
+  'ss-adele': M('family=Fredoka:wght@600', "'Fredoka'"), 'ss-vultures': M('family=Saira+Condensed:wght@600', "'Saira Condensed'"),
+  'ss-lonetrail': M('family=Lexend:wght@500', "'Lexend'"), 'ss-mendacium': M('family=Marcellus+SC', "'Marcellus SC'"),
+  'ss-unrealized': M('family=Comfortaa:wght@700', "'Comfortaa'"), 'ss-elegies': M('family=Cinzel:wght@600', "'Cinzel'"),
 };

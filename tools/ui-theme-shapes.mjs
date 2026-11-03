@@ -182,15 +182,20 @@ ${S} .hbond.is-full .hbond__board::before { background: repeating-linear-gradien
 
   // ---- 론 트레일 --------------------------------------------------------------------------------------------------------
   'ss-lonetrail': (S) => `
-${S} .section-label { width: fit-content; padding: .03rem .2rem .06rem .3rem; color: #140700; font-weight: 900; text-transform: uppercase;
-  background: linear-gradient(90deg, #2fb5b0 0 33%, #ee6a2b 33% 66%, #c0282e 66%) bottom / 100% .03rem no-repeat, repeating-linear-gradient(90deg, #140700 0 2px, transparent 2px 5px) .06rem center / .14rem 60% no-repeat, #ee6a2b; }
-${S} :is(.panel, .modal__box) { ${frame(`<rect x='0.5' y='0.5' width='59' height='59' fill='none' stroke='%23454340'/><path d='M0 14V0H14M46 60H60V46' fill='none' stroke='%23ee6a2b' stroke-width='3'/><rect x='50' y='2' width='8' height='8' fill='none' stroke='%23ee6a2b'/>`, '.08rem')} }
-${S} .btn { clip-path: polygon(0 0, calc(100% - .1rem) 0, 100% .1rem, 100% 100%, 0 100%); }
+${S} .section-label { width: fit-content; padding: .05rem .26rem .05rem .3rem; color: #fbf9f5; letter-spacing: .04em;
+  background: linear-gradient(90deg, #a8402e 0 .04rem, #e3a23d .04rem .08rem, #6fb0a3 .08rem .12rem, transparent .12rem), linear-gradient(#e8602c, #e8602c) right top / .08rem .08rem no-repeat, #2b2a28; }
+${S} .section-label .section-label__idx { color: #fff; background: #e8602c; border-color: #e8602c; opacity: 1; }
+${S} :is(.panel, .modal__box) { border-top: .04rem solid #2b2a28; }
+${S} :is(.panel__title, .modal__title) { font-weight: 800; letter-spacing: -.01em; }
+${S} :is(.panel__title, .modal__title)::before { content: ''; display: inline-block; width: .16rem; height: .16rem; margin-right: .08rem; vertical-align: -.02rem; border-radius: 50%; background: radial-gradient(circle, #fbf9f5 30%, #e8602c 32%); }
+${S} :is(.mode-card, .seat) { box-shadow: inset 0 .04rem 0 #e8602c; }
+${S} .btn--primary { box-shadow: inset -.14rem 0 0 rgba(0, 0, 0, .0); }
 ${NO_RING(S)}
-${S} .hbond__board::before { inset: 18%; transform: rotate(45deg); background: #1c1c1c; border: calc(2 * var(--u)) solid #6b655f; box-shadow: inset 0 0 0 calc(4 * var(--u)) #1c1c1c, inset 0 0 0 calc(6 * var(--u)) #ee6a2b; }
-${S} .hbond.is-full .hbond__board::before { background: #ee6a2b; box-shadow: none; border-color: #ff8a4c; }`,
-
-  // ---- 아테누스 복수록 -------------------------------------------------------------------------------------------------
+${S} .hbond__board::before { inset: 13%; border-radius: 50%; background: radial-gradient(circle, #fbf9f5 62%, #e2dcd1 63%); }
+${S} .hbond.is-full .hbond__board::before { background: radial-gradient(circle, #e8602c 62%, #c94d1e 63%); }
+${S} .hbond__icon:not(.hbond__glyph) { filter: brightness(0) invert(.12); }
+${S} .hbond.is-full .hbond__icon:not(.hbond__glyph) { filter: brightness(0) invert(1); }
+${S} { --hb-ring-on: #e8602c; --hb-ring-off: #c9c2b6; --hb-ring-full: #2b2a28; }`,
   'ss-mendacium': (S) => `
 ${S} .section-label { justify-content: center; padding: .06rem .3rem; color: #fff4ea;
   background: ${svg(40, 8, `<path d='M0 7H6V1H14V5H10V3H8V7H20V1H28V5H24V3H22V7H34V1H40' fill='none' stroke='%23e9b48a' stroke-width='1.2'/>`)} 0 .02rem / .4rem .08rem repeat-x, ${svg(40, 8, `<path d='M0 1H6V7H14V3H10V5H8V1H20V7H28V3H24V5H22V1H34V7H40' fill='none' stroke='%23e9b48a' stroke-width='1.2'/>`)} 0 calc(100% - .02rem) / .4rem .08rem repeat-x, linear-gradient(180deg, #b35424, #8c3c16); }
@@ -228,11 +233,76 @@ ${S} .btn--primary { clip-path: polygon(.12rem 0, calc(100% - .12rem) 0, 100% 50
 ${NO_RING(S)}
 ${S} .hbond__board::before { inset: 12%; border-radius: 50%; background: radial-gradient(circle, #202852 58%, #c9ae72 59% 63%, #0d1023 64% 70%, #a39274 71% 74%, transparent 75%); }
 ${S} .hbond.is-full .hbond__board::before { background: radial-gradient(circle, #e8cf92 58%, #c9ae72 59% 63%, #0d1023 64% 70%, #a39274 71% 74%, transparent 75%); }`,
+
+  // ---- 통합전략 (the IS themes: shapes from each topic's own UI — mushroom caps, theatre pills, bubbles, ice hexes,
+  // candle shields, lattice windows, tide rings) --------------------------------------------------------------------
+  'is-fungi': (S) => `
+${S} .section-label { width: fit-content; padding: .04rem .26rem; color: #e7d49a; background: #2b302b; border: 1px solid #c9b27a; border-radius: 99px 99px .06rem .06rem; }
+${S} .section-label::after { content: ''; width: .16rem; height: .1rem; margin-left: .08rem; background: radial-gradient(circle, #e7d49a 0 2px, transparent 2.5px) 0 50% / .06rem .06rem repeat-x; }
+${S} :is(.panel, .modal__box) { border-radius: .16rem; box-shadow: inset 0 0 0 1px #3d4439, inset 0 0 0 3px rgba(201, 178, 122, .18), 0 .06rem .3rem rgba(0, 0, 0, .5); }
+${S} .btn { border-radius: 99px; }
+${NO_RING(S)}
+${S} .hbond__board::before { inset: 14% 10% 22%; border-radius: 50% 50% 22% 22% / 72% 72% 28% 28%; background: radial-gradient(circle at 35% 30%, rgba(231, 212, 154, .35) 0 8%, transparent 9%), radial-gradient(circle at 65% 45%, rgba(231, 212, 154, .3) 0 6%, transparent 7%), #343a33; border: calc(3 * var(--u)) solid #c9b27a; }
+${S} .hbond.is-full .hbond__board::before { background: radial-gradient(circle at 35% 30%, rgba(255, 255, 255, .5) 0 8%, transparent 9%), linear-gradient(180deg, #d8c48d, #a48a52); }`,
+  'is-phantom': (S) => `
+${S} .section-label { width: fit-content; padding: .03rem .24rem; color: #f4f0ec; background: none; border: 1px solid rgba(244, 240, 236, .7); border-radius: 99px; }
+${S} .section-label::before { content: '◆'; color: #e3a33b; font-size: .7em; margin-right: .08rem; }
+${S} :is(.panel, .modal__box) { border: 0; border-top: 1px solid rgba(244, 240, 236, .45); box-shadow: inset 0 .1rem 0 -.06rem rgba(179, 23, 31, .0), 0 .06rem .3rem rgba(0, 0, 0, .55); }
+${S} :is(.panel, .modal__box)::after { content: ''; position: absolute; left: 0; right: 0; top: 0; height: .12rem; pointer-events: none; background: radial-gradient(circle at 50% 0, #7a0f16 0 .1rem, transparent .1rem) 0 0 / .24rem .12rem repeat-x; opacity: .85; }
+${S} .btn { border-radius: 99px; }
+${NO_RING(S)}
+${S} .hbond__board::before { inset: 18%; transform: rotate(45deg); background: #221c1c; border: calc(2 * var(--u)) solid #e3a33b; box-shadow: 0 0 0 calc(3 * var(--u)) rgba(244, 240, 236, .15); }
+${S} .hbond.is-full .hbond__board::before { background: radial-gradient(circle, #d2303a, #7a0f16); border-color: #f2c46a; }`,
+  'is-mizuki': (S) => `
+${S} .section-label { width: fit-content; padding: .04rem .26rem; color: #dff6ff; border-radius: 99px; background: radial-gradient(60% 120% at 30% 0, rgba(127, 247, 255, .35), transparent 70%), rgba(20, 40, 110, .7); box-shadow: 0 0 .12rem rgba(95, 212, 255, .45), inset 0 0 0 1px rgba(127, 247, 255, .5); }
+${S} :is(.panel, .modal__box) { border-radius: .22rem; box-shadow: 0 0 .18rem rgba(75, 140, 255, .25), inset 0 0 0 1px rgba(95, 212, 255, .3); }
+${S} .btn { border-radius: 99px; }
+${NO_RING(S)}
+${S} .hbond__board::before { inset: 12%; border-radius: 50%; background: radial-gradient(circle at 32% 28%, rgba(255, 255, 255, .6) 0 10%, transparent 12%), radial-gradient(circle, rgba(30, 60, 160, .85) 55%, rgba(95, 212, 255, .7) 70%, transparent 72%); box-shadow: 0 0 calc(8 * var(--u)) rgba(95, 212, 255, .5); }
+${S} .hbond.is-full .hbond__board::before { background: radial-gradient(circle at 32% 28%, rgba(255, 255, 255, .7) 0 10%, transparent 12%), radial-gradient(circle, #7ff7ff 40%, #3a8bff 70%, transparent 72%); }`,
+  'is-frost': (S) => `
+${S} .section-label { width: fit-content; padding: .04rem .26rem .04rem .2rem; color: #e8fbff; background: linear-gradient(90deg, #1fc4d6 0 .05rem, rgba(14, 60, 70, .85) .05rem);
+  clip-path: polygon(0 0, calc(100% - .12rem) 0, 100% .12rem, 100% 100%, 0 100%); }
+${S} :is(.panel, .modal__box) { ${frame(`<path d='M0 12V0H12M48 0H60V12M60 48V60H48M12 60H0V48' fill='none' stroke='%231fc4d6' stroke-width='2'/><rect x='3' y='3' width='54' height='54' fill='none' stroke='%23264a52' stroke-width='1'/>`, '.08rem')} }
+${S} .btn { clip-path: polygon(.08rem 0, 100% 0, 100% calc(100% - .08rem), calc(100% - .08rem) 100%, 0 100%, 0 .08rem); }
+${NO_RING(S)}
+${S} .hbond__board::before { inset: 12%; clip-path: polygon(25% 3%, 75% 3%, 100% 50%, 75% 97%, 25% 97%, 0 50%); background: linear-gradient(180deg, #123a42, #071c20); box-shadow: inset 0 0 0 calc(3 * var(--u)) #1fc4d6; }
+${S} .hbond.is-full .hbond__board::before { background: linear-gradient(180deg, #7af0d0, #1fc4d6); }`,
+  'is-sarkaz': (S) => `
+${S} .section-label { width: fit-content; padding: .04rem .26rem .05rem; color: #f0d28a; background: linear-gradient(#b3202a, #b3202a) bottom / 100% 2px no-repeat, #141416;
+  clip-path: polygon(.1rem 0, 100% 0, 100% 100%, 0 100%, 0 .1rem); }
+${S} .section-label::before { content: ''; width: .08rem; height: .14rem; margin-right: .08rem; background: radial-gradient(50% 60% at 50% 70%, #ffd36a, #d9a63a 50%, transparent 70%); }
+${S} :is(.panel, .modal__box) { box-shadow: inset 0 0 0 1px rgba(217, 166, 58, .35), 0 .06rem .3rem rgba(0, 0, 0, .55); }
+${NO_RING(S)}
+${S} .hbond__board::before { inset: 10% 16% 14%; clip-path: polygon(50% 0, 100% 30%, 86% 100%, 14% 100%, 0 30%); background: linear-gradient(180deg, #2a2a2e, #141416); box-shadow: inset 0 0 0 calc(3 * var(--u)) #d9a63a; }
+${S} .hbond.is-full .hbond__board::before { background: radial-gradient(60% 50% at 50% 65%, #ffd36a, #d9a63a 60%, #b3202a); }`,
+  'is-sui': (S) => `
+${S} .section-label { width: fit-content; padding: .04rem .3rem; color: #f4f8f5; background: ${svg(20, 20, `<path d='M2 2h16v16H2z M2 10h16 M10 2v16' fill='none' stroke='%23dfe9e2' stroke-width='1.4'/>`)} .06rem center / .14rem .14rem no-repeat, ${svg(20, 20, `<path d='M2 2h16v16H2z M2 10h16 M10 2v16' fill='none' stroke='%23dfe9e2' stroke-width='1.4'/>`)} calc(100% - .06rem) center / .14rem .14rem no-repeat, #167f78; }
+${S} .section-label::after { content: ''; width: .12rem; height: .12rem; margin-left: .08rem; background: #b8232b; }
+${S} :is(.panel, .modal__box) { ${frame(`<path d='M1 1H22V5H5V22H1Z M59 1H38V5H55V22H59Z M1 59H22V55H5V38H1Z M59 59H38V55H55V38H59Z' fill='%23167f78'/><path d='M9 9h8v8H9z M43 9h8v8h-8z M9 43h8v8H9z M43 43h8v8h-8z' fill='none' stroke='%23167f78' stroke-width='1.2'/>`, '.12rem')} }
+${NO_RING(S)}
+${S} .hbond__board::before { inset: 12%; border-radius: 50%; background: radial-gradient(circle, #f4f8f5 55%, #167f78 56% 63%, #f4f8f5 64% 68%, #167f78 69%); }
+${S} .hbond.is-full .hbond__board::before { background: radial-gradient(circle, #1a9a91 55%, #0f5e58 56% 63%, #f4f8f5 64% 68%, #b8232b 69%); }
+${S} .hbond__icon:not(.hbond__glyph) { filter: brightness(0) invert(.2) sepia(.3) hue-rotate(120deg); }
+${S} .hbond.is-full .hbond__icon:not(.hbond__glyph) { filter: brightness(0) invert(1); }`,
+  'is-blackflow': (S) => `
+${S} .section-label { width: fit-content; padding: .03rem .2rem .08rem; color: #e6d48a; background: ${svg(40, 8, `<path d='M0 4 Q5 0 10 4 T20 4 T30 4 T40 4' fill='none' stroke='%23e6d48a' stroke-width='1.2'/>`)} bottom / .4rem .08rem repeat-x; }
+${S} :is(.panel, .modal__box) { border-radius: .02rem .02rem .14rem .14rem; box-shadow: inset 0 0 0 1px rgba(230, 212, 138, .3), 0 .06rem .3rem rgba(0, 0, 0, .55); }
+${S} :is(.panel, .modal__box)::after { content: ''; position: absolute; left: .1rem; right: .1rem; bottom: .04rem; height: .08rem; pointer-events: none; opacity: .5; background: ${svg(40, 8, `<path d='M0 4 Q5 0 10 4 T20 4 T30 4 T40 4' fill='none' stroke='%23e6d48a' stroke-width='1'/>`)} 0 0 / .4rem .08rem repeat-x; }
+${NO_RING(S)}
+${S} .hbond__board::before { inset: 12%; border-radius: 50%; background: radial-gradient(circle, #121210 56%, #e6d48a 57% 61%, transparent 62%), radial-gradient(circle at 50% 120%, rgba(230, 212, 138, .3), transparent 60%); }
+${S} .hbond.is-full .hbond__board::before { background: radial-gradient(circle, #e6d48a 56%, #fff0b0 57% 61%, transparent 62%); }`,
+  cyber: (S) => `
+${S} .section-label { width: fit-content; padding: .03rem .24rem; color: #00f0ff; background: rgba(255, 46, 136, .14); box-shadow: inset 2px 0 0 #ff2e88; clip-path: polygon(0 0, calc(100% - .1rem) 0, 100% 100%, 0 100%); text-transform: uppercase; }
+${NO_RING(S)}
+${S} .hbond__board::before { inset: 14%; clip-path: polygon(0 0, 75% 0, 100% 25%, 100% 100%, 25% 100%, 0 75%); background: #1d1630; box-shadow: inset 0 0 0 calc(3 * var(--u)) #ff2e88; }
+${S} .hbond.is-full .hbond__board::before { background: linear-gradient(135deg, #ff2e88, #00f0ff); }`,
 };
 
 /** The shape rules of one theme ('' when the theme has none). */
 const ACCENT_INK = {'f-ursus': '#ec7a7e', 'f-siracusa': '#ea7a80', 'f-kazimierz': '#ff7a86'};
-const BAND = {'f-ursus': '--hb-band-bg: #8f1d22; --hb-band-ink: #fff; --hb-band-line: #d2ccc7; --hb-band-clip: polygon(0 10%, 30% 0, 70% 8%, 100% 0, 98% 100%, 60% 92%, 25% 100%, 2% 92%);',
+const BAND = {'is-fungi': '--hb-band-bg: #2b302b; --hb-band-ink: #e7d49a; --hb-band-line: #c9b27a; --hb-band-radius: 99px;', 'is-phantom': '--hb-band-bg: #121010; --hb-band-ink: #f4f0ec; --hb-band-line: #e3a33b; --hb-band-radius: 99px;', 'is-mizuki': '--hb-band-bg: rgba(10, 20, 60, .92); --hb-band-ink: #dff6ff; --hb-band-line: #5fd4ff; --hb-band-radius: 99px;', 'is-frost': '--hb-band-bg: #071c20; --hb-band-line: #1fc4d6;', 'is-sarkaz': '--hb-band-bg: #141416; --hb-band-ink: #f0d28a; --hb-band-line: #b3202a;', 'is-sui': '--hb-band-bg: #167f78; --hb-band-ink: #fff; --hb-band-line: #b8232b;', 'is-blackflow': '--hb-band-bg: #121210; --hb-band-ink: #e6d48a; --hb-band-line: #e6d48a; --hb-band-radius: 99px;', cyber: '--hb-band-bg: #0e0b17; --hb-band-ink: #00f0ff; --hb-band-line: #ff2e88;',
+  'f-ursus': '--hb-band-bg: #8f1d22; --hb-band-ink: #fff; --hb-band-line: #d2ccc7; --hb-band-clip: polygon(0 10%, 30% 0, 70% 8%, 100% 0, 98% 100%, 60% 92%, 25% 100%, 2% 92%);',
   'f-kazimierz': '--hb-band-bg: #1b2f6e; --hb-band-line: #d02b3a; --hb-band-clip: polygon(15% 0, 100% 0, 85% 100%, 0 100%);',
   'f-aegir': '--hb-band-bg: rgba(16, 20, 24, .94); --hb-band-line: #5fd3d0; --hb-band-radius: 99px;',
   'f-laterano': '--hb-band-bg: #6f8291; --hb-band-ink: #fff; --hb-band-line: #3ec6e0; --hb-band-clip: polygon(12% 0, 88% 0, 100% 50%, 88% 100%, 12% 100%, 0 50%);',
@@ -244,13 +314,46 @@ const BAND = {'f-ursus': '--hb-band-bg: #8f1d22; --hb-band-ink: #fff; --hb-band-
   'f-kjerag': '--hb-band-bg: #ffffff; --hb-band-ink: #16206a; --hb-band-line: #9aa8e6; --hb-band-clip: polygon(0 0, 100% 0, 90% 50%, 100% 100%, 0 100%, 10% 50%);',
   'ss-adele': '--hb-band-bg: #3b2a26; --hb-band-ink: #fff; --hb-band-line: #b72f2b; --hb-band-radius: calc(4 * var(--u));',
   'ss-vultures': '--hb-band-bg: #182226; --hb-band-ink: #d4d93a; --hb-band-line: #d4d93a;',
-  'ss-lonetrail': '--hb-band-bg: #ee6a2b; --hb-band-ink: #140700; --hb-band-line: #ff8a4c;',
+  'ss-lonetrail': '--hb-band-bg: #2b2a28; --hb-band-ink: #fbf9f5; --hb-band-line: #e8602c; --hb-band-radius: calc(4 * var(--u));',
   'ss-mendacium': '--hb-band-bg: #42372e; --hb-band-ink: #fff4ea; --hb-band-line: #c8622a; --hb-band-radius: 99px;',
   'ss-unrealized': '--hb-band-bg: #2b525a; --hb-band-ink: #fff; --hb-band-line: #c4333a;',
   'ss-elegies': '--hb-band-bg: #17142a; --hb-band-ink: #e8cf92; --hb-band-line: #a39274; --hb-band-clip: polygon(12% 0, 88% 0, 100% 50%, 88% 100%, 12% 100%, 0 50%);'};
+/** The HUD bond marker rules restated for the bond disc (briefing, dialogs: components.js BondDisc). */
+function discRules(css) {
+  return css.split('\n').filter((l) => /\.hbond__board::before|\.hbond__icon/.test(l)).map((l) => l
+    .replace(/\.hbond\.is-full \.hbond__board::before/g, '.bond:not(.hbond).is-active .bond__core::before')
+    .replace(/\.hbond__board::before/g, '.bond:not(.hbond) .bond__core::before')
+    .replace(/\.hbond\.is-full \.hbond__icon/g, '.bond:not(.hbond).is-active .bond__icon')
+    .replace(/\.hbond__icon:not\(\.hbond__glyph\)/g, '.bond:not(.hbond) .bond__icon')
+    .replace(/\.hbond__icon/g, '.bond:not(.hbond) .bond__icon')).join('\n');
+}
+/** The bond's members toward its threshold as a segmented border on the theme's own marker, as the default theme's ring
+ *  (bondStrip.js / components.js set --bn segments, --bt lit, --bgap): the marker's geometry (inset, clip-path, radius,
+ *  rotation) is copied from its ::before rule, the ring cut out of that box by masks. */
+function ringRules(S, body) {
+  const line = body.split('\n').find((l) => l.startsWith(`${S} .hbond__board::before {`) && !/content:/.test(l)) || '';
+  const geom = ['inset', 'clip-path', 'border-radius', 'transform'].map((k) => (line.match(new RegExp(`(?:^|[;{]\\s*)(${k}:[^;]+;)`)) || [])[1]).filter(Boolean).join(' ');
+  const ring = `content: ''; position: absolute; ${geom || 'inset: 12%;'} box-sizing: border-box; pointer-events: none; z-index: 1;
+  background: conic-gradient(var(--hb-ring-on, var(--mint-500)) 0 calc(var(--bt, 0) * 1turn / var(--bn, 1)), var(--hb-ring-off, var(--line-3)) 0);
+  -webkit-mask: repeating-conic-gradient(#000 0 calc(1turn / var(--bn, 1) - var(--bgap, 0deg)), transparent 0 calc(1turn / var(--bn, 1))), linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask: repeating-conic-gradient(#000 0 calc(1turn / var(--bn, 1) - var(--bgap, 0deg)), transparent 0 calc(1turn / var(--bn, 1))), linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: source-in, xor; mask-composite: intersect, exclude;`;
+  return `${S} .hbond__board::after { ${ring} padding: var(--hb-ring-w, calc(6 * var(--u))); }
+${S} .bond:not(.hbond) .bond__core::after { ${ring} padding: calc(var(--disc) * .08); }
+${S} .hbond.is-full .hbond__board::after, ${S} .bond:not(.hbond).is-active .bond__core::after { --hb-ring-on: var(--hb-ring-full, var(--mint-400)); }
+${S} .bond:not(.hbond) .bond__ring { display: none; }
+${S} .bond:not(.hbond) .bond__core { position: relative; isolation: isolate; background: none; box-shadow: none; border-radius: 0; overflow: visible; }
+${S} .bond:not(.hbond) .bond__core::before { content: ''; position: absolute; z-index: -1; pointer-events: none; }
+${S} .bond:not(.hbond).is-disabled .bond__core { filter: grayscale(1) brightness(.6); }`;
+}
 export function shapeCss(id) {
   const f = SHAPES[id];
   const S = `:root[data-ui-theme="${id}"]`;
-  // (the header's index chip and micro label take the header's own ink: on a drawn header the default mint was lost)
-  return f ? `/* ---- shape layer (tools/ui-theme-shapes.mjs) */${f(S)}\n${BAND[id] ? `${S} { ${BAND[id]} }\n` : ''}${ACCENT_INK[id] ? `${S} :is(.micro--mint, .countdown__label, .gm__bond-toggle, .funds__collapse, .funds__collapse *) { color: ${ACCENT_INK[id]}; }\n` : ''}${S} .section-label :is(.section-label__idx, .micro) { color: inherit; border-color: currentColor; opacity: .85; }\n` : '';
+  if (!f) return '';
+  const body = f(S);
+  return `/* ---- shape layer (tools/ui-theme-shapes.mjs) */${body}
+${discRules(body)}
+${ringRules(S, body)}
+${BAND[id] ? `${S} { ${BAND[id]} }\n` : ''}${ACCENT_INK[id] ? `${S} :is(.micro--mint, .countdown__label, .gm__bond-toggle, .funds__collapse, .funds__collapse *) { color: ${ACCENT_INK[id]}; }\n` : ''}${S} .section-label :is(.section-label__idx, .micro) { color: inherit; border-color: currentColor; opacity: .85; }
+`;
 }

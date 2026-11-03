@@ -35,7 +35,7 @@ export const UI_THEME_LIST = Object.freeze([
   Object.freeze({ id: 'f-leithanien', name: '라이타니엔', group: 'faction', swatch: ['#1a110d', '#d4743c'] }),
   Object.freeze({ id: 'ss-adele', name: '화산의 꿈 여행', group: 'side', swatch: ['#fbeedd', '#b72f2b'], light: true }),
   Object.freeze({ id: 'ss-vultures', name: '부정축재', group: 'side', swatch: ['#0f1417', '#d4d93a'] }),
-  Object.freeze({ id: 'ss-lonetrail', name: '론 트레일', group: 'side', swatch: ['#0c0c0c', '#ee6a2b'] }),
+  Object.freeze({ id: 'ss-lonetrail', name: '론 트레일', group: 'side', swatch: ['#ece7de', '#e8602c'], light: true }),
   Object.freeze({ id: 'ss-mendacium', name: '아테누스 복수록', group: 'side', swatch: ['#ebc9aa', '#b4521f'], light: true }),
   Object.freeze({ id: 'ss-unrealized', name: '허락받지 못한 땅', group: 'side', swatch: ['#c4e5ea', '#c4333a'], light: true }),
   Object.freeze({ id: 'ss-elegies', name: '불타버린 엘레지여', group: 'side', swatch: ['#0d1023', '#c9ae72'] }),

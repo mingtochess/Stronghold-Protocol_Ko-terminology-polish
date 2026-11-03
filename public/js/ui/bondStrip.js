@@ -60,7 +60,7 @@ function HudBond({ name, icon, thresholds, tier, layers, active, disabled = fals
   const ring = uiUrl(m, `bondBoardIcon/${bondBoardKey(n, disabled ? 0 : tier)}`);
   const matte = uiUrl(m, 'hudBondItem/matte_num');
   return html`<button type="button" class=${cx('bond', 'hbond', active && 'is-active', full && 'is-full', disabled && 'is-disabled', open && 'is-open')}
-      onClick=${onClick} title=${title || name}>
+      onClick=${onClick} title=${title || name} style=${`--bn:${n};--bt:${disabled ? 0 : Math.min(n, tier | 0)};--bgap:${n > 1 ? 10 : 0}deg`}>
     <span class="hbond__board" aria-hidden="true">
       ${ring ? html`<img class="hbond__ring" src=${ring} alt="" draggable=${false} />` : html`<span class="hbond__ring hbond__ring--css"></span>`}
       ${icon ? html`<img class="hbond__icon" src=${icon} alt="" draggable=${false} />` : html`<span class="hbond__icon hbond__glyph">${(name || '?').trim().charAt(0)}</span>`}

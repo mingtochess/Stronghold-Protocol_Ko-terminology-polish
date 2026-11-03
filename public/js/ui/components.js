@@ -240,7 +240,7 @@ export function BondDisc({
   const Tag = onClick ? 'button' : 'div';
   return html`<${Tag} type=${onClick ? 'button' : undefined}
       class=${cx('bond', `bond--${size}`, active && 'is-active', disabled && 'is-disabled', layersDisabled && 'is-frozen', onClick && 'is-clickable', cls)}
-      onClick=${onClick} title=${title || name}>
+      onClick=${onClick} title=${title || name} style=${`--bn:${n};--bt:${filled};--bgap:${n > 1 ? 10 : 0}deg`}>
     <span class="bond__disc">
       <svg class="bond__ring" viewBox="-50 -50 100 100" aria-hidden="true">
         ${Array.from({ length: n }, (_, i) => html`<circle key=${i} r=${R}

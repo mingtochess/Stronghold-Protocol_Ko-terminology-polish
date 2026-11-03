@@ -1,3 +1,4 @@
+@import url("https://fonts.googleapis.com/css2?family=Rajdhani:wght@600&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap");
 /* themes/white.css — 화이트: a light theme for every menu and HUD panel (ui/uiThemes.js). The battlefield, the units,
    the effects and the official HP bars are drawn by the renderer and keep their colours. */
@@ -30,6 +31,7 @@
 
 /* tx:start */
 /* ---- texture layer (tools/ui-theme-textures.mjs) */
+:root[data-ui-theme="white"] { --th-accent: var(--mint-500); --th-accent-rgb: var(--accent-rgb); --th-accent-deep: var(--mint-700); --th-surf1: var(--surf-1); --th-line: var(--line-2); --th-ink-hi: var(--text-hi); --th-ink-md: var(--text-md); --th-ink-lo: var(--text-lo); }
 :root[data-ui-theme="white"] :is(.btn--amber, .btn--ice, .btn--danger) { background-image: linear-gradient(90deg, transparent, rgba(255, 255, 255, .35)), linear-gradient(180deg, rgba(255, 255, 255, .14), transparent 45%); background-size: .34rem 100%, 100% 100%; background-position: right center, 0 0; background-repeat: no-repeat; }
 :root[data-ui-theme="white"] .btn--primary { background-image: linear-gradient(90deg, transparent, rgba(255, 255, 255, .35)), var(--ui-primary-face, none); background-size: .34rem 100%, 100% 100%; background-position: right center, 0 0; background-repeat: no-repeat, no-repeat; }
 :root[data-ui-theme="white"] .btn--primary:disabled { background-image: none; }
@@ -46,10 +48,11 @@
 :root[data-ui-theme="white"] :is(.effect, .toolbtn:not(.obtn), .readybtn__box) { border-radius: .06rem; }
 :root[data-ui-theme="white"] .effect { background: linear-gradient(180deg, rgba(255, 255, 255, .7), transparent 40%), rgba(var(--bg-1-rgb), .88); }
 :root[data-ui-theme="white"] .lvcard { background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .35)), linear-gradient(180deg, var(--mint-400), var(--mint-600)); background-size: .34rem 100%, 100% 100%; background-position: right bottom, 0 0; background-repeat: no-repeat;  }
-:root[data-ui-theme="white"] :is(.shopbar .obtn__plate, .obtn__cost, .toolbtn__img) { filter: saturate(.75) brightness(1.08); }
 :root[data-ui-theme="white"] :is(.title-bg__art, .title-bg__ridge-art, .title-bg__ridges, .title-bg__target, .title-bg__radar, .title-bg__haze) { display: none; }
 :root[data-ui-theme="white"] .app-bg, :root[data-ui-theme="white"] .app-bg::before, :root[data-ui-theme="white"] .app-bg::after { background: none; }
-:root[data-ui-theme="white"] { --font-cjk: 'Noto Sans KR', 'Noto Sans KR', 'Noto Sans SC', sans-serif; --font-display: 'Noto Sans KR', 'Noto Sans KR', 'Noto Sans KR', sans-serif; }
+:root[data-ui-theme="white"] { --font-micro: 'Rajdhani', var(--font-display); }
+:root[data-ui-theme="white"] :is(.micro, .micro--mint) { font-family: var(--font-micro); }
+:root[data-ui-theme="white"] { --font-cjk: 'Noto Sans KR', 'Noto Sans KR', 'Noto Sans SC', sans-serif; --font-display: 'Noto Sans KR', 'Noto Sans KR', 'Noto Sans KR', sans-serif; --font-ui: var(--font-display); }
 :root[data-ui-theme="white"] body { font-family: var(--font-cjk); }
 :root[data-ui-theme="white"] :is(.topbar__title, .modal__title, .panel__title, .mode-card__name, .section-label, .btn, .scard__name, .seat__name, .capsule__label, .hbond__name, h1, h2, h3, h4) { font-family: var(--font-display); }
 :root[data-ui-theme="white"] :is(.panel, .modal__box)::before { background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.078 0 0 0 0 0.118 0 0 0 0 0.157 0 0 0 0.03 0'/%3E%3C/filter%3E%3Crect width='100%' height='100%' filter='url(%23n)'/%3E%3C/svg%3E"), linear-gradient(180deg, rgba(255, 255, 255, .7), transparent 40%); background-size: 240px auto, auto; }

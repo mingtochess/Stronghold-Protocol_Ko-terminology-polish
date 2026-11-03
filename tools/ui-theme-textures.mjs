@@ -9,7 +9,7 @@
 //   sprite  a filter for the official shop sprites (refresh / freeze plates, cost mattes, their icons)
 // All CSS gradients: no official artwork. Colours are literal so each theme reads on its own.
 import { THEME_ART as ART } from './build-ui-theme-resources.mjs';
-import { GUIDE_TEXTURES, GUIDE_MAT, THEME_FONTS } from './ui-theme-guides.mjs';
+import { GUIDE_TEXTURES, GUIDE_MAT, THEME_FONTS, THEME_MICRO } from './ui-theme-guides.mjs';
 const L = (c, w = 'var(--bk-w)', l = 'var(--bk-l)') => [
   `linear-gradient(${c}, ${c}) top left / ${l} ${w} no-repeat`, `linear-gradient(${c}, ${c}) top left / ${w} ${l} no-repeat`,
   `linear-gradient(${c}, ${c}) top right / ${l} ${w} no-repeat`, `linear-gradient(${c}, ${c}) top right / ${w} ${l} no-repeat`,
@@ -249,6 +249,9 @@ export function textureCss(id, light = false) {
   if (!x) return '';
   const s = `:root[data-ui-theme="${id}"]`;
   const out = [];
+  // the theme-only aliases (unset in the default theme, whose literal colours stay): screens with their own palette
+  // (laboratory / practice setup) read these
+  out.push(`${s} { --th-accent: var(--mint-500); --th-accent-rgb: var(--accent-rgb); --th-accent-deep: ${light ? "var(--mint-700)" : "var(--mint-800)"}; --th-surf1: var(--surf-1); --th-line: var(--line-2); --th-ink-hi: var(--text-hi); --th-ink-md: var(--text-md); --th-ink-lo: var(--text-lo); }`);
   // the filled buttons: the theme's end strip instead of the black hatch (their colours stay theirs)
   out.push(`${s} :is(.btn--amber, .btn--ice, .btn--danger) { background-image: ${x.face.replace(/ right center \/[^,]*?(?=,|$)/g, '')}, linear-gradient(180deg, rgba(255, 255, 255, .14), transparent 45%); background-size: .34rem 100%, 100% 100%; background-position: right center, 0 0; background-repeat: no-repeat; }`);
   out.push(`${s} .btn--primary { background-image: ${x.face.replace(/ right center \/[^,]*?(?=,|$)/g, '')}, var(--ui-primary-face, none); background-size: .34rem 100%, 100% 100%; background-position: right center, 0 0; background-repeat: no-repeat, no-repeat; }`);
@@ -277,7 +280,7 @@ export function textureCss(id, light = false) {
   out.push(`${s} .effect { background: ${x.grain}, rgba(var(--bg-1-rgb), .88); }`);
   out.push(`${s} .lvcard { background: ${x.face.replace(/ right center \/[^,]*?(?=,|$)/g, '')}, linear-gradient(180deg, var(--mint-400), var(--mint-600)); background-size: .34rem 100%, 100% 100%; background-position: right bottom, 0 0; background-repeat: no-repeat; ${x.clip && x.clip !== 'none' ? `clip-path: ${x.clip};` : ''} }`);
   // the official shop sprites
-  out.push(`${s} :is(.shopbar .obtn__plate, .obtn__cost, .toolbtn__img) { filter: ${x.sprite}; }`);
+  // (the official shop sprites — 冻结 / 刷新 plates, cost mattes — keep their own colours in every theme)
   // the title backdrop art gives way to the theme's own page
   out.push(`${s} :is(.title-bg__art, .title-bg__ridge-art, .title-bg__ridges, .title-bg__target, .title-bg__radar, .title-bg__haze) { display: none; }`);
   out.push(`${s} .app-bg, ${s} .app-bg::before, ${s} .app-bg::after { background: none; }`);
@@ -292,9 +295,12 @@ export function textureCss(id, light = false) {
   const m = MAT[id];
   if (m) {
     if (m.font) out.unshift(`@import url("https://fonts.googleapis.com/css2?${m.font.q}&display=swap");`);
+    const mi = THEME_MICRO[id];
+    if (mi) out.unshift(`@import url("https://fonts.googleapis.com/css2?${mi.q}&display=swap");`);
+    if (mi) out.push(`${s} { --font-micro: ${mi.family}, var(--font-display); }\n${s} :is(.micro, .micro--mint) { font-family: var(--font-micro); }`);
     // the body face for all text (--font-cjk), the display face for titles / buttons / labels (--font-display); numbers
     // keep the number face
-    if (m.font) out.push(`${s} { --font-cjk: ${m.font.body}, 'Noto Sans KR', 'Noto Sans SC', sans-serif; --font-display: ${m.font.display}, ${m.font.body}, 'Noto Sans KR', sans-serif; }
+    if (m.font) out.push(`${s} { --font-cjk: ${m.font.body}, 'Noto Sans KR', 'Noto Sans SC', sans-serif; --font-display: ${m.font.display}, ${m.font.body}, 'Noto Sans KR', sans-serif; --font-ui: var(--font-display); }
 ${s} body { font-family: var(--font-cjk); }
 ${s} :is(.topbar__title, .modal__title, .panel__title, .mode-card__name, .section-label, .btn, .scard__name, .seat__name, .capsule__label, .hbond__name, h1, h2, h3, h4) { font-family: var(--font-display); }`);
     if (m.noise) {
