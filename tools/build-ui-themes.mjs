@@ -61,110 +61,117 @@ export const THEMES = [
   },
   {
     id: 'is-phantom', name: '팬텀 & 크림슨 솔리테어', group: 'is',
-    p: { bg: ['#0e0709', '#170b0f', '#221016', '#2c151c', '#381a23'], line: ['#4a2029', '#6a2c38', '#93465a'],
-      accent: '#ec3a55', glow: '#ff5a6e', accent2: '#d9b25f', text: ['#f6ece6', '#d8c3bb', '#a68a83', '#7d625d'], onAccent: '#fff3f0' },
+    // in-game (rogue_1): near-black stage with a red curtain, fading white hairlines, orange diamond markers, outlined pill
+    // tags, roman numerals in a serif, a slanted mask, soft light blooms — no gilt frames
+    p: { bg: ['#0a0808', '#121010', '#1a1616', '#221c1c', '#2b2323'], line: ['#3a3030', '#554646', '#7a6666'],
+      accent: '#e3a33b', glow: '#f2c46a', accent2: '#b3171f', text: ['#f4f0ec', '#cfc6c0', '#9b918b', '#766d68'], onAccent: '#1a0f02' },
     body: `background-color: var(--bg-0);
-  background-image:
-    repeating-linear-gradient(90deg, rgba(120, 10, 30, .22) 0 .18rem, rgba(60, 5, 15, .22) .18rem .36rem),
-    radial-gradient(60% 45% at 50% 0%, rgba(255, 220, 170, .14), transparent 70%), linear-gradient(180deg, #1a0a0f, #070304);`,
-    panel: `background: linear-gradient(180deg, rgba(44, 21, 28, .94), rgba(18, 8, 11, .96)); border: 1px solid #d9b25f; border-radius: 0;
-  box-shadow: 0 0 0 3px rgba(14, 7, 9, .9), 0 0 0 4px rgba(217, 178, 95, .45), 0 .1rem .4rem rgba(0, 0, 0, .6);`,
-    btn: `border-radius: 0; font-family: var(--font-display); letter-spacing: .12em;`,
-    primary: `background: linear-gradient(180deg, #d81b3a, #8e0b20); color: #fff3f0; border-color: #d9b25f;`,
-    extra: `@keyframes ui-curtain { from { transform: scaleY(0); } to { transform: scaleY(1); } }
-:root[data-ui-theme="is-phantom"] .btn:hover { box-shadow: 0 0 0 1px #d9b25f, 0 0 .14rem rgba(255, 59, 82, .55); }
-:root[data-ui-theme="is-phantom"] .modal__box { animation: ui-curtain .28s var(--ease-out); transform-origin: top; }
-:root[data-ui-theme="is-phantom"] .micro { color: #d9b25f; letter-spacing: .2em; }`,
-    bondFilter: 'hue-rotate(195deg) saturate(1.3) brightness(.95)',
+  background-image: radial-gradient(60% 50% at 50% 0%, rgba(255, 225, 180, .10), transparent 70%),
+    repeating-linear-gradient(90deg, rgba(110, 10, 18, .28) 0 .22rem, rgba(40, 4, 8, .28) .22rem .44rem),
+    linear-gradient(180deg, #160809 0%, #060404 70%);`,
+    panel: `background: linear-gradient(180deg, rgba(26, 22, 22, .9), rgba(10, 8, 8, .94)); border: 0; border-top: 1px solid rgba(255, 255, 255, .55); border-radius: 0;
+  box-shadow: 0 .1rem .4rem rgba(0, 0, 0, .7);`,
+    btn: `border-radius: 0; font-family: var(--font-display); letter-spacing: .16em;`,
+    primary: `background: linear-gradient(90deg, #b3171f, #7a0c12); color: #f4f0ec; border-color: rgba(255, 255, 255, .7);`,
+    extra: `:root[data-ui-theme="is-phantom"] .micro::before { content: '◆ '; color: #e3a33b; }
+:root[data-ui-theme="is-phantom"] :is(.panel, .modal__box)::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .45), transparent); pointer-events: none; }
+:root[data-ui-theme="is-phantom"] .mode-card.is-selected { box-shadow: 0 0 .24rem rgba(227, 163, 59, .35); border-color: #e3a33b; }
+:root[data-ui-theme="is-phantom"] :is(.dtag, .bslot__count, .ui-theme-chip) { border-radius: 999px; }`,
+    bondFilter: 'hue-rotate(160deg) saturate(.9) brightness(1.05)',
   },
   {
     id: 'is-mizuki', name: '미즈키 & 카이룰라 아버', group: 'is',
-    p: { bg: ['#020a14', '#06121f', '#0a1b2c', '#0f2438', '#142e45'], line: ['#16394f', '#1f5068', '#2f7590'],
-      accent: '#3fe0e8', glow: '#6fffd8', accent2: '#4b8cff', text: ['#e8fbff', '#b5dbe6', '#7ba4b4', '#577c8b'], onAccent: '#021016' },
+    // in-game (rogue_2): navy-black depths, blue ink washes (shuimo), cyan particle glows, radial ray bursts, a thin
+    // geometric numeral face, fine white rules, blue diamond points; magenta only for the boss
+    p: { bg: ['#03060f', '#070c1a', '#0c1426', '#121b33', '#182341'], line: ['#1b2a4a', '#284066', '#3d5c8c'],
+      accent: '#5fd4ff', glow: '#7ff7ff', accent2: '#d23c8f', text: ['#eaf6ff', '#b9cde6', '#7f95b6', '#5d7192'], onAccent: '#02101a' },
     body: `background-color: var(--bg-0);
-  background-image:
-    radial-gradient(2px 2px at 15% 25%, rgba(111, 255, 216, .6), transparent 70%), radial-gradient(2px 2px at 65% 70%, rgba(63, 224, 232, .5), transparent 70%),
-    radial-gradient(1.5px 1.5px at 85% 35%, rgba(150, 200, 255, .5), transparent 70%),
-    radial-gradient(90% 70% at 50% -10%, rgba(40, 130, 190, .35), transparent 70%), linear-gradient(180deg, #06182a, #01060c);
-  background-size: 220px 220px, 300px 300px, 260px 260px, 100% 100%, 100% 100%;`,
-    panel: `background: linear-gradient(180deg, rgba(15, 36, 56, .8), rgba(4, 14, 26, .9)); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px);
-  border: 1px solid rgba(63, 224, 232, .35); border-radius: .18rem; box-shadow: 0 0 .3rem rgba(63, 224, 232, .14), inset 0 1px 0 rgba(180, 255, 255, .08);`,
-    btn: `border-radius: .3rem;`,
-    primary: `background: linear-gradient(180deg, #4ff0e8, #1fa8c8); color: #021016; border-color: #8ffff0;`,
-    extra: `@keyframes ui-ripple { from { box-shadow: 0 0 0 0 rgba(63, 224, 232, .55); } to { box-shadow: 0 0 0 .14rem rgba(63, 224, 232, 0); } }
-@media (prefers-reduced-motion: no-preference) { :root[data-ui-theme="is-mizuki"] .btn:hover { animation: ui-ripple 1.1s ease-out infinite; } }`,
-    bondFilter: 'hue-rotate(20deg) saturate(1.2)',
+  background-image: radial-gradient(45% 35% at 20% 30%, rgba(40, 80, 200, .28), transparent 70%), radial-gradient(40% 30% at 80% 75%, rgba(30, 60, 170, .22), transparent 70%),
+    radial-gradient(2px 2px at 30% 40%, rgba(127, 247, 255, .7), transparent 70%), radial-gradient(1.5px 1.5px at 70% 60%, rgba(127, 247, 255, .5), transparent 70%),
+    linear-gradient(180deg, #060b1a, #010208);
+  background-size: 100% 100%, 100% 100%, 260px 260px, 320px 320px, 100% 100%;`,
+    panel: `background: linear-gradient(180deg, rgba(12, 20, 38, .86), rgba(3, 6, 15, .92)); border: 1px solid rgba(95, 212, 255, .22); border-radius: 0;
+  box-shadow: 0 0 .3rem rgba(40, 90, 220, .18);`,
+    btn: `border-radius: 0; letter-spacing: .12em;`,
+    primary: `background: linear-gradient(90deg, rgba(95, 212, 255, .9), rgba(60, 120, 255, .9)); color: #02101a; border-color: #bff3ff;`,
+    extra: `:root[data-ui-theme="is-mizuki"] .micro::before { content: '◆ '; color: #4b8cff; }
+:root[data-ui-theme="is-mizuki"] .btn:hover { box-shadow: 0 0 .16rem rgba(127, 247, 255, .5); }
+:root[data-ui-theme="is-mizuki"] .num { font-weight: 300; letter-spacing: .04em; }`,
+    bondFilter: 'hue-rotate(25deg) saturate(1.1)',
   },
   {
-    id: 'is-frost', name: '탐험가의 은빛 서리 끝자락', group: 'is', light: true,
-    p: { bg: ['#e7eef3', '#f2f6f9', '#ffffff', '#dde6ec', '#cfdbe3'], line: ['#b7c7d2', '#94a9b8', '#6b8396'],
-      accent: '#245f88', glow: '#4a9ccd', accent2: '#8a6d3b', text: ['#14212b', '#354754', '#4d5f6c', '#56687a'], onAccent: '#ffffff' },
+    id: 'is-frost', name: '탐험가의 은빛 서리 끝자락', group: 'is',
+    // in-game (rogue_3): a night forest under a teal aurora, rune circles and constellation lines, cyan progress arcs,
+    // pale-blue diamond outlines on dark translucent plates
+    p: { bg: ['#040a0c', '#08131a', '#0d1c24', '#13262f', '#1a313b'], line: ['#1d3a44', '#2b5560', '#427c88'],
+      accent: '#1fc4d6', glow: '#7af0d0', accent2: '#9b7bff', text: ['#e8f6f6', '#bad3d6', '#7f9ea3', '#5e7b80'], onAccent: '#021014' },
     body: `background-color: var(--bg-0);
-  background-image:
-    radial-gradient(1.5px 1.5px at 20% 20%, rgba(255, 255, 255, .95), transparent 70%), radial-gradient(2px 2px at 70% 50%, rgba(255, 255, 255, .9), transparent 70%),
-    linear-gradient(160deg, transparent 60%, rgba(140, 170, 195, .25) 60% 62%, transparent 62%),
-    linear-gradient(200deg, transparent 70%, rgba(110, 145, 175, .22) 70% 72%, transparent 72%),
-    linear-gradient(180deg, #f4f8fb, #d9e4ec);
-  background-size: 140px 140px, 190px 190px, 100% 100%, 100% 100%, 100% 100%;`,
-    panel: `background: linear-gradient(180deg, rgba(255, 255, 255, .95), rgba(240, 246, 250, .95)); border: 1px solid #b7c7d2; border-radius: .04rem;
-  box-shadow: 0 .05rem .2rem rgba(40, 70, 95, .14); border-top: 2px solid #2a6f9e;`,
-    btn: `border-radius: .04rem;`,
-    primary: `background: linear-gradient(180deg, #3480b4, #22608a); color: #fff; border-color: #22608a;`,
-    extra: `:root[data-ui-theme="is-frost"] .btn:hover { box-shadow: 0 0 0 1px #5db6e8, 0 0 .12rem rgba(93, 182, 232, .5); }
-:root[data-ui-theme="is-frost"] .micro { letter-spacing: .24em; }`,
-    bondFilter: 'invert(1) hue-rotate(185deg) brightness(1.05)',
+  background-image: radial-gradient(60% 35% at 60% 0%, rgba(60, 220, 170, .28), transparent 70%), radial-gradient(40% 30% at 25% 5%, rgba(40, 160, 200, .22), transparent 70%),
+    radial-gradient(1px 1px at 20% 30%, rgba(255, 255, 255, .8), transparent 70%), radial-gradient(1px 1px at 65% 20%, rgba(255, 255, 255, .7), transparent 70%),
+    linear-gradient(180deg, #071a1e 0%, #030708 65%);
+  background-size: 100% 100%, 100% 100%, 200px 200px, 260px 260px, 100% 100%;`,
+    panel: `background: linear-gradient(180deg, rgba(13, 28, 36, .82), rgba(4, 10, 12, .9)); border: 1px solid rgba(122, 240, 208, .2); border-radius: 0;
+  box-shadow: inset 0 1px 0 rgba(122, 240, 208, .12), 0 .08rem .3rem rgba(0, 0, 0, .55);`,
+    btn: `border-radius: 0; letter-spacing: .14em;`,
+    primary: `background: linear-gradient(90deg, #0e8fa8, #1fc4d6); color: #021014; border-color: #8ff4e6;`,
+    extra: `:root[data-ui-theme="is-frost"] .micro::before { content: '◇ '; color: #7fd6ff; }
+:root[data-ui-theme="is-frost"] .countdown { filter: drop-shadow(0 0 4px rgba(31, 196, 214, .5)); }`,
+    bondFilter: 'hue-rotate(5deg) saturate(1.1)',
   },
   {
     id: 'is-sarkaz', name: '살카즈의 영겁 기담', group: 'is',
-    p: { bg: ['#0d0910', '#150f19', '#1e1524', '#271b2f', '#30223a'], line: ['#3e2c48', '#563d63', '#77578a'],
-      accent: '#ff8a3d', glow: '#ffb35c', accent2: '#a66bff', text: ['#f5ebe6', '#d6c4bd', '#a3918d', '#7f6e6c'], onAccent: '#1a0b02' },
+    // in-game (rogue_4): rough painted brush bands (ochre gold, blue, grey ink) behind the nodes, folk-art teal and ochre,
+    // blood-red streaks, grey stone with stardust, a gold ring, white chevrons, torn edges
+    p: { bg: ['#0b0b0c', '#141415', '#1c1c1e', '#252527', '#2e2e31'], line: ['#3a3a3d', '#545458', '#77777c'],
+      accent: '#d9a63a', glow: '#f5c84a', accent2: '#b3202a', text: ['#f1eee8', '#cfcbc3', '#9a968f', '#77736d'], onAccent: '#1a1203' },
     body: `background-color: var(--bg-0);
-  background-image:
-    radial-gradient(45% 35% at 50% 105%, rgba(255, 138, 61, .35), transparent 70%),
-    radial-gradient(2px 2px at 30% 70%, rgba(255, 179, 92, .5), transparent 70%), radial-gradient(1.5px 1.5px at 60% 80%, rgba(255, 179, 92, .4), transparent 70%),
-    radial-gradient(70% 50% at 50% 0%, rgba(120, 70, 170, .2), transparent 70%), linear-gradient(180deg, #120c16, #070409);
-  background-size: 100% 100%, 200px 200px, 260px 260px, 100% 100%, 100% 100%;`,
-    panel: `background: linear-gradient(180deg, rgba(39, 27, 47, .93), rgba(16, 11, 20, .96)); border: 1px solid #563d63; border-radius: .06rem;
-  box-shadow: 0 .08rem .3rem rgba(0, 0, 0, .55), inset 0 -.06rem .2rem rgba(255, 138, 61, .08);`,
-    btn: `border-radius: .06rem;`,
-    primary: `background: linear-gradient(180deg, #ff9a4d, #d9601e); color: #1a0b02; border-color: #ffc27a;`,
-    extra: `@keyframes ui-ember { 0%, 100% { box-shadow: 0 0 .06rem rgba(255, 138, 61, .35); } 50% { box-shadow: 0 0 .18rem rgba(255, 179, 92, .7); } }
-@media (prefers-reduced-motion: no-preference) { :root[data-ui-theme="is-sarkaz"] .btn--primary { animation: ui-ember 2.4s ease-in-out infinite; } }`,
-    bondFilter: 'hue-rotate(-140deg) saturate(1.4)',
+  background-image: radial-gradient(1px 1px at 20% 30%, rgba(255, 255, 255, .5), transparent 70%), radial-gradient(1px 1px at 70% 70%, rgba(255, 255, 255, .4), transparent 70%),
+    radial-gradient(50% 40% at 85% 10%, rgba(179, 32, 42, .14), transparent 70%), linear-gradient(180deg, #161617, #070707);
+  background-size: 180px 180px, 240px 240px, 100% 100%, 100% 100%;`,
+    panel: `background: linear-gradient(180deg, rgba(37, 37, 39, .93), rgba(14, 14, 15, .96)); border: 0; border-radius: 0;
+  box-shadow: 0 .08rem .3rem rgba(0, 0, 0, .6);`,
+    btn: `border-radius: 0;`,
+    primary: `background: linear-gradient(100deg, transparent 0 4%, #d9a63a 6% 92%, transparent 95%), radial-gradient(60% 120% at 50% 50%, #e9bb55, #a87a1f); color: #1a1203; border-color: transparent;`,
+    extra: `:root[data-ui-theme="is-sarkaz"] .micro::before { content: '» '; color: #f5c84a; }
+:root[data-ui-theme="is-sarkaz"] :is(.panel, .modal__box)::after { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: linear-gradient(180deg, #b3202a, transparent 70%); pointer-events: none; }`,
+    bondFilter: 'sepia(.6) saturate(1.3) hue-rotate(-10deg)',
   },
   {
     id: 'is-sui', name: '쉐이의 기이한 계원', group: 'is', light: true,
-    p: { bg: ['#efe8da', '#f6f1e6', '#fbf8f1', '#e7dfcd', '#ddd2bb'], line: ['#c9b99a', '#a8916a', '#7d6a4b'],
-      accent: '#9a2c25', glow: '#b8473a', accent2: '#2f6b5e', text: ['#211a12', '#43382b', '#5c5140', '#685c4a'], onAccent: '#fbf3e6' },
+    // in-game (rogue_5): jade-teal and cinnabar tiles with lattice borders, pink / mint auspicious clouds, octagonal
+    // copper-coin frames, a pastel pink-to-mint wash, vertical calligraphy, paper grain
+    p: { bg: ['#eef3ef', '#f6f8f5', '#ffffff', '#e2ebe5', '#d4e1d8'], line: ['#b7cfc4', '#7fa596', '#4c7a6a'],
+      accent: '#167f78', glow: '#2fb3a8', accent2: '#b8232b', text: ['#14211d', '#34443e', '#52625c', '#5f6f69'], onAccent: '#ffffff' },
     body: `background-color: var(--bg-0);
-  background-image:
-    radial-gradient(60% 40% at 15% 100%, rgba(40, 35, 30, .14), transparent 70%), radial-gradient(40% 30% at 90% 95%, rgba(40, 35, 30, .1), transparent 70%),
-    radial-gradient(30% 22% at 80% 15%, rgba(168, 50, 42, .1), transparent 70%),
-    repeating-linear-gradient(0deg, rgba(120, 100, 70, .035) 0 1px, transparent 1px 5px), linear-gradient(180deg, #f5efe2, #e6dcc7);`,
-    panel: `background: linear-gradient(180deg, rgba(251, 248, 241, .97), rgba(243, 236, 222, .97)); border: 1px solid #a8916a; border-radius: 0;
-  box-shadow: 0 0 0 3px rgba(251, 248, 241, .9), 0 0 0 4px rgba(168, 145, 106, .55), 0 .06rem .2rem rgba(60, 45, 25, .15);`,
+  background-image: linear-gradient(180deg, rgba(245, 190, 205, .35), rgba(255, 255, 255, 0) 45%, rgba(150, 225, 200, .35)),
+    radial-gradient(30% 20% at 12% 85%, rgba(31, 163, 154, .12), transparent 70%), radial-gradient(25% 18% at 88% 20%, rgba(184, 35, 43, .08), transparent 70%),
+    linear-gradient(180deg, #f6f4f1, #e8f1ec);`,
+    panel: `background: rgba(255, 255, 255, .94); border: 1px solid #7fa596; border-radius: 0;
+  box-shadow: inset 0 0 0 3px #ffffff, inset 0 0 0 4px rgba(22, 127, 120, .35), 0 .05rem .2rem rgba(20, 60, 50, .12);`,
     btn: `border-radius: 0;`,
-    primary: `background: linear-gradient(180deg, #b8392f, #8e261f); color: #fbf3e6; border-color: #6e1c16;`,
-    extra: `:root[data-ui-theme="is-sui"] .btn:hover { box-shadow: inset 0 0 0 1px #a8322a; }
-:root[data-ui-theme="is-sui"] .topbar__title { letter-spacing: .24em; }`,
-    bondFilter: 'invert(1) sepia(.5) hue-rotate(-15deg) brightness(1.02)',
+    primary: `background: linear-gradient(180deg, #1c948c, #12655f); color: #ffffff; border-color: #0c4a45;`,
+    extra: `:root[data-ui-theme="is-sui"] .btn--danger { background-color: #b8232b; }
+:root[data-ui-theme="is-sui"] .mode-card.is-selected { border-color: #b8232b; box-shadow: inset 0 0 0 3px #fff, inset 0 0 0 4px #b8232b; }
+:root[data-ui-theme="is-sui"] .topbar__title { letter-spacing: .2em; }`,
+    bondFilter: 'invert(1) hue-rotate(170deg) saturate(.9)',
   },
   {
     id: 'is-blackflow', name: '침몰자의 블랙 플로우', group: 'is',
-    p: { bg: ['#040506', '#0a0c0e', '#111417', '#171b1f', '#1e2328'], line: ['#262c33', '#36404a', '#52606d'],
-      accent: '#7fd1c2', glow: '#a8f0e2', accent2: '#3a5a8c', text: ['#e9eef0', '#c1cacd', '#8e999d', '#6c777b'], onAccent: '#031210' },
+    // in-game (rogue_6): black plates with soft pale-gold light and gold top / bottom rules on a selection, teal confirm
+    // bars, red tags, an elegant serif numeral face, black root-like organics, drifting light particles
+    p: { bg: ['#070706', '#0e0e0c', '#161613', '#1e1e1a', '#272721'], line: ['#2e2d26', '#46443a', '#6b6856'],
+      accent: '#e6d48a', glow: '#fff0b0', accent2: '#3fb0a0', text: ['#f3f0e2', '#cfcab4', '#9b967f', '#76725f'], onAccent: '#14110a' },
     body: `background-color: var(--bg-0);
-  background-image:
-    repeating-radial-gradient(ellipse at 50% 120%, rgba(127, 209, 194, .05) 0 .04rem, transparent .04rem .22rem),
-    linear-gradient(180deg, rgba(10, 14, 18, 0) 50%, rgba(0, 0, 0, .55)), radial-gradient(70% 45% at 50% 0%, rgba(58, 90, 140, .2), transparent 70%),
-    linear-gradient(180deg, #0b0e11, #020303);`,
-    panel: `background: linear-gradient(180deg, rgba(23, 27, 31, .94), rgba(6, 7, 9, .97)); border: 1px solid #36404a; border-radius: .02rem .02rem .12rem .12rem;
-  box-shadow: 0 .12rem .3rem rgba(0, 0, 0, .7), inset 0 -2px 0 rgba(127, 209, 194, .18);`,
-    btn: `border-radius: .02rem .02rem .1rem .1rem;`,
-    primary: `background: linear-gradient(180deg, #8fdccd, #4ea597); color: #031210; border-color: #a8f0e2;`,
-    extra: `@keyframes ui-sink { from { transform: translateY(0); } 50% { transform: translateY(2px); } to { transform: translateY(0); } }
-@media (prefers-reduced-motion: no-preference) { :root[data-ui-theme="is-blackflow"] .btn:hover { animation: ui-sink 1.4s ease-in-out infinite; } }`,
-    bondFilter: 'grayscale(.5) hue-rotate(-10deg) brightness(.95)',
+  background-image: radial-gradient(3px 3px at 25% 35%, rgba(255, 240, 176, .45), transparent 70%), radial-gradient(2px 2px at 70% 60%, rgba(255, 240, 176, .35), transparent 70%),
+    radial-gradient(50% 40% at 50% 100%, rgba(230, 212, 138, .1), transparent 70%), linear-gradient(180deg, #0f0f0c, #030303);
+  background-size: 300px 300px, 360px 360px, 100% 100%, 100% 100%;`,
+    panel: `background: linear-gradient(180deg, rgba(30, 30, 26, .92), rgba(10, 10, 9, .96)); border: 0; border-radius: .06rem;
+  box-shadow: 0 .1rem .35rem rgba(0, 0, 0, .7);`,
+    btn: `border-radius: .04rem;`,
+    primary: `background: linear-gradient(90deg, #2f8f83, #3fb0a0); color: #031210; border-color: transparent;`,
+    extra: `:root[data-ui-theme="is-blackflow"] .mode-card.is-selected { box-shadow: inset 0 2px 0 #e6d48a, inset 0 -2px 0 #e6d48a, 0 0 .2rem rgba(230, 212, 138, .3); }
+:root[data-ui-theme="is-blackflow"] .num { font-family: 'Cormorant Garamond', var(--font-num); }`,
+    bondFilter: 'sepia(.5) saturate(1.1) brightness(1.05)',
   },
   // ---- 진영 (core bonds) ---------------------------------------------------------------------------------------------
   {
