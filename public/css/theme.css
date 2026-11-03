@@ -496,3 +496,9 @@ select option, select optgroup { background-color: var(--bg-2, var(--surf-2, #11
 /* the bond list's text over the field (a dark battlefield in every theme): white with a dark outline, above the ring */
 :root[data-ui-theme] :is(.hbond__num, .hbond__name, .bslot__count, .bslot .bond__name) { z-index: 3; }
 :root[data-ui-theme] :is(.hbond__name, .bslot .bond__name, .bslot__count) { color: #fff; text-shadow: 0 0 2px #000, 0 0 2px #000, 0 1px 3px #000; font-weight: 700; }
+/* light themes: the bond list sits on the light page — dark ink with a light halo */
+:root[data-ui-theme][data-ui-light] :is(.hbond__name, .bslot .bond__name, .bslot__count) { color: var(--text-hi); text-shadow: 0 0 2px #fff, 0 0 2px #fff, 0 0 4px rgba(255, 255, 255, .9); }
+/* an icon on a filled primary button takes the button's ink */
+:root[data-ui-theme] .btn--primary .icon { color: inherit; }
+/* the chat buttons' default mint ink gives way to the theme's */
+:root[data-ui-theme] :is(.game-chat__faction-toggle, .game-chat__settings) { color: var(--text-hi); }

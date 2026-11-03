@@ -288,7 +288,7 @@ ${S} .hbond.is-full .hbond__board::before { background: linear-gradient(135deg, 
 };
 
 /** The shape rules of one theme ('' when the theme has none). */
-const ACCENT_INK = {'f-ursus': '#ec7a7e', 'f-siracusa': '#ea7a80', 'f-kazimierz': '#ff7a86'};
+const ACCENT_INK = {'f-kjerag': '#c9d4ff', 'f-ursus': '#ec7a7e', 'f-siracusa': '#ea7a80', 'f-kazimierz': '#ff7a86'};
 const BAND = {'is-fungi': '--hb-band-bg: #2b302b; --hb-band-ink: #e7d49a; --hb-band-line: #c9b27a; --hb-band-radius: 99px;', 'is-phantom': '--hb-band-bg: #121010; --hb-band-ink: #f4f0ec; --hb-band-line: #e3a33b; --hb-band-radius: 99px;', 'is-mizuki': '--hb-band-bg: rgba(10, 20, 60, .92); --hb-band-ink: #dff6ff; --hb-band-line: #5fd4ff; --hb-band-radius: 99px;', 'is-frost': '--hb-band-bg: #071c20; --hb-band-line: #1fc4d6;', 'is-sarkaz': '--hb-band-bg: #141416; --hb-band-ink: #f0d28a; --hb-band-line: #b3202a;', 'is-sui': '--hb-band-bg: #167f78; --hb-band-ink: #fff; --hb-band-line: #b8232b;', 'is-blackflow': '--hb-band-bg: #121210; --hb-band-ink: #e6d48a; --hb-band-line: #e6d48a; --hb-band-radius: 99px;', cyber: '--hb-band-bg: #0e0b17; --hb-band-ink: #00f0ff; --hb-band-line: #ff2e88;',
   'f-ursus': '--hb-band-bg: #8f1d22; --hb-band-ink: #fff; --hb-band-line: #d2ccc7; --hb-band-clip: polygon(0 10%, 30% 0, 70% 8%, 100% 0, 98% 100%, 60% 92%, 25% 100%, 2% 92%);',
   'f-kazimierz': '--hb-band-bg: #1b2f6e; --hb-band-line: #d02b3a; --hb-band-clip: polygon(15% 0, 100% 0, 85% 100%, 0 100%);',
@@ -408,7 +408,7 @@ ${discRules(body)}
 ${ringRules(S, body).split('\n').filter((l) => !/::after|::after,|^\s+(background|-webkit-mask|mask|filter|-webkit-mask-composite)/.test(l)).join('\n')}
 ${markerRules(id, S)}
 ${fillRules(id, S)}
-${BAND[id] ? `${S} { ${BAND[id]} }\n` : ''}${ACCENT_INK[id] ? `${S} :is(.micro--mint, .countdown__label, .gm__bond-toggle, .funds__collapse, .funds__collapse *) { color: ${ACCENT_INK[id]}; }\n` : ''}${S} .section-label :is(.section-label__idx, .micro) { color: inherit; border-color: currentColor; opacity: .85; }
+${BAND[id] ? `${S} { ${BAND[id]} }\n` : ''}${ACCENT_INK[id] ? `${S} :is(.micro--mint, .countdown__label, .gm__bond-toggle, .funds__collapse, .funds__collapse *, .hex__value, .btn--ghost .btn__label, .lp__icon) { color: ${ACCENT_INK[id]}; }\n` : ''}${S} .section-label :is(.section-label__idx, .micro) { color: inherit; border-color: currentColor; opacity: .85; }
 `;
 }
 
