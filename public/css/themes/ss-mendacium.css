@@ -71,7 +71,7 @@
   background: rgba(247, 230, 213, .95); border: 1px solid #a77e5a; border-radius: 0; box-shadow: inset 0 0 0 2px #f7e6d5, inset 0 0 0 3px rgba(180, 82, 31, .35), 0 .04rem .16rem rgba(66, 55, 46, .16);
 }
 :root[data-ui-theme="ss-mendacium"] .btn { border-radius: 0; }
-:root[data-ui-theme="ss-mendacium"] .btn--primary { --ui-primary-face: #c8622a; background-color: var(--mint-500); color: #fff4ea; border-color: #42372e; }
+:root[data-ui-theme="ss-mendacium"] .btn--primary { --ui-primary-face: linear-gradient(#c8622a, #c8622a); background-color: #c8622a; color: #fff4ea; border-color: #42372e; }
 :root[data-ui-theme="ss-mendacium"] .modal { background: rgba(40, 40, 40, .35); }
 :root[data-ui-theme="ss-mendacium"] :is(.btn--secondary, .btn--ghost) { --btn-bg: #ffffff; --btn-bg-hover: #f2d9c1; }
 :root[data-ui-theme="ss-mendacium"] .section-label { color: #fff4ea; padding: .02rem .16rem; background: #42372e; box-shadow: inset 0 0 0 1px #c8622a; letter-spacing: .08em; }

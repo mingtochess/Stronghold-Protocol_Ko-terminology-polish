@@ -158,7 +158,7 @@ ${S} .hbond__board::before { inset: 14%; border-radius: 50%; background: radial-
 ${S} .hbond.is-full .hbond__board::before { background: radial-gradient(circle at 30% 35%, #e66a80 0 22%, transparent 23%), radial-gradient(circle at 70% 35%, #e66a80 0 22%, transparent 23%), radial-gradient(circle at 50% 68%, #e66a80 0 26%, transparent 27%), radial-gradient(circle, #d34a62 0 49%, transparent 50%); }
 ${S} .hbond__icon:not(.hbond__glyph) { filter: brightness(0) invert(.18) sepia(.5) hue-rotate(-30deg); }
 ${S} .hbond.is-full .hbond__icon:not(.hbond__glyph) { filter: brightness(0) invert(1); }
-${S} { --hb-ring-on: #d34a62; --hb-ring-off: rgba(176, 112, 126, .45); --hb-ring-full: #f2b53a; }`,
+${S} { --hb-ring-on: #c23a54; --hb-ring-off: rgba(140, 90, 100, .55); --hb-ring-full: #9e2a40; }`,
 
   // ---- 부정축재 ---------------------------------------------------------------------------------------------------------
   'ss-vultures': (S) => `

@@ -62,7 +62,7 @@
   box-shadow: 0 .06rem .3rem rgba(0, 0, 0, .5), inset 0 0 .3rem rgba(201, 178, 122, .06);
 }
 :root[data-ui-theme="is-fungi"] .btn { border-radius: .1rem; }
-:root[data-ui-theme="is-fungi"] .btn--primary { --ui-primary-face: #d8c48d; background-color: var(--mint-500); color: #15130c; border-color: #e7d49a; }
+:root[data-ui-theme="is-fungi"] .btn--primary { --ui-primary-face: linear-gradient(#d8c48d, #d8c48d); background-color: #d8c48d; color: #15130c; border-color: #e7d49a; }
 :root[data-ui-theme="is-fungi"] .modal { background: rgba(0, 0, 0, .6); }
 @keyframes ui-spore { from { opacity: .0; transform: translateY(0); } 50% { opacity: .9; } to { opacity: 0; transform: translateY(-.3rem); } }
 :root[data-ui-theme="is-fungi"] .btn:hover::before { content: ''; position: absolute; left: 50%; bottom: 0; width: 4px; height: 4px; border-radius: 50%; background: #e7d49a; animation: ui-spore 1.2s ease-out infinite; pointer-events: none; }

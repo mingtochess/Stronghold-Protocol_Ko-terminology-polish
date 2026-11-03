@@ -61,7 +61,7 @@
   box-shadow: 0 0 .3rem rgba(40, 90, 220, .18);
 }
 :root[data-ui-theme="is-mizuki"] .btn { border-radius: 0; letter-spacing: .12em; }
-:root[data-ui-theme="is-mizuki"] .btn--primary { --ui-primary-face: rgba(95, 212, 255, .9); background-color: var(--mint-500); color: #02101a; border-color: #bff3ff; }
+:root[data-ui-theme="is-mizuki"] .btn--primary { --ui-primary-face: linear-gradient(rgba(95, 212, 255, .9), rgba(95, 212, 255, .9)); background-color: rgba(95, 212, 255, .9); color: #02101a; border-color: #bff3ff; }
 :root[data-ui-theme="is-mizuki"] .modal { background: rgba(0, 0, 0, .6); }
 :root[data-ui-theme="is-mizuki"] .micro::before { content: '◆ '; color: #4b8cff; }
 :root[data-ui-theme="is-mizuki"] .btn:hover { box-shadow: 0 0 .16rem rgba(127, 247, 255, .5); }

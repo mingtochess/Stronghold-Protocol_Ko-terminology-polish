@@ -57,7 +57,7 @@
   background: rgba(36, 22, 16, .94); border: 1px solid #a07a48; border-radius: 0; box-shadow: inset 0 0 0 2px rgba(0, 0, 0, .6), inset 0 0 0 3px rgba(214, 166, 74, .28), 0 0 .2rem rgba(240, 200, 112, .14), 0 .08rem .3rem rgba(0, 0, 0, .6);
 }
 :root[data-ui-theme="f-victoria"] .btn { border-radius: 0; letter-spacing: .06em; }
-:root[data-ui-theme="f-victoria"] .btn--primary { --ui-primary-face: #e8be62; background-color: var(--mint-500); color: #1d1206; border-color: #f0c870; }
+:root[data-ui-theme="f-victoria"] .btn--primary { --ui-primary-face: linear-gradient(#e8be62, #e8be62); background-color: #e8be62; color: #1d1206; border-color: #f0c870; }
 :root[data-ui-theme="f-victoria"] .modal { background: rgba(0, 0, 0, .6); }
 :root[data-ui-theme="f-victoria"] .section-label { color: #f0c870; letter-spacing: .14em; }
 :root[data-ui-theme="f-victoria"] :is(.panel__title, .topbar__title) { color: #f6e0a8; text-shadow: 0 0 .08rem rgba(214, 166, 74, .45); }

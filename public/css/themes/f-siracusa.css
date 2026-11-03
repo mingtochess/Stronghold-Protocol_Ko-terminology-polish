@@ -61,7 +61,7 @@
   background: rgba(22, 22, 24, .97); border: 1px solid #5e5040; border-radius: 0;
 }
 :root[data-ui-theme="f-siracusa"] .btn { border-radius: 0; }
-:root[data-ui-theme="f-siracusa"] .btn--primary { --ui-primary-face: #8e1b22; background-color: var(--mint-500); color: #efe8da; border-color: #c8a25a; }
+:root[data-ui-theme="f-siracusa"] .btn--primary { --ui-primary-face: linear-gradient(#8e1b22, #8e1b22); background-color: #8e1b22; color: #efe8da; border-color: #c8a25a; }
 :root[data-ui-theme="f-siracusa"] .modal { background: rgba(0, 0, 0, .6); }
 /* ---- texture layer (tools/ui-theme-textures.mjs) */
 :root[data-ui-theme="f-siracusa"] { --th-accent: var(--mint-500); --th-accent-rgb: var(--accent-rgb); --th-accent-deep: var(--mint-800); --th-surf1: var(--surf-1); --th-line: var(--line-2); --th-ink-hi: var(--text-hi); --th-ink-md: var(--text-md); --th-ink-lo: var(--text-lo); }

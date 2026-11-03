@@ -70,7 +70,7 @@
   background: rgba(255, 255, 255, .96); border: 1px solid #b6c5e8; border-radius: 0; box-shadow: 0 .04rem .16rem rgba(20, 40, 110, .12);
 }
 :root[data-ui-theme="f-kjerag"] .btn { border-radius: 0; letter-spacing: .08em; }
-:root[data-ui-theme="f-kjerag"] .btn--primary { --ui-primary-face: #1f3fbf; background-color: var(--mint-500); color: #ffffff; border-color: #16308f; }
+:root[data-ui-theme="f-kjerag"] .btn--primary { --ui-primary-face: linear-gradient(#1f3fbf, #1f3fbf); background-color: #1f3fbf; color: #ffffff; border-color: #16308f; }
 :root[data-ui-theme="f-kjerag"] .modal { background: rgba(40, 40, 40, .35); }
 :root[data-ui-theme="f-kjerag"] :is(.btn--secondary, .btn--ghost) { --btn-bg: #ffffff; --btn-bg-hover: #f6f8fd; }
 :root[data-ui-theme="f-kjerag"] .micro::before { content: '◆ '; color: #d22c3c; }

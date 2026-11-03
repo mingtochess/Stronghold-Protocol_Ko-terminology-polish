@@ -381,7 +381,7 @@ ${sel} .dpanel {
   ${flatFill(t.panel)}
 }
 ${sel} .btn { ${t.btn} }
-${sel} .btn--primary { ${flatFill(t.primary).replace(/background:\s*([^;]+);/, '--ui-primary-face: $1; background-color: var(--mint-500);')} }
+${sel} .btn--primary { ${flatFill(t.primary).replace(/background:\s*([^;]+);/, (m, v) => /gradient|url\(/.test(v) ? `--ui-primary-face: ${v}; background-color: var(--mint-500);` : `--ui-primary-face: linear-gradient(${v}, ${v}); background-color: ${v};`)} }
 ${sel} .modal { background: ${t.light ? 'rgba(40, 40, 40, .35)' : 'rgba(0, 0, 0, .6)'}; }
 ${t.light ? `${sel} :is(.btn--secondary, .btn--ghost) { --btn-bg: #ffffff; --btn-bg-hover: ${t.p.bg[1]}; }\n` : ''}${t.extra ? t.extra + '\n' : ''}${textureCss(t.id, !!t.light)}${shapeCss(t.id)}${motifCss(t.id)}`;
 }

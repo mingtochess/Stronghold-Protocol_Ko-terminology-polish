@@ -60,7 +60,7 @@
   box-shadow: 0 .1rem .4rem rgba(0, 0, 0, .7);
 }
 :root[data-ui-theme="is-phantom"] .btn { border-radius: 0; font-family: var(--font-display); letter-spacing: .06em; }
-:root[data-ui-theme="is-phantom"] .btn--primary { --ui-primary-face: #b3171f; background-color: var(--mint-500); color: #f4f0ec; border-color: rgba(255, 255, 255, .7); }
+:root[data-ui-theme="is-phantom"] .btn--primary { --ui-primary-face: linear-gradient(#b3171f, #b3171f); background-color: #b3171f; color: #f4f0ec; border-color: rgba(255, 255, 255, .7); }
 :root[data-ui-theme="is-phantom"] .modal { background: rgba(0, 0, 0, .6); }
 :root[data-ui-theme="is-phantom"] .micro::before { content: '◆ '; color: #e3a33b; }
 :root[data-ui-theme="is-phantom"] :is(.panel, .modal__box, .bpop, .dpanel)::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .45), transparent); pointer-events: none; }

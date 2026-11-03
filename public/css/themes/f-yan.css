@@ -70,7 +70,7 @@
   background: rgba(248, 249, 246, .94); border: 0; border-radius: 0; box-shadow: inset 0 0 0 1px rgba(29, 31, 30, .12), 0 .04rem .2rem rgba(20, 24, 22, .12);
 }
 :root[data-ui-theme="f-yan"] .btn { border-radius: 0; letter-spacing: .1em; }
-:root[data-ui-theme="f-yan"] .btn--primary { --ui-primary-face: #1d1f1e; background-color: var(--mint-500); color: #f7f3ee; border-color: #1d1f1e; }
+:root[data-ui-theme="f-yan"] .btn--primary { --ui-primary-face: linear-gradient(#1d1f1e, #1d1f1e); background-color: #1d1f1e; color: #f7f3ee; border-color: #1d1f1e; }
 :root[data-ui-theme="f-yan"] .modal { background: rgba(40, 40, 40, .35); }
 :root[data-ui-theme="f-yan"] :is(.btn--secondary, .btn--ghost) { --btn-bg: #ffffff; --btn-bg-hover: #f1f3ef; }
 :root[data-ui-theme="f-yan"] .section-label { color: #151716; letter-spacing: .3em; padding-left: .2rem; background: linear-gradient(#a92d2a, #a92d2a) left center / .12rem .12rem no-repeat; }

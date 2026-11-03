@@ -58,7 +58,7 @@
   background: rgba(27, 16, 19, .96); border: 1px solid #6a4a36; border-radius: 0;
 }
 :root[data-ui-theme="f-leithanien"] .btn { border-radius: 0; }
-:root[data-ui-theme="f-leithanien"] .btn--primary { --ui-primary-face: #7a1f2b; background-color: var(--mint-500); color: #f3e9da; border-color: #c9a35a; }
+:root[data-ui-theme="f-leithanien"] .btn--primary { --ui-primary-face: linear-gradient(#7a1f2b, #7a1f2b); background-color: #7a1f2b; color: #f3e9da; border-color: #c9a35a; }
 :root[data-ui-theme="f-leithanien"] .modal { background: rgba(0, 0, 0, .6); }
 /* ---- texture layer (tools/ui-theme-textures.mjs) */
 :root[data-ui-theme="f-leithanien"] { --th-accent: var(--mint-500); --th-accent-rgb: var(--accent-rgb); --th-accent-deep: var(--mint-800); --th-surf1: var(--surf-1); --th-line: var(--line-2); --th-ink-hi: var(--text-hi); --th-ink-md: var(--text-md); --th-ink-lo: var(--text-lo); }

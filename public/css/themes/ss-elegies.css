@@ -57,7 +57,7 @@
   background: rgba(24, 31, 66, .92); border: 1px solid #a39274; border-radius: 0; box-shadow: inset 0 0 0 2px rgba(13, 16, 35, .8), inset 0 0 0 3px rgba(201, 174, 114, .25), 0 .06rem .28rem rgba(0, 0, 0, .55);
 }
 :root[data-ui-theme="ss-elegies"] .btn { border-radius: 0; }
-:root[data-ui-theme="ss-elegies"] .btn--primary { --ui-primary-face: #d8bd80; background-color: var(--mint-500); color: #14100a; border-color: #e8cf92; }
+:root[data-ui-theme="ss-elegies"] .btn--primary { --ui-primary-face: linear-gradient(#d8bd80, #d8bd80); background-color: #d8bd80; color: #14100a; border-color: #e8cf92; }
 :root[data-ui-theme="ss-elegies"] .modal { background: rgba(0, 0, 0, .6); }
 :root[data-ui-theme="ss-elegies"] .section-label { color: #e8cf92; letter-spacing: .1em; }
 :root[data-ui-theme="ss-elegies"] :is(.panel__title, .topbar__title) { color: #f1ecdf; }

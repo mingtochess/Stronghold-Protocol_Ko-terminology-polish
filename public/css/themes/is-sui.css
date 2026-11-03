@@ -72,7 +72,7 @@
   box-shadow: inset 0 0 0 3px #ffffff, inset 0 0 0 4px rgba(22, 127, 120, .35), 0 .05rem .2rem rgba(20, 60, 50, .12);
 }
 :root[data-ui-theme="is-sui"] .btn { border-radius: 0; }
-:root[data-ui-theme="is-sui"] .btn--primary { --ui-primary-face: #1c948c; background-color: var(--mint-500); color: #ffffff; border-color: #0c4a45; }
+:root[data-ui-theme="is-sui"] .btn--primary { --ui-primary-face: linear-gradient(#1c948c, #1c948c); background-color: #1c948c; color: #ffffff; border-color: #0c4a45; }
 :root[data-ui-theme="is-sui"] .modal { background: rgba(40, 40, 40, .35); }
 :root[data-ui-theme="is-sui"] :is(.btn--secondary, .btn--ghost) { --btn-bg: #ffffff; --btn-bg-hover: #f6f8f5; }
 :root[data-ui-theme="is-sui"] .btn--danger { background-color: #b8232b; }

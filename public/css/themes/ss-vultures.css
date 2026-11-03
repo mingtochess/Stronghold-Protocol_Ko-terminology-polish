@@ -57,7 +57,7 @@
   background: rgba(26, 40, 45, .94); border: 1px solid #3c4d53; border-radius: 0; box-shadow: inset 0 -2px 0 rgba(212, 217, 58, .5), 0 .06rem .26rem rgba(0, 0, 0, .5);
 }
 :root[data-ui-theme="ss-vultures"] .btn { border-radius: 0; }
-:root[data-ui-theme="ss-vultures"] .btn--primary { --ui-primary-face: #d4d93a; background-color: var(--mint-500); color: #141605; border-color: #eef05a; }
+:root[data-ui-theme="ss-vultures"] .btn--primary { --ui-primary-face: linear-gradient(#d4d93a, #d4d93a); background-color: #d4d93a; color: #141605; border-color: #eef05a; }
 :root[data-ui-theme="ss-vultures"] .modal { background: rgba(0, 0, 0, .6); }
 :root[data-ui-theme="ss-vultures"] .section-label { color: #eef1ef; padding: .02rem .12rem; background: linear-gradient(#d4d93a, #d4d93a) bottom / 100% 3px no-repeat, #1f2b2f; letter-spacing: .06em; }
 :root[data-ui-theme="ss-vultures"] :is(.panel__title, .topbar__title) { letter-spacing: .04em; }

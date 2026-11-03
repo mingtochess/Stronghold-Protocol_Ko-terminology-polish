@@ -70,7 +70,7 @@
   background: #fff8f9; border-radius: .1rem;
 }
 :root[data-ui-theme="ss-adele"] .btn { border-radius: 99px; }
-:root[data-ui-theme="ss-adele"] .btn--primary { --ui-primary-face: #d34a62; background-color: var(--mint-500); color: #ffffff; border-color: #b83a52; }
+:root[data-ui-theme="ss-adele"] .btn--primary { --ui-primary-face: linear-gradient(#d34a62, #d34a62); background-color: #d34a62; color: #ffffff; border-color: #b83a52; }
 :root[data-ui-theme="ss-adele"] .modal { background: rgba(40, 40, 40, .35); }
 :root[data-ui-theme="ss-adele"] :is(.btn--secondary, .btn--ghost) { --btn-bg: #ffffff; --btn-bg-hover: #fdf0f2; }
 /* ---- texture layer (tools/ui-theme-textures.mjs) */
@@ -117,7 +117,7 @@
 :root[data-ui-theme="ss-adele"] .hbond.is-full .hbond__board::before { background: radial-gradient(circle at 30% 35%, #e66a80 0 22%, transparent 23%), radial-gradient(circle at 70% 35%, #e66a80 0 22%, transparent 23%), radial-gradient(circle at 50% 68%, #e66a80 0 26%, transparent 27%), radial-gradient(circle, #d34a62 0 49%, transparent 50%); }
 :root[data-ui-theme="ss-adele"] .hbond__icon:not(.hbond__glyph) { filter: brightness(0) invert(.18) sepia(.5) hue-rotate(-30deg); }
 :root[data-ui-theme="ss-adele"] .hbond.is-full .hbond__icon:not(.hbond__glyph) { filter: brightness(0) invert(1); }
-:root[data-ui-theme="ss-adele"] { --hb-ring-on: #d34a62; --hb-ring-off: rgba(176, 112, 126, .45); --hb-ring-full: #f2b53a; }
+:root[data-ui-theme="ss-adele"] { --hb-ring-on: #c23a54; --hb-ring-off: rgba(140, 90, 100, .55); --hb-ring-full: #9e2a40; }
 :root[data-ui-theme="ss-adele"] .bond:not(.hbond) .bond__core::before { content: ''; position: absolute; pointer-events: none; }
 :root[data-ui-theme="ss-adele"] .bond:not(.hbond) .bond__core::before { inset: 14%; border-radius: 50%; background: radial-gradient(circle at 30% 35%, #fff 0 22%, transparent 23%), radial-gradient(circle at 70% 35%, #fff 0 22%, transparent 23%), radial-gradient(circle at 50% 68%, #fff 0 26%, transparent 27%), radial-gradient(circle, #fff 0 40%, #f2d6da 41% 49%, transparent 50%); }
 :root[data-ui-theme="ss-adele"] .bond:not(.hbond).is-active .bond__core::before { background: radial-gradient(circle at 30% 35%, #e66a80 0 22%, transparent 23%), radial-gradient(circle at 70% 35%, #e66a80 0 22%, transparent 23%), radial-gradient(circle at 50% 68%, #e66a80 0 26%, transparent 27%), radial-gradient(circle, #d34a62 0 49%, transparent 50%); }

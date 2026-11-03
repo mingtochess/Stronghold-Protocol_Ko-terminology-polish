@@ -61,7 +61,7 @@
   box-shadow: inset 0 1px 0 rgba(122, 240, 208, .12), 0 .08rem .3rem rgba(0, 0, 0, .55);
 }
 :root[data-ui-theme="is-frost"] .btn { border-radius: 0; letter-spacing: .14em; }
-:root[data-ui-theme="is-frost"] .btn--primary { --ui-primary-face: #0e8fa8; background-color: var(--mint-500); color: #021014; border-color: #8ff4e6; }
+:root[data-ui-theme="is-frost"] .btn--primary { --ui-primary-face: linear-gradient(#0e8fa8, #0e8fa8); background-color: #0e8fa8; color: #021014; border-color: #8ff4e6; }
 :root[data-ui-theme="is-frost"] .modal { background: rgba(0, 0, 0, .6); }
 :root[data-ui-theme="is-frost"] .micro::before { content: '◇ '; color: #7fd6ff; }
 :root[data-ui-theme="is-frost"] .countdown { filter: drop-shadow(0 0 4px rgba(31, 196, 214, .5)); }

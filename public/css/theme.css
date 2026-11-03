@@ -502,3 +502,7 @@ select option, select optgroup { background-color: var(--bg-2, var(--surf-2, #11
 :root[data-ui-theme] .btn--primary .icon { color: inherit; }
 /* the chat buttons' default mint ink gives way to the theme's */
 :root[data-ui-theme] :is(.game-chat__faction-toggle, .game-chat__settings) { color: var(--text-hi); }
+/* light themes: accent-coloured small text / icons on the grey chips read in the deep accent */
+:root[data-ui-theme][data-ui-light] :is(.ping__value, .ping__icon, .me-chip__stats .icon, .t-mint, .title-en__b, .chip .icon) { color: var(--mint-700) !important; }
+:root[data-ui-theme] .lo-title-tabs__separator { color: var(--text-lo); }
+:root[data-ui-theme] .hbond .hbond__num { -webkit-text-stroke: 3px #000; paint-order: stroke fill; }

@@ -70,7 +70,7 @@
   background: rgba(255, 255, 255, .97); border: 2px solid #fcce46; border-radius: .06rem; box-shadow: 0 .05rem 0 #e6b52a, 0 .06rem .2rem rgba(60, 50, 20, .12);
 }
 :root[data-ui-theme="f-sargon"] .btn { border-radius: .04rem; font-weight: 800; }
-:root[data-ui-theme="f-sargon"] .btn--primary { --ui-primary-face: #fcd650; background-color: var(--mint-500); color: #24241f; border-color: #c9a417; }
+:root[data-ui-theme="f-sargon"] .btn--primary { --ui-primary-face: linear-gradient(#fcd650, #fcd650); background-color: #fcd650; color: #24241f; border-color: #c9a417; }
 :root[data-ui-theme="f-sargon"] .modal { background: rgba(40, 40, 40, .35); }
 :root[data-ui-theme="f-sargon"] :is(.btn--secondary, .btn--ghost) { --btn-bg: #ffffff; --btn-bg-hover: #fcfcfd; }
 :root[data-ui-theme="f-sargon"] .section-label { color: #24241f; padding: .02rem .16rem; background: #fcce46; box-shadow: .03rem .03rem 0 #2f7fd0; transform: skewX(-8deg); letter-spacing: .04em; }

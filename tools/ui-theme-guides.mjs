@@ -165,7 +165,7 @@ export const GUIDE_THEMES = [
     id: 'ss-lonetrail', name: '론 트레일', group: 'side', light: true,
     // Rhine Lab Pioneer Project: the key art's charcoal halftone with three retro stripes (rust red, mustard, teal) and
     // the event's home theme — cream cards, signal orange, charcoal bars, orange circle icons, black geometric type
-    p: { bg: ['#ece7de', '#f5f1ea', '#fbf9f5', '#e2dcd1', '#d3ccbf'], line: ['#d6cfc3', '#a59d91', '#3a3836'], accent: '#e8602c', glow: '#f07a42', accent2: '#5fa79a', text: ['#1d1b19', '#3a3734', '#5c5852', '#6b665f'], onAccent: '#ffffff' },
+    p: { bg: ['#ece7de', '#f5f1ea', '#fbf9f5', '#e2dcd1', '#d3ccbf'], line: ['#d6cfc3', '#a59d91', '#3a3836'], accent: '#cf4f1c', glow: '#f07a42', accent2: '#5fa79a', text: ['#1d1b19', '#3a3734', '#5c5852', '#6b665f'], onAccent: '#ffffff' },
     body: `background-color: var(--bg-0);
   background-image: linear-gradient(90deg, transparent 0 calc(100% - .9rem), #a8402e calc(100% - .9rem) calc(100% - .66rem), #e3a23d calc(100% - .66rem) calc(100% - .42rem), #6fb0a3 calc(100% - .42rem) calc(100% - .18rem), transparent calc(100% - .18rem)),
     radial-gradient(circle, rgba(29, 27, 25, .09) 1px, transparent 1.6px), linear-gradient(180deg, #f1ece4, #e6e0d6);
