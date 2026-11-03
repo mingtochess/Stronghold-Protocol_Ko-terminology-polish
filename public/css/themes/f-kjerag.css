@@ -126,23 +126,17 @@
 :root[data-ui-theme="f-kjerag"] .bond:not(.hbond) .bond__core::before { inset: 12%; clip-path: polygon(50% 0, 93% 25%, 93% 75%, 50% 100%, 7% 75%, 7% 25%); background: linear-gradient(180deg, #2b3c9f, #16206a); box-shadow: inset 0 0 0 calc(3 * var(--u)) #e9eefc; }
 :root[data-ui-theme="f-kjerag"] .bond:not(.hbond).is-active .bond__core::before { background: linear-gradient(180deg, #ffffff, #c9d4f7); }
 :root[data-ui-theme="f-kjerag"] .bond:not(.hbond).is-active .bond__icon:not(.hbond__glyph) { filter: brightness(0) invert(.12) sepia(1) hue-rotate(190deg) saturate(4); }
-:root[data-ui-theme="f-kjerag"] .hbond__board::after { content: ''; position: absolute; inset: 4%; border-radius: 50%; box-sizing: border-box; pointer-events: none; z-index: 1;
-  background: conic-gradient(var(--hb-ring-on, var(--mint-400)) 0 calc(var(--bt, 0) * 1turn / var(--bn, 1)), var(--hb-ring-off, rgba(140, 140, 140, .6)) 0);
-  filter: drop-shadow(0 0 1px rgba(0, 0, 0, .9));
-  -webkit-mask: repeating-conic-gradient(#000 0 calc(1turn / var(--bn, 1) - var(--bgap, 0deg)), transparent 0 calc(1turn / var(--bn, 1))), linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  mask: repeating-conic-gradient(#000 0 calc(1turn / var(--bn, 1) - var(--bgap, 0deg)), transparent 0 calc(1turn / var(--bn, 1))), linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: source-in, xor; mask-composite: intersect, exclude; padding: var(--hb-ring-w, calc(6 * var(--u))); }
-:root[data-ui-theme="f-kjerag"] .bond:not(.hbond) .bond__core::after { content: ''; position: absolute; inset: 4%; border-radius: 50%; box-sizing: border-box; pointer-events: none; z-index: 1;
-  background: conic-gradient(var(--hb-ring-on, var(--mint-400)) 0 calc(var(--bt, 0) * 1turn / var(--bn, 1)), var(--hb-ring-off, rgba(140, 140, 140, .6)) 0);
-  filter: drop-shadow(0 0 1px rgba(0, 0, 0, .9));
-  -webkit-mask: repeating-conic-gradient(#000 0 calc(1turn / var(--bn, 1) - var(--bgap, 0deg)), transparent 0 calc(1turn / var(--bn, 1))), linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  mask: repeating-conic-gradient(#000 0 calc(1turn / var(--bn, 1) - var(--bgap, 0deg)), transparent 0 calc(1turn / var(--bn, 1))), linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: source-in, xor; mask-composite: intersect, exclude; padding: calc(var(--disc) * .08); }
-:root[data-ui-theme="f-kjerag"] .hbond.is-full .hbond__board::after, :root[data-ui-theme="f-kjerag"] .bond:not(.hbond).is-active .bond__core::after { --hb-ring-on: var(--hb-ring-full, var(--mint-400)); }
 :root[data-ui-theme="f-kjerag"] .bond:not(.hbond) .bond__ring { display: none; }
 :root[data-ui-theme="f-kjerag"] .bond:not(.hbond) .bond__core { position: relative; isolation: isolate; background: none; box-shadow: none; border-radius: 0; overflow: visible; }
 :root[data-ui-theme="f-kjerag"] .bond:not(.hbond) .bond__core::before { content: ''; position: absolute; z-index: -1; pointer-events: none; }
 :root[data-ui-theme="f-kjerag"] .bond:not(.hbond).is-disabled .bond__core { filter: grayscale(1) brightness(.6); }
+:root[data-ui-theme="f-kjerag"] .hbond__board::before, :root[data-ui-theme="f-kjerag"] .bond:not(.hbond) .bond__core::before { inset: 12%; border-radius: 0; transform: none; clip-path: polygon(50% 0%, 93% 25%, 93% 75%, 50% 100%, 7% 75%, 7% 25%); }
+:root[data-ui-theme="f-kjerag"] .bond-ring { display: block; position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; z-index: 1; }
+:root[data-ui-theme="f-kjerag"] .bond:not(.hbond) .bond-ring { inset: calc(var(--disc) * -.04); width: calc(100% + var(--disc) * .08); height: calc(100% + var(--disc) * .08); }
+:root[data-ui-theme="f-kjerag"] .bond-ring path { d: path("M50 4L89.56 27L89.56 73L50 96L10.44 73L10.44 27Z"); fill: none; stroke-width: 6.5; stroke-linejoin: round; stroke: var(--hb-ring-off, rgba(140, 140, 140, .6)); filter: drop-shadow(0 0 1px rgba(0, 0, 0, .85)); }
+:root[data-ui-theme="f-kjerag"] .bond-ring path.on { stroke: var(--hb-ring-on, var(--mint-400)); }
+:root[data-ui-theme="f-kjerag"] .hbond.is-full .bond-ring path.on, :root[data-ui-theme="f-kjerag"] .bond:not(.hbond).is-active .bond-ring path.on { stroke: var(--hb-ring-full, var(--hb-ring-on, var(--mint-400))); }
+:root[data-ui-theme="f-kjerag"] .hbond__icon { left: 26%; top: 26%; width: 48%; height: 48%; }
 :root[data-ui-theme="f-kjerag"] { --hb-band-bg: #ffffff; --hb-band-ink: #16206a; --hb-band-line: #9aa8e6; --hb-band-clip: polygon(0 0, 100% 0, 90% 50%, 100% 100%, 0 100%, 10% 50%); }
 :root[data-ui-theme="f-kjerag"] .section-label :is(.section-label__idx, .micro) { color: inherit; border-color: currentColor; opacity: .85; }
 :root[data-ui-theme="f-kjerag"] body::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none; background: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%2760%27%20height%3D%2760%27%20viewBox%3D%270%200%2060%2060%27%3E%3Cg%20stroke%3D%27%23ffffff%27%20stroke-opacity%3D%27.16%27%20stroke-width%3D%271%27%3E%3Cpath%20d%3D%27M30%2018V42M20%2024L40%2036M40%2024L20%2036M30%2018l-3%203M30%2018l3%203M30%2042l-3-3M30%2042l3-3%27%2F%3E%3C%2Fg%3E%3Ccircle%20cx%3D%278%27%20cy%3D%2750%27%20r%3D%271%27%20fill%3D%27%23fff%27%20fill-opacity%3D%27.3%27%2F%3E%3C%2Fsvg%3E") 0 0 / 60px 60px repeat; }

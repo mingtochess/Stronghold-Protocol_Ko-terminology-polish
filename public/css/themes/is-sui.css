@@ -136,23 +136,17 @@
 :root[data-ui-theme="is-sui"] .bond:not(.hbond).is-active .bond__core::before { background: radial-gradient(circle, #1a9a91 55%, #0f5e58 56% 63%, #f4f8f5 64% 68%, #b8232b 69%); }
 :root[data-ui-theme="is-sui"] .bond:not(.hbond) .bond__icon { filter: brightness(0) invert(.2) sepia(.3) hue-rotate(120deg); }
 :root[data-ui-theme="is-sui"] .bond:not(.hbond).is-active .bond__icon:not(.hbond__glyph) { filter: brightness(0) invert(1); }
-:root[data-ui-theme="is-sui"] .hbond__board::after { content: ''; position: absolute; inset: 4%; border-radius: 50%; box-sizing: border-box; pointer-events: none; z-index: 1;
-  background: conic-gradient(var(--hb-ring-on, var(--mint-400)) 0 calc(var(--bt, 0) * 1turn / var(--bn, 1)), var(--hb-ring-off, rgba(140, 140, 140, .6)) 0);
-  filter: drop-shadow(0 0 1px rgba(0, 0, 0, .9));
-  -webkit-mask: repeating-conic-gradient(#000 0 calc(1turn / var(--bn, 1) - var(--bgap, 0deg)), transparent 0 calc(1turn / var(--bn, 1))), linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  mask: repeating-conic-gradient(#000 0 calc(1turn / var(--bn, 1) - var(--bgap, 0deg)), transparent 0 calc(1turn / var(--bn, 1))), linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: source-in, xor; mask-composite: intersect, exclude; padding: var(--hb-ring-w, calc(6 * var(--u))); }
-:root[data-ui-theme="is-sui"] .bond:not(.hbond) .bond__core::after { content: ''; position: absolute; inset: 4%; border-radius: 50%; box-sizing: border-box; pointer-events: none; z-index: 1;
-  background: conic-gradient(var(--hb-ring-on, var(--mint-400)) 0 calc(var(--bt, 0) * 1turn / var(--bn, 1)), var(--hb-ring-off, rgba(140, 140, 140, .6)) 0);
-  filter: drop-shadow(0 0 1px rgba(0, 0, 0, .9));
-  -webkit-mask: repeating-conic-gradient(#000 0 calc(1turn / var(--bn, 1) - var(--bgap, 0deg)), transparent 0 calc(1turn / var(--bn, 1))), linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  mask: repeating-conic-gradient(#000 0 calc(1turn / var(--bn, 1) - var(--bgap, 0deg)), transparent 0 calc(1turn / var(--bn, 1))), linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: source-in, xor; mask-composite: intersect, exclude; padding: calc(var(--disc) * .08); }
-:root[data-ui-theme="is-sui"] .hbond.is-full .hbond__board::after, :root[data-ui-theme="is-sui"] .bond:not(.hbond).is-active .bond__core::after { --hb-ring-on: var(--hb-ring-full, var(--mint-400)); }
 :root[data-ui-theme="is-sui"] .bond:not(.hbond) .bond__ring { display: none; }
 :root[data-ui-theme="is-sui"] .bond:not(.hbond) .bond__core { position: relative; isolation: isolate; background: none; box-shadow: none; border-radius: 0; overflow: visible; }
 :root[data-ui-theme="is-sui"] .bond:not(.hbond) .bond__core::before { content: ''; position: absolute; z-index: -1; pointer-events: none; }
 :root[data-ui-theme="is-sui"] .bond:not(.hbond).is-disabled .bond__core { filter: grayscale(1) brightness(.6); }
+:root[data-ui-theme="is-sui"] .hbond__board::before, :root[data-ui-theme="is-sui"] .bond:not(.hbond) .bond__core::before { inset: 12%; border-radius: 50%; clip-path: none; transform: none; }
+:root[data-ui-theme="is-sui"] .bond-ring { display: block; position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; z-index: 1; }
+:root[data-ui-theme="is-sui"] .bond:not(.hbond) .bond-ring { inset: calc(var(--disc) * -.04); width: calc(100% + var(--disc) * .08); height: calc(100% + var(--disc) * .08); }
+:root[data-ui-theme="is-sui"] .bond-ring path { d: path("M50 4A46 46 0 1 1 49.99 4Z"); fill: none; stroke-width: 6.5; stroke-linejoin: round; stroke: var(--hb-ring-off, rgba(140, 140, 140, .6)); filter: drop-shadow(0 0 1px rgba(0, 0, 0, .85)); }
+:root[data-ui-theme="is-sui"] .bond-ring path.on { stroke: var(--hb-ring-on, var(--mint-400)); }
+:root[data-ui-theme="is-sui"] .hbond.is-full .bond-ring path.on, :root[data-ui-theme="is-sui"] .bond:not(.hbond).is-active .bond-ring path.on { stroke: var(--hb-ring-full, var(--hb-ring-on, var(--mint-400))); }
+:root[data-ui-theme="is-sui"] .hbond__icon { left: 26%; top: 26%; width: 48%; height: 48%; }
 :root[data-ui-theme="is-sui"] { --hb-band-bg: #167f78; --hb-band-ink: #fff; --hb-band-line: #b8232b; }
 :root[data-ui-theme="is-sui"] .section-label :is(.section-label__idx, .micro) { color: inherit; border-color: currentColor; opacity: .85; }
 :root[data-ui-theme="is-sui"] body::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none; background: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%2760%27%20height%3D%2760%27%20viewBox%3D%270%200%2060%2060%27%3E%3Cg%20fill%3D%27none%27%20stroke%3D%27%23167f78%27%20stroke-opacity%3D%27.12%27%3E%3Crect%20x%3D%275%27%20y%3D%275%27%20width%3D%2750%27%20height%3D%2750%27%2F%3E%3Cpath%20d%3D%27M5%2030H55M30%205V55M5%205L18%2018M55%205L42%2018M5%2055L18%2042M55%2055L42%2042%27%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E") 0 0 / 60px 60px repeat; }

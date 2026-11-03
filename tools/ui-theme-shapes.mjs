@@ -336,6 +336,46 @@ ${S} .bond:not(.hbond) .bond__core { position: relative; isolation: isolate; bac
 ${S} .bond:not(.hbond) .bond__core::before { content: ''; position: absolute; z-index: -1; pointer-events: none; }
 ${S} .bond:not(.hbond).is-disabled .bond__core { filter: grayscale(1) brightness(.6); }`;
 }
+
+// ---- bond marker geometry: one outline per theme (a circle, or a polygon in a 0–100 box), centred. The marker fills
+// it at 76 % of the board (inset 12 %); the members ring (components.js BondRing) strokes the same outline at 92 %.
+const SQ = (d) => { const r = d * Math.PI / 180, c = Math.cos(r), sn = Math.sin(r); return [[0, 0], [100, 0], [100, 100], [0, 100]].map(([x, y]) => [50 + (x - 50) * c * .86 - (y - 50) * sn * .86, 50 + (x - 50) * sn * .86 + (y - 50) * c * .86]); };
+const GEOM = {
+  cyber: [[0, 0], [75, 0], [100, 25], [100, 100], [25, 100], [0, 75]],
+  'is-fungi': [[50, 4], [74, 9], [92, 24], [100, 46], [100, 64], [74, 70], [70, 100], [30, 100], [26, 70], [0, 64], [0, 46], [8, 24], [26, 9]],
+  'is-phantom': [[50, 0], [100, 50], [50, 100], [0, 50]],
+  'is-mizuki': 'circle', 'is-sui': 'circle', 'is-blackflow': 'circle',
+  'is-frost': [[25, 3], [75, 3], [100, 50], [75, 97], [25, 97], [0, 50]],
+  'is-sarkaz': [[50, 0], [100, 28], [88, 100], [12, 100], [0, 28]],
+  'f-yan': 'circle', 'f-aegir': 'circle', 'f-siracusa': 'circle',
+  'f-sargon': SQ(-8),
+  'f-victoria': [[50, 0], [100, 50], [50, 100], [0, 50]],
+  'f-kjerag': [[50, 0], [93, 25], [93, 75], [50, 100], [7, 75], [7, 25]],
+  'f-laterano': [[30, 0], [70, 0], [100, 30], [100, 70], [70, 100], [30, 100], [0, 70], [0, 30]],
+  'f-kazimierz': [[12, 0], [88, 0], [100, 12], [100, 88], [88, 100], [12, 100], [0, 88], [0, 12]],
+  'f-ursus': [[3, 6], [30, 0], [62, 5], [97, 0], [100, 38], [97, 100], [62, 95], [30, 100], [0, 96], [3, 52]],
+  'f-leithanien': [[50, 0], [72, 8], [88, 24], [98, 44], [100, 62], [100, 100], [0, 100], [0, 62], [2, 44], [12, 24], [28, 8]],
+  'ss-adele': 'circle', 'ss-lonetrail': 'circle', 'ss-mendacium': 'circle', 'ss-unrealized': 'circle', 'ss-elegies': 'circle',
+  'ss-vultures': [[25, 3], [75, 3], [100, 50], [75, 97], [25, 97], [0, 50]],
+};
+const f1 = (v) => +v.toFixed(2);
+function markerRules(id, S) {
+  const g = GEOM[id];
+  if (!g) return '';
+  const at = (k, o) => (p) => [f1(o + p[0] * k), f1(o + p[1] * k)];
+  // the ring path starts at the top of the outline (its first point / 12 o'clock) and runs clockwise
+  const ring = g === 'circle' ? 'M50 4A46 46 0 1 1 49.99 4Z' : 'M' + g.map(at(.92, 4)).map((p) => p.join(' ')).join('L') + 'Z';
+  const mk = g === 'circle' ? 'inset: 12%; border-radius: 50%; clip-path: none; transform: none;'
+    : `inset: 12%; border-radius: 0; transform: none; clip-path: polygon(${g.map((p) => `${f1(p[0])}% ${f1(p[1])}%`).join(', ')});`;
+  return `${S} .hbond__board::before, ${S} .bond:not(.hbond) .bond__core::before { ${mk} }
+${S} .bond-ring { display: block; position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; z-index: 1; }
+${S} .bond:not(.hbond) .bond-ring { inset: calc(var(--disc) * -.04); width: calc(100% + var(--disc) * .08); height: calc(100% + var(--disc) * .08); }
+${S} .bond-ring path { d: path("${ring}"); fill: none; stroke-width: 6.5; stroke-linejoin: round; stroke: var(--hb-ring-off, rgba(140, 140, 140, .6)); filter: drop-shadow(0 0 1px rgba(0, 0, 0, .85)); }
+${S} .bond-ring path.on { stroke: var(--hb-ring-on, var(--mint-400)); }
+${S} .hbond.is-full .bond-ring path.on, ${S} .bond:not(.hbond).is-active .bond-ring path.on { stroke: var(--hb-ring-full, var(--hb-ring-on, var(--mint-400))); }
+${S} .hbond__icon { left: 26%; top: 26%; width: 48%; height: 48%; }`;
+}
+
 export function shapeCss(id) {
   const f = SHAPES[id];
   const S = `:root[data-ui-theme="${id}"]`;
@@ -343,7 +383,8 @@ export function shapeCss(id) {
   const body = f(S);
   return `/* ---- shape layer (tools/ui-theme-shapes.mjs) */${body}
 ${discRules(body)}
-${ringRules(S, body)}
+${ringRules(S, body).split('\n').filter((l) => !/::after|::after,|^\s+(background|-webkit-mask|mask|filter|-webkit-mask-composite)/.test(l)).join('\n')}
+${markerRules(id, S)}
 ${BAND[id] ? `${S} { ${BAND[id]} }\n` : ''}${ACCENT_INK[id] ? `${S} :is(.micro--mint, .countdown__label, .gm__bond-toggle, .funds__collapse, .funds__collapse *) { color: ${ACCENT_INK[id]}; }\n` : ''}${S} .section-label :is(.section-label__idx, .micro) { color: inherit; border-color: currentColor; opacity: .85; }
 `;
 }

@@ -108,23 +108,17 @@
 :root[data-ui-theme="ss-vultures"] .bond:not(.hbond) .bond__core::before { content: ''; position: absolute; pointer-events: none; }
 :root[data-ui-theme="ss-vultures"] .bond:not(.hbond) .bond__core::before { inset: 12%; clip-path: polygon(25% 3%, 75% 3%, 100% 50%, 75% 97%, 25% 97%, 0 50%); background: repeating-linear-gradient(-45deg, #2c3a3f 0 calc(5 * var(--u)), #1a2427 calc(5 * var(--u)) calc(10 * var(--u))); }
 :root[data-ui-theme="ss-vultures"] .bond:not(.hbond).is-active .bond__core::before { background: repeating-linear-gradient(-45deg, #d4d93a 0 calc(6 * var(--u)), #b9be22 calc(6 * var(--u)) calc(12 * var(--u))); }
-:root[data-ui-theme="ss-vultures"] .hbond__board::after { content: ''; position: absolute; inset: 4%; border-radius: 50%; box-sizing: border-box; pointer-events: none; z-index: 1;
-  background: conic-gradient(var(--hb-ring-on, var(--mint-400)) 0 calc(var(--bt, 0) * 1turn / var(--bn, 1)), var(--hb-ring-off, rgba(140, 140, 140, .6)) 0);
-  filter: drop-shadow(0 0 1px rgba(0, 0, 0, .9));
-  -webkit-mask: repeating-conic-gradient(#000 0 calc(1turn / var(--bn, 1) - var(--bgap, 0deg)), transparent 0 calc(1turn / var(--bn, 1))), linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  mask: repeating-conic-gradient(#000 0 calc(1turn / var(--bn, 1) - var(--bgap, 0deg)), transparent 0 calc(1turn / var(--bn, 1))), linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: source-in, xor; mask-composite: intersect, exclude; padding: var(--hb-ring-w, calc(6 * var(--u))); }
-:root[data-ui-theme="ss-vultures"] .bond:not(.hbond) .bond__core::after { content: ''; position: absolute; inset: 4%; border-radius: 50%; box-sizing: border-box; pointer-events: none; z-index: 1;
-  background: conic-gradient(var(--hb-ring-on, var(--mint-400)) 0 calc(var(--bt, 0) * 1turn / var(--bn, 1)), var(--hb-ring-off, rgba(140, 140, 140, .6)) 0);
-  filter: drop-shadow(0 0 1px rgba(0, 0, 0, .9));
-  -webkit-mask: repeating-conic-gradient(#000 0 calc(1turn / var(--bn, 1) - var(--bgap, 0deg)), transparent 0 calc(1turn / var(--bn, 1))), linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  mask: repeating-conic-gradient(#000 0 calc(1turn / var(--bn, 1) - var(--bgap, 0deg)), transparent 0 calc(1turn / var(--bn, 1))), linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: source-in, xor; mask-composite: intersect, exclude; padding: calc(var(--disc) * .08); }
-:root[data-ui-theme="ss-vultures"] .hbond.is-full .hbond__board::after, :root[data-ui-theme="ss-vultures"] .bond:not(.hbond).is-active .bond__core::after { --hb-ring-on: var(--hb-ring-full, var(--mint-400)); }
 :root[data-ui-theme="ss-vultures"] .bond:not(.hbond) .bond__ring { display: none; }
 :root[data-ui-theme="ss-vultures"] .bond:not(.hbond) .bond__core { position: relative; isolation: isolate; background: none; box-shadow: none; border-radius: 0; overflow: visible; }
 :root[data-ui-theme="ss-vultures"] .bond:not(.hbond) .bond__core::before { content: ''; position: absolute; z-index: -1; pointer-events: none; }
 :root[data-ui-theme="ss-vultures"] .bond:not(.hbond).is-disabled .bond__core { filter: grayscale(1) brightness(.6); }
+:root[data-ui-theme="ss-vultures"] .hbond__board::before, :root[data-ui-theme="ss-vultures"] .bond:not(.hbond) .bond__core::before { inset: 12%; border-radius: 0; transform: none; clip-path: polygon(25% 3%, 75% 3%, 100% 50%, 75% 97%, 25% 97%, 0% 50%); }
+:root[data-ui-theme="ss-vultures"] .bond-ring { display: block; position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; z-index: 1; }
+:root[data-ui-theme="ss-vultures"] .bond:not(.hbond) .bond-ring { inset: calc(var(--disc) * -.04); width: calc(100% + var(--disc) * .08); height: calc(100% + var(--disc) * .08); }
+:root[data-ui-theme="ss-vultures"] .bond-ring path { d: path("M27 6.76L73 6.76L96 50L73 93.24L27 93.24L4 50Z"); fill: none; stroke-width: 6.5; stroke-linejoin: round; stroke: var(--hb-ring-off, rgba(140, 140, 140, .6)); filter: drop-shadow(0 0 1px rgba(0, 0, 0, .85)); }
+:root[data-ui-theme="ss-vultures"] .bond-ring path.on { stroke: var(--hb-ring-on, var(--mint-400)); }
+:root[data-ui-theme="ss-vultures"] .hbond.is-full .bond-ring path.on, :root[data-ui-theme="ss-vultures"] .bond:not(.hbond).is-active .bond-ring path.on { stroke: var(--hb-ring-full, var(--hb-ring-on, var(--mint-400))); }
+:root[data-ui-theme="ss-vultures"] .hbond__icon { left: 26%; top: 26%; width: 48%; height: 48%; }
 :root[data-ui-theme="ss-vultures"] { --hb-band-bg: #182226; --hb-band-ink: #d4d93a; --hb-band-line: #d4d93a; }
 :root[data-ui-theme="ss-vultures"] .section-label :is(.section-label__idx, .micro) { color: inherit; border-color: currentColor; opacity: .85; }
 :root[data-ui-theme="ss-vultures"] body::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none; background: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%2740%27%20height%3D%2740%27%20viewBox%3D%270%200%2040%2040%27%3E%3Cpath%20d%3D%27M0%2040L40%200M-10%2010L10%20-10M30%2050L50%2030%27%20stroke%3D%27%23d4d93a%27%20stroke-opacity%3D%27.06%27%20stroke-width%3D%276%27%2F%3E%3C%2Fsvg%3E") 0 0 / 40px 40px repeat; }

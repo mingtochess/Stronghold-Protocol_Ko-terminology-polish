@@ -319,6 +319,7 @@
   color: inherit;
   font: inherit;
 }
+.bond-ring { display: none; }
 .bond__disc { position: relative; width: var(--disc); height: var(--disc); display: grid; place-items: center; }
 .bond__ring {
   position: absolute;
