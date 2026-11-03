@@ -296,7 +296,8 @@ export function textureCss(id, light = false) {
       const n = noise(m.noise);
       out.push(`${s} :is(.panel, .modal__box)::before { background: ${n}, ${x.grain}; background-size: ${m.noise.size || '240px'} auto, auto; }`);
       out.push(`${s} body { background-image: ${n}, var(--ui-body-art, none); }`);
-      out.push(`${s} :is(.mode-card__bg, .scard__bg) { background: ${n}, ${x.card}; }`);
+      out.push(`${s} .mode-card__bg { background: ${n}, ${x.card}; }`);
+      out.push(`${s} .scard__bg { background: ${n}, ${x.card}, linear-gradient(180deg, ${light ? '#3a3e42, #1d2023' : 'var(--bg-3), var(--bg-1)'}); }`);
     }
     if (m.frame) out.push(`${s} :is(.panel, .modal__box, .mode-card, .seat, .gtop__center) { box-shadow: ${m.frame}; }`);
     if (m.edge) out.push(`${s} :is(.panel, .modal__box, .mode-card, .seat) { border: ${m.edge}; }`);

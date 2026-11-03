@@ -1,0 +1,237 @@
+// tools/ui-theme-shapes.mjs — the shape layer of the event-guide UI themes (tools/ui-theme-guides.mjs): what each guide
+// draws as *form*, not colour — its section headers (torn tags, tricolour slashes, glass pills, gilt plaques, meander
+// banners…), its panel frames (photo bevels, pinned case files, circuit corners, octagonal double lines…), its button
+// and card silhouettes and its bond markers (the HUD bond board's ring is replaced by the guide's own badge). Every shape
+// is drawn here in CSS / inline SVG — no guide artwork is copied. tools/build-ui-themes.mjs appends shapeCss(id).
+
+/** An inline SVG as a CSS url(). */
+const svg = (w, h, body) => `url("data:image/svg+xml,${encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='${w}' height='${h}' viewBox='0 0 ${w} ${h}'>${body}</svg>`).replace(/'/g, '%27').replace(/%2523/g, '%23')}")`;
+/** A 9-slice frame from a 60×60 SVG (corners 20 px) as border-image, the panel's own fill kept inside. */
+const frame = (body, width = '.12rem', slice = 20, repeat = 'stretch') =>
+  `border-style: solid; border-width: ${width}; border-image: ${svg(60, 60, body)} ${slice} fill / ${width} / 0 ${repeat};`;
+const NO_RING = (S) => `${S} .hbond__ring { opacity: 0; }
+${S} .hbond__board { filter: none; }
+${S} .hbond.is-disabled .hbond__board { filter: grayscale(1) brightness(.6); }
+${S} .hbond__board::before { content: ''; position: absolute; pointer-events: none; }`;
+
+const SHAPES = {
+  // ---- 우르수스 · 사람들, 우리들 -----------------------------------------------------------------------------------
+  'f-ursus': (S) => `
+${S} .section-label { width: fit-content; padding: .04rem .26rem; color: #fff; background: linear-gradient(180deg, #a3242b, #7d161c);
+  clip-path: polygon(1% 8%, 6% 0, 18% 6%, 31% 1%, 47% 7%, 62% 0, 78% 5%, 92% 0, 100% 9%, 98% 32%, 100% 58%, 97% 82%, 100% 100%, 84% 94%, 68% 100%, 51% 93%, 36% 100%, 20% 94%, 6% 100%, 0 88%, 2% 62%, 0 36%);
+  box-shadow: none; text-shadow: 0 1px 0 rgba(0, 0, 0, .5); }
+${S} :is(.panel, .modal__box) { ${frame(`<rect x='1' y='1' width='58' height='58' fill='none' stroke='%23111' stroke-width='2'/><rect x='3' y='3' width='54' height='54' fill='none' stroke='%23787070' stroke-width='5'/><rect x='6.5' y='6.5' width='47' height='47' fill='none' stroke='%23141417' stroke-width='2'/><path d='M3 3h54' stroke='%23a59c98' stroke-width='1.2'/>`, '.09rem')} }
+${S} :is(.panel, .modal__box)::after { content: ''; position: absolute; left: -.06rem; top: -.06rem; width: 1.6rem; height: .5rem; pointer-events: none; height: .5rem; top: -.1rem; background: ${svg(160, 50, `<path d='M4 40 L60 8 L118 30 L156 6' fill='none' stroke='%23b3242c' stroke-width='1.6'/><circle cx='4' cy='40' r='3.5' fill='%23d8d0cc'/><circle cx='60' cy='8' r='3.5' fill='%23d8d0cc'/><circle cx='118' cy='30' r='3.5' fill='%23d8d0cc'/>`)} left top / contain no-repeat; }
+${S} .btn { clip-path: polygon(0 4%, 12% 0, 40% 5%, 70% 0, 100% 6%, 99% 50%, 100% 95%, 70% 100%, 38% 95%, 10% 100%, 0 96%, 1% 50%); }
+${S} :is(.mode-card, .seat) { transform: rotate(-.3deg); }
+${NO_RING(S)}
+${S} .hbond__board::before { inset: 14%; background: #2b292d; border: calc(3 * var(--u)) solid #847b78; transform: rotate(-4deg); box-shadow: 0 0 0 calc(1 * var(--u)) #111; }
+${S} .hbond.is-full .hbond__board::before { background: #a3242b; border-color: #d2ccc7; }`,
+
+  // ---- 카시미어 · 니어 라이트 ----------------------------------------------------------------------------------------
+  'f-kazimierz': (S) => `
+${S} .section-label { width: fit-content; padding: .04rem .3rem .04rem .26rem; color: #fff; font-style: italic; font-weight: 900;
+  background: linear-gradient(115deg, #1b2f6e 0 .12rem, #fff .12rem .16rem, #3a63c8 .16rem .22rem, transparent .22rem), linear-gradient(90deg, #454b5c, #2b2f3a 70%, #d02b3a 70% 74%, #2b2f3a 74%);
+  clip-path: polygon(.14rem 0, 100% 0, calc(100% - .14rem) 100%, 0 100%); }
+${S} :is(.panel, .modal__box) { border: 2px solid transparent; border-radius: .14rem;
+  background: linear-gradient(180deg, rgba(20, 26, 48, .96), rgba(12, 15, 28, .97)) padding-box, linear-gradient(135deg, #3a63c8, #8a6fb0 50%, #d02b3a) border-box; }
+${S} .panel__title { font-style: italic; }
+${S} .btn { clip-path: polygon(.12rem 0, 100% 0, calc(100% - .12rem) 100%, 0 100%); border-radius: 0; }
+${S} :is(.mode-card, .seat) { border-radius: .12rem; }
+${NO_RING(S)}
+${S} .hbond__board::before { inset: 16% 10%; border-radius: calc(10 * var(--u)); background: linear-gradient(180deg, #2b3550, #141a30); border: calc(3 * var(--u)) solid #3a63c8; box-shadow: inset 0 calc(-4 * var(--u)) 0 #d02b3a; }
+${S} .hbond.is-full .hbond__board::before { background: linear-gradient(115deg, #3a63c8 0 55%, #d02b3a 55%); border-color: #fff; box-shadow: none; }`,
+
+  // ---- 에기르 · 삶의 길 ----------------------------------------------------------------------------------------------
+  'f-aegir': (S) => `
+${S} .section-label { width: fit-content; padding: .04rem .24rem .04rem .2rem; border-radius: 99px; color: #e8f2f3;
+  background: linear-gradient(180deg, rgba(95, 211, 208, .32), rgba(47, 111, 114, .5)); box-shadow: inset 0 0 0 1px rgba(143, 240, 236, .6), 0 0 .12rem rgba(95, 211, 208, .35); }
+${S} .section-label::before { content: '○'; color: #8ff0ec; font-size: .8em; margin-right: .06rem; }
+${S} :is(.panel, .modal__box) { ${frame(`<rect x='8' y='8' width='44' height='44' fill='none' stroke='%232f6f72' stroke-width='1'/><path d='M1 8h14M8 1v14M45 8h14M52 1v14M1 52h14M8 45v14M45 52h14M52 45v14' stroke='%235fd3d0' stroke-width='1'/><circle cx='1.5' cy='8' r='1.5' fill='%238ff0ec'/><circle cx='58.5' cy='52' r='1.5' fill='%238ff0ec'/>`, '.1rem')} box-shadow: 0 0 .16rem rgba(95, 211, 208, .1); }
+${S} :is(.panel__title, .modal__title)::before { content: '✦ '; color: #5fd3d0; }
+${S} .btn { border-radius: .04rem; }
+${S} .btn--primary { border-radius: 99px; }
+${NO_RING(S)}
+${S} .hbond__board::before { inset: 14%; border-radius: 50%; background: radial-gradient(circle, #1c252b 55%, #12181c); border: calc(2 * var(--u)) solid #4fa9ab; box-shadow: 0 0 0 calc(3 * var(--u)) rgba(95, 211, 208, .18), 0 0 calc(8 * var(--u)) rgba(95, 211, 208, .35); }
+${S} .hbond.is-full .hbond__board::before { background: radial-gradient(circle, #8ff0ec, #3bb3b0); border-color: #e8f2f3; }`,
+
+  // ---- 라테라노 · 공상의 정원 ----------------------------------------------------------------------------------------
+  'f-laterano': (S) => `
+${S} .section-label { padding: .04rem .5rem .04rem .26rem; color: #fff; letter-spacing: .12em;
+  background: ${svg(40, 20, `<path d='M2 10 L9 3 L16 10 L9 17Z' fill='%233ec6e0'/>`)} right .08rem center / .3rem .16rem no-repeat,
+    repeating-linear-gradient(135deg, rgba(255, 255, 255, .5) 0 1px, transparent 1px 4px) right .44rem center / .5rem .1rem no-repeat,
+    linear-gradient(90deg, #3ec6e0 0 .06rem, #5d6e7b .06rem .1rem, #7a8c9a .1rem); }
+${S} :is(.panel, .modal__box) { ${frame(`<path d='M14 1 H46 L59 14 V46 L46 59 H14 L1 46 V14Z' fill='%23fbfcfc' stroke='%23b8c4cc' stroke-width='1'/><path d='M16 5 H44 L55 16 V44 L44 55 H16 L5 44 V16Z' fill='none' stroke='%23d5dde3' stroke-width='1'/>`, '.14rem', 20)} box-shadow: none; filter: drop-shadow(0 .03rem .08rem rgba(60, 80, 95, .12)); }
+${S} .btn { clip-path: polygon(.08rem 0, calc(100% - .08rem) 0, 100% .08rem, 100% calc(100% - .08rem), calc(100% - .08rem) 100%, .08rem 100%, 0 calc(100% - .08rem), 0 .08rem); }
+${S} :is(.mode-card, .scard) { clip-path: polygon(.12rem 0, calc(100% - .12rem) 0, 100% .12rem, 100% calc(100% - .12rem), calc(100% - .12rem) 100%, .12rem 100%, 0 calc(100% - .12rem), 0 .12rem); }
+${NO_RING(S)}
+${S} .hbond__board::before { inset: 12%; clip-path: polygon(30% 0, 70% 0, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0 70%, 0 30%); background: linear-gradient(180deg, #7a8c9a, #4f606d); }
+${S} .hbond.is-full .hbond__board::before { background: linear-gradient(180deg, #57d5ea, #2c9ab4); }`,
+
+  // ---- 빅토리아 · 위대한 서곡의 끝 -----------------------------------------------------------------------------------
+  'f-victoria': (S) => `
+${S} .section-label { width: fit-content; padding: .05rem .3rem; color: #2a1606; text-shadow: 0 1px 0 rgba(255, 240, 200, .5);
+  background: linear-gradient(180deg, #f2d48a, #c99440 55%, #a8742c);
+  clip-path: polygon(3% 12%, 9% 0, 30% 6%, 52% 0, 76% 5%, 93% 0, 98% 14%, 100% 50%, 97% 88%, 90% 100%, 66% 95%, 44% 100%, 20% 94%, 6% 100%, 1% 84%, 0 48%); }
+${S} :is(.panel, .modal__box) { ${frame(`<rect x='2' y='2' width='56' height='56' fill='none' stroke='%23d6a64a' stroke-width='2.5'/><rect x='6' y='6' width='48' height='48' fill='none' stroke='%237a5a30' stroke-width='1'/><path d='M2 2l7 7M58 2l-7 7M2 58l7-7M58 58l-7-7' stroke='%23f0c870' stroke-width='1'/>`, '.1rem')} box-shadow: 0 0 .22rem rgba(240, 200, 112, .18), 0 .08rem .3rem rgba(0, 0, 0, .6); }
+${S} .panel__title::after { content: ''; display: block; height: .1rem; margin-top: .03rem; background: ${svg(200, 10, `<path d='M0 5H88M112 5H200' stroke='%23a07a48' stroke-width='1'/><path d='M100 0L103 5L100 10L97 5Z M92 5L100 3.5L108 5L100 6.5Z' fill='%23d6a64a'/>`)} center / 100% 100% no-repeat; }
+${S} :is(.mode-card, .seat) { box-shadow: inset 0 0 0 1px #d6a64a, inset 0 0 0 3px rgba(0, 0, 0, .5), inset 0 0 0 4px rgba(214, 166, 74, .35); }
+${NO_RING(S)}
+${S} .hbond__board::before { inset: 16%; transform: rotate(45deg); background: linear-gradient(135deg, #3b291d, #1b0f0a); border: calc(3 * var(--u)) solid #d6a64a; box-shadow: 0 0 calc(6 * var(--u)) rgba(240, 200, 112, .4); }
+${S} .hbond.is-full .hbond__board::before { background: linear-gradient(135deg, #f2d48a, #b8863a); }`,
+
+  // ---- 라이타니엔 · 츠빌링슈튀르메의 가을 ------------------------------------------------------------------------------
+  'f-leithanien': (S) => `
+${S} .section-label { justify-content: center; align-items: center; }
+${S} .section-label::before { content: ''; flex: 1; max-width: 1.2rem; height: .14rem; margin-right: .06rem; background: ${svg(120, 14, `<path d='M0 7H96' stroke='%236b3b25' stroke-width='1'/><path d='M100 7L106 1L112 7L106 13Z' fill='none' stroke='%23d4743c' stroke-width='1.5'/><path d='M114 2L119 7L114 12' fill='none' stroke='%23d4743c' stroke-width='1.5'/>`)} right center / 100% 100% no-repeat; }
+${S} .section-label::after { content: ''; flex: 1; max-width: 1.2rem; height: .14rem; margin-left: .06rem; background: ${svg(120, 14, `<path d='M24 7H120' stroke='%236b3b25' stroke-width='1'/><path d='M8 7L14 1L20 7L14 13Z' fill='none' stroke='%23d4743c' stroke-width='1.5'/><path d='M6 2L1 7L6 12' fill='none' stroke='%23d4743c' stroke-width='1.5'/>`)} left center / 100% 100% no-repeat; }
+${S} :is(.panel, .modal__box)::after { content: ''; position: absolute; left: 50%; top: .04rem; width: .5rem; height: .1rem; transform: translateX(-50%); pointer-events: none; background: ${svg(50, 10, `<path d='M4 2h8l-4 6z M21 2h8l-4 6z M38 2h8l-4 6z' fill='%23d4743c'/>`)} center / contain no-repeat; }
+${S} :is(.panel, .modal__box) { border-radius: .06rem; }
+${S} .btn--primary { box-shadow: 0 0 .1rem rgba(238, 154, 90, .5); }
+${NO_RING(S)}
+${S} .hbond__board::before { inset: 18%; transform: rotate(45deg); background: #2c1d16; border: calc(2 * var(--u)) solid #d4743c; outline: calc(1.5 * var(--u)) solid rgba(212, 116, 60, .45); outline-offset: calc(3 * var(--u)); }
+${S} .hbond.is-full .hbond__board::before { background: linear-gradient(135deg, #ee9a5a, #b85a26); }`,
+
+  // ---- 시라쿠사 · 시라쿠사인 -----------------------------------------------------------------------------------------
+  'f-siracusa': (S) => `
+${S} .section-label { width: fit-content; padding: .04rem .24rem; color: #1c1c1c; font-style: italic; background: linear-gradient(180deg, #d6d2c9, #b9b5ab);
+  clip-path: polygon(0 6%, 100% 0, 99% 92%, 1% 100%); box-shadow: inset 0 0 .1rem rgba(60, 50, 40, .3); }
+${S} :is(.panel, .modal__box) { border: .06rem solid #c4bfb4; border-radius: 0; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .5), .06rem .08rem .14rem rgba(0, 0, 0, .55); transform: rotate(-.25deg); }
+${S} :is(.panel, .modal__box)::after { content: ''; position: absolute; left: .1rem; top: -.07rem; width: .16rem; height: .16rem; border-radius: 50%; pointer-events: none;
+  background: radial-gradient(circle at 35% 30%, #e86a6e, #9d1c22 60%, #5e0e12); box-shadow: 0 .02rem .04rem rgba(0, 0, 0, .6); }
+${S} .modal__box { transform: none; }
+${S} :is(.mode-card, .seat) { border: .04rem solid #c4bfb4; }
+${NO_RING(S)}
+${S} .hbond__board::before { inset: 12% 16% 18%; background: #2a292d; border: calc(5 * var(--u)) solid #e6e2da; border-bottom-width: calc(10 * var(--u)); transform: rotate(-5deg); box-shadow: calc(2 * var(--u)) calc(3 * var(--u)) calc(4 * var(--u)) rgba(0, 0, 0, .6); }
+${S} .hbond.is-full .hbond__board::before { background: #b3262e; }`,
+
+  // ---- 염국 · 화중인 ---------------------------------------------------------------------------------------------------
+  'f-yan': (S) => `
+${S} .section-label { width: fit-content; padding: .06rem .4rem .06rem .3rem; color: #f7f3ee; background: linear-gradient(90deg, rgba(29, 31, 30, .75), #1d1f1e 18% 80%, rgba(29, 31, 30, .55));
+  clip-path: polygon(2% 30%, 8% 6%, 22% 12%, 40% 2%, 58% 9%, 76% 0, 92% 10%, 100% 34%, 97% 60%, 100% 88%, 84% 96%, 64% 90%, 44% 100%, 26% 92%, 10% 98%, 0 76%, 3% 52%); }
+${S} .section-label::after { content: ''; display: inline-block; width: .14rem; height: .14rem; margin-left: .1rem; vertical-align: middle; background: #a92d2a; box-shadow: inset 0 0 0 2px #a92d2a, inset 0 0 0 3px #f7f3ee; }
+${S} :is(.panel, .modal__box) { border: 0; box-shadow: inset 0 0 .3rem rgba(29, 31, 30, .12), 0 0 .5rem rgba(29, 31, 30, .08); }
+${S} .panel__title { writing-mode: horizontal-tb; letter-spacing: .3em; }
+${S} .btn--primary { border-radius: 0; box-shadow: .03rem .03rem 0 #a92d2a; }
+${NO_RING(S)}
+${S} .hbond__board::before { inset: 12%; background: ${svg(80, 80, `<filter id='r'><feTurbulence baseFrequency='.09' numOctaves='2' seed='7'/><feDisplacementMap in='SourceGraphic' scale='8'/></filter><circle filter='url(%23r)' cx='40' cy='40' r='31' fill='none' stroke='%231d1f1e' stroke-width='9'/><circle cx='40' cy='40' r='24' fill='%23e4e7e3'/>`)} center / contain no-repeat; }
+${S} .hbond.is-full .hbond__board::before { inset: 16%; background: #a92d2a; box-shadow: inset 0 0 0 calc(3 * var(--u)) #a92d2a, inset 0 0 0 calc(5 * var(--u)) #f7f3ee; }
+${S} .hbond__icon:not(.hbond__glyph) { filter: brightness(0) invert(.12); }
+${S} .hbond.is-full .hbond__icon:not(.hbond__glyph) { filter: brightness(0) invert(.97); }`,
+
+  // ---- 사르곤 · 이상적인 도시: 엔드리스 카니발 -------------------------------------------------------------------------
+  'f-sargon': (S) => `
+${S} .section-label { width: fit-content; padding: .04rem .3rem; color: #fff; font-style: italic; font-weight: 900; -webkit-text-stroke: .5px #12345a; text-shadow: .02rem .02rem 0 #12345a;
+  background: radial-gradient(circle, rgba(255, 255, 255, .35) 1px, transparent 1.6px) 0 0 / 5px 5px, linear-gradient(90deg, #2f7fd0, #4b9be8);
+  clip-path: polygon(.1rem 0, 100% 0, calc(100% - .1rem) 100%, 0 100%); transform: rotate(-2deg); }
+${S} :is(.panel, .modal__box) { border: 0; border-radius: 0; background: radial-gradient(circle, rgba(255, 255, 255, .5) 1px, transparent 1.6px) 0 0 / 6px 6px, linear-gradient(180deg, #fdd552, #f9c330); box-shadow: .05rem .05rem 0 #f19b48, 0 .06rem .2rem rgba(60, 50, 20, .18); }
+${S} :is(.panel, .modal__box) :is(.panel__body, .modal__body) { color: #24241f; }
+${S} .btn { transform: skewX(-6deg); border-radius: .03rem; }
+${S} .btn > * { transform: skewX(6deg); }
+${S} :is(.mode-card, .seat) { border: .03rem solid #fcce46; box-shadow: .04rem .04rem 0 #f19b48; }
+${NO_RING(S)}
+${S} .hbond__board::before { inset: 15%; transform: rotate(-8deg); border-radius: calc(6 * var(--u)); background: #fff; border: calc(4 * var(--u)) solid #fcce46; box-shadow: calc(3 * var(--u)) calc(3 * var(--u)) 0 #f19b48; }
+${S} .hbond.is-full .hbond__board::before { background: #2f7fd0; border-color: #fcce46; }
+${S} .hbond__icon:not(.hbond__glyph) { filter: brightness(0) invert(.15); }
+${S} .hbond.is-full .hbond__icon:not(.hbond__glyph) { filter: brightness(0) invert(1); }`,
+
+  // ---- 쉐라그 · RETRACING ---------------------------------------------------------------------------------------------
+  'f-kjerag': (S) => `
+${S} .section-label { width: fit-content; padding: .04rem .36rem; color: #16206a; background: linear-gradient(180deg, #ffffff, #dfe6fb);
+  clip-path: polygon(0 0, 100% 0, calc(100% - .14rem) 50%, 100% 100%, 0 100%, .14rem 50%); }
+${S} :is(.panel, .modal__box) { ${frame(`<rect x='1' y='1' width='58' height='58' fill='none' stroke='%239aa8e6' stroke-width='1'/><path d='M1 12V1H12M48 1H59V12M59 48V59H48M12 59H1V48' fill='none' stroke='%23ffffff' stroke-width='3'/>`, '.08rem')} }
+${S} .btn--primary { clip-path: polygon(0 0, 100% 0, calc(100% - .1rem) 50%, 100% 100%, 0 100%, .1rem 50%); }
+${NO_RING(S)}
+${S} .hbond__board::before { inset: 12%; clip-path: polygon(50% 0, 93% 25%, 93% 75%, 50% 100%, 7% 75%, 7% 25%); background: linear-gradient(180deg, #2b3c9f, #16206a); box-shadow: inset 0 0 0 calc(3 * var(--u)) #e9eefc; }
+${S} .hbond.is-full .hbond__board::before { background: linear-gradient(180deg, #ffffff, #c9d4f7); }
+${S} .hbond.is-full .hbond__icon:not(.hbond__glyph) { filter: brightness(0) invert(.12) sepia(1) hue-rotate(190deg) saturate(4); }`,
+
+  // ---- 화산의 꿈 여행 --------------------------------------------------------------------------------------------------
+  'ss-adele': (S) => `
+${S} .section-label { justify-content: center; align-items: center; color: #b72f2b; font-size: calc(.24 * var(--t)); }
+${S} .section-label::before, ${S} .section-label::after { content: ''; flex: 1; max-width: 1.4rem; height: .16rem; }
+${S} .section-label::before { margin-right: .1rem; background: ${svg(140, 16, `<path d='M0 5H110M0 9H110' stroke='%233b2a26' stroke-width='2'/><path d='M138 8L122 2L126 8L122 14Z' fill='%23b72f2b'/><path d='M118 8h8' stroke='%23b72f2b' stroke-width='2'/>`)} right center / 100% 100% no-repeat; }
+${S} .section-label::after { margin-left: .1rem; background: ${svg(140, 16, `<path d='M30 5H140M30 9H140' stroke='%233b2a26' stroke-width='2'/><path d='M2 8L18 2L14 8L18 14Z' fill='%23b72f2b'/><path d='M14 8h8' stroke='%23b72f2b' stroke-width='2'/>`)} left center / 100% 100% no-repeat; }
+${S} :is(.panel, .modal__box) { border: 2px solid #b7c19a; border-radius: .08rem; box-shadow: inset 0 0 0 .04rem #fffaf2, inset 0 0 0 calc(.04rem + 1px) #b7c19a, 0 .04rem .16rem rgba(82, 47, 43, .12); }
+${S} :is(.panel, .modal__box)::after { content: ''; position: absolute; left: .1rem; right: .1rem; bottom: .05rem; height: .08rem; pointer-events: none; opacity: .6;
+  background: repeating-linear-gradient(90deg, #b7c19a 0 .08rem, transparent .08rem .16rem), repeating-linear-gradient(90deg, transparent 0 .08rem, #b7c19a .08rem .16rem) 0 .04rem / 100% .04rem no-repeat; background-size: 100% .04rem, 100% .04rem; background-repeat: no-repeat; }
+${S} .modal__head { background: #3b2a26; color: #fff; }
+${S} .modal__head .modal__title { color: #fff; }
+${S} .btn { border-radius: .06rem; }
+${S} .btn--primary { box-shadow: inset 0 0 0 2px #fef6ea, inset 0 0 0 3px #8a1f1c; }
+${NO_RING(S)}
+${S} .hbond__board::before { inset: 14%; border-radius: calc(8 * var(--u)); background: #fffaf2; border: calc(3 * var(--u)) solid #8a9a66; box-shadow: inset 0 0 0 calc(3 * var(--u)) #fffaf2, inset 0 0 0 calc(4 * var(--u)) #b7c19a; }
+${S} .hbond.is-full .hbond__board::before { background: #b72f2b; box-shadow: inset 0 0 0 calc(3 * var(--u)) #b72f2b, inset 0 0 0 calc(4 * var(--u)) #fef6ea; }
+${S} .hbond__icon:not(.hbond__glyph) { filter: brightness(0) invert(.2) sepia(.4); }
+${S} .hbond.is-full .hbond__icon:not(.hbond__glyph) { filter: brightness(0) invert(1); }`,
+
+  // ---- 부정축재 ---------------------------------------------------------------------------------------------------------
+  'ss-vultures': (S) => `
+${S} .section-label { padding: .05rem .2rem .08rem .7rem; color: #fff; justify-content: flex-end;
+  background: linear-gradient(#d4d93a, #d4d93a) right bottom / 85% .05rem no-repeat, repeating-linear-gradient(-55deg, #2c3a3f 0 .06rem, transparent .06rem .14rem) .1rem center / .5rem 70% no-repeat, #182226; }
+${S} .section-label::after { content: '#'; color: #d4d93a; font-style: italic; margin-left: .06rem; }
+${S} :is(.panel, .modal__box) { border: 1px solid #4a5a60; box-shadow: inset 0 0 0 .04rem #111a1d, inset 0 0 0 calc(.04rem + 1px) #2f3d42; }
+${S} :is(.panel, .modal__box)::after { content: ''; position: absolute; right: .06rem; top: .06rem; width: .14rem; height: .14rem; pointer-events: none; background: linear-gradient(225deg, #c0282e 50%, transparent 50%); }
+${S} .btn { clip-path: polygon(0 0, 100% 0, 100% calc(100% - .08rem), calc(100% - .08rem) 100%, 0 100%); }
+${S} :is(.mode-card, .scard) { clip-path: polygon(0 0, calc(100% - .14rem) 0, 100% .14rem, 100% 100%, 0 100%); }
+${NO_RING(S)}
+${S} .hbond__board::before { inset: 12%; clip-path: polygon(25% 3%, 75% 3%, 100% 50%, 75% 97%, 25% 97%, 0 50%); background: repeating-linear-gradient(-45deg, #2c3a3f 0 calc(5 * var(--u)), #1a2427 calc(5 * var(--u)) calc(10 * var(--u))); }
+${S} .hbond.is-full .hbond__board::before { background: repeating-linear-gradient(-45deg, #d4d93a 0 calc(6 * var(--u)), #b9be22 calc(6 * var(--u)) calc(12 * var(--u))); }`,
+
+  // ---- 론 트레일 --------------------------------------------------------------------------------------------------------
+  'ss-lonetrail': (S) => `
+${S} .section-label { width: fit-content; padding: .03rem .2rem .06rem .3rem; color: #140700; font-weight: 900; text-transform: uppercase;
+  background: linear-gradient(90deg, #2fb5b0 0 33%, #ee6a2b 33% 66%, #c0282e 66%) bottom / 100% .03rem no-repeat, repeating-linear-gradient(90deg, #140700 0 2px, transparent 2px 5px) .06rem center / .14rem 60% no-repeat, #ee6a2b; }
+${S} :is(.panel, .modal__box) { ${frame(`<rect x='0.5' y='0.5' width='59' height='59' fill='none' stroke='%23454340'/><path d='M0 14V0H14M46 60H60V46' fill='none' stroke='%23ee6a2b' stroke-width='3'/><rect x='50' y='2' width='8' height='8' fill='none' stroke='%23ee6a2b'/>`, '.08rem')} }
+${S} .btn { clip-path: polygon(0 0, calc(100% - .1rem) 0, 100% .1rem, 100% 100%, 0 100%); }
+${NO_RING(S)}
+${S} .hbond__board::before { inset: 18%; transform: rotate(45deg); background: #1c1c1c; border: calc(2 * var(--u)) solid #6b655f; box-shadow: inset 0 0 0 calc(4 * var(--u)) #1c1c1c, inset 0 0 0 calc(6 * var(--u)) #ee6a2b; }
+${S} .hbond.is-full .hbond__board::before { background: #ee6a2b; box-shadow: none; border-color: #ff8a4c; }`,
+
+  // ---- 아테누스 복수록 -------------------------------------------------------------------------------------------------
+  'ss-mendacium': (S) => `
+${S} .section-label { justify-content: center; padding: .06rem .3rem; color: #fff4ea;
+  background: ${svg(40, 8, `<path d='M0 7H6V1H14V5H10V3H8V7H20V1H28V5H24V3H22V7H34V1H40' fill='none' stroke='%23e9b48a' stroke-width='1.2'/>`)} 0 .02rem / .4rem .08rem repeat-x, ${svg(40, 8, `<path d='M0 1H6V7H14V3H10V5H8V1H20V7H28V3H24V5H22V1H34V7H40' fill='none' stroke='%23e9b48a' stroke-width='1.2'/>`)} 0 calc(100% - .02rem) / .4rem .08rem repeat-x, linear-gradient(180deg, #b35424, #8c3c16); }
+${S} :is(.panel, .modal__box) { ${frame(`<rect x='1' y='1' width='58' height='58' fill='none' stroke='%2342372e' stroke-width='2'/><path d='M4 8H8V4H14V10H10V8 M4 52H8V56H14V50H10V52 M56 8H52V4H46V10H50V8 M56 52H52V56H46V50H50V52' fill='none' stroke='%23b4521f' stroke-width='1.4'/><rect x='4' y='4' width='52' height='52' fill='none' stroke='%23a77e5a' stroke-width='.8'/>`, '.12rem')} }
+${S} .btn { border-radius: 99px .04rem .04rem 99px; }
+${S} .btn--primary::before { content: '◀'; font-size: .7em; margin-right: .06rem; color: #fff4ea; }
+${NO_RING(S)}
+${S} .hbond__board::before { inset: 12%; border-radius: 50%; background: radial-gradient(circle, #f7e6d5 52%, #42372e 53% 60%, #f7e6d5 61% 66%, #b4521f 67%); }
+${S} .hbond.is-full .hbond__board::before { background: radial-gradient(circle, #c8622a 52%, #42372e 53% 60%, #f7e6d5 61% 66%, #b4521f 67%); }
+${S} .hbond__icon:not(.hbond__glyph) { filter: brightness(0) invert(.2) sepia(.5); }
+${S} .hbond.is-full .hbond__icon:not(.hbond__glyph) { filter: brightness(0) invert(1); }`,
+
+  // ---- 허락받지 못한 땅 ------------------------------------------------------------------------------------------------
+  'ss-unrealized': (S) => `
+${S} .section-label { justify-content: center; padding: .05rem .5rem; color: #fff; text-shadow: 0 1px 2px rgba(20, 40, 45, .6);
+  background: radial-gradient(30% 90% at 50% 60%, rgba(255, 255, 255, .95), rgba(255, 255, 255, 0) 70%), radial-gradient(18% 70% at 35% 50%, rgba(255, 255, 255, .85), transparent 70%), radial-gradient(18% 70% at 65% 50%, rgba(255, 255, 255, .85), transparent 70%),
+    ${svg(20, 20, `<path d='M10 1L13 7H7Z M3 16L8 10L11 15Z M17 16L12 10L9 15Z' fill='%23c4333a'/>`)} .1rem center / .18rem .18rem no-repeat, ${svg(20, 20, `<path d='M10 1L13 7H7Z M3 16L8 10L11 15Z M17 16L12 10L9 15Z' fill='%23c4333a'/>`)} calc(100% - .1rem) center / .18rem .18rem no-repeat,
+    linear-gradient(90deg, transparent, #4f8590 .3rem calc(100% - .3rem), transparent); color: #15292d; text-shadow: none; }
+${S} :is(.panel, .modal__box) { border: 0; border-top: 2px solid #2b525a; border-bottom: 2px solid #2b525a; border-radius: 0; }
+${S} .btn { clip-path: polygon(.1rem 0, 100% 0, calc(100% - .1rem) 100%, 0 100%); }
+${NO_RING(S)}
+${S} .hbond__board::before { inset: 14% 8%; border-radius: 50% 45% 48% 52% / 60% 55% 45% 40%; background: radial-gradient(60% 50% at 40% 40%, #ffffff, #dcf0f3); border: calc(3 * var(--u)) solid #2b525a; }
+${S} .hbond.is-full .hbond__board::before { background: radial-gradient(60% 50% at 40% 40%, #e8585e, #c4333a); border-color: #15292d; }
+${S} .hbond__icon:not(.hbond__glyph) { filter: brightness(0) invert(.15); }
+${S} .hbond.is-full .hbond__icon:not(.hbond__glyph) { filter: brightness(0) invert(1); }`,
+
+  // ---- 불타버린 엘레지여 ----------------------------------------------------------------------------------------------
+  'ss-elegies': (S) => `
+${S} .section-label { width: fit-content; padding: .05rem .4rem; color: #e8cf92;
+  background: linear-gradient(180deg, #2a2638, #17142a) padding-box; border: 1px solid #a39274;
+  clip-path: polygon(.16rem 0, calc(100% - .16rem) 0, 100% 50%, calc(100% - .16rem) 100%, .16rem 100%, 0 50%); box-shadow: inset 0 0 0 3px #17142a, inset 0 0 0 4px rgba(201, 174, 114, .5); }
+${S} .section-label::after { content: ' ✦'; color: #c9ae72; font-size: .8em; }
+${S} :is(.panel, .modal__box) { ${frame(`<rect x='5' y='5' width='50' height='50' fill='none' stroke='%23a39274' stroke-width='1'/><path d='M1 18 C3 8 8 3 18 1 M42 1 C52 3 57 8 59 18 M59 42 C57 52 52 57 42 59 M18 59 C8 57 3 52 1 42' fill='none' stroke='%23c9ae72' stroke-width='1.3'/><circle cx='5' cy='5' r='2' fill='%23e8cf92'/><circle cx='55' cy='5' r='2' fill='%23e8cf92'/><circle cx='5' cy='55' r='2' fill='%23e8cf92'/><circle cx='55' cy='55' r='2' fill='%23e8cf92'/>`, '.12rem')} }
+${S} .btn--primary { clip-path: polygon(.12rem 0, calc(100% - .12rem) 0, 100% 50%, calc(100% - .12rem) 100%, .12rem 100%, 0 50%); }
+${NO_RING(S)}
+${S} .hbond__board::before { inset: 12%; border-radius: 50%; background: radial-gradient(circle, #202852 58%, #c9ae72 59% 63%, #0d1023 64% 70%, #a39274 71% 74%, transparent 75%); }
+${S} .hbond.is-full .hbond__board::before { background: radial-gradient(circle, #e8cf92 58%, #c9ae72 59% 63%, #0d1023 64% 70%, #a39274 71% 74%, transparent 75%); }`,
+};
+
+/** The shape rules of one theme ('' when the theme has none). */
+export function shapeCss(id) {
+  const f = SHAPES[id];
+  const S = `:root[data-ui-theme="${id}"]`;
+  // (the header's index chip and micro label take the header's own ink: on a drawn header the default mint was lost)
+  return f ? `/* ---- shape layer (tools/ui-theme-shapes.mjs) */${f(S)}\n${S} .section-label :is(.section-label__idx, .micro) { color: inherit; border-color: currentColor; opacity: .85; }\n` : '';
+}

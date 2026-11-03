@@ -9,6 +9,7 @@ import { fileURLToPath } from 'node:url';
 import { readFile } from 'node:fs/promises';
 import { textureCss } from './ui-theme-textures.mjs';
 import { GUIDE_THEMES } from './ui-theme-guides.mjs';
+import { shapeCss } from './ui-theme-shapes.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const hex = (h) => { h = h.replace('#', ''); if (h.length === 3) h = [...h].map((c) => c + c).join(''); return [0, 2, 4].map((i) => parseInt(h.slice(i, i + 2), 16)); };
@@ -362,7 +363,7 @@ ${sel} .modal__box {
 ${sel} .btn { ${t.btn} }
 ${sel} .btn--primary { ${t.primary.replace(/background:\s*([^;]+);/, '--ui-primary-face: $1; background-color: var(--mint-500);')} }
 ${sel} .modal { background: ${t.light ? 'rgba(40, 40, 40, .35)' : 'rgba(0, 0, 0, .6)'}; }
-${t.light ? `${sel} :is(.btn--secondary, .btn--ghost) { --btn-bg: #ffffff; --btn-bg-hover: ${t.p.bg[1]}; }\n` : ''}${t.extra ? t.extra + '\n' : ''}${textureCss(t.id, !!t.light)}`;
+${t.light ? `${sel} :is(.btn--secondary, .btn--ghost) { --btn-bg: #ffffff; --btn-bg-hover: ${t.p.bg[1]}; }\n` : ''}${t.extra ? t.extra + '\n' : ''}${textureCss(t.id, !!t.light)}${shapeCss(t.id)}`;
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
