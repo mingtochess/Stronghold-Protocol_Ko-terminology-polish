@@ -60,7 +60,7 @@ export const THEMES = [
   {
     id: 'is-phantom', name: '팬텀 & 크림슨 솔리테어', group: 'is',
     p: { bg: ['#0e0709', '#170b0f', '#221016', '#2c151c', '#381a23'], line: ['#4a2029', '#6a2c38', '#93465a'],
-      accent: '#c8102e', glow: '#ff3b52', accent2: '#d9b25f', text: ['#f6ece6', '#d8c3bb', '#a68a83', '#7d625d'], onAccent: '#fff3f0' },
+      accent: '#ec3a55', glow: '#ff5a6e', accent2: '#d9b25f', text: ['#f6ece6', '#d8c3bb', '#a68a83', '#7d625d'], onAccent: '#fff3f0' },
     body: `background-color: var(--bg-0);
   background-image:
     repeating-linear-gradient(90deg, rgba(120, 10, 30, .22) 0 .18rem, rgba(60, 5, 15, .22) .18rem .36rem),
@@ -96,7 +96,7 @@ export const THEMES = [
   {
     id: 'is-frost', name: '탐험가의 은빛 서리 끝자락', group: 'is', light: true,
     p: { bg: ['#e7eef3', '#f2f6f9', '#ffffff', '#dde6ec', '#cfdbe3'], line: ['#b7c7d2', '#94a9b8', '#6b8396'],
-      accent: '#2a6f9e', glow: '#5db6e8', accent2: '#8a6d3b', text: ['#14212b', '#354754', '#556876', '#6a7c89'], onAccent: '#ffffff' },
+      accent: '#245f88', glow: '#4a9ccd', accent2: '#8a6d3b', text: ['#14212b', '#354754', '#4d5f6c', '#56687a'], onAccent: '#ffffff' },
     body: `background-color: var(--bg-0);
   background-image:
     radial-gradient(1.5px 1.5px at 20% 20%, rgba(255, 255, 255, .95), transparent 70%), radial-gradient(2px 2px at 70% 50%, rgba(255, 255, 255, .9), transparent 70%),
@@ -133,7 +133,7 @@ export const THEMES = [
   {
     id: 'is-sui', name: '쉐이의 기이한 계원', group: 'is', light: true,
     p: { bg: ['#efe8da', '#f6f1e6', '#fbf8f1', '#e7dfcd', '#ddd2bb'], line: ['#c9b99a', '#a8916a', '#7d6a4b'],
-      accent: '#a8322a', glow: '#d4553f', accent2: '#2f6b5e', text: ['#211a12', '#43382b', '#665a48', '#7a6d59'], onAccent: '#fbf3e6' },
+      accent: '#9a2c25', glow: '#b8473a', accent2: '#2f6b5e', text: ['#211a12', '#43382b', '#5c5140', '#685c4a'], onAccent: '#fbf3e6' },
     body: `background-color: var(--bg-0);
   background-image:
     radial-gradient(60% 40% at 15% 100%, rgba(40, 35, 30, .14), transparent 70%), radial-gradient(40% 30% at 90% 95%, rgba(40, 35, 30, .1), transparent 70%),
@@ -182,7 +182,7 @@ export const THEMES = [
   {
     id: 'f-sargon', name: '사르곤', group: 'faction', light: true,
     p: { bg: ['#efe3c8', '#f6ecd6', '#fcf6e8', '#e6d6b4', '#dac69d'], line: ['#cdb284', '#a98a55', '#7c6234'],
-      accent: '#a45d10', glow: '#e38b1c', accent2: '#2a7a6f', text: ['#241708', '#47341a', '#6a5532', '#7d6845'], onAccent: '#fff6e6' },
+      accent: '#874b08', glow: '#b8670f', accent2: '#2a7a6f', text: ['#241708', '#47341a', '#5f4b2a', '#6a5836'], onAccent: '#fff6e6' },
     body: `background-color: var(--bg-0);
   background-image: repeating-linear-gradient(170deg, rgba(164, 93, 16, .05) 0 .06rem, transparent .06rem .3rem),
     radial-gradient(70% 50% at 80% 0%, rgba(255, 200, 100, .35), transparent 70%), linear-gradient(180deg, #f6ead0, #e1cda3);`,
@@ -210,7 +210,7 @@ export const THEMES = [
   {
     id: 'f-kjerag', name: '쉐라그', group: 'faction', light: true,
     p: { bg: ['#eef3f7', '#f6f9fb', '#ffffff', '#e2eaf0', '#d4dfe8'], line: ['#bccbd7', '#97abbc', '#6d8597'],
-      accent: '#3a6ea5', glow: '#6aa5dc', accent2: '#c0392b', text: ['#132030', '#33465a', '#53677a', '#6a7d8f'], onAccent: '#ffffff' },
+      accent: '#2f5f92', glow: '#4f8cc5', accent2: '#c0392b', text: ['#132030', '#33465a', '#4c5f72', '#576a7c'], onAccent: '#ffffff' },
     body: `background-color: var(--bg-0);
   background-image: linear-gradient(150deg, transparent 55%, rgba(120, 150, 180, .2) 55% 75%, transparent 75%),
     linear-gradient(210deg, transparent 62%, rgba(100, 130, 165, .18) 62% 80%, transparent 80%), linear-gradient(180deg, #fafcfd, #dde7ee);`,
@@ -222,7 +222,7 @@ export const THEMES = [
   {
     id: 'f-laterano', name: '라테라노', group: 'faction', light: true,
     p: { bg: ['#f4f1ea', '#faf8f2', '#ffffff', '#ebe6da', '#e0d9c8'], line: ['#d6cbb2', '#b9a77f', '#8f7b50'],
-      accent: '#a67c1e', glow: '#e0b24a', accent2: '#c2455a', text: ['#1e1a12', '#3f382a', '#615845', '#766c57'], onAccent: '#ffffff' },
+      accent: '#7f5d10', glow: '#a87d1f', accent2: '#c2455a', text: ['#1e1a12', '#3f382a', '#575040', '#655c4a'], onAccent: '#ffffff' },
     body: `background-color: var(--bg-0);
   background-image: radial-gradient(circle at 50% -20%, rgba(255, 220, 140, .45), transparent 45%),
     conic-gradient(from 0deg at 50% -10%, rgba(224, 178, 74, .06) 0 10deg, transparent 10deg 20deg, rgba(224, 178, 74, .06) 20deg 30deg, transparent 30deg 360deg),
@@ -324,7 +324,7 @@ function tokens(t) {
     '--line': line[0], '--line-2': line[1], '--line-3': line[2],
     '--accent-rgb': rgb(accent), '--glow-rgb': rgb(glow),
     '--mint-500': accent, '--mint-400': light ? mixHex(accent, '#000000', .12) : mixHex(accent, '#ffffff', .2), '--mint-350': light ? mixHex(accent, '#000000', .08) : mixHex(accent, '#ffffff', .15),
-    '--mint-600': mixHex(accent, '#000000', .1), '--mint-glow': glow, '--mint-700': light ? mixHex(accent, '#000000', .25) : mixHex(accent, '#000000', .35),
+    '--mint-600': mixHex(accent, '#000000', .1), '--mint-glow': light ? mixHex(accent, '#000000', .1) : glow, '--mint-700': light ? mixHex(accent, '#000000', .42) : mixHex(accent, '#000000', .12),
     '--mint-800': light ? mixHex(accent, '#ffffff', .7) : mixHex(accent, bg[0], .7), '--mint-900': light ? mixHex(accent, '#ffffff', .86) : mixHex(accent, bg[0], .84),
     '--text-on-mint': onAccent, '--text-hi': text[0], '--text-md': text[1], '--text-lo': text[2], '--text-dim': text[3],
     '--surf-0': surf[0], '--surf-1': surf[1], '--surf-2': surf[2], '--surf-3': surf[3],
@@ -333,7 +333,7 @@ function tokens(t) {
   };
   if (light) Object.assign(v, {
     '--ink-hi': text[0], '--ink-md': text[1], '--ink-lo': text[2], '--ink-rgb': rgb(text[0]), '--surf-hi': '#ffffff', '--dim-rgb': '150, 150, 150',
-    '--bond-name': text[0], '--rt-vup': '#0a6fb5', '--ice': '#0a6fb5', '--red-premium': '#c62828', '--amber': '#a36000', '--gold': '#8a6d00',
+    '--bond-name': text[0], '--rt-vup': '#0a6fb5', '--ice': '#0a6fb5', '--red-premium': '#c62828', '--amber': '#a36000', '--gold': '#8a6d00', '--gold-2': '#7d5f00',
   });
   if (accent2) v['--ui-accent-2'] = accent2;
   return v;

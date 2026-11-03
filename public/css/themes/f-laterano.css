@@ -9,7 +9,7 @@
   --bg-deep: #ebe6da;
   --bg-panel: #ffffff;
   --bg-panel-2: #faf8f2;
-  --bg-tint: #f5f1e5;
+  --bg-tint: #f3efe4;
   --bg-0-rgb: 244, 241, 234;
   --bg-1-rgb: 250, 248, 242;
   --bg-glass-rgb: 255, 255, 255;
@@ -17,21 +17,21 @@
   --line: #d6cbb2;
   --line-2: #b9a77f;
   --line-3: #8f7b50;
-  --accent-rgb: 166, 124, 30;
-  --glow-rgb: 224, 178, 74;
-  --mint-500: #a67c1e;
-  --mint-400: #926d1a;
-  --mint-350: #99721c;
-  --mint-600: #95701b;
-  --mint-glow: #e0b24a;
-  --mint-700: #7d5d17;
-  --mint-800: #e4d8bc;
-  --mint-900: #f3ede0;
+  --accent-rgb: 127, 93, 16;
+  --glow-rgb: 168, 125, 31;
+  --mint-500: #7f5d10;
+  --mint-400: #70520e;
+  --mint-350: #75560f;
+  --mint-600: #72540e;
+  --mint-glow: #72540e;
+  --mint-700: #4a3609;
+  --mint-800: #d9ceb7;
+  --mint-900: #ede8de;
   --text-on-mint: #ffffff;
   --text-hi: #1e1a12;
   --text-md: #3f382a;
-  --text-lo: #615845;
-  --text-dim: #766c57;
+  --text-lo: #575040;
+  --text-dim: #655c4a;
   --surf-0: #ebe6da;
   --surf-1: #faf8f2;
   --surf-2: #ffffff;
@@ -43,7 +43,7 @@
   --bond-filter: invert(1) sepia(.6) hue-rotate(-5deg) brightness(1.03);
   --ink-hi: #1e1a12;
   --ink-md: #3f382a;
-  --ink-lo: #615845;
+  --ink-lo: #575040;
   --ink-rgb: 30, 26, 18;
   --surf-hi: #ffffff;
   --dim-rgb: 150, 150, 150;
@@ -53,6 +53,7 @@
   --red-premium: #c62828;
   --amber: #a36000;
   --gold: #8a6d00;
+  --gold-2: #7d5f00;
   --ui-accent-2: #c2455a;
 }
 :root[data-ui-theme="f-laterano"] body {

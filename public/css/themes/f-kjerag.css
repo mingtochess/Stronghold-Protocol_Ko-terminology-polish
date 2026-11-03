@@ -9,7 +9,7 @@
   --bg-deep: #e2eaf0;
   --bg-panel: #ffffff;
   --bg-panel-2: #f6f9fb;
-  --bg-tint: #ebf1f6;
+  --bg-tint: #eaf0f5;
   --bg-0-rgb: 238, 243, 247;
   --bg-1-rgb: 246, 249, 251;
   --bg-glass-rgb: 255, 255, 255;
@@ -17,21 +17,21 @@
   --line: #bccbd7;
   --line-2: #97abbc;
   --line-3: #6d8597;
-  --accent-rgb: 58, 110, 165;
-  --glow-rgb: 106, 165, 220;
-  --mint-500: #3a6ea5;
-  --mint-400: #336191;
-  --mint-350: #356598;
-  --mint-600: #346395;
-  --mint-glow: #6aa5dc;
-  --mint-700: #2c537c;
-  --mint-800: #c4d4e4;
-  --mint-900: #e3ebf2;
+  --accent-rgb: 47, 95, 146;
+  --glow-rgb: 79, 140, 197;
+  --mint-500: #2f5f92;
+  --mint-400: #295480;
+  --mint-350: #2b5786;
+  --mint-600: #2a5683;
+  --mint-glow: #2a5683;
+  --mint-700: #1b3755;
+  --mint-800: #c1cfde;
+  --mint-900: #e2e9f0;
   --text-on-mint: #ffffff;
   --text-hi: #132030;
   --text-md: #33465a;
-  --text-lo: #53677a;
-  --text-dim: #6a7d8f;
+  --text-lo: #4c5f72;
+  --text-dim: #576a7c;
   --surf-0: #e2eaf0;
   --surf-1: #f6f9fb;
   --surf-2: #ffffff;
@@ -43,7 +43,7 @@
   --bond-filter: invert(1) hue-rotate(190deg) brightness(1.04);
   --ink-hi: #132030;
   --ink-md: #33465a;
-  --ink-lo: #53677a;
+  --ink-lo: #4c5f72;
   --ink-rgb: 19, 32, 48;
   --surf-hi: #ffffff;
   --dim-rgb: 150, 150, 150;
@@ -53,6 +53,7 @@
   --red-premium: #c62828;
   --amber: #a36000;
   --gold: #8a6d00;
+  --gold-2: #7d5f00;
   --ui-accent-2: #c0392b;
 }
 :root[data-ui-theme="f-kjerag"] body {
