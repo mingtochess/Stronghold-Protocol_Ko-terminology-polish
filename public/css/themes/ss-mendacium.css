@@ -69,7 +69,7 @@
   background: rgba(247, 230, 213, .95); border: 1px solid #a77e5a; border-radius: 0; box-shadow: inset 0 0 0 2px #f7e6d5, inset 0 0 0 3px rgba(180, 82, 31, .35), 0 .04rem .16rem rgba(66, 55, 46, .16);
 }
 :root[data-ui-theme="ss-mendacium"] .btn { border-radius: 0; }
-:root[data-ui-theme="ss-mendacium"] .btn--primary { --ui-primary-face: linear-gradient(180deg, #c8622a, #a2461a); background-color: var(--mint-500); color: #fff4ea; border-color: #42372e; }
+:root[data-ui-theme="ss-mendacium"] .btn--primary { --ui-primary-face: #c8622a; background-color: var(--mint-500); color: #fff4ea; border-color: #42372e; }
 :root[data-ui-theme="ss-mendacium"] .modal { background: rgba(40, 40, 40, .35); }
 :root[data-ui-theme="ss-mendacium"] :is(.btn--secondary, .btn--ghost) { --btn-bg: #ffffff; --btn-bg-hover: #f2d9c1; }
 :root[data-ui-theme="ss-mendacium"] .section-label { color: #fff4ea; padding: .02rem .16rem; background: #42372e; box-shadow: inset 0 0 0 1px #c8622a; letter-spacing: .08em; }
@@ -87,11 +87,12 @@
 :root[data-ui-theme="ss-mendacium"] .modal__stripe { background: linear-gradient(90deg, #42372e 0 15%, #c8622a 15% 85%, #42372e 85%); }
 :root[data-ui-theme="ss-mendacium"] .pbanner__band { background: linear-gradient(90deg, #42372e 0 15%, #c8622a 15% 85%, #42372e 85%); }
 :root[data-ui-theme="ss-mendacium"] .brackets::after { background: none; }
-:root[data-ui-theme="ss-mendacium"] .gtop__center { background: radial-gradient(circle, rgba(124, 90, 60, .06) 1px, transparent 1.5px) 0 0 / .14rem .14rem, linear-gradient(180deg, rgba(var(--bg-1-rgb), .92), rgba(var(--bg-0-rgb), .92)); border-radius: 0; }
+:root[data-ui-theme="ss-mendacium"] .gtop__center { background: radial-gradient(circle, rgba(124, 90, 60, .06) 1px, transparent 1.5px) 0 0 / .14rem .14rem, linear-gradient(rgba(var(--bg-1-rgb), .94), rgba(var(--bg-1-rgb), .94)); border-radius: 0; }
 :root[data-ui-theme="ss-mendacium"] .capsule { border-radius: 0; background: linear-gradient(90deg, #42372e 0 15%, #c8622a 15% 85%, #42372e 85%) bottom / 100% 2px no-repeat, rgba(var(--bg-1-rgb), .92); }
 :root[data-ui-theme="ss-mendacium"] :is(.effect, .toolbtn:not(.obtn), .readybtn__box) { border-radius: 0; }
 :root[data-ui-theme="ss-mendacium"] .effect { background: radial-gradient(circle, rgba(124, 90, 60, .06) 1px, transparent 1.5px) 0 0 / .14rem .14rem, rgba(var(--bg-1-rgb), .88); }
-:root[data-ui-theme="ss-mendacium"] .lvcard { background: linear-gradient(90deg, transparent, rgba(255, 240, 220, .45)), linear-gradient(180deg, var(--mint-400), var(--mint-600)); background-size: .34rem 100%, 100% 100%; background-position: right bottom, 0 0; background-repeat: no-repeat;  }
+:root[data-ui-theme="ss-mendacium"] .lvcard { background: linear-gradient(90deg, transparent, rgba(255, 240, 220, .45)), linear-gradient(var(--mint-500), var(--mint-500)); background-size: .34rem 100%, 100% 100%; background-position: right bottom, 0 0; background-repeat: no-repeat;  }
+:root[data-ui-theme="ss-mendacium"] :is(.lo-card__art, .lo-dhead__art, .extension-art:not(.extension-art--map), .lo-chip--tier) { background-color: #2b2e31; }
 :root[data-ui-theme="ss-mendacium"] :is(.title-bg__art, .title-bg__ridge-art, .title-bg__ridges, .title-bg__target, .title-bg__radar, .title-bg__haze) { display: none; }
 :root[data-ui-theme="ss-mendacium"] .app-bg, :root[data-ui-theme="ss-mendacium"] .app-bg::before, :root[data-ui-theme="ss-mendacium"] .app-bg::after { background: none; }
 :root[data-ui-theme="ss-mendacium"] { --font-micro: 'Marcellus SC', var(--font-display); }
@@ -113,8 +114,8 @@
 :root[data-ui-theme="ss-mendacium"] .hbond__board { filter: none; }
 :root[data-ui-theme="ss-mendacium"] .hbond.is-disabled .hbond__board { filter: grayscale(1) brightness(.6); }
 :root[data-ui-theme="ss-mendacium"] .hbond__board::before { content: ''; position: absolute; pointer-events: none; }
-:root[data-ui-theme="ss-mendacium"] .hbond .hbond__num, :root[data-ui-theme="ss-mendacium"] .hbond .hbond__num.has-matte { background: var(--hb-band-bg, rgba(var(--bg-0-rgb), .94)) !important; filter: none; color: var(--hb-band-ink, var(--text-hi));
-  border: calc(1.5 * var(--u)) solid var(--hb-band-line, var(--mint-500)); clip-path: var(--hb-band-clip, none); border-radius: var(--hb-band-radius, 0); font-weight: 700; }
+:root[data-ui-theme="ss-mendacium"] .hbond .hbond__num, :root[data-ui-theme="ss-mendacium"] .hbond .hbond__num.has-matte { background: none !important; border: 0; clip-path: none; filter: none; font-weight: 800;
+  color: var(--hb-count-ink, #ffffff); text-shadow: 0 0 2px #000, 0 0 2px #000, 0 1px 2px #000, 0 0 4px rgba(0, 0, 0, .8); }
 :root[data-ui-theme="ss-mendacium"] .hbond__board::before { inset: 12%; border-radius: 50%; background: radial-gradient(circle, #f7e6d5 52%, #42372e 53% 60%, #f7e6d5 61% 66%, #b4521f 67%); }
 :root[data-ui-theme="ss-mendacium"] .hbond.is-full .hbond__board::before { background: radial-gradient(circle, #c8622a 52%, #42372e 53% 60%, #f7e6d5 61% 66%, #b4521f 67%); }
 :root[data-ui-theme="ss-mendacium"] .hbond__icon:not(.hbond__glyph) { filter: brightness(0) invert(.2) sepia(.5); }
@@ -124,13 +125,15 @@
 :root[data-ui-theme="ss-mendacium"] .bond:not(.hbond).is-active .bond__core::before { background: radial-gradient(circle, #c8622a 52%, #42372e 53% 60%, #f7e6d5 61% 66%, #b4521f 67%); }
 :root[data-ui-theme="ss-mendacium"] .bond:not(.hbond) .bond__icon { filter: brightness(0) invert(.2) sepia(.5); }
 :root[data-ui-theme="ss-mendacium"] .bond:not(.hbond).is-active .bond__icon:not(.hbond__glyph) { filter: brightness(0) invert(1); }
-:root[data-ui-theme="ss-mendacium"] .hbond__board::after { content: ''; position: absolute; inset: 12%; border-radius: 50%; box-sizing: border-box; pointer-events: none; z-index: 1;
-  background: conic-gradient(var(--hb-ring-on, var(--mint-500)) 0 calc(var(--bt, 0) * 1turn / var(--bn, 1)), var(--hb-ring-off, var(--line-3)) 0);
+:root[data-ui-theme="ss-mendacium"] .hbond__board::after { content: ''; position: absolute; inset: 4%; border-radius: 50%; box-sizing: border-box; pointer-events: none; z-index: 1;
+  background: conic-gradient(var(--hb-ring-on, var(--mint-400)) 0 calc(var(--bt, 0) * 1turn / var(--bn, 1)), var(--hb-ring-off, rgba(140, 140, 140, .6)) 0);
+  filter: drop-shadow(0 0 1px rgba(0, 0, 0, .9));
   -webkit-mask: repeating-conic-gradient(#000 0 calc(1turn / var(--bn, 1) - var(--bgap, 0deg)), transparent 0 calc(1turn / var(--bn, 1))), linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   mask: repeating-conic-gradient(#000 0 calc(1turn / var(--bn, 1) - var(--bgap, 0deg)), transparent 0 calc(1turn / var(--bn, 1))), linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: source-in, xor; mask-composite: intersect, exclude; padding: var(--hb-ring-w, calc(6 * var(--u))); }
-:root[data-ui-theme="ss-mendacium"] .bond:not(.hbond) .bond__core::after { content: ''; position: absolute; inset: 12%; border-radius: 50%; box-sizing: border-box; pointer-events: none; z-index: 1;
-  background: conic-gradient(var(--hb-ring-on, var(--mint-500)) 0 calc(var(--bt, 0) * 1turn / var(--bn, 1)), var(--hb-ring-off, var(--line-3)) 0);
+:root[data-ui-theme="ss-mendacium"] .bond:not(.hbond) .bond__core::after { content: ''; position: absolute; inset: 4%; border-radius: 50%; box-sizing: border-box; pointer-events: none; z-index: 1;
+  background: conic-gradient(var(--hb-ring-on, var(--mint-400)) 0 calc(var(--bt, 0) * 1turn / var(--bn, 1)), var(--hb-ring-off, rgba(140, 140, 140, .6)) 0);
+  filter: drop-shadow(0 0 1px rgba(0, 0, 0, .9));
   -webkit-mask: repeating-conic-gradient(#000 0 calc(1turn / var(--bn, 1) - var(--bgap, 0deg)), transparent 0 calc(1turn / var(--bn, 1))), linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   mask: repeating-conic-gradient(#000 0 calc(1turn / var(--bn, 1) - var(--bgap, 0deg)), transparent 0 calc(1turn / var(--bn, 1))), linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: source-in, xor; mask-composite: intersect, exclude; padding: calc(var(--disc) * .08); }
@@ -141,3 +144,5 @@
 :root[data-ui-theme="ss-mendacium"] .bond:not(.hbond).is-disabled .bond__core { filter: grayscale(1) brightness(.6); }
 :root[data-ui-theme="ss-mendacium"] { --hb-band-bg: #42372e; --hb-band-ink: #fff4ea; --hb-band-line: #c8622a; --hb-band-radius: 99px; }
 :root[data-ui-theme="ss-mendacium"] .section-label :is(.section-label__idx, .micro) { color: inherit; border-color: currentColor; opacity: .85; }
+:root[data-ui-theme="ss-mendacium"] body::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none; background: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%2740%27%20height%3D%2740%27%20viewBox%3D%270%200%2040%2040%27%3E%3Cpath%20d%3D%27M0%2036H8V28H16V32H12V30H10V36H24V28H32V32H28V30H26V36H40%27%20fill%3D%27none%27%20stroke%3D%27%2342372e%27%20stroke-opacity%3D%27.1%27%2F%3E%3C%2Fsvg%3E") 0 0 / 40px 40px repeat; }
+:root[data-ui-theme="ss-mendacium"] :is(.panel, .modal__box)::before { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%2740%27%20height%3D%2740%27%20viewBox%3D%270%200%2040%2040%27%3E%3Cpath%20d%3D%27M0%2036H8V28H16V32H12V30H10V36H24V28H32V32H28V30H26V36H40%27%20fill%3D%27none%27%20stroke%3D%27%2342372e%27%20stroke-opacity%3D%27.1%27%2F%3E%3C%2Fsvg%3E"); background-size: 40px 40px; background-repeat: repeat; opacity: .8; }

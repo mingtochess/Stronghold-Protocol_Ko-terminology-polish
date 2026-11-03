@@ -55,11 +55,11 @@
 :root[data-ui-theme="is-mizuki"] .screen:not(.gm) { background: transparent; }
 :root[data-ui-theme="is-mizuki"] .panel,
 :root[data-ui-theme="is-mizuki"] .modal__box {
-  background: linear-gradient(180deg, rgba(12, 20, 38, .86), rgba(3, 6, 15, .92)); border: 1px solid rgba(95, 212, 255, .22); border-radius: 0;
+  background: rgba(12, 20, 38, .86); border: 1px solid rgba(95, 212, 255, .22); border-radius: 0;
   box-shadow: 0 0 .3rem rgba(40, 90, 220, .18);
 }
 :root[data-ui-theme="is-mizuki"] .btn { border-radius: 0; letter-spacing: .12em; }
-:root[data-ui-theme="is-mizuki"] .btn--primary { --ui-primary-face: linear-gradient(90deg, rgba(95, 212, 255, .9), rgba(60, 120, 255, .9)); background-color: var(--mint-500); color: #02101a; border-color: #bff3ff; }
+:root[data-ui-theme="is-mizuki"] .btn--primary { --ui-primary-face: rgba(95, 212, 255, .9); background-color: var(--mint-500); color: #02101a; border-color: #bff3ff; }
 :root[data-ui-theme="is-mizuki"] .modal { background: rgba(0, 0, 0, .6); }
 :root[data-ui-theme="is-mizuki"] .micro::before { content: '◆ '; color: #4b8cff; }
 :root[data-ui-theme="is-mizuki"] .btn:hover { box-shadow: 0 0 .16rem rgba(127, 247, 255, .5); }
@@ -83,11 +83,11 @@
     conic-gradient(from 45deg at 50% 50%, #4b8cff 0 90deg, transparent 90deg 360deg) bottom left / .12rem .12rem no-repeat,
     conic-gradient(from 45deg at 50% 50%, #4b8cff 0 90deg, transparent 90deg 360deg) bottom right / .12rem .12rem no-repeat;
 }
-:root[data-ui-theme="is-mizuki"] .gtop__center { background: radial-gradient(40% 30% at 20% 20%, rgba(40, 80, 200, .1), transparent 70%), linear-gradient(180deg, rgba(var(--bg-1-rgb), .92), rgba(var(--bg-0-rgb), .92)); border-radius: .3rem; }
+:root[data-ui-theme="is-mizuki"] .gtop__center { background: radial-gradient(40% 30% at 20% 20%, rgba(40, 80, 200, .1), transparent 70%), linear-gradient(rgba(var(--bg-1-rgb), .94), rgba(var(--bg-1-rgb), .94)); border-radius: .3rem; }
 :root[data-ui-theme="is-mizuki"] .capsule { border-radius: .25rem; background: linear-gradient(90deg, transparent, #5fd4ff, transparent) bottom / 100% 2px no-repeat, rgba(var(--bg-1-rgb), .92); }
 :root[data-ui-theme="is-mizuki"] :is(.effect, .toolbtn:not(.obtn), .readybtn__box) { border-radius: .3rem; }
 :root[data-ui-theme="is-mizuki"] .effect { background: radial-gradient(40% 30% at 20% 20%, rgba(40, 80, 200, .1), transparent 70%), rgba(var(--bg-1-rgb), .88); }
-:root[data-ui-theme="is-mizuki"] .lvcard { background: repeating-linear-gradient(90deg, rgba(255, 255, 255, .5) 0 1px, transparent 1px 4px), linear-gradient(180deg, var(--mint-400), var(--mint-600)); background-size: .34rem 100%, 100% 100%; background-position: right bottom, 0 0; background-repeat: no-repeat;  }
+:root[data-ui-theme="is-mizuki"] .lvcard { background: repeating-linear-gradient(90deg, rgba(255, 255, 255, .5) 0 1px, transparent 1px 4px), linear-gradient(var(--mint-500), var(--mint-500)); background-size: .34rem 100%, 100% 100%; background-position: right bottom, 0 0; background-repeat: no-repeat;  }
 :root[data-ui-theme="is-mizuki"] :is(.title-bg__art, .title-bg__ridge-art, .title-bg__ridges, .title-bg__target, .title-bg__radar, .title-bg__haze) { display: none; }
 :root[data-ui-theme="is-mizuki"] .app-bg, :root[data-ui-theme="is-mizuki"] .app-bg::before, :root[data-ui-theme="is-mizuki"] .app-bg::after { background: none; }
 :root[data-ui-theme="is-mizuki"][data-ui-art] body { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='turbulence' baseFrequency='0.25' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.235 0 0 0 0 0.431 0 0 0 0 0.902 0 0 0 0.08 0'/%3E%3C/filter%3E%3Crect width='100%' height='100%' filter='url(%23n)'/%3E%3C/svg%3E"), linear-gradient(rgba(var(--bg-0-rgb), .62), rgba(var(--bg-0-rgb), .62)), var(--ta-left), var(--ta-right); background-size: 240px auto, 100% 100%, 50.1% 100%, 50.1% 100%; background-position: 0 0, 0 0, left center, right center; background-repeat: repeat, no-repeat, no-repeat, no-repeat; }
@@ -108,20 +108,22 @@
 :root[data-ui-theme="is-mizuki"] .hbond__board { filter: none; }
 :root[data-ui-theme="is-mizuki"] .hbond.is-disabled .hbond__board { filter: grayscale(1) brightness(.6); }
 :root[data-ui-theme="is-mizuki"] .hbond__board::before { content: ''; position: absolute; pointer-events: none; }
-:root[data-ui-theme="is-mizuki"] .hbond .hbond__num, :root[data-ui-theme="is-mizuki"] .hbond .hbond__num.has-matte { background: var(--hb-band-bg, rgba(var(--bg-0-rgb), .94)) !important; filter: none; color: var(--hb-band-ink, var(--text-hi));
-  border: calc(1.5 * var(--u)) solid var(--hb-band-line, var(--mint-500)); clip-path: var(--hb-band-clip, none); border-radius: var(--hb-band-radius, 0); font-weight: 700; }
+:root[data-ui-theme="is-mizuki"] .hbond .hbond__num, :root[data-ui-theme="is-mizuki"] .hbond .hbond__num.has-matte { background: none !important; border: 0; clip-path: none; filter: none; font-weight: 800;
+  color: var(--hb-count-ink, #ffffff); text-shadow: 0 0 2px #000, 0 0 2px #000, 0 1px 2px #000, 0 0 4px rgba(0, 0, 0, .8); }
 :root[data-ui-theme="is-mizuki"] .hbond__board::before { inset: 12%; border-radius: 50%; background: radial-gradient(circle at 32% 28%, rgba(255, 255, 255, .6) 0 10%, transparent 12%), radial-gradient(circle, rgba(30, 60, 160, .85) 55%, rgba(95, 212, 255, .7) 70%, transparent 72%); box-shadow: 0 0 calc(8 * var(--u)) rgba(95, 212, 255, .5); }
 :root[data-ui-theme="is-mizuki"] .hbond.is-full .hbond__board::before { background: radial-gradient(circle at 32% 28%, rgba(255, 255, 255, .7) 0 10%, transparent 12%), radial-gradient(circle, #7ff7ff 40%, #3a8bff 70%, transparent 72%); }
 :root[data-ui-theme="is-mizuki"] .bond:not(.hbond) .bond__core::before { content: ''; position: absolute; pointer-events: none; }
 :root[data-ui-theme="is-mizuki"] .bond:not(.hbond) .bond__core::before { inset: 12%; border-radius: 50%; background: radial-gradient(circle at 32% 28%, rgba(255, 255, 255, .6) 0 10%, transparent 12%), radial-gradient(circle, rgba(30, 60, 160, .85) 55%, rgba(95, 212, 255, .7) 70%, transparent 72%); box-shadow: 0 0 calc(8 * var(--u)) rgba(95, 212, 255, .5); }
 :root[data-ui-theme="is-mizuki"] .bond:not(.hbond).is-active .bond__core::before { background: radial-gradient(circle at 32% 28%, rgba(255, 255, 255, .7) 0 10%, transparent 12%), radial-gradient(circle, #7ff7ff 40%, #3a8bff 70%, transparent 72%); }
-:root[data-ui-theme="is-mizuki"] .hbond__board::after { content: ''; position: absolute; inset: 12%; border-radius: 50%; box-sizing: border-box; pointer-events: none; z-index: 1;
-  background: conic-gradient(var(--hb-ring-on, var(--mint-500)) 0 calc(var(--bt, 0) * 1turn / var(--bn, 1)), var(--hb-ring-off, var(--line-3)) 0);
+:root[data-ui-theme="is-mizuki"] .hbond__board::after { content: ''; position: absolute; inset: 4%; border-radius: 50%; box-sizing: border-box; pointer-events: none; z-index: 1;
+  background: conic-gradient(var(--hb-ring-on, var(--mint-400)) 0 calc(var(--bt, 0) * 1turn / var(--bn, 1)), var(--hb-ring-off, rgba(140, 140, 140, .6)) 0);
+  filter: drop-shadow(0 0 1px rgba(0, 0, 0, .9));
   -webkit-mask: repeating-conic-gradient(#000 0 calc(1turn / var(--bn, 1) - var(--bgap, 0deg)), transparent 0 calc(1turn / var(--bn, 1))), linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   mask: repeating-conic-gradient(#000 0 calc(1turn / var(--bn, 1) - var(--bgap, 0deg)), transparent 0 calc(1turn / var(--bn, 1))), linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: source-in, xor; mask-composite: intersect, exclude; padding: var(--hb-ring-w, calc(6 * var(--u))); }
-:root[data-ui-theme="is-mizuki"] .bond:not(.hbond) .bond__core::after { content: ''; position: absolute; inset: 12%; border-radius: 50%; box-sizing: border-box; pointer-events: none; z-index: 1;
-  background: conic-gradient(var(--hb-ring-on, var(--mint-500)) 0 calc(var(--bt, 0) * 1turn / var(--bn, 1)), var(--hb-ring-off, var(--line-3)) 0);
+:root[data-ui-theme="is-mizuki"] .bond:not(.hbond) .bond__core::after { content: ''; position: absolute; inset: 4%; border-radius: 50%; box-sizing: border-box; pointer-events: none; z-index: 1;
+  background: conic-gradient(var(--hb-ring-on, var(--mint-400)) 0 calc(var(--bt, 0) * 1turn / var(--bn, 1)), var(--hb-ring-off, rgba(140, 140, 140, .6)) 0);
+  filter: drop-shadow(0 0 1px rgba(0, 0, 0, .9));
   -webkit-mask: repeating-conic-gradient(#000 0 calc(1turn / var(--bn, 1) - var(--bgap, 0deg)), transparent 0 calc(1turn / var(--bn, 1))), linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   mask: repeating-conic-gradient(#000 0 calc(1turn / var(--bn, 1) - var(--bgap, 0deg)), transparent 0 calc(1turn / var(--bn, 1))), linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: source-in, xor; mask-composite: intersect, exclude; padding: calc(var(--disc) * .08); }
@@ -132,3 +134,5 @@
 :root[data-ui-theme="is-mizuki"] .bond:not(.hbond).is-disabled .bond__core { filter: grayscale(1) brightness(.6); }
 :root[data-ui-theme="is-mizuki"] { --hb-band-bg: rgba(10, 20, 60, .92); --hb-band-ink: #dff6ff; --hb-band-line: #5fd4ff; --hb-band-radius: 99px; }
 :root[data-ui-theme="is-mizuki"] .section-label :is(.section-label__idx, .micro) { color: inherit; border-color: currentColor; opacity: .85; }
+:root[data-ui-theme="is-mizuki"] body::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none; background: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%2780%27%20height%3D%2780%27%20viewBox%3D%270%200%2080%2080%27%3E%3Cg%20fill%3D%27none%27%20stroke%3D%27%237ff7ff%27%20stroke-opacity%3D%27.14%27%3E%3Ccircle%20cx%3D%2720%27%20cy%3D%2722%27%20r%3D%276%27%2F%3E%3Ccircle%20cx%3D%2760%27%20cy%3D%2752%27%20r%3D%279%27%2F%3E%3Ccircle%20cx%3D%2736%27%20cy%3D%2766%27%20r%3D%273%27%2F%3E%3Cpath%20d%3D%27M0%2040Q20%2030%2040%2040T80%2040%27%20stroke-opacity%3D%27.08%27%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E") 0 0 / 80px 80px repeat; }
+:root[data-ui-theme="is-mizuki"] :is(.panel, .modal__box)::before { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%2780%27%20height%3D%2780%27%20viewBox%3D%270%200%2080%2080%27%3E%3Cg%20fill%3D%27none%27%20stroke%3D%27%237ff7ff%27%20stroke-opacity%3D%27.14%27%3E%3Ccircle%20cx%3D%2720%27%20cy%3D%2722%27%20r%3D%276%27%2F%3E%3Ccircle%20cx%3D%2760%27%20cy%3D%2752%27%20r%3D%279%27%2F%3E%3Ccircle%20cx%3D%2736%27%20cy%3D%2766%27%20r%3D%273%27%2F%3E%3Cpath%20d%3D%27M0%2040Q20%2030%2040%2040T80%2040%27%20stroke-opacity%3D%27.08%27%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E"); background-size: 80px 80px; background-repeat: repeat; opacity: .8; }

@@ -60,7 +60,7 @@
 }
 :root[data-ui-theme="f-sargon"] body {
   background-color: var(--bg-0);
-  background-image: linear-gradient(115deg, transparent 0 70%, rgba(252, 206, 70, .3) 70% 76%, transparent 76%), radial-gradient(60% 40% at 10% 0%, rgba(252, 206, 70, .18), transparent 70%), linear-gradient(180deg, #fbfbfc, #eeeef1);
+  background-image: linear-gradient(115deg, transparent 0 70%, rgba(252, 206, 70, .3) 70% 76%, transparent 76%), radial-gradient(60% 40% at 10% 0%, rgba(252, 206, 70, .18), transparent 70%);
 }
 :root[data-ui-theme="f-sargon"] .screen:not(.gm) { background: transparent; }
 :root[data-ui-theme="f-sargon"] .panel,
@@ -68,7 +68,7 @@
   background: rgba(255, 255, 255, .97); border: 2px solid #fcce46; border-radius: .06rem; box-shadow: 0 .05rem 0 #e6b52a, 0 .06rem .2rem rgba(60, 50, 20, .12);
 }
 :root[data-ui-theme="f-sargon"] .btn { border-radius: .04rem; font-weight: 800; }
-:root[data-ui-theme="f-sargon"] .btn--primary { --ui-primary-face: linear-gradient(180deg, #fcd650, #f5b818); background-color: var(--mint-500); color: #24241f; border-color: #c9a417; }
+:root[data-ui-theme="f-sargon"] .btn--primary { --ui-primary-face: #fcd650; background-color: var(--mint-500); color: #24241f; border-color: #c9a417; }
 :root[data-ui-theme="f-sargon"] .modal { background: rgba(40, 40, 40, .35); }
 :root[data-ui-theme="f-sargon"] :is(.btn--secondary, .btn--ghost) { --btn-bg: #ffffff; --btn-bg-hover: #fcfcfd; }
 :root[data-ui-theme="f-sargon"] .section-label { color: #24241f; padding: .02rem .16rem; background: #fcce46; box-shadow: .03rem .03rem 0 #2f7fd0; transform: skewX(-8deg); letter-spacing: .04em; }
@@ -86,11 +86,12 @@
 :root[data-ui-theme="f-sargon"] .modal__stripe { background: repeating-linear-gradient(115deg, #fcce46 0 .1rem, #24241f .1rem .2rem); }
 :root[data-ui-theme="f-sargon"] .pbanner__band { background: repeating-linear-gradient(115deg, #fcce46 0 .1rem, #24241f .1rem .2rem); }
 :root[data-ui-theme="f-sargon"] .brackets::after { background: none; }
-:root[data-ui-theme="f-sargon"] .gtop__center { background: linear-gradient(115deg, rgba(252, 206, 70, .1) 0 10%, transparent 10%), linear-gradient(180deg, rgba(var(--bg-1-rgb), .92), rgba(var(--bg-0-rgb), .92)); border-radius: .06rem; }
+:root[data-ui-theme="f-sargon"] .gtop__center { background: linear-gradient(115deg, rgba(252, 206, 70, .1) 0 10%, transparent 10%), linear-gradient(rgba(var(--bg-1-rgb), .94), rgba(var(--bg-1-rgb), .94)); border-radius: .06rem; }
 :root[data-ui-theme="f-sargon"] .capsule { border-radius: .25rem; background: repeating-linear-gradient(115deg, #fcce46 0 .1rem, #24241f .1rem .2rem) bottom / 100% 2px no-repeat, rgba(var(--bg-1-rgb), .92); }
 :root[data-ui-theme="f-sargon"] :is(.effect, .toolbtn:not(.obtn), .readybtn__box) { border-radius: .06rem; }
 :root[data-ui-theme="f-sargon"] .effect { background: linear-gradient(115deg, rgba(252, 206, 70, .1) 0 10%, transparent 10%), rgba(var(--bg-1-rgb), .88); }
-:root[data-ui-theme="f-sargon"] .lvcard { background: repeating-linear-gradient(90deg, rgba(255, 255, 255, .6) 0 3px, transparent 3px 7px), linear-gradient(180deg, var(--mint-400), var(--mint-600)); background-size: .34rem 100%, 100% 100%; background-position: right bottom, 0 0; background-repeat: no-repeat;  }
+:root[data-ui-theme="f-sargon"] .lvcard { background: repeating-linear-gradient(90deg, rgba(255, 255, 255, .6) 0 3px, transparent 3px 7px), linear-gradient(var(--mint-500), var(--mint-500)); background-size: .34rem 100%, 100% 100%; background-position: right bottom, 0 0; background-repeat: no-repeat;  }
+:root[data-ui-theme="f-sargon"] :is(.lo-card__art, .lo-dhead__art, .extension-art:not(.extension-art--map), .lo-chip--tier) { background-color: #2b2e31; }
 :root[data-ui-theme="f-sargon"] :is(.title-bg__art, .title-bg__ridge-art, .title-bg__ridges, .title-bg__target, .title-bg__radar, .title-bg__haze) { display: none; }
 :root[data-ui-theme="f-sargon"] .app-bg, :root[data-ui-theme="f-sargon"] .app-bg::before, :root[data-ui-theme="f-sargon"] .app-bg::after { background: none; }
 :root[data-ui-theme="f-sargon"][data-ui-art] body::after { content: ''; position: fixed; right: 4vw; bottom: 6vh; width: 34vmin; height: 34vmin; background: var(--ta-logo) center / contain no-repeat; opacity: .08; pointer-events: none; z-index: -1; filter: invert(1); }
@@ -102,18 +103,16 @@
 /* ---- shape layer (tools/ui-theme-shapes.mjs) */
 :root[data-ui-theme="f-sargon"] .section-label { width: fit-content; padding: .04rem .3rem; color: #fff; font-style: italic; font-weight: 900; -webkit-text-stroke: .5px #12345a; text-shadow: .02rem .02rem 0 #12345a;
   background: radial-gradient(circle, rgba(255, 255, 255, .22) 1px, transparent 1.6px) 0 0 / 5px 5px, linear-gradient(90deg, #1f5fa8, #2a70c0);
-  clip-path: polygon(.1rem 0, 100% 0, calc(100% - .1rem) 100%, 0 100%); transform: rotate(-2deg); }
+  clip-path: polygon(.1rem 0, 100% 0, calc(100% - .1rem) 100%, 0 100%); }
 :root[data-ui-theme="f-sargon"] :is(.panel, .modal__box) { border: 0; border-radius: 0; background: radial-gradient(circle, rgba(255, 255, 255, .5) 1px, transparent 1.6px) 0 0 / 6px 6px, linear-gradient(180deg, #fdd552, #f9c330); box-shadow: .05rem .05rem 0 #f19b48, 0 .06rem .2rem rgba(60, 50, 20, .18); }
 :root[data-ui-theme="f-sargon"] :is(.panel, .modal__box) :is(.panel__body, .modal__body) { color: #24241f; }
-:root[data-ui-theme="f-sargon"] .btn { transform: skewX(-6deg); border-radius: .03rem; }
-:root[data-ui-theme="f-sargon"] .btn > * { transform: skewX(6deg); }
 :root[data-ui-theme="f-sargon"] :is(.mode-card, .seat) { border: .03rem solid #fcce46; box-shadow: .04rem .04rem 0 #f19b48; }
 :root[data-ui-theme="f-sargon"] .hbond__ring { opacity: 0; }
 :root[data-ui-theme="f-sargon"] .hbond__board { filter: none; }
 :root[data-ui-theme="f-sargon"] .hbond.is-disabled .hbond__board { filter: grayscale(1) brightness(.6); }
 :root[data-ui-theme="f-sargon"] .hbond__board::before { content: ''; position: absolute; pointer-events: none; }
-:root[data-ui-theme="f-sargon"] .hbond .hbond__num, :root[data-ui-theme="f-sargon"] .hbond .hbond__num.has-matte { background: var(--hb-band-bg, rgba(var(--bg-0-rgb), .94)) !important; filter: none; color: var(--hb-band-ink, var(--text-hi));
-  border: calc(1.5 * var(--u)) solid var(--hb-band-line, var(--mint-500)); clip-path: var(--hb-band-clip, none); border-radius: var(--hb-band-radius, 0); font-weight: 700; }
+:root[data-ui-theme="f-sargon"] .hbond .hbond__num, :root[data-ui-theme="f-sargon"] .hbond .hbond__num.has-matte { background: none !important; border: 0; clip-path: none; filter: none; font-weight: 800;
+  color: var(--hb-count-ink, #ffffff); text-shadow: 0 0 2px #000, 0 0 2px #000, 0 1px 2px #000, 0 0 4px rgba(0, 0, 0, .8); }
 :root[data-ui-theme="f-sargon"] .hbond__board::before { inset: 15%; transform: rotate(-8deg); border-radius: calc(6 * var(--u)); background: #fff; border: calc(4 * var(--u)) solid #fcce46; box-shadow: calc(3 * var(--u)) calc(3 * var(--u)) 0 #f19b48; }
 :root[data-ui-theme="f-sargon"] .hbond.is-full .hbond__board::before { background: #2f7fd0; border-color: #fcce46; }
 :root[data-ui-theme="f-sargon"] .hbond__icon:not(.hbond__glyph) { filter: brightness(0) invert(.15); }
@@ -123,13 +122,15 @@
 :root[data-ui-theme="f-sargon"] .bond:not(.hbond).is-active .bond__core::before { background: #2f7fd0; border-color: #fcce46; }
 :root[data-ui-theme="f-sargon"] .bond:not(.hbond) .bond__icon { filter: brightness(0) invert(.15); }
 :root[data-ui-theme="f-sargon"] .bond:not(.hbond).is-active .bond__icon:not(.hbond__glyph) { filter: brightness(0) invert(1); }
-:root[data-ui-theme="f-sargon"] .hbond__board::after { content: ''; position: absolute; inset: 15%; border-radius: calc(6 * var(--u)); transform: rotate(-8deg); box-sizing: border-box; pointer-events: none; z-index: 1;
-  background: conic-gradient(var(--hb-ring-on, var(--mint-500)) 0 calc(var(--bt, 0) * 1turn / var(--bn, 1)), var(--hb-ring-off, var(--line-3)) 0);
+:root[data-ui-theme="f-sargon"] .hbond__board::after { content: ''; position: absolute; inset: 4%; border-radius: 50%; box-sizing: border-box; pointer-events: none; z-index: 1;
+  background: conic-gradient(var(--hb-ring-on, var(--mint-400)) 0 calc(var(--bt, 0) * 1turn / var(--bn, 1)), var(--hb-ring-off, rgba(140, 140, 140, .6)) 0);
+  filter: drop-shadow(0 0 1px rgba(0, 0, 0, .9));
   -webkit-mask: repeating-conic-gradient(#000 0 calc(1turn / var(--bn, 1) - var(--bgap, 0deg)), transparent 0 calc(1turn / var(--bn, 1))), linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   mask: repeating-conic-gradient(#000 0 calc(1turn / var(--bn, 1) - var(--bgap, 0deg)), transparent 0 calc(1turn / var(--bn, 1))), linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: source-in, xor; mask-composite: intersect, exclude; padding: var(--hb-ring-w, calc(6 * var(--u))); }
-:root[data-ui-theme="f-sargon"] .bond:not(.hbond) .bond__core::after { content: ''; position: absolute; inset: 15%; border-radius: calc(6 * var(--u)); transform: rotate(-8deg); box-sizing: border-box; pointer-events: none; z-index: 1;
-  background: conic-gradient(var(--hb-ring-on, var(--mint-500)) 0 calc(var(--bt, 0) * 1turn / var(--bn, 1)), var(--hb-ring-off, var(--line-3)) 0);
+:root[data-ui-theme="f-sargon"] .bond:not(.hbond) .bond__core::after { content: ''; position: absolute; inset: 4%; border-radius: 50%; box-sizing: border-box; pointer-events: none; z-index: 1;
+  background: conic-gradient(var(--hb-ring-on, var(--mint-400)) 0 calc(var(--bt, 0) * 1turn / var(--bn, 1)), var(--hb-ring-off, rgba(140, 140, 140, .6)) 0);
+  filter: drop-shadow(0 0 1px rgba(0, 0, 0, .9));
   -webkit-mask: repeating-conic-gradient(#000 0 calc(1turn / var(--bn, 1) - var(--bgap, 0deg)), transparent 0 calc(1turn / var(--bn, 1))), linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   mask: repeating-conic-gradient(#000 0 calc(1turn / var(--bn, 1) - var(--bgap, 0deg)), transparent 0 calc(1turn / var(--bn, 1))), linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: source-in, xor; mask-composite: intersect, exclude; padding: calc(var(--disc) * .08); }
@@ -140,3 +141,5 @@
 :root[data-ui-theme="f-sargon"] .bond:not(.hbond).is-disabled .bond__core { filter: grayscale(1) brightness(.6); }
 :root[data-ui-theme="f-sargon"] { --hb-band-bg: #2f7fd0; --hb-band-ink: #fff; --hb-band-line: #fcce46; --hb-band-clip: polygon(12% 0, 100% 0, 88% 100%, 0 100%); }
 :root[data-ui-theme="f-sargon"] .section-label :is(.section-label__idx, .micro) { color: inherit; border-color: currentColor; opacity: .85; }
+:root[data-ui-theme="f-sargon"] body::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none; background: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%2714%27%20height%3D%2714%27%20viewBox%3D%270%200%2014%2014%27%3E%3Ccircle%20cx%3D%277%27%20cy%3D%277%27%20r%3D%272%27%20fill%3D%27%23f19b48%27%20fill-opacity%3D%27.16%27%2F%3E%3C%2Fsvg%3E") 0 0 / 14px 14px repeat; }
+:root[data-ui-theme="f-sargon"] :is(.panel, .modal__box)::before { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%2714%27%20height%3D%2714%27%20viewBox%3D%270%200%2014%2014%27%3E%3Ccircle%20cx%3D%277%27%20cy%3D%277%27%20r%3D%272%27%20fill%3D%27%23f19b48%27%20fill-opacity%3D%27.16%27%2F%3E%3C%2Fsvg%3E"); background-size: 14px 14px; background-repeat: repeat; opacity: .8; }

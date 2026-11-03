@@ -54,7 +54,7 @@
 :root[data-ui-theme="is-sarkaz"] .screen:not(.gm) { background: transparent; }
 :root[data-ui-theme="is-sarkaz"] .panel,
 :root[data-ui-theme="is-sarkaz"] .modal__box {
-  background: linear-gradient(180deg, rgba(37, 37, 39, .93), rgba(14, 14, 15, .96)); border: 0; border-radius: 0;
+  background: rgba(37, 37, 39, .93); border: 0; border-radius: 0;
   box-shadow: 0 .08rem .3rem rgba(0, 0, 0, .6);
 }
 :root[data-ui-theme="is-sarkaz"] .btn { border-radius: 0; }
@@ -72,15 +72,14 @@
 :root[data-ui-theme="is-sarkaz"] :is(.mode-card__bg, .seat__stripes) { background: radial-gradient(80% 30% at 50% 50%, rgba(217, 166, 58, .28), transparent 70%), radial-gradient(40% 20% at 30% 60%, rgba(60, 110, 200, .18), transparent 70%), radial-gradient(1px 1px at 20% 20%, rgba(255, 255, 255, .5), transparent 70%); }
 :root[data-ui-theme="is-sarkaz"] .seat { background-image: radial-gradient(80% 30% at 50% 50%, rgba(217, 166, 58, .28), transparent 70%); }
 :root[data-ui-theme="is-sarkaz"] .scard__bg { background: radial-gradient(80% 30% at 50% 50%, rgba(217, 166, 58, .28), transparent 70%), radial-gradient(40% 20% at 30% 60%, rgba(60, 110, 200, .18), transparent 70%), radial-gradient(1px 1px at 20% 20%, rgba(255, 255, 255, .5), transparent 70%), linear-gradient(180deg, var(--bg-3), var(--bg-1)); }
-:root[data-ui-theme="is-sarkaz"] :is(.mode-card, .scard) { clip-path: polygon(.14rem 0, 100% 0, 100% calc(100% - .14rem), calc(100% - .14rem) 100%, 0 100%, 0 .14rem); }
 :root[data-ui-theme="is-sarkaz"] .modal__stripe { background: linear-gradient(90deg, #b3202a, #d9a63a 30%, #d9a63a 70%, transparent); }
 :root[data-ui-theme="is-sarkaz"] .pbanner__band { background: linear-gradient(90deg, #b3202a, #d9a63a 30%, #d9a63a 70%, transparent); }
 :root[data-ui-theme="is-sarkaz"] .brackets::after { background: none; }
-:root[data-ui-theme="is-sarkaz"] .gtop__center { background: radial-gradient(1px 1px at 30% 40%, rgba(255, 255, 255, .25), transparent 70%), radial-gradient(1px 1px at 70% 70%, rgba(255, 255, 255, .2), transparent 70%), linear-gradient(180deg, rgba(var(--bg-1-rgb), .92), rgba(var(--bg-0-rgb), .92)); border-radius: 0; clip-path: polygon(.14rem 0, 100% 0, 100% calc(100% - .14rem), calc(100% - .14rem) 100%, 0 100%, 0 .14rem); }
+:root[data-ui-theme="is-sarkaz"] .gtop__center { background: radial-gradient(1px 1px at 30% 40%, rgba(255, 255, 255, .25), transparent 70%), radial-gradient(1px 1px at 70% 70%, rgba(255, 255, 255, .2), transparent 70%), linear-gradient(rgba(var(--bg-1-rgb), .94), rgba(var(--bg-1-rgb), .94)); border-radius: .06rem; }
 :root[data-ui-theme="is-sarkaz"] .capsule { border-radius: .25rem; background: linear-gradient(90deg, #b3202a, #d9a63a 30%, #d9a63a 70%, transparent) bottom / 100% 2px no-repeat, rgba(var(--bg-1-rgb), .92); }
 :root[data-ui-theme="is-sarkaz"] :is(.effect, .toolbtn:not(.obtn), .readybtn__box) { border-radius: .06rem; }
 :root[data-ui-theme="is-sarkaz"] .effect { background: radial-gradient(1px 1px at 30% 40%, rgba(255, 255, 255, .25), transparent 70%), radial-gradient(1px 1px at 70% 70%, rgba(255, 255, 255, .2), transparent 70%), rgba(var(--bg-1-rgb), .88); }
-:root[data-ui-theme="is-sarkaz"] .lvcard { background: radial-gradient(70% 60% at 50% 50%, rgba(255, 255, 255, .3), transparent 70%), linear-gradient(180deg, var(--mint-400), var(--mint-600)); background-size: .34rem 100%, 100% 100%; background-position: right bottom, 0 0; background-repeat: no-repeat; clip-path: polygon(.14rem 0, 100% 0, 100% calc(100% - .14rem), calc(100% - .14rem) 100%, 0 100%, 0 .14rem); }
+:root[data-ui-theme="is-sarkaz"] .lvcard { background: radial-gradient(70% 60% at 50% 50%, rgba(255, 255, 255, .3), transparent 70%), linear-gradient(var(--mint-500), var(--mint-500)); background-size: .34rem 100%, 100% 100%; background-position: right bottom, 0 0; background-repeat: no-repeat;  }
 :root[data-ui-theme="is-sarkaz"] :is(.title-bg__art, .title-bg__ridge-art, .title-bg__ridges, .title-bg__target, .title-bg__radar, .title-bg__haze) { display: none; }
 :root[data-ui-theme="is-sarkaz"] .app-bg, :root[data-ui-theme="is-sarkaz"] .app-bg::before, :root[data-ui-theme="is-sarkaz"] .app-bg::after { background: none; }
 :root[data-ui-theme="is-sarkaz"][data-ui-art] body { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.55' numOctaves='5' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.902 0 0 0 0 0.902 0 0 0 0 0.902 0 0 0 0.07 0'/%3E%3C/filter%3E%3Crect width='100%' height='100%' filter='url(%23n)'/%3E%3C/svg%3E"), linear-gradient(rgba(var(--bg-0-rgb), .62), rgba(var(--bg-0-rgb), .62)), var(--ta-left), var(--ta-right); background-size: 240px auto, 100% 100%, 50.1% 100%, 50.1% 100%; background-position: 0 0, 0 0, left center, right center; background-repeat: repeat, no-repeat, no-repeat, no-repeat; }
@@ -102,20 +101,22 @@
 :root[data-ui-theme="is-sarkaz"] .hbond__board { filter: none; }
 :root[data-ui-theme="is-sarkaz"] .hbond.is-disabled .hbond__board { filter: grayscale(1) brightness(.6); }
 :root[data-ui-theme="is-sarkaz"] .hbond__board::before { content: ''; position: absolute; pointer-events: none; }
-:root[data-ui-theme="is-sarkaz"] .hbond .hbond__num, :root[data-ui-theme="is-sarkaz"] .hbond .hbond__num.has-matte { background: var(--hb-band-bg, rgba(var(--bg-0-rgb), .94)) !important; filter: none; color: var(--hb-band-ink, var(--text-hi));
-  border: calc(1.5 * var(--u)) solid var(--hb-band-line, var(--mint-500)); clip-path: var(--hb-band-clip, none); border-radius: var(--hb-band-radius, 0); font-weight: 700; }
+:root[data-ui-theme="is-sarkaz"] .hbond .hbond__num, :root[data-ui-theme="is-sarkaz"] .hbond .hbond__num.has-matte { background: none !important; border: 0; clip-path: none; filter: none; font-weight: 800;
+  color: var(--hb-count-ink, #ffffff); text-shadow: 0 0 2px #000, 0 0 2px #000, 0 1px 2px #000, 0 0 4px rgba(0, 0, 0, .8); }
 :root[data-ui-theme="is-sarkaz"] .hbond__board::before { inset: 10% 16% 14%; clip-path: polygon(50% 0, 100% 30%, 86% 100%, 14% 100%, 0 30%); background: linear-gradient(180deg, #2a2a2e, #141416); box-shadow: inset 0 0 0 calc(3 * var(--u)) #d9a63a; }
 :root[data-ui-theme="is-sarkaz"] .hbond.is-full .hbond__board::before { background: radial-gradient(60% 50% at 50% 65%, #ffd36a, #d9a63a 60%, #b3202a); }
 :root[data-ui-theme="is-sarkaz"] .bond:not(.hbond) .bond__core::before { content: ''; position: absolute; pointer-events: none; }
 :root[data-ui-theme="is-sarkaz"] .bond:not(.hbond) .bond__core::before { inset: 10% 16% 14%; clip-path: polygon(50% 0, 100% 30%, 86% 100%, 14% 100%, 0 30%); background: linear-gradient(180deg, #2a2a2e, #141416); box-shadow: inset 0 0 0 calc(3 * var(--u)) #d9a63a; }
 :root[data-ui-theme="is-sarkaz"] .bond:not(.hbond).is-active .bond__core::before { background: radial-gradient(60% 50% at 50% 65%, #ffd36a, #d9a63a 60%, #b3202a); }
-:root[data-ui-theme="is-sarkaz"] .hbond__board::after { content: ''; position: absolute; inset: 10% 16% 14%; clip-path: polygon(50% 0, 100% 30%, 86% 100%, 14% 100%, 0 30%); box-sizing: border-box; pointer-events: none; z-index: 1;
-  background: conic-gradient(var(--hb-ring-on, var(--mint-500)) 0 calc(var(--bt, 0) * 1turn / var(--bn, 1)), var(--hb-ring-off, var(--line-3)) 0);
+:root[data-ui-theme="is-sarkaz"] .hbond__board::after { content: ''; position: absolute; inset: 4%; border-radius: 50%; box-sizing: border-box; pointer-events: none; z-index: 1;
+  background: conic-gradient(var(--hb-ring-on, var(--mint-400)) 0 calc(var(--bt, 0) * 1turn / var(--bn, 1)), var(--hb-ring-off, rgba(140, 140, 140, .6)) 0);
+  filter: drop-shadow(0 0 1px rgba(0, 0, 0, .9));
   -webkit-mask: repeating-conic-gradient(#000 0 calc(1turn / var(--bn, 1) - var(--bgap, 0deg)), transparent 0 calc(1turn / var(--bn, 1))), linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   mask: repeating-conic-gradient(#000 0 calc(1turn / var(--bn, 1) - var(--bgap, 0deg)), transparent 0 calc(1turn / var(--bn, 1))), linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: source-in, xor; mask-composite: intersect, exclude; padding: var(--hb-ring-w, calc(6 * var(--u))); }
-:root[data-ui-theme="is-sarkaz"] .bond:not(.hbond) .bond__core::after { content: ''; position: absolute; inset: 10% 16% 14%; clip-path: polygon(50% 0, 100% 30%, 86% 100%, 14% 100%, 0 30%); box-sizing: border-box; pointer-events: none; z-index: 1;
-  background: conic-gradient(var(--hb-ring-on, var(--mint-500)) 0 calc(var(--bt, 0) * 1turn / var(--bn, 1)), var(--hb-ring-off, var(--line-3)) 0);
+:root[data-ui-theme="is-sarkaz"] .bond:not(.hbond) .bond__core::after { content: ''; position: absolute; inset: 4%; border-radius: 50%; box-sizing: border-box; pointer-events: none; z-index: 1;
+  background: conic-gradient(var(--hb-ring-on, var(--mint-400)) 0 calc(var(--bt, 0) * 1turn / var(--bn, 1)), var(--hb-ring-off, rgba(140, 140, 140, .6)) 0);
+  filter: drop-shadow(0 0 1px rgba(0, 0, 0, .9));
   -webkit-mask: repeating-conic-gradient(#000 0 calc(1turn / var(--bn, 1) - var(--bgap, 0deg)), transparent 0 calc(1turn / var(--bn, 1))), linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   mask: repeating-conic-gradient(#000 0 calc(1turn / var(--bn, 1) - var(--bgap, 0deg)), transparent 0 calc(1turn / var(--bn, 1))), linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: source-in, xor; mask-composite: intersect, exclude; padding: calc(var(--disc) * .08); }
@@ -126,3 +127,5 @@
 :root[data-ui-theme="is-sarkaz"] .bond:not(.hbond).is-disabled .bond__core { filter: grayscale(1) brightness(.6); }
 :root[data-ui-theme="is-sarkaz"] { --hb-band-bg: #141416; --hb-band-ink: #f0d28a; --hb-band-line: #b3202a; }
 :root[data-ui-theme="is-sarkaz"] .section-label :is(.section-label__idx, .micro) { color: inherit; border-color: currentColor; opacity: .85; }
+:root[data-ui-theme="is-sarkaz"] body::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none; background: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%2780%27%20height%3D%2780%27%20viewBox%3D%270%200%2080%2080%27%3E%3Cg%20fill%3D%27%23d9a63a%27%20fill-opacity%3D%27.12%27%3E%3Cpath%20d%3D%27M40%2030q-5%208%200%2014q5-6%200-14z%27%2F%3E%3Crect%20x%3D%2738%27%20y%3D%2744%27%20width%3D%274%27%20height%3D%2716%27%2F%3E%3C%2Fg%3E%3Ccircle%20cx%3D%2712%27%20cy%3D%2712%27%20r%3D%271%27%20fill%3D%27%23fff%27%20fill-opacity%3D%27.2%27%2F%3E%3C%2Fsvg%3E") 0 0 / 80px 80px repeat; }
+:root[data-ui-theme="is-sarkaz"] :is(.panel, .modal__box)::before { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%2780%27%20height%3D%2780%27%20viewBox%3D%270%200%2080%2080%27%3E%3Cg%20fill%3D%27%23d9a63a%27%20fill-opacity%3D%27.12%27%3E%3Cpath%20d%3D%27M40%2030q-5%208%200%2014q5-6%200-14z%27%2F%3E%3Crect%20x%3D%2738%27%20y%3D%2744%27%20width%3D%274%27%20height%3D%2716%27%2F%3E%3C%2Fg%3E%3Ccircle%20cx%3D%2712%27%20cy%3D%2712%27%20r%3D%271%27%20fill%3D%27%23fff%27%20fill-opacity%3D%27.2%27%2F%3E%3C%2Fsvg%3E"); background-size: 80px 80px; background-repeat: repeat; opacity: .8; }

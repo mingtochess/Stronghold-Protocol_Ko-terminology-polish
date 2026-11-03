@@ -47,12 +47,12 @@
 }
 :root[data-ui-theme="ss-vultures"] body {
   background-color: var(--bg-0);
-  background-image: repeating-linear-gradient(135deg, rgba(212, 217, 58, .025) 0 .06rem, transparent .06rem .2rem), radial-gradient(60% 45% at 85% 0%, rgba(46, 210, 197, .1), transparent 70%), linear-gradient(180deg, #131b1e, #0a0e10);
+  background-image: repeating-linear-gradient(135deg, rgba(212, 217, 58, .025) 0 .06rem, transparent .06rem .2rem), radial-gradient(60% 45% at 85% 0%, rgba(46, 210, 197, .1), transparent 70%);
 }
 :root[data-ui-theme="ss-vultures"] .screen:not(.gm) { background: transparent; }
 :root[data-ui-theme="ss-vultures"] .panel,
 :root[data-ui-theme="ss-vultures"] .modal__box {
-  background: linear-gradient(180deg, rgba(26, 40, 45, .94), rgba(15, 20, 23, .96)); border: 1px solid #3c4d53; border-radius: 0; box-shadow: inset 0 -2px 0 rgba(212, 217, 58, .5), 0 .06rem .26rem rgba(0, 0, 0, .5);
+  background: rgba(26, 40, 45, .94); border: 1px solid #3c4d53; border-radius: 0; box-shadow: inset 0 -2px 0 rgba(212, 217, 58, .5), 0 .06rem .26rem rgba(0, 0, 0, .5);
 }
 :root[data-ui-theme="ss-vultures"] .btn { border-radius: 0; }
 :root[data-ui-theme="ss-vultures"] .btn--primary { --ui-primary-face: #d4d93a; background-color: var(--mint-500); color: #141605; border-color: #eef05a; }
@@ -69,18 +69,17 @@
 :root[data-ui-theme="ss-vultures"] :is(.mode-card__bg, .seat__stripes) { background: linear-gradient(180deg, transparent 80%, rgba(212, 217, 58, .25) 80% 82%, transparent 82%), radial-gradient(60% 45% at 85% 0%, rgba(46, 210, 197, .14), transparent 70%); }
 :root[data-ui-theme="ss-vultures"] .seat { background-image: linear-gradient(180deg, transparent 80%, rgba(212, 217, 58, .25) 80% 82%, transparent 82%); }
 :root[data-ui-theme="ss-vultures"] .scard__bg { background: linear-gradient(180deg, transparent 80%, rgba(212, 217, 58, .25) 80% 82%, transparent 82%), radial-gradient(60% 45% at 85% 0%, rgba(46, 210, 197, .14), transparent 70%), linear-gradient(180deg, var(--bg-3), var(--bg-1)); }
-:root[data-ui-theme="ss-vultures"] :is(.mode-card, .scard) { clip-path: polygon(0 0, 100% 0, 100% 100%, .14rem 100%, 0 calc(100% - .14rem)); }
 :root[data-ui-theme="ss-vultures"] .modal__stripe { background: linear-gradient(90deg, #d4d93a 0 70%, #c0282e 70% 74%, transparent 74%); }
 :root[data-ui-theme="ss-vultures"] .pbanner__band { background: linear-gradient(90deg, #d4d93a 0 70%, #c0282e 70% 74%, transparent 74%); }
 :root[data-ui-theme="ss-vultures"] .brackets::after {
   background:
     linear-gradient(#c0282e, #c0282e) bottom left / .1rem .1rem no-repeat;
 }
-:root[data-ui-theme="ss-vultures"] .gtop__center { background: repeating-linear-gradient(135deg, rgba(212, 217, 58, .02) 0 .05rem, transparent .05rem .16rem), linear-gradient(180deg, rgba(var(--bg-1-rgb), .92), rgba(var(--bg-0-rgb), .92)); border-radius: 0; clip-path: polygon(0 0, 100% 0, 100% 100%, .14rem 100%, 0 calc(100% - .14rem)); }
+:root[data-ui-theme="ss-vultures"] .gtop__center { background: repeating-linear-gradient(135deg, rgba(212, 217, 58, .02) 0 .05rem, transparent .05rem .16rem), linear-gradient(rgba(var(--bg-1-rgb), .94), rgba(var(--bg-1-rgb), .94)); border-radius: 0; }
 :root[data-ui-theme="ss-vultures"] .capsule { border-radius: 0; background: linear-gradient(90deg, #d4d93a 0 70%, #c0282e 70% 74%, transparent 74%) bottom / 100% 2px no-repeat, rgba(var(--bg-1-rgb), .92); }
 :root[data-ui-theme="ss-vultures"] :is(.effect, .toolbtn:not(.obtn), .readybtn__box) { border-radius: 0; }
 :root[data-ui-theme="ss-vultures"] .effect { background: repeating-linear-gradient(135deg, rgba(212, 217, 58, .02) 0 .05rem, transparent .05rem .16rem), rgba(var(--bg-1-rgb), .88); }
-:root[data-ui-theme="ss-vultures"] .lvcard { background: repeating-linear-gradient(-45deg, rgba(20, 22, 5, .5) 0 3px, transparent 3px 7px), linear-gradient(180deg, var(--mint-400), var(--mint-600)); background-size: .34rem 100%, 100% 100%; background-position: right bottom, 0 0; background-repeat: no-repeat; clip-path: polygon(0 0, 100% 0, 100% 100%, .14rem 100%, 0 calc(100% - .14rem)); }
+:root[data-ui-theme="ss-vultures"] .lvcard { background: repeating-linear-gradient(-45deg, rgba(20, 22, 5, .5) 0 3px, transparent 3px 7px), linear-gradient(var(--mint-500), var(--mint-500)); background-size: .34rem 100%, 100% 100%; background-position: right bottom, 0 0; background-repeat: no-repeat;  }
 :root[data-ui-theme="ss-vultures"] :is(.title-bg__art, .title-bg__ridge-art, .title-bg__ridges, .title-bg__target, .title-bg__radar, .title-bg__haze) { display: none; }
 :root[data-ui-theme="ss-vultures"] .app-bg, :root[data-ui-theme="ss-vultures"] .app-bg::before, :root[data-ui-theme="ss-vultures"] .app-bg::after { background: none; }
 :root[data-ui-theme="ss-vultures"] { --font-micro: 'Saira Condensed', var(--font-display); }
@@ -98,26 +97,26 @@
 :root[data-ui-theme="ss-vultures"] .section-label::after { content: '#'; color: #d4d93a; font-style: italic; margin-left: .06rem; }
 :root[data-ui-theme="ss-vultures"] :is(.panel, .modal__box) { border: 1px solid #4a5a60; box-shadow: inset 0 0 0 .04rem #111a1d, inset 0 0 0 calc(.04rem + 1px) #2f3d42; }
 :root[data-ui-theme="ss-vultures"] :is(.panel, .modal__box)::after { content: ''; position: absolute; right: .06rem; top: .06rem; width: .14rem; height: .14rem; pointer-events: none; background: linear-gradient(225deg, #c0282e 50%, transparent 50%); }
-:root[data-ui-theme="ss-vultures"] .btn { clip-path: polygon(0 0, 100% 0, 100% calc(100% - .08rem), calc(100% - .08rem) 100%, 0 100%); }
-:root[data-ui-theme="ss-vultures"] :is(.mode-card, .scard) { clip-path: polygon(0 0, calc(100% - .14rem) 0, 100% .14rem, 100% 100%, 0 100%); }
 :root[data-ui-theme="ss-vultures"] .hbond__ring { opacity: 0; }
 :root[data-ui-theme="ss-vultures"] .hbond__board { filter: none; }
 :root[data-ui-theme="ss-vultures"] .hbond.is-disabled .hbond__board { filter: grayscale(1) brightness(.6); }
 :root[data-ui-theme="ss-vultures"] .hbond__board::before { content: ''; position: absolute; pointer-events: none; }
-:root[data-ui-theme="ss-vultures"] .hbond .hbond__num, :root[data-ui-theme="ss-vultures"] .hbond .hbond__num.has-matte { background: var(--hb-band-bg, rgba(var(--bg-0-rgb), .94)) !important; filter: none; color: var(--hb-band-ink, var(--text-hi));
-  border: calc(1.5 * var(--u)) solid var(--hb-band-line, var(--mint-500)); clip-path: var(--hb-band-clip, none); border-radius: var(--hb-band-radius, 0); font-weight: 700; }
+:root[data-ui-theme="ss-vultures"] .hbond .hbond__num, :root[data-ui-theme="ss-vultures"] .hbond .hbond__num.has-matte { background: none !important; border: 0; clip-path: none; filter: none; font-weight: 800;
+  color: var(--hb-count-ink, #ffffff); text-shadow: 0 0 2px #000, 0 0 2px #000, 0 1px 2px #000, 0 0 4px rgba(0, 0, 0, .8); }
 :root[data-ui-theme="ss-vultures"] .hbond__board::before { inset: 12%; clip-path: polygon(25% 3%, 75% 3%, 100% 50%, 75% 97%, 25% 97%, 0 50%); background: repeating-linear-gradient(-45deg, #2c3a3f 0 calc(5 * var(--u)), #1a2427 calc(5 * var(--u)) calc(10 * var(--u))); }
 :root[data-ui-theme="ss-vultures"] .hbond.is-full .hbond__board::before { background: repeating-linear-gradient(-45deg, #d4d93a 0 calc(6 * var(--u)), #b9be22 calc(6 * var(--u)) calc(12 * var(--u))); }
 :root[data-ui-theme="ss-vultures"] .bond:not(.hbond) .bond__core::before { content: ''; position: absolute; pointer-events: none; }
 :root[data-ui-theme="ss-vultures"] .bond:not(.hbond) .bond__core::before { inset: 12%; clip-path: polygon(25% 3%, 75% 3%, 100% 50%, 75% 97%, 25% 97%, 0 50%); background: repeating-linear-gradient(-45deg, #2c3a3f 0 calc(5 * var(--u)), #1a2427 calc(5 * var(--u)) calc(10 * var(--u))); }
 :root[data-ui-theme="ss-vultures"] .bond:not(.hbond).is-active .bond__core::before { background: repeating-linear-gradient(-45deg, #d4d93a 0 calc(6 * var(--u)), #b9be22 calc(6 * var(--u)) calc(12 * var(--u))); }
-:root[data-ui-theme="ss-vultures"] .hbond__board::after { content: ''; position: absolute; inset: 12%; clip-path: polygon(25% 3%, 75% 3%, 100% 50%, 75% 97%, 25% 97%, 0 50%); box-sizing: border-box; pointer-events: none; z-index: 1;
-  background: conic-gradient(var(--hb-ring-on, var(--mint-500)) 0 calc(var(--bt, 0) * 1turn / var(--bn, 1)), var(--hb-ring-off, var(--line-3)) 0);
+:root[data-ui-theme="ss-vultures"] .hbond__board::after { content: ''; position: absolute; inset: 4%; border-radius: 50%; box-sizing: border-box; pointer-events: none; z-index: 1;
+  background: conic-gradient(var(--hb-ring-on, var(--mint-400)) 0 calc(var(--bt, 0) * 1turn / var(--bn, 1)), var(--hb-ring-off, rgba(140, 140, 140, .6)) 0);
+  filter: drop-shadow(0 0 1px rgba(0, 0, 0, .9));
   -webkit-mask: repeating-conic-gradient(#000 0 calc(1turn / var(--bn, 1) - var(--bgap, 0deg)), transparent 0 calc(1turn / var(--bn, 1))), linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   mask: repeating-conic-gradient(#000 0 calc(1turn / var(--bn, 1) - var(--bgap, 0deg)), transparent 0 calc(1turn / var(--bn, 1))), linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: source-in, xor; mask-composite: intersect, exclude; padding: var(--hb-ring-w, calc(6 * var(--u))); }
-:root[data-ui-theme="ss-vultures"] .bond:not(.hbond) .bond__core::after { content: ''; position: absolute; inset: 12%; clip-path: polygon(25% 3%, 75% 3%, 100% 50%, 75% 97%, 25% 97%, 0 50%); box-sizing: border-box; pointer-events: none; z-index: 1;
-  background: conic-gradient(var(--hb-ring-on, var(--mint-500)) 0 calc(var(--bt, 0) * 1turn / var(--bn, 1)), var(--hb-ring-off, var(--line-3)) 0);
+:root[data-ui-theme="ss-vultures"] .bond:not(.hbond) .bond__core::after { content: ''; position: absolute; inset: 4%; border-radius: 50%; box-sizing: border-box; pointer-events: none; z-index: 1;
+  background: conic-gradient(var(--hb-ring-on, var(--mint-400)) 0 calc(var(--bt, 0) * 1turn / var(--bn, 1)), var(--hb-ring-off, rgba(140, 140, 140, .6)) 0);
+  filter: drop-shadow(0 0 1px rgba(0, 0, 0, .9));
   -webkit-mask: repeating-conic-gradient(#000 0 calc(1turn / var(--bn, 1) - var(--bgap, 0deg)), transparent 0 calc(1turn / var(--bn, 1))), linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   mask: repeating-conic-gradient(#000 0 calc(1turn / var(--bn, 1) - var(--bgap, 0deg)), transparent 0 calc(1turn / var(--bn, 1))), linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: source-in, xor; mask-composite: intersect, exclude; padding: calc(var(--disc) * .08); }
@@ -128,3 +127,5 @@
 :root[data-ui-theme="ss-vultures"] .bond:not(.hbond).is-disabled .bond__core { filter: grayscale(1) brightness(.6); }
 :root[data-ui-theme="ss-vultures"] { --hb-band-bg: #182226; --hb-band-ink: #d4d93a; --hb-band-line: #d4d93a; }
 :root[data-ui-theme="ss-vultures"] .section-label :is(.section-label__idx, .micro) { color: inherit; border-color: currentColor; opacity: .85; }
+:root[data-ui-theme="ss-vultures"] body::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none; background: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%2740%27%20height%3D%2740%27%20viewBox%3D%270%200%2040%2040%27%3E%3Cpath%20d%3D%27M0%2040L40%200M-10%2010L10%20-10M30%2050L50%2030%27%20stroke%3D%27%23d4d93a%27%20stroke-opacity%3D%27.06%27%20stroke-width%3D%276%27%2F%3E%3C%2Fsvg%3E") 0 0 / 40px 40px repeat; }
+:root[data-ui-theme="ss-vultures"] :is(.panel, .modal__box)::before { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%2740%27%20height%3D%2740%27%20viewBox%3D%270%200%2040%2040%27%3E%3Cpath%20d%3D%27M0%2040L40%200M-10%2010L10%20-10M30%2050L50%2030%27%20stroke%3D%27%23d4d93a%27%20stroke-opacity%3D%27.06%27%20stroke-width%3D%276%27%2F%3E%3C%2Fsvg%3E"); background-size: 40px 40px; background-repeat: repeat; opacity: .8; }

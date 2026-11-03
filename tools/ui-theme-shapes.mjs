@@ -13,8 +13,8 @@ const NO_RING = (S) => `${S} .hbond__ring { opacity: 0; }
 ${S} .hbond__board { filter: none; }
 ${S} .hbond.is-disabled .hbond__board { filter: grayscale(1) brightness(.6); }
 ${S} .hbond__board::before { content: ''; position: absolute; pointer-events: none; }
-${S} .hbond .hbond__num, ${S} .hbond .hbond__num.has-matte { background: var(--hb-band-bg, rgba(var(--bg-0-rgb), .94)) !important; filter: none; color: var(--hb-band-ink, var(--text-hi));
-  border: calc(1.5 * var(--u)) solid var(--hb-band-line, var(--mint-500)); clip-path: var(--hb-band-clip, none); border-radius: var(--hb-band-radius, 0); font-weight: 700; }`;
+${S} .hbond .hbond__num, ${S} .hbond .hbond__num.has-matte { background: none !important; border: 0; clip-path: none; filter: none; font-weight: 800;
+  color: var(--hb-count-ink, #ffffff); text-shadow: 0 0 2px #000, 0 0 2px #000, 0 1px 2px #000, 0 0 4px rgba(0, 0, 0, .8); }`;
 
 const SHAPES = {
   // ---- 우르수스 · 사람들, 우리들 -----------------------------------------------------------------------------------
@@ -24,8 +24,6 @@ ${S} .section-label { width: fit-content; padding: .04rem .26rem; color: #fff; b
   box-shadow: none; text-shadow: 0 1px 0 rgba(0, 0, 0, .5); }
 ${S} :is(.panel, .modal__box) { ${frame(`<rect x='1' y='1' width='58' height='58' fill='none' stroke='%23111' stroke-width='2'/><rect x='3' y='3' width='54' height='54' fill='none' stroke='%23787070' stroke-width='5'/><rect x='6.5' y='6.5' width='47' height='47' fill='none' stroke='%23141417' stroke-width='2'/><path d='M3 3h54' stroke='%23a59c98' stroke-width='1.2'/>`, '.09rem')} }
 ${S} :is(.panel, .modal__box)::after { content: ''; position: absolute; left: -.06rem; top: -.06rem; width: 1.6rem; height: .5rem; pointer-events: none; height: .5rem; top: -.1rem; background: ${svg(160, 50, `<path d='M4 40 L60 8 L118 30 L156 6' fill='none' stroke='%23b3242c' stroke-width='1.6'/><circle cx='4' cy='40' r='3.5' fill='%23d8d0cc'/><circle cx='60' cy='8' r='3.5' fill='%23d8d0cc'/><circle cx='118' cy='30' r='3.5' fill='%23d8d0cc'/>`)} left top / contain no-repeat; }
-${S} .btn { clip-path: polygon(0 4%, 12% 0, 40% 5%, 70% 0, 100% 6%, 99% 50%, 100% 95%, 70% 100%, 38% 95%, 10% 100%, 0 96%, 1% 50%); }
-${S} :is(.mode-card, .seat) { transform: rotate(-.3deg); }
 ${NO_RING(S)}
 ${S} .hbond__board::before { inset: 14%; background: #2b292d; border: calc(3 * var(--u)) solid #847b78; transform: rotate(-4deg); box-shadow: 0 0 0 calc(1 * var(--u)) #111; }
 ${S} .hbond.is-full .hbond__board::before { background: #a3242b; border-color: #d2ccc7; }`,
@@ -38,7 +36,6 @@ ${S} .section-label { width: fit-content; padding: .04rem .3rem .04rem .26rem; c
 ${S} :is(.panel, .modal__box) { border: 2px solid transparent; border-radius: .14rem;
   background: linear-gradient(180deg, rgba(20, 26, 48, .96), rgba(12, 15, 28, .97)) padding-box, linear-gradient(135deg, #3a63c8, #8a6fb0 50%, #d02b3a) border-box; }
 ${S} .panel__title { font-style: italic; }
-${S} .btn { clip-path: polygon(.12rem 0, 100% 0, calc(100% - .12rem) 100%, 0 100%); border-radius: 0; }
 ${S} :is(.mode-card, .seat) { border-radius: .12rem; }
 ${NO_RING(S)}
 ${S} .hbond__board::before { inset: 16% 10%; border-radius: calc(10 * var(--u)); background: linear-gradient(180deg, #2b3550, #141a30); border: calc(3 * var(--u)) solid #3a63c8; box-shadow: inset 0 calc(-4 * var(--u)) 0 #d02b3a; }
@@ -64,8 +61,6 @@ ${S} .section-label { padding: .04rem .5rem .04rem .26rem; color: #fff; letter-s
     repeating-linear-gradient(135deg, rgba(255, 255, 255, .5) 0 1px, transparent 1px 4px) right .44rem center / .5rem .1rem no-repeat,
     linear-gradient(90deg, #3ec6e0 0 .06rem, #45535e .06rem .1rem, #566673 .1rem); }
 ${S} :is(.panel, .modal__box) { ${frame(`<path d='M14 1 H46 L59 14 V46 L46 59 H14 L1 46 V14Z' fill='%23fbfcfc' stroke='%23b8c4cc' stroke-width='1'/><path d='M16 5 H44 L55 16 V44 L44 55 H16 L5 44 V16Z' fill='none' stroke='%23d5dde3' stroke-width='1'/>`, '.14rem', 20)} box-shadow: none; filter: drop-shadow(0 .03rem .08rem rgba(60, 80, 95, .12)); }
-${S} .btn { clip-path: polygon(.08rem 0, calc(100% - .08rem) 0, 100% .08rem, 100% calc(100% - .08rem), calc(100% - .08rem) 100%, .08rem 100%, 0 calc(100% - .08rem), 0 .08rem); }
-${S} :is(.mode-card, .scard) { clip-path: polygon(.12rem 0, calc(100% - .12rem) 0, 100% .12rem, 100% calc(100% - .12rem), calc(100% - .12rem) 100%, .12rem 100%, 0 calc(100% - .12rem), 0 .12rem); }
 ${NO_RING(S)}
 ${S} .hbond__board::before { inset: 12%; clip-path: polygon(30% 0, 70% 0, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0 70%, 0 30%); background: linear-gradient(180deg, #7a8c9a, #4f606d); }
 ${S} .hbond.is-full .hbond__board::before { background: linear-gradient(180deg, #57d5ea, #2c9ab4); }`,
@@ -84,28 +79,32 @@ ${S} .hbond.is-full .hbond__board::before { background: linear-gradient(135deg, 
 
   // ---- 라이타니엔 · 츠빌링슈튀르메의 가을 ------------------------------------------------------------------------------
   'f-leithanien': (S) => `
-${S} .section-label { justify-content: center; align-items: center; }
-${S} .section-label::before { content: ''; flex: 1; max-width: 1.2rem; height: .14rem; margin-right: .06rem; background: ${svg(120, 14, `<path d='M0 7H96' stroke='%236b3b25' stroke-width='1'/><path d='M100 7L106 1L112 7L106 13Z' fill='none' stroke='%23d4743c' stroke-width='1.5'/><path d='M114 2L119 7L114 12' fill='none' stroke='%23d4743c' stroke-width='1.5'/>`)} right center / 100% 100% no-repeat; }
-${S} .section-label::after { content: ''; flex: 1; max-width: 1.2rem; height: .14rem; margin-left: .06rem; background: ${svg(120, 14, `<path d='M24 7H120' stroke='%236b3b25' stroke-width='1'/><path d='M8 7L14 1L20 7L14 13Z' fill='none' stroke='%23d4743c' stroke-width='1.5'/><path d='M6 2L1 7L6 12' fill='none' stroke='%23d4743c' stroke-width='1.5'/>`)} left center / 100% 100% no-repeat; }
-${S} :is(.panel, .modal__box)::after { content: ''; position: absolute; left: 50%; top: .04rem; width: .5rem; height: .1rem; transform: translateX(-50%); pointer-events: none; background: ${svg(50, 10, `<path d='M4 2h8l-4 6z M21 2h8l-4 6z M38 2h8l-4 6z' fill='%23d4743c'/>`)} center / contain no-repeat; }
-${S} :is(.panel, .modal__box) { border-radius: .06rem; }
-${S} .btn--primary { box-shadow: 0 0 .1rem rgba(238, 154, 90, .5); }
+${S} .section-label { width: fit-content; padding: .08rem .3rem .08rem .38rem; color: #f3e9da; letter-spacing: .1em;
+  background: ${svg(30, 40, `<text x='2' y='31' font-size='34' fill='%23c9a35a' font-family='serif'>𝄞</text>`)} .04rem center / .22rem .3rem no-repeat,
+    repeating-linear-gradient(180deg, transparent 0 calc(20% - 1px), rgba(201, 163, 90, .45) calc(20% - 1px) 20%) 0 .03rem / 100% calc(100% - .06rem) no-repeat; }
+${S} .section-label::after { content: '♪'; color: #c9a35a; margin-left: .1rem; }
+${S} :is(.panel, .modal__box) { ${frame(`<rect x='1' y='1' width='58' height='58' fill='none' stroke='%236a4a36'/><rect x='4' y='4' width='52' height='52' fill='none' stroke='%23c9a35a' stroke-opacity='.55'/><g fill='none' stroke='%23c9a35a' stroke-width='1.1'><path d='M4 12 Q4 4 12 4'/><path d='M48 4 Q56 4 56 12'/><path d='M4 48 Q4 56 12 56'/><path d='M56 48 Q56 56 48 56'/></g><g fill='%23c9a35a'><circle cx='4' cy='4' r='1.6'/><circle cx='56' cy='4' r='1.6'/><circle cx='4' cy='56' r='1.6'/><circle cx='56' cy='56' r='1.6'/></g>`, '.1rem')} }
+${S} .mode-card__bg { background-position: center; }
+${S} .panel__title::after { content: ''; display: block; height: .08rem; margin-top: .04rem; background: repeating-linear-gradient(180deg, rgba(201, 163, 90, .5) 0 1px, transparent 1px 2px) 0 0 / 1.2rem 100% no-repeat; }
+${S} .btn--primary { box-shadow: inset 0 0 0 1px #c9a35a, inset 0 0 0 3px #7a1f2b, inset 0 0 0 4px rgba(201, 163, 90, .5); }
 ${NO_RING(S)}
-${S} .hbond__board::before { inset: 18%; transform: rotate(45deg); background: #2c1d16; border: calc(2 * var(--u)) solid #d4743c; outline: calc(1.5 * var(--u)) solid rgba(212, 116, 60, .45); outline-offset: calc(3 * var(--u)); }
-${S} .hbond.is-full .hbond__board::before { background: linear-gradient(135deg, #ee9a5a, #b85a26); }`,
+${S} .hbond__board::before { inset: 12% 18%; clip-path: polygon(50% 0, 70% 8%, 86% 24%, 96% 44%, 100% 62%, 100% 100%, 0 100%, 0 62%, 4% 44%, 14% 24%, 30% 8%); background: #2e1d21; box-shadow: inset 0 0 0 calc(3 * var(--u)) #c9a35a; }
+${S} .hbond.is-full .hbond__board::before { background: #7a1f2b; }
+${S} { --hb-ring-on: #f0d27a; --hb-ring-off: rgba(150, 130, 110, .55); --hb-ring-full: #f0d27a; }`,
 
   // ---- 시라쿠사 · 시라쿠사인 -----------------------------------------------------------------------------------------
   'f-siracusa': (S) => `
-${S} .section-label { width: fit-content; padding: .04rem .24rem; color: #1c1c1c; font-style: italic; background: linear-gradient(180deg, #d6d2c9, #b9b5ab);
-  clip-path: polygon(0 6%, 100% 0, 99% 92%, 1% 100%); box-shadow: inset 0 0 .1rem rgba(60, 50, 40, .3); }
-${S} :is(.panel, .modal__box) { border: .06rem solid #c4bfb4; border-radius: 0; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .5), .06rem .08rem .14rem rgba(0, 0, 0, .55); transform: rotate(-.25deg); }
-${S} :is(.panel, .modal__box)::after { content: ''; position: absolute; left: .1rem; top: -.07rem; width: .16rem; height: .16rem; border-radius: 50%; pointer-events: none;
-  background: radial-gradient(circle at 35% 30%, #e86a6e, #9d1c22 60%, #5e0e12); box-shadow: 0 .02rem .04rem rgba(0, 0, 0, .6); }
-${S} .modal__box { transform: none; }
-${S} :is(.mode-card, .seat) { border: .04rem solid #c4bfb4; }
+${S} .section-label { width: fit-content; padding: .05rem .34rem; color: #efe8da; font-style: italic; letter-spacing: .06em;
+  background: ${svg(20, 20, `<path d='M2 10L8 4M2 10L8 16M8 10L14 4M8 10L14 16' fill='none' stroke='%23c8a25a' stroke-width='1.4'/>`)} .06rem center / .14rem .14rem no-repeat,
+    ${svg(20, 20, `<path d='M18 10L12 4M18 10L12 16M12 10L6 4M12 10L6 16' fill='none' stroke='%23c8a25a' stroke-width='1.4'/>`)} calc(100% - .06rem) center / .14rem .14rem no-repeat, #6e151b;
+  box-shadow: inset 0 1px 0 #c8a25a, inset 0 -1px 0 #c8a25a; }
+${S} :is(.panel, .modal__box) { ${frame(`<rect x='1' y='1' width='58' height='58' fill='none' stroke='%235e5040'/><rect x='4' y='4' width='52' height='52' fill='none' stroke='%23c8a25a' stroke-opacity='.7'/><g fill='none' stroke='%23c8a25a' stroke-width='1'><path d='M4 16A12 12 0 0 1 16 4M4 11A7 7 0 0 1 11 4'/><path d='M56 16A12 12 0 0 0 44 4M56 11A7 7 0 0 0 49 4'/><path d='M4 44A12 12 0 0 0 16 56M4 49A7 7 0 0 0 11 56'/><path d='M56 44A12 12 0 0 1 44 56M56 49A7 7 0 0 1 49 56'/></g>`, '.12rem')} }
+${S} .panel__title { font-style: italic; }
+${S} .btn--primary { box-shadow: inset 0 0 0 1px #c8a25a; }
 ${NO_RING(S)}
-${S} .hbond__board::before { inset: 12% 16% 18%; background: #2a292d; border: calc(5 * var(--u)) solid #e6e2da; border-bottom-width: calc(10 * var(--u)); transform: rotate(-5deg); box-shadow: calc(2 * var(--u)) calc(3 * var(--u)) calc(4 * var(--u)) rgba(0, 0, 0, .6); }
-${S} .hbond.is-full .hbond__board::before { background: #b3262e; }`,
+${S} .hbond__board::before { inset: 13%; border-radius: 50%; background: radial-gradient(circle, #19191b 0 52%, #efe8da 53% 56%, transparent 57%), repeating-conic-gradient(#8e1b22 0 22.5deg, #efe8da 22.5deg 45deg); }
+${S} .hbond.is-full .hbond__board::before { background: radial-gradient(circle, #8e1b22 0 52%, #efe8da 53% 56%, transparent 57%), repeating-conic-gradient(#c8a25a 0 22.5deg, #19191b 22.5deg 45deg); }
+${S} { --hb-ring-on: #f0cf86; --hb-ring-off: rgba(150, 140, 130, .55); --hb-ring-full: #f0cf86; }`,
 
   // ---- 염국 · 화중인 ---------------------------------------------------------------------------------------------------
   'f-yan': (S) => `
@@ -125,11 +124,9 @@ ${S} .hbond.is-full .hbond__icon:not(.hbond__glyph) { filter: brightness(0) inve
   'f-sargon': (S) => `
 ${S} .section-label { width: fit-content; padding: .04rem .3rem; color: #fff; font-style: italic; font-weight: 900; -webkit-text-stroke: .5px #12345a; text-shadow: .02rem .02rem 0 #12345a;
   background: radial-gradient(circle, rgba(255, 255, 255, .22) 1px, transparent 1.6px) 0 0 / 5px 5px, linear-gradient(90deg, #1f5fa8, #2a70c0);
-  clip-path: polygon(.1rem 0, 100% 0, calc(100% - .1rem) 100%, 0 100%); transform: rotate(-2deg); }
+  clip-path: polygon(.1rem 0, 100% 0, calc(100% - .1rem) 100%, 0 100%); }
 ${S} :is(.panel, .modal__box) { border: 0; border-radius: 0; background: radial-gradient(circle, rgba(255, 255, 255, .5) 1px, transparent 1.6px) 0 0 / 6px 6px, linear-gradient(180deg, #fdd552, #f9c330); box-shadow: .05rem .05rem 0 #f19b48, 0 .06rem .2rem rgba(60, 50, 20, .18); }
 ${S} :is(.panel, .modal__box) :is(.panel__body, .modal__body) { color: #24241f; }
-${S} .btn { transform: skewX(-6deg); border-radius: .03rem; }
-${S} .btn > * { transform: skewX(6deg); }
 ${S} :is(.mode-card, .seat) { border: .03rem solid #fcce46; box-shadow: .04rem .04rem 0 #f19b48; }
 ${NO_RING(S)}
 ${S} .hbond__board::before { inset: 15%; transform: rotate(-8deg); border-radius: calc(6 * var(--u)); background: #fff; border: calc(4 * var(--u)) solid #fcce46; box-shadow: calc(3 * var(--u)) calc(3 * var(--u)) 0 #f19b48; }
@@ -142,7 +139,6 @@ ${S} .hbond.is-full .hbond__icon:not(.hbond__glyph) { filter: brightness(0) inve
 ${S} .section-label { width: fit-content; padding: .04rem .36rem; color: #16206a; background: linear-gradient(180deg, #ffffff, #dfe6fb);
   clip-path: polygon(0 0, 100% 0, calc(100% - .14rem) 50%, 100% 100%, 0 100%, .14rem 50%); }
 ${S} :is(.panel, .modal__box) { ${frame(`<rect x='1' y='1' width='58' height='58' fill='none' stroke='%239aa8e6' stroke-width='1'/><path d='M1 12V1H12M48 1H59V12M59 48V59H48M12 59H1V48' fill='none' stroke='%23ffffff' stroke-width='3'/>`, '.08rem')} }
-${S} .btn--primary { clip-path: polygon(0 0, 100% 0, calc(100% - .1rem) 50%, 100% 100%, 0 100%, .1rem 50%); }
 ${NO_RING(S)}
 ${S} .hbond__board::before { inset: 12%; clip-path: polygon(50% 0, 93% 25%, 93% 75%, 50% 100%, 7% 75%, 7% 25%); background: linear-gradient(180deg, #2b3c9f, #16206a); box-shadow: inset 0 0 0 calc(3 * var(--u)) #e9eefc; }
 ${S} .hbond.is-full .hbond__board::before { background: linear-gradient(180deg, #ffffff, #c9d4f7); }
@@ -150,22 +146,19 @@ ${S} .hbond.is-full .hbond__icon:not(.hbond__glyph) { filter: brightness(0) inve
 
   // ---- 화산의 꿈 여행 --------------------------------------------------------------------------------------------------
   'ss-adele': (S) => `
-${S} .section-label { justify-content: center; align-items: center; color: #b72f2b; font-size: calc(.24 * var(--t)); background: none; box-shadow: none; padding: 0; }
-${S} .section-label::before, ${S} .section-label::after { content: ''; flex: 1; max-width: 1.4rem; height: .16rem; }
-${S} .section-label::before { margin-right: .1rem; background: ${svg(140, 16, `<path d='M0 5H110M0 9H110' stroke='%233b2a26' stroke-width='2'/><path d='M138 8L122 2L126 8L122 14Z' fill='%23b72f2b'/><path d='M118 8h8' stroke='%23b72f2b' stroke-width='2'/>`)} right center / 100% 100% no-repeat; }
-${S} .section-label::after { margin-left: .1rem; background: ${svg(140, 16, `<path d='M30 5H140M30 9H140' stroke='%233b2a26' stroke-width='2'/><path d='M2 8L18 2L14 8L18 14Z' fill='%23b72f2b'/><path d='M14 8h8' stroke='%23b72f2b' stroke-width='2'/>`)} left center / 100% 100% no-repeat; }
-${S} :is(.panel, .modal__box) { border: 2px solid #b7c19a; border-radius: .08rem; box-shadow: inset 0 0 0 .04rem #fffaf2, inset 0 0 0 calc(.04rem + 1px) #b7c19a, 0 .04rem .16rem rgba(82, 47, 43, .12); }
-${S} :is(.panel, .modal__box)::after { content: ''; position: absolute; left: .1rem; right: .1rem; bottom: .05rem; height: .08rem; pointer-events: none; opacity: .6;
-  background: repeating-linear-gradient(90deg, #b7c19a 0 .08rem, transparent .08rem .16rem), repeating-linear-gradient(90deg, transparent 0 .08rem, #b7c19a .08rem .16rem) 0 .04rem / 100% .04rem no-repeat; background-size: 100% .04rem, 100% .04rem; background-repeat: no-repeat; }
-${S} .modal__head { background: #3b2a26; color: #fff; }
-${S} .modal__head .modal__title { color: #fff; }
-${S} .btn { border-radius: .06rem; }
-${S} .btn--primary { box-shadow: inset 0 0 0 2px #fef6ea, inset 0 0 0 3px #8a1f1c; }
+${S} .section-label { width: fit-content; padding: .06rem .34rem; color: #d34a62; border-radius: 99px;
+  background: radial-gradient(circle at 12% 30%, #fff 0 .1rem, transparent .1rem), radial-gradient(circle at 88% 30%, #fff 0 .1rem, transparent .1rem), radial-gradient(circle at 30% 0%, #fff 0 .12rem, transparent .12rem), radial-gradient(circle at 70% 0%, #fff 0 .12rem, transparent .12rem), #ffffff;
+  box-shadow: 0 .02rem .08rem rgba(176, 112, 126, .25); }
+${S} .section-label::after { content: '✦'; color: #f2b53a; margin-left: .08rem; }
+${S} :is(.panel, .modal__box) { ${frame(`<g fill='%23ffffff' stroke='%23e8b9c2' stroke-width='1'><circle cx='10' cy='10' r='9'/><circle cx='30' cy='6' r='7'/><circle cx='50' cy='10' r='9'/><circle cx='6' cy='30' r='7'/><circle cx='54' cy='30' r='7'/><circle cx='10' cy='50' r='9'/><circle cx='30' cy='54' r='7'/><circle cx='50' cy='50' r='9'/></g><rect x='8' y='8' width='44' height='44' fill='%23fff8f8'/>`, '.12rem', 20, 'round')} box-shadow: 0 .04rem .2rem rgba(176, 112, 126, .2); }
+${S} .modal__head .modal__title { color: #d34a62; }
+${S} .btn { border-radius: 99px; }
 ${NO_RING(S)}
-${S} .hbond__board::before { inset: 14%; border-radius: calc(8 * var(--u)); background: #fffaf2; border: calc(3 * var(--u)) solid #8a9a66; box-shadow: inset 0 0 0 calc(3 * var(--u)) #fffaf2, inset 0 0 0 calc(4 * var(--u)) #b7c19a; }
-${S} .hbond.is-full .hbond__board::before { background: #b72f2b; box-shadow: inset 0 0 0 calc(3 * var(--u)) #b72f2b, inset 0 0 0 calc(4 * var(--u)) #fef6ea; }
-${S} .hbond__icon:not(.hbond__glyph) { filter: brightness(0) invert(.2) sepia(.4); }
-${S} .hbond.is-full .hbond__icon:not(.hbond__glyph) { filter: brightness(0) invert(1); }`,
+${S} .hbond__board::before { inset: 14%; border-radius: 50%; background: radial-gradient(circle at 30% 35%, #fff 0 22%, transparent 23%), radial-gradient(circle at 70% 35%, #fff 0 22%, transparent 23%), radial-gradient(circle at 50% 68%, #fff 0 26%, transparent 27%), radial-gradient(circle, #fff 0 40%, #f2d6da 41% 49%, transparent 50%); }
+${S} .hbond.is-full .hbond__board::before { background: radial-gradient(circle at 30% 35%, #e66a80 0 22%, transparent 23%), radial-gradient(circle at 70% 35%, #e66a80 0 22%, transparent 23%), radial-gradient(circle at 50% 68%, #e66a80 0 26%, transparent 27%), radial-gradient(circle, #d34a62 0 49%, transparent 50%); }
+${S} .hbond__icon:not(.hbond__glyph) { filter: brightness(0) invert(.18) sepia(.5) hue-rotate(-30deg); }
+${S} .hbond.is-full .hbond__icon:not(.hbond__glyph) { filter: brightness(0) invert(1); }
+${S} { --hb-ring-on: #d34a62; --hb-ring-off: rgba(176, 112, 126, .45); --hb-ring-full: #f2b53a; }`,
 
   // ---- 부정축재 ---------------------------------------------------------------------------------------------------------
   'ss-vultures': (S) => `
@@ -174,8 +167,6 @@ ${S} .section-label { padding: .05rem .2rem .08rem .7rem; color: #fff; justify-c
 ${S} .section-label::after { content: '#'; color: #d4d93a; font-style: italic; margin-left: .06rem; }
 ${S} :is(.panel, .modal__box) { border: 1px solid #4a5a60; box-shadow: inset 0 0 0 .04rem #111a1d, inset 0 0 0 calc(.04rem + 1px) #2f3d42; }
 ${S} :is(.panel, .modal__box)::after { content: ''; position: absolute; right: .06rem; top: .06rem; width: .14rem; height: .14rem; pointer-events: none; background: linear-gradient(225deg, #c0282e 50%, transparent 50%); }
-${S} .btn { clip-path: polygon(0 0, 100% 0, 100% calc(100% - .08rem), calc(100% - .08rem) 100%, 0 100%); }
-${S} :is(.mode-card, .scard) { clip-path: polygon(0 0, calc(100% - .14rem) 0, 100% .14rem, 100% 100%, 0 100%); }
 ${NO_RING(S)}
 ${S} .hbond__board::before { inset: 12%; clip-path: polygon(25% 3%, 75% 3%, 100% 50%, 75% 97%, 25% 97%, 0 50%); background: repeating-linear-gradient(-45deg, #2c3a3f 0 calc(5 * var(--u)), #1a2427 calc(5 * var(--u)) calc(10 * var(--u))); }
 ${S} .hbond.is-full .hbond__board::before { background: repeating-linear-gradient(-45deg, #d4d93a 0 calc(6 * var(--u)), #b9be22 calc(6 * var(--u)) calc(12 * var(--u))); }`,
@@ -215,7 +206,6 @@ ${S} .section-label { justify-content: center; padding: .05rem .5rem; color: #ff
     ${svg(20, 20, `<path d='M10 1L13 7H7Z M3 16L8 10L11 15Z M17 16L12 10L9 15Z' fill='%23c4333a'/>`)} .1rem center / .18rem .18rem no-repeat, ${svg(20, 20, `<path d='M10 1L13 7H7Z M3 16L8 10L11 15Z M17 16L12 10L9 15Z' fill='%23c4333a'/>`)} calc(100% - .1rem) center / .18rem .18rem no-repeat,
     linear-gradient(90deg, transparent, #4f8590 .3rem calc(100% - .3rem), transparent); color: #15292d; text-shadow: none; }
 ${S} :is(.panel, .modal__box) { border: 0; border-top: 2px solid #2b525a; border-bottom: 2px solid #2b525a; border-radius: 0; }
-${S} .btn { clip-path: polygon(.1rem 0, 100% 0, calc(100% - .1rem) 100%, 0 100%); }
 ${NO_RING(S)}
 ${S} .hbond__board::before { inset: 14% 8%; border-radius: 50% 45% 48% 52% / 60% 55% 45% 40%; background: radial-gradient(60% 50% at 40% 40%, #ffffff, #dcf0f3); border: calc(3 * var(--u)) solid #2b525a; }
 ${S} .hbond.is-full .hbond__board::before { background: radial-gradient(60% 50% at 40% 40%, #e8585e, #c4333a); border-color: #15292d; }
@@ -229,7 +219,6 @@ ${S} .section-label { width: fit-content; padding: .05rem .4rem; color: #e8cf92;
   clip-path: polygon(.16rem 0, calc(100% - .16rem) 0, 100% 50%, calc(100% - .16rem) 100%, .16rem 100%, 0 50%); box-shadow: inset 0 0 0 3px #17142a, inset 0 0 0 4px rgba(201, 174, 114, .5); }
 ${S} .section-label::after { content: ' ✦'; color: #c9ae72; font-size: .8em; }
 ${S} :is(.panel, .modal__box) { ${frame(`<rect x='5' y='5' width='50' height='50' fill='none' stroke='%23a39274' stroke-width='1'/><path d='M1 18 C3 8 8 3 18 1 M42 1 C52 3 57 8 59 18 M59 42 C57 52 52 57 42 59 M18 59 C8 57 3 52 1 42' fill='none' stroke='%23c9ae72' stroke-width='1.3'/><circle cx='5' cy='5' r='2' fill='%23e8cf92'/><circle cx='55' cy='5' r='2' fill='%23e8cf92'/><circle cx='5' cy='55' r='2' fill='%23e8cf92'/><circle cx='55' cy='55' r='2' fill='%23e8cf92'/>`, '.12rem')} }
-${S} .btn--primary { clip-path: polygon(.12rem 0, calc(100% - .12rem) 0, 100% 50%, calc(100% - .12rem) 100%, .12rem 100%, 0 50%); }
 ${NO_RING(S)}
 ${S} .hbond__board::before { inset: 12%; border-radius: 50%; background: radial-gradient(circle, #202852 58%, #c9ae72 59% 63%, #0d1023 64% 70%, #a39274 71% 74%, transparent 75%); }
 ${S} .hbond.is-full .hbond__board::before { background: radial-gradient(circle, #e8cf92 58%, #c9ae72 59% 63%, #0d1023 64% 70%, #a39274 71% 74%, transparent 75%); }`,
@@ -264,7 +253,6 @@ ${S} .hbond.is-full .hbond__board::before { background: radial-gradient(circle a
 ${S} .section-label { width: fit-content; padding: .04rem .26rem .04rem .2rem; color: #e8fbff; background: linear-gradient(90deg, #1fc4d6 0 .05rem, rgba(14, 60, 70, .85) .05rem);
   clip-path: polygon(0 0, calc(100% - .12rem) 0, 100% .12rem, 100% 100%, 0 100%); }
 ${S} :is(.panel, .modal__box) { ${frame(`<path d='M0 12V0H12M48 0H60V12M60 48V60H48M12 60H0V48' fill='none' stroke='%231fc4d6' stroke-width='2'/><rect x='3' y='3' width='54' height='54' fill='none' stroke='%23264a52' stroke-width='1'/>`, '.08rem')} }
-${S} .btn { clip-path: polygon(.08rem 0, 100% 0, 100% calc(100% - .08rem), calc(100% - .08rem) 100%, 0 100%, 0 .08rem); }
 ${NO_RING(S)}
 ${S} .hbond__board::before { inset: 12%; clip-path: polygon(25% 3%, 75% 3%, 100% 50%, 75% 97%, 25% 97%, 0 50%); background: linear-gradient(180deg, #123a42, #071c20); box-shadow: inset 0 0 0 calc(3 * var(--u)) #1fc4d6; }
 ${S} .hbond.is-full .hbond__board::before { background: linear-gradient(180deg, #7af0d0, #1fc4d6); }`,
@@ -332,9 +320,11 @@ function discRules(css) {
  *  rotation) is copied from its ::before rule, the ring cut out of that box by masks. */
 function ringRules(S, body) {
   const line = body.split('\n').find((l) => l.startsWith(`${S} .hbond__board::before {`) && !/content:/.test(l)) || '';
-  const geom = ['inset', 'clip-path', 'border-radius', 'transform'].map((k) => (line.match(new RegExp(`(?:^|[;{]\\s*)(${k}:[^;]+;)`)) || [])[1]).filter(Boolean).join(' ');
+  // a round ring just outside the marker, whatever its shape (a clipped ring was cut into slivers): read at a glance
+  const geom = 'inset: 4%; border-radius: 50%;';
   const ring = `content: ''; position: absolute; ${geom || 'inset: 12%;'} box-sizing: border-box; pointer-events: none; z-index: 1;
-  background: conic-gradient(var(--hb-ring-on, var(--mint-500)) 0 calc(var(--bt, 0) * 1turn / var(--bn, 1)), var(--hb-ring-off, var(--line-3)) 0);
+  background: conic-gradient(var(--hb-ring-on, var(--mint-400)) 0 calc(var(--bt, 0) * 1turn / var(--bn, 1)), var(--hb-ring-off, rgba(140, 140, 140, .6)) 0);
+  filter: drop-shadow(0 0 1px rgba(0, 0, 0, .9));
   -webkit-mask: repeating-conic-gradient(#000 0 calc(1turn / var(--bn, 1) - var(--bgap, 0deg)), transparent 0 calc(1turn / var(--bn, 1))), linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   mask: repeating-conic-gradient(#000 0 calc(1turn / var(--bn, 1) - var(--bgap, 0deg)), transparent 0 calc(1turn / var(--bn, 1))), linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: source-in, xor; mask-composite: intersect, exclude;`;
@@ -356,4 +346,41 @@ ${discRules(body)}
 ${ringRules(S, body)}
 ${BAND[id] ? `${S} { ${BAND[id]} }\n` : ''}${ACCENT_INK[id] ? `${S} :is(.micro--mint, .countdown__label, .gm__bond-toggle, .funds__collapse, .funds__collapse *) { color: ${ACCENT_INK[id]}; }\n` : ''}${S} .section-label :is(.section-label__idx, .micro) { color: inherit; border-color: currentColor; opacity: .85; }
 `;
+}
+
+// ---- motifs: each theme's own surface pattern in place of plain colour fades (page and panel surfaces) -------------
+// [tile svg, tile size, page opacity, panel opacity]
+const T = (w, h, body) => [svg(w, h, body), `${w}px ${h}px`];
+const MOTIFS = {
+  cyber: T(48, 48, `<path d='M0 24H18L24 18H48M24 48V30L30 24' fill='none' stroke='%2300f0ff' stroke-opacity='.18'/><circle cx='18' cy='24' r='1.5' fill='%23ff2e88' fill-opacity='.4'/>`),
+  'is-fungi': T(90, 90, `<g fill='%23e7d49a' fill-opacity='.12'><path d='M20 40a12 9 0 0 1 24 0z'/><rect x='30' y='40' width='4' height='10'/><path d='M60 72a8 6 0 0 1 16 0z'/><rect x='66.5' y='72' width='3' height='7'/></g><g fill='%23e7d49a' fill-opacity='.18'><circle cx='70' cy='20' r='1.5'/><circle cx='10' cy='75' r='1'/><circle cx='50' cy='60' r='1.2'/></g>`),
+  'is-phantom': T(64, 64, `<path d='M0 0Q8 64 16 0M16 0Q24 64 32 0M32 0Q40 64 48 0M48 0Q56 64 64 0' fill='none' stroke='%23b3171f' stroke-opacity='.14' stroke-width='3'/>`),
+  'is-mizuki': T(80, 80, `<g fill='none' stroke='%237ff7ff' stroke-opacity='.14'><circle cx='20' cy='22' r='6'/><circle cx='60' cy='52' r='9'/><circle cx='36' cy='66' r='3'/><path d='M0 40Q20 30 40 40T80 40' stroke-opacity='.08'/></g>`),
+  'is-frost': T(70, 70, `<g fill='none' stroke='%237fd6ff' stroke-opacity='.16'><path d='M10 0L22 18L14 34L30 52L24 70'/><path d='M22 18L44 26L60 12M30 52L52 60'/></g>`),
+  'is-sarkaz': T(80, 80, `<g fill='%23d9a63a' fill-opacity='.12'><path d='M40 30q-5 8 0 14q5-6 0-14z'/><rect x='38' y='44' width='4' height='16'/></g><circle cx='12' cy='12' r='1' fill='%23fff' fill-opacity='.2'/>`),
+  'is-sui': T(60, 60, `<g fill='none' stroke='%23167f78' stroke-opacity='.12'><rect x='5' y='5' width='50' height='50'/><path d='M5 30H55M30 5V55M5 5L18 18M55 5L42 18M5 55L18 42M55 55L42 42'/></g>`),
+  'is-blackflow': T(80, 30, `<path d='M0 15Q10 5 20 15T40 15T60 15T80 15' fill='none' stroke='%23e6d48a' stroke-opacity='.1'/>`),
+  'f-yan': T(140, 140, `<filter id='b'><feTurbulence baseFrequency='.03' numOctaves='3' seed='4'/><feColorMatrix values='0 0 0 0 .1  0 0 0 0 .12  0 0 0 0 .11  0 0 0 -1.6 .9'/></filter><rect width='140' height='140' filter='url(%23b)' opacity='.25'/>`),
+  'f-sargon': T(14, 14, `<circle cx='7' cy='7' r='2' fill='%23f19b48' fill-opacity='.16'/>`),
+  'f-victoria': T(48, 48, `<g fill='none' stroke='%23d6a64a' stroke-opacity='.1'><path d='M24 0V48M0 24H48'/><circle cx='24' cy='24' r='10'/><path d='M24 14L27 24L24 34L21 24Z'/></g>`),
+  'f-kjerag': T(60, 60, `<g stroke='%23ffffff' stroke-opacity='.16' stroke-width='1'><path d='M30 18V42M20 24L40 36M40 24L20 36M30 18l-3 3M30 18l3 3M30 42l-3-3M30 42l3-3'/></g><circle cx='8' cy='50' r='1' fill='%23fff' fill-opacity='.3'/>`),
+  'f-laterano': T(80, 80, `<g fill='none' stroke='%233ec6e0' stroke-opacity='.12'><circle cx='40' cy='40' r='22'/><circle cx='40' cy='40' r='14'/><path d='M40 18V62M18 40H62M24 24L56 56M56 24L24 56'/></g>`),
+  'f-aegir': T(90, 60, `<g fill='none' stroke='%238ff0ec' stroke-opacity='.1'><path d='M0 20Q22 8 45 20T90 20'/><path d='M0 42Q22 30 45 42T90 42'/></g>`),
+  'f-siracusa': T(1, 1, ``),
+  'f-kazimierz': T(4, 4, `<rect width='4' height='1' fill='%23ffffff' fill-opacity='.04'/>`),
+  'f-ursus': T(120, 60, `<path d='M0 30H120' stroke='%23847b78' stroke-opacity='.18'/><g stroke='%23847b78' stroke-opacity='.25'><path d='M20 26l6 8M26 26l-6 8M70 26l6 8M76 26l-6 8'/></g>`),
+  'f-leithanien': T(1, 1, ``),
+  'ss-adele': T(60, 40, `<g fill='%23ffffff' fill-opacity='.55'><circle cx='14' cy='22' r='8'/><circle cx='24' cy='16' r='10'/><circle cx='36' cy='22' r='8'/><rect x='14' y='22' width='22' height='8' rx='4'/></g>`),
+  'ss-vultures': T(40, 40, `<path d='M0 40L40 0M-10 10L10 -10M30 50L50 30' stroke='%23d4d93a' stroke-opacity='.06' stroke-width='6'/>`),
+  'ss-lonetrail': T(1, 1, ``),
+  'ss-mendacium': T(40, 40, `<path d='M0 36H8V28H16V32H12V30H10V36H24V28H32V32H28V30H26V36H40' fill='none' stroke='%2342372e' stroke-opacity='.1'/>`),
+  'ss-unrealized': T(120, 60, `<g fill='%23ffffff' fill-opacity='.35'><circle cx='30' cy='34' r='10'/><circle cx='44' cy='28' r='13'/><circle cx='58' cy='34' r='9'/></g><path d='M90 12l4 2-4 2' fill='none' stroke='%232b525a' stroke-opacity='.3'/>`),
+  'ss-elegies': T(80, 80, `<g fill='none' stroke='%23c9ae72' stroke-opacity='.1'><path d='M0 60Q20 40 40 50T80 30'/><path d='M30 46q4-8 10-6M54 42q4 6 0 10'/></g><circle cx='66' cy='14' r='1.2' fill='%23e8cf92' fill-opacity='.4'/>`),
+};
+export function motifCss(id) {
+  const m = MOTIFS[id];
+  if (!m || /width='1'/.test(m[0])) return '';
+  const S = `:root[data-ui-theme="${id}"]`;
+  return `${S} body::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none; background: ${m[0]} 0 0 / ${m[1]} repeat; }
+${S} :is(.panel, .modal__box)::before { background-image: ${m[0]}; background-size: ${m[1]}; background-repeat: repeat; opacity: .8; }\n`;
 }

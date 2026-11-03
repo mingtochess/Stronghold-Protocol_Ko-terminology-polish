@@ -9,7 +9,7 @@ import { fileURLToPath } from 'node:url';
 import { readFile } from 'node:fs/promises';
 import { textureCss } from './ui-theme-textures.mjs';
 import { GUIDE_THEMES } from './ui-theme-guides.mjs';
-import { shapeCss } from './ui-theme-shapes.mjs';
+import { shapeCss, motifCss } from './ui-theme-shapes.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const hex = (h) => { h = h.replace('#', ''); if (h.length === 3) h = [...h].map((c) => c + c).join(''); return [0, 2, 4].map((i) => parseInt(h.slice(i, i + 2), 16)); };
@@ -344,6 +344,24 @@ function tokens(t) {
   return v;
 }
 
+/** Plain fills instead of the two-colour fades that only shaded a surface (meaningful gradients — patterns, light, a fade to
+ *  transparent — are kept): a background that is a linear-gradient of colours only becomes its first colour, and the body's
+ *  closing fade is dropped (its background-color stays). */
+const COLOR = /^(#[0-9a-f]{3,8}|rgba?\([^)]*\))(\s+[\d.]+%)*$/i;
+function splitTop(v) { const out = []; let d = 0, cur = ''; for (const ch of v) { if (ch === '(') d++; if (ch === ')') d--; if (ch === ',' && !d) { out.push(cur.trim()); cur = ''; } else cur += ch; } out.push(cur.trim()); return out; }
+function flatFill(css) {
+  return css.replace(/linear-gradient\(((?:[^()]|\([^()]*\))*)\)/g, (m, args, off, str) => {
+    const before = str.slice(Math.max(0, off - 12), off);
+    if (!/background(-color)?:\s*$/.test(before)) return m;
+    const parts = splitTop(args); if (/deg|^to /.test(parts[0])) parts.shift();
+    return parts.length >= 2 && parts.every((p) => COLOR.test(p)) ? parts[0].replace(/\s+[\d.]+%/g, '') : m;
+  });
+}
+function flatBody(css) {
+  if (/background-size/.test(css)) return css;
+  return css.replace(/,\s*linear-gradient\(180deg, #[0-9a-f]{3,6}, #[0-9a-f]{3,6}\);/i, ';');
+}
+
 function css(t) {
   const sel = `:root[data-ui-theme="${t.id}"]`;
   const v = tokens(t);
@@ -353,17 +371,17 @@ ${sel} {
 ${Object.entries(v).map(([k, x]) => `  ${k}: ${x};`).join('\n')}
 }
 ${sel} body {
-  ${t.body}
+  ${flatBody(t.body)}
 }
 ${sel} .screen:not(.gm) { background: transparent; }
 ${sel} .panel,
 ${sel} .modal__box {
-  ${t.panel}
+  ${flatFill(t.panel)}
 }
 ${sel} .btn { ${t.btn} }
-${sel} .btn--primary { ${t.primary.replace(/background:\s*([^;]+);/, '--ui-primary-face: $1; background-color: var(--mint-500);')} }
+${sel} .btn--primary { ${flatFill(t.primary).replace(/background:\s*([^;]+);/, '--ui-primary-face: $1; background-color: var(--mint-500);')} }
 ${sel} .modal { background: ${t.light ? 'rgba(40, 40, 40, .35)' : 'rgba(0, 0, 0, .6)'}; }
-${t.light ? `${sel} :is(.btn--secondary, .btn--ghost) { --btn-bg: #ffffff; --btn-bg-hover: ${t.p.bg[1]}; }\n` : ''}${t.extra ? t.extra + '\n' : ''}${textureCss(t.id, !!t.light)}${shapeCss(t.id)}`;
+${t.light ? `${sel} :is(.btn--secondary, .btn--ghost) { --btn-bg: #ffffff; --btn-bg-hover: ${t.p.bg[1]}; }\n` : ''}${t.extra ? t.extra + '\n' : ''}${textureCss(t.id, !!t.light)}${shapeCss(t.id)}${motifCss(t.id)}`;
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {

@@ -56,13 +56,13 @@
 :root[data-ui-theme="cyber"] .screen:not(.gm) { background: transparent; }
 :root[data-ui-theme="cyber"] .panel,
 :root[data-ui-theme="cyber"] .modal__box {
-  background: linear-gradient(160deg, rgba(29, 22, 48, .92), rgba(10, 8, 18, .94));
+  background: rgba(29, 22, 48, .92);
   border: 1px solid rgba(255, 46, 136, .55);
   clip-path: polygon(0 0, calc(100% - .16rem) 0, 100% .16rem, 100% 100%, .16rem 100%, 0 calc(100% - .16rem));
   box-shadow: inset 0 0 0 1px rgba(0, 240, 255, .12), 0 0 .2rem rgba(255, 46, 136, .25);
 }
 :root[data-ui-theme="cyber"] .btn { clip-path: polygon(0 0, calc(100% - .1rem) 0, 100% .1rem, 100% 100%, .1rem 100%, 0 calc(100% - .1rem)); text-transform: uppercase; }
-:root[data-ui-theme="cyber"] .btn--primary { --ui-primary-face: linear-gradient(90deg, #ff2e88, #b02cff); background-color: var(--mint-500); color: #fff; border-color: transparent; text-shadow: 0 0 6px rgba(255, 255, 255, .5); }
+:root[data-ui-theme="cyber"] .btn--primary { --ui-primary-face: #ff2e88; background-color: var(--mint-500); color: #fff; border-color: transparent; text-shadow: 0 0 6px rgba(255, 255, 255, .5); }
 :root[data-ui-theme="cyber"] .modal { background: rgba(0, 0, 0, .6); }
 @keyframes ui-cyber-glitch { 0%, 100% { transform: none; text-shadow: none; } 20% { transform: translate(1px, -1px); text-shadow: -2px 0 #00f0ff, 2px 0 #ff2e88; } 40% { transform: translate(-1px, 1px); } 60% { transform: none; text-shadow: 2px 0 #00f0ff, -2px 0 #ff2e88; } }
 @media (prefers-reduced-motion: no-preference) { :root[data-ui-theme="cyber"] .btn:hover .btn__label { animation: ui-cyber-glitch .35s steps(2) 1; } }
@@ -78,7 +78,6 @@
 :root[data-ui-theme="cyber"] :is(.mode-card__bg, .seat__stripes) { background: linear-gradient(rgba(255, 46, 136, .1) 1px, transparent 1px) 0 0 / .2rem .2rem, linear-gradient(90deg, rgba(0, 240, 255, .08) 1px, transparent 1px) 0 0 / .2rem .2rem, linear-gradient(160deg, rgba(255, 46, 136, .2), transparent 50%); }
 :root[data-ui-theme="cyber"] .seat { background-image: linear-gradient(rgba(255, 46, 136, .1) 1px, transparent 1px); }
 :root[data-ui-theme="cyber"] .scard__bg { background: linear-gradient(rgba(255, 46, 136, .1) 1px, transparent 1px) 0 0 / .2rem .2rem, linear-gradient(90deg, rgba(0, 240, 255, .08) 1px, transparent 1px) 0 0 / .2rem .2rem, linear-gradient(160deg, rgba(255, 46, 136, .2), transparent 50%), linear-gradient(180deg, var(--bg-3), var(--bg-1)); }
-:root[data-ui-theme="cyber"] :is(.mode-card, .scard) { clip-path: polygon(0 0, calc(100% - .16rem) 0, 100% .16rem, 100% 100%, .16rem 100%, 0 calc(100% - .16rem)); }
 :root[data-ui-theme="cyber"] .modal__stripe { background: repeating-linear-gradient(-45deg, #ff2e88 0 .06rem, #0a0410 .06rem .12rem); }
 :root[data-ui-theme="cyber"] .pbanner__band { background: repeating-linear-gradient(-45deg, #ff2e88 0 .06rem, #0a0410 .06rem .12rem); }
 :root[data-ui-theme="cyber"] .brackets::after {
@@ -92,11 +91,11 @@
     linear-gradient(#00f0ff, #00f0ff) bottom right / .16rem 2px no-repeat,
     linear-gradient(#00f0ff, #00f0ff) bottom right / 2px .16rem no-repeat;
 }
-:root[data-ui-theme="cyber"] .gtop__center { background: repeating-linear-gradient(0deg, rgba(0, 240, 255, .05) 0 1px, transparent 1px 3px), linear-gradient(90deg, rgba(255, 46, 136, .12), transparent 30%), linear-gradient(180deg, rgba(var(--bg-1-rgb), .92), rgba(var(--bg-0-rgb), .92)); border-radius: 0; clip-path: polygon(0 0, calc(100% - .16rem) 0, 100% .16rem, 100% 100%, .16rem 100%, 0 calc(100% - .16rem)); }
+:root[data-ui-theme="cyber"] .gtop__center { background: repeating-linear-gradient(0deg, rgba(0, 240, 255, .05) 0 1px, transparent 1px 3px), linear-gradient(90deg, rgba(255, 46, 136, .12), transparent 30%), linear-gradient(rgba(var(--bg-1-rgb), .94), rgba(var(--bg-1-rgb), .94)); border-radius: 0; }
 :root[data-ui-theme="cyber"] .capsule { border-radius: 0; background: repeating-linear-gradient(-45deg, #ff2e88 0 .06rem, #0a0410 .06rem .12rem) bottom / 100% 2px no-repeat, rgba(var(--bg-1-rgb), .92); }
 :root[data-ui-theme="cyber"] :is(.effect, .toolbtn:not(.obtn), .readybtn__box) { border-radius: 0; }
 :root[data-ui-theme="cyber"] .effect { background: repeating-linear-gradient(0deg, rgba(0, 240, 255, .05) 0 1px, transparent 1px 3px), linear-gradient(90deg, rgba(255, 46, 136, .12), transparent 30%), rgba(var(--bg-1-rgb), .88); }
-:root[data-ui-theme="cyber"] .lvcard { background: repeating-linear-gradient(-45deg, rgba(0, 240, 255, .55) 0 2px, transparent 2px 6px), linear-gradient(180deg, var(--mint-400), var(--mint-600)); background-size: .34rem 100%, 100% 100%; background-position: right bottom, 0 0; background-repeat: no-repeat; clip-path: polygon(0 0, calc(100% - .16rem) 0, 100% .16rem, 100% 100%, .16rem 100%, 0 calc(100% - .16rem)); }
+:root[data-ui-theme="cyber"] .lvcard { background: repeating-linear-gradient(-45deg, rgba(0, 240, 255, .55) 0 2px, transparent 2px 6px), linear-gradient(var(--mint-500), var(--mint-500)); background-size: .34rem 100%, 100% 100%; background-position: right bottom, 0 0; background-repeat: no-repeat;  }
 :root[data-ui-theme="cyber"] :is(.title-bg__art, .title-bg__ridge-art, .title-bg__ridges, .title-bg__target, .title-bg__radar, .title-bg__haze) { display: none; }
 :root[data-ui-theme="cyber"] .app-bg, :root[data-ui-theme="cyber"] .app-bg::before, :root[data-ui-theme="cyber"] .app-bg::after { background: none; }
 :root[data-ui-theme="cyber"] { --font-micro: 'Share Tech Mono', var(--font-display); }
@@ -115,20 +114,22 @@
 :root[data-ui-theme="cyber"] .hbond__board { filter: none; }
 :root[data-ui-theme="cyber"] .hbond.is-disabled .hbond__board { filter: grayscale(1) brightness(.6); }
 :root[data-ui-theme="cyber"] .hbond__board::before { content: ''; position: absolute; pointer-events: none; }
-:root[data-ui-theme="cyber"] .hbond .hbond__num, :root[data-ui-theme="cyber"] .hbond .hbond__num.has-matte { background: var(--hb-band-bg, rgba(var(--bg-0-rgb), .94)) !important; filter: none; color: var(--hb-band-ink, var(--text-hi));
-  border: calc(1.5 * var(--u)) solid var(--hb-band-line, var(--mint-500)); clip-path: var(--hb-band-clip, none); border-radius: var(--hb-band-radius, 0); font-weight: 700; }
+:root[data-ui-theme="cyber"] .hbond .hbond__num, :root[data-ui-theme="cyber"] .hbond .hbond__num.has-matte { background: none !important; border: 0; clip-path: none; filter: none; font-weight: 800;
+  color: var(--hb-count-ink, #ffffff); text-shadow: 0 0 2px #000, 0 0 2px #000, 0 1px 2px #000, 0 0 4px rgba(0, 0, 0, .8); }
 :root[data-ui-theme="cyber"] .hbond__board::before { inset: 14%; clip-path: polygon(0 0, 75% 0, 100% 25%, 100% 100%, 25% 100%, 0 75%); background: #1d1630; box-shadow: inset 0 0 0 calc(3 * var(--u)) #ff2e88; }
 :root[data-ui-theme="cyber"] .hbond.is-full .hbond__board::before { background: linear-gradient(135deg, #ff2e88, #00f0ff); }
 :root[data-ui-theme="cyber"] .bond:not(.hbond) .bond__core::before { content: ''; position: absolute; pointer-events: none; }
 :root[data-ui-theme="cyber"] .bond:not(.hbond) .bond__core::before { inset: 14%; clip-path: polygon(0 0, 75% 0, 100% 25%, 100% 100%, 25% 100%, 0 75%); background: #1d1630; box-shadow: inset 0 0 0 calc(3 * var(--u)) #ff2e88; }
 :root[data-ui-theme="cyber"] .bond:not(.hbond).is-active .bond__core::before { background: linear-gradient(135deg, #ff2e88, #00f0ff); }
-:root[data-ui-theme="cyber"] .hbond__board::after { content: ''; position: absolute; inset: 14%; clip-path: polygon(0 0, 75% 0, 100% 25%, 100% 100%, 25% 100%, 0 75%); box-sizing: border-box; pointer-events: none; z-index: 1;
-  background: conic-gradient(var(--hb-ring-on, var(--mint-500)) 0 calc(var(--bt, 0) * 1turn / var(--bn, 1)), var(--hb-ring-off, var(--line-3)) 0);
+:root[data-ui-theme="cyber"] .hbond__board::after { content: ''; position: absolute; inset: 4%; border-radius: 50%; box-sizing: border-box; pointer-events: none; z-index: 1;
+  background: conic-gradient(var(--hb-ring-on, var(--mint-400)) 0 calc(var(--bt, 0) * 1turn / var(--bn, 1)), var(--hb-ring-off, rgba(140, 140, 140, .6)) 0);
+  filter: drop-shadow(0 0 1px rgba(0, 0, 0, .9));
   -webkit-mask: repeating-conic-gradient(#000 0 calc(1turn / var(--bn, 1) - var(--bgap, 0deg)), transparent 0 calc(1turn / var(--bn, 1))), linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   mask: repeating-conic-gradient(#000 0 calc(1turn / var(--bn, 1) - var(--bgap, 0deg)), transparent 0 calc(1turn / var(--bn, 1))), linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: source-in, xor; mask-composite: intersect, exclude; padding: var(--hb-ring-w, calc(6 * var(--u))); }
-:root[data-ui-theme="cyber"] .bond:not(.hbond) .bond__core::after { content: ''; position: absolute; inset: 14%; clip-path: polygon(0 0, 75% 0, 100% 25%, 100% 100%, 25% 100%, 0 75%); box-sizing: border-box; pointer-events: none; z-index: 1;
-  background: conic-gradient(var(--hb-ring-on, var(--mint-500)) 0 calc(var(--bt, 0) * 1turn / var(--bn, 1)), var(--hb-ring-off, var(--line-3)) 0);
+:root[data-ui-theme="cyber"] .bond:not(.hbond) .bond__core::after { content: ''; position: absolute; inset: 4%; border-radius: 50%; box-sizing: border-box; pointer-events: none; z-index: 1;
+  background: conic-gradient(var(--hb-ring-on, var(--mint-400)) 0 calc(var(--bt, 0) * 1turn / var(--bn, 1)), var(--hb-ring-off, rgba(140, 140, 140, .6)) 0);
+  filter: drop-shadow(0 0 1px rgba(0, 0, 0, .9));
   -webkit-mask: repeating-conic-gradient(#000 0 calc(1turn / var(--bn, 1) - var(--bgap, 0deg)), transparent 0 calc(1turn / var(--bn, 1))), linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   mask: repeating-conic-gradient(#000 0 calc(1turn / var(--bn, 1) - var(--bgap, 0deg)), transparent 0 calc(1turn / var(--bn, 1))), linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: source-in, xor; mask-composite: intersect, exclude; padding: calc(var(--disc) * .08); }
@@ -139,3 +140,5 @@
 :root[data-ui-theme="cyber"] .bond:not(.hbond).is-disabled .bond__core { filter: grayscale(1) brightness(.6); }
 :root[data-ui-theme="cyber"] { --hb-band-bg: #0e0b17; --hb-band-ink: #00f0ff; --hb-band-line: #ff2e88; }
 :root[data-ui-theme="cyber"] .section-label :is(.section-label__idx, .micro) { color: inherit; border-color: currentColor; opacity: .85; }
+:root[data-ui-theme="cyber"] body::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none; background: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%2748%27%20height%3D%2748%27%20viewBox%3D%270%200%2048%2048%27%3E%3Cpath%20d%3D%27M0%2024H18L24%2018H48M24%2048V30L30%2024%27%20fill%3D%27none%27%20stroke%3D%27%2300f0ff%27%20stroke-opacity%3D%27.18%27%2F%3E%3Ccircle%20cx%3D%2718%27%20cy%3D%2724%27%20r%3D%271.5%27%20fill%3D%27%23ff2e88%27%20fill-opacity%3D%27.4%27%2F%3E%3C%2Fsvg%3E") 0 0 / 48px 48px repeat; }
+:root[data-ui-theme="cyber"] :is(.panel, .modal__box)::before { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%2748%27%20height%3D%2748%27%20viewBox%3D%270%200%2048%2048%27%3E%3Cpath%20d%3D%27M0%2024H18L24%2018H48M24%2048V30L30%2024%27%20fill%3D%27none%27%20stroke%3D%27%2300f0ff%27%20stroke-opacity%3D%27.18%27%2F%3E%3Ccircle%20cx%3D%2718%27%20cy%3D%2724%27%20r%3D%271.5%27%20fill%3D%27%23ff2e88%27%20fill-opacity%3D%27.4%27%2F%3E%3C%2Fsvg%3E"); background-size: 48px 48px; background-repeat: repeat; opacity: .8; }

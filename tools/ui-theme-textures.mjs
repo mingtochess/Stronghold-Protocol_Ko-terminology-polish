@@ -265,7 +265,7 @@ export function textureCss(id, light = false) {
   out.push(`${s} .seat { background-image: ${topLayers(x.card)[0].replace(/\s+\d[^)]*\/[^,]*$/, '').replace(/ 0 0 \/.*$/, '')}; }`);
   // (a shop card holds an operator portrait: its plate stays dark under a light theme)
   out.push(`${s} .scard__bg { background: ${x.card}, linear-gradient(180deg, ${light ? '#3a3e42, #1d2023' : 'var(--bg-3), var(--bg-1)'}); }`);
-  if (x.clip && x.clip !== 'none') out.push(`${s} :is(.mode-card, .scard) { clip-path: ${x.clip}; }`);
+  // (no card silhouettes: a clipped card cut its own text and icons)
   // stripes and bands
   out.push(`${s} .modal__stripe { background: ${x.stripe}; }`);
   out.push(`${s} .pbanner__band { background: ${x.stripe}; }`);
@@ -273,14 +273,16 @@ export function textureCss(id, light = false) {
   out.push(x.corner === 'none' ? `${s} .brackets::after { background: none; }` : `${s} .brackets::after {\n  background:\n    ${x.corner};\n}`);
   // the HUD's own frames: the top bar, the phase capsule, the clock, the shop card plates, the side effect chips, the
   // ready box, the shop tool buttons — the theme's corner radius / silhouette, surface and stripe
-  const shape = x.clip && x.clip !== 'none' ? `border-radius: 0; clip-path: ${x.clip};` : `border-radius: ${x.radius};`;
-  out.push(`${s} .gtop__center { background: ${x.grain}, linear-gradient(180deg, rgba(var(--bg-1-rgb), .92), rgba(var(--bg-0-rgb), .92)); ${shape} }`);
+  const shape = `border-radius: ${x.radius};`;
+  out.push(`${s} .gtop__center { background: ${x.grain}, linear-gradient(rgba(var(--bg-1-rgb), .94), rgba(var(--bg-1-rgb), .94)); ${shape} }`);
   out.push(`${s} .capsule { border-radius: ${x.radius === '0' ? '0' : '.25rem'}; background: ${x.stripe.replace(/;$/, '')} bottom / 100% 2px no-repeat, rgba(var(--bg-1-rgb), .92); }`);
   out.push(`${s} :is(.effect, .toolbtn:not(.obtn), .readybtn__box) { border-radius: ${x.radius}; }`);
   out.push(`${s} .effect { background: ${x.grain}, rgba(var(--bg-1-rgb), .88); }`);
-  out.push(`${s} .lvcard { background: ${x.face.replace(/ right center \/[^,]*?(?=,|$)/g, '')}, linear-gradient(180deg, var(--mint-400), var(--mint-600)); background-size: .34rem 100%, 100% 100%; background-position: right bottom, 0 0; background-repeat: no-repeat; ${x.clip && x.clip !== 'none' ? `clip-path: ${x.clip};` : ''} }`);
+  out.push(`${s} .lvcard { background: ${x.face.replace(/ right center \/[^,]*?(?=,|$)/g, '')}, linear-gradient(var(--mint-500), var(--mint-500)); background-size: .34rem 100%, 100% 100%; background-position: right bottom, 0 0; background-repeat: no-repeat;  }`);
   // the official shop sprites
   // (the official shop sprites — 冻结 / 刷新 plates, cost mattes — keep their own colours in every theme)
+  // official portraits / icons are drawn light on dark: their plates stay dark under a light theme
+  if (light) out.push(`${s} :is(.lo-card__art, .lo-dhead__art, .extension-art:not(.extension-art--map), .lo-chip--tier) { background-color: #2b2e31; }`);
   // the title backdrop art gives way to the theme's own page
   out.push(`${s} :is(.title-bg__art, .title-bg__ridge-art, .title-bg__ridges, .title-bg__target, .title-bg__radar, .title-bg__haze) { display: none; }`);
   out.push(`${s} .app-bg, ${s} .app-bg::before, ${s} .app-bg::after { background: none; }`);

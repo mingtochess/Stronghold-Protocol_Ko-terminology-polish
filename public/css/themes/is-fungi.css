@@ -56,11 +56,11 @@
 :root[data-ui-theme="is-fungi"] .screen:not(.gm) { background: transparent; }
 :root[data-ui-theme="is-fungi"] .panel,
 :root[data-ui-theme="is-fungi"] .modal__box {
-  background: linear-gradient(180deg, rgba(43, 48, 43, .92), rgba(22, 25, 22, .95)); border: 1px solid #525b4c; border-radius: .12rem;
+  background: rgba(43, 48, 43, .92); border: 1px solid #525b4c; border-radius: .12rem;
   box-shadow: 0 .06rem .3rem rgba(0, 0, 0, .5), inset 0 0 .3rem rgba(201, 178, 122, .06);
 }
 :root[data-ui-theme="is-fungi"] .btn { border-radius: .1rem; }
-:root[data-ui-theme="is-fungi"] .btn--primary { --ui-primary-face: linear-gradient(180deg, #d8c48d, #b29a62); background-color: var(--mint-500); color: #15130c; border-color: #e7d49a; }
+:root[data-ui-theme="is-fungi"] .btn--primary { --ui-primary-face: #d8c48d; background-color: var(--mint-500); color: #15130c; border-color: #e7d49a; }
 :root[data-ui-theme="is-fungi"] .modal { background: rgba(0, 0, 0, .6); }
 @keyframes ui-spore { from { opacity: .0; transform: translateY(0); } 50% { opacity: .9; } to { opacity: 0; transform: translateY(-.3rem); } }
 :root[data-ui-theme="is-fungi"] .btn:hover::before { content: ''; position: absolute; left: 50%; bottom: 0; width: 4px; height: 4px; border-radius: 50%; background: #e7d49a; animation: ui-spore 1.2s ease-out infinite; pointer-events: none; }
@@ -83,11 +83,11 @@
     radial-gradient(circle, #c9b27a 0 3px, transparent calc(3px + 1px)) bottom left / .14rem .14rem no-repeat,
     radial-gradient(circle, #c9b27a 0 3px, transparent calc(3px + 1px)) bottom right / .14rem .14rem no-repeat;
 }
-:root[data-ui-theme="is-fungi"] .gtop__center { background: radial-gradient(40% 30% at 20% 30%, rgba(201, 178, 122, .08), transparent 70%), radial-gradient(35% 28% at 80% 70%, rgba(143, 179, 107, .07), transparent 70%), linear-gradient(180deg, rgba(var(--bg-1-rgb), .92), rgba(var(--bg-0-rgb), .92)); border-radius: .12rem; }
+:root[data-ui-theme="is-fungi"] .gtop__center { background: radial-gradient(40% 30% at 20% 30%, rgba(201, 178, 122, .08), transparent 70%), radial-gradient(35% 28% at 80% 70%, rgba(143, 179, 107, .07), transparent 70%), linear-gradient(rgba(var(--bg-1-rgb), .94), rgba(var(--bg-1-rgb), .94)); border-radius: .12rem; }
 :root[data-ui-theme="is-fungi"] .capsule { border-radius: .25rem; background: linear-gradient(90deg, #8fb36b, #c9b27a, #8fb36b) bottom / 100% 2px no-repeat, rgba(var(--bg-1-rgb), .92); }
 :root[data-ui-theme="is-fungi"] :is(.effect, .toolbtn:not(.obtn), .readybtn__box) { border-radius: .12rem; }
 :root[data-ui-theme="is-fungi"] .effect { background: radial-gradient(40% 30% at 20% 30%, rgba(201, 178, 122, .08), transparent 70%), radial-gradient(35% 28% at 80% 70%, rgba(143, 179, 107, .07), transparent 70%), rgba(var(--bg-1-rgb), .88); }
-:root[data-ui-theme="is-fungi"] .lvcard { background: radial-gradient(circle at 30% 40%, rgba(255, 245, 210, .6) 0 2px, transparent 3px), radial-gradient(circle at 70% 70%, rgba(255, 245, 210, .45) 0 1.5px, transparent 2.5px), linear-gradient(180deg, var(--mint-400), var(--mint-600)); background-size: .34rem 100%, 100% 100%; background-position: right bottom, 0 0; background-repeat: no-repeat;  }
+:root[data-ui-theme="is-fungi"] .lvcard { background: radial-gradient(circle at 30% 40%, rgba(255, 245, 210, .6) 0 2px, transparent 3px), radial-gradient(circle at 70% 70%, rgba(255, 245, 210, .45) 0 1.5px, transparent 2.5px), linear-gradient(var(--mint-500), var(--mint-500)); background-size: .34rem 100%, 100% 100%; background-position: right bottom, 0 0; background-repeat: no-repeat;  }
 :root[data-ui-theme="is-fungi"] :is(.title-bg__art, .title-bg__ridge-art, .title-bg__ridges, .title-bg__target, .title-bg__radar, .title-bg__haze) { display: none; }
 :root[data-ui-theme="is-fungi"] .app-bg, :root[data-ui-theme="is-fungi"] .app-bg::before, :root[data-ui-theme="is-fungi"] .app-bg::after { background: none; }
 :root[data-ui-theme="is-fungi"] { --font-micro: 'Josefin Slab', var(--font-display); }
@@ -108,20 +108,22 @@
 :root[data-ui-theme="is-fungi"] .hbond__board { filter: none; }
 :root[data-ui-theme="is-fungi"] .hbond.is-disabled .hbond__board { filter: grayscale(1) brightness(.6); }
 :root[data-ui-theme="is-fungi"] .hbond__board::before { content: ''; position: absolute; pointer-events: none; }
-:root[data-ui-theme="is-fungi"] .hbond .hbond__num, :root[data-ui-theme="is-fungi"] .hbond .hbond__num.has-matte { background: var(--hb-band-bg, rgba(var(--bg-0-rgb), .94)) !important; filter: none; color: var(--hb-band-ink, var(--text-hi));
-  border: calc(1.5 * var(--u)) solid var(--hb-band-line, var(--mint-500)); clip-path: var(--hb-band-clip, none); border-radius: var(--hb-band-radius, 0); font-weight: 700; }
+:root[data-ui-theme="is-fungi"] .hbond .hbond__num, :root[data-ui-theme="is-fungi"] .hbond .hbond__num.has-matte { background: none !important; border: 0; clip-path: none; filter: none; font-weight: 800;
+  color: var(--hb-count-ink, #ffffff); text-shadow: 0 0 2px #000, 0 0 2px #000, 0 1px 2px #000, 0 0 4px rgba(0, 0, 0, .8); }
 :root[data-ui-theme="is-fungi"] .hbond__board::before { inset: 14% 10% 22%; border-radius: 50% 50% 22% 22% / 72% 72% 28% 28%; background: radial-gradient(circle at 35% 30%, rgba(231, 212, 154, .35) 0 8%, transparent 9%), radial-gradient(circle at 65% 45%, rgba(231, 212, 154, .3) 0 6%, transparent 7%), #343a33; border: calc(3 * var(--u)) solid #c9b27a; }
 :root[data-ui-theme="is-fungi"] .hbond.is-full .hbond__board::before { background: radial-gradient(circle at 35% 30%, rgba(255, 255, 255, .5) 0 8%, transparent 9%), linear-gradient(180deg, #d8c48d, #a48a52); }
 :root[data-ui-theme="is-fungi"] .bond:not(.hbond) .bond__core::before { content: ''; position: absolute; pointer-events: none; }
 :root[data-ui-theme="is-fungi"] .bond:not(.hbond) .bond__core::before { inset: 14% 10% 22%; border-radius: 50% 50% 22% 22% / 72% 72% 28% 28%; background: radial-gradient(circle at 35% 30%, rgba(231, 212, 154, .35) 0 8%, transparent 9%), radial-gradient(circle at 65% 45%, rgba(231, 212, 154, .3) 0 6%, transparent 7%), #343a33; border: calc(3 * var(--u)) solid #c9b27a; }
 :root[data-ui-theme="is-fungi"] .bond:not(.hbond).is-active .bond__core::before { background: radial-gradient(circle at 35% 30%, rgba(255, 255, 255, .5) 0 8%, transparent 9%), linear-gradient(180deg, #d8c48d, #a48a52); }
-:root[data-ui-theme="is-fungi"] .hbond__board::after { content: ''; position: absolute; inset: 14% 10% 22%; border-radius: 50% 50% 22% 22% / 72% 72% 28% 28%; box-sizing: border-box; pointer-events: none; z-index: 1;
-  background: conic-gradient(var(--hb-ring-on, var(--mint-500)) 0 calc(var(--bt, 0) * 1turn / var(--bn, 1)), var(--hb-ring-off, var(--line-3)) 0);
+:root[data-ui-theme="is-fungi"] .hbond__board::after { content: ''; position: absolute; inset: 4%; border-radius: 50%; box-sizing: border-box; pointer-events: none; z-index: 1;
+  background: conic-gradient(var(--hb-ring-on, var(--mint-400)) 0 calc(var(--bt, 0) * 1turn / var(--bn, 1)), var(--hb-ring-off, rgba(140, 140, 140, .6)) 0);
+  filter: drop-shadow(0 0 1px rgba(0, 0, 0, .9));
   -webkit-mask: repeating-conic-gradient(#000 0 calc(1turn / var(--bn, 1) - var(--bgap, 0deg)), transparent 0 calc(1turn / var(--bn, 1))), linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   mask: repeating-conic-gradient(#000 0 calc(1turn / var(--bn, 1) - var(--bgap, 0deg)), transparent 0 calc(1turn / var(--bn, 1))), linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: source-in, xor; mask-composite: intersect, exclude; padding: var(--hb-ring-w, calc(6 * var(--u))); }
-:root[data-ui-theme="is-fungi"] .bond:not(.hbond) .bond__core::after { content: ''; position: absolute; inset: 14% 10% 22%; border-radius: 50% 50% 22% 22% / 72% 72% 28% 28%; box-sizing: border-box; pointer-events: none; z-index: 1;
-  background: conic-gradient(var(--hb-ring-on, var(--mint-500)) 0 calc(var(--bt, 0) * 1turn / var(--bn, 1)), var(--hb-ring-off, var(--line-3)) 0);
+:root[data-ui-theme="is-fungi"] .bond:not(.hbond) .bond__core::after { content: ''; position: absolute; inset: 4%; border-radius: 50%; box-sizing: border-box; pointer-events: none; z-index: 1;
+  background: conic-gradient(var(--hb-ring-on, var(--mint-400)) 0 calc(var(--bt, 0) * 1turn / var(--bn, 1)), var(--hb-ring-off, rgba(140, 140, 140, .6)) 0);
+  filter: drop-shadow(0 0 1px rgba(0, 0, 0, .9));
   -webkit-mask: repeating-conic-gradient(#000 0 calc(1turn / var(--bn, 1) - var(--bgap, 0deg)), transparent 0 calc(1turn / var(--bn, 1))), linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   mask: repeating-conic-gradient(#000 0 calc(1turn / var(--bn, 1) - var(--bgap, 0deg)), transparent 0 calc(1turn / var(--bn, 1))), linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: source-in, xor; mask-composite: intersect, exclude; padding: calc(var(--disc) * .08); }
@@ -132,3 +134,5 @@
 :root[data-ui-theme="is-fungi"] .bond:not(.hbond).is-disabled .bond__core { filter: grayscale(1) brightness(.6); }
 :root[data-ui-theme="is-fungi"] { --hb-band-bg: #2b302b; --hb-band-ink: #e7d49a; --hb-band-line: #c9b27a; --hb-band-radius: 99px; }
 :root[data-ui-theme="is-fungi"] .section-label :is(.section-label__idx, .micro) { color: inherit; border-color: currentColor; opacity: .85; }
+:root[data-ui-theme="is-fungi"] body::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none; background: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%2790%27%20height%3D%2790%27%20viewBox%3D%270%200%2090%2090%27%3E%3Cg%20fill%3D%27%23e7d49a%27%20fill-opacity%3D%27.12%27%3E%3Cpath%20d%3D%27M20%2040a12%209%200%200%201%2024%200z%27%2F%3E%3Crect%20x%3D%2730%27%20y%3D%2740%27%20width%3D%274%27%20height%3D%2710%27%2F%3E%3Cpath%20d%3D%27M60%2072a8%206%200%200%201%2016%200z%27%2F%3E%3Crect%20x%3D%2766.5%27%20y%3D%2772%27%20width%3D%273%27%20height%3D%277%27%2F%3E%3C%2Fg%3E%3Cg%20fill%3D%27%23e7d49a%27%20fill-opacity%3D%27.18%27%3E%3Ccircle%20cx%3D%2770%27%20cy%3D%2720%27%20r%3D%271.5%27%2F%3E%3Ccircle%20cx%3D%2710%27%20cy%3D%2775%27%20r%3D%271%27%2F%3E%3Ccircle%20cx%3D%2750%27%20cy%3D%2760%27%20r%3D%271.2%27%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E") 0 0 / 90px 90px repeat; }
+:root[data-ui-theme="is-fungi"] :is(.panel, .modal__box)::before { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%2790%27%20height%3D%2790%27%20viewBox%3D%270%200%2090%2090%27%3E%3Cg%20fill%3D%27%23e7d49a%27%20fill-opacity%3D%27.12%27%3E%3Cpath%20d%3D%27M20%2040a12%209%200%200%201%2024%200z%27%2F%3E%3Crect%20x%3D%2730%27%20y%3D%2740%27%20width%3D%274%27%20height%3D%2710%27%2F%3E%3Cpath%20d%3D%27M60%2072a8%206%200%200%201%2016%200z%27%2F%3E%3Crect%20x%3D%2766.5%27%20y%3D%2772%27%20width%3D%273%27%20height%3D%277%27%2F%3E%3C%2Fg%3E%3Cg%20fill%3D%27%23e7d49a%27%20fill-opacity%3D%27.18%27%3E%3Ccircle%20cx%3D%2770%27%20cy%3D%2720%27%20r%3D%271.5%27%2F%3E%3Ccircle%20cx%3D%2710%27%20cy%3D%2775%27%20r%3D%271%27%2F%3E%3Ccircle%20cx%3D%2750%27%20cy%3D%2760%27%20r%3D%271.2%27%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E"); background-size: 90px 90px; background-repeat: repeat; opacity: .8; }

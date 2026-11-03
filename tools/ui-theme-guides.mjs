@@ -16,6 +16,9 @@ const heads = (id, { label, title, modal }) => [
   modal && `${S(id)} .modal__title { ${modal} }`,
 ].filter(Boolean).join('\n');
 
+const svgUrl = (w, h, body) => `url("data:image/svg+xml,${encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='${w}' height='${h}' viewBox='0 0 ${w} ${h}'>${body}</svg>`).replace(/'/g, '%27')}")`;
+// a lancet-arch window bay (two lights under a pointed arch, a quatrefoil above): the Leithanien page tracery
+const LANCET = svgUrl(90, 140, `<g fill='none' stroke='#c9a35a' stroke-opacity='.09' stroke-width='1.2'><path d='M10 140V60Q10 18 45 4Q80 18 80 60V140'/><path d='M22 140V78Q22 54 33 44Q44 54 44 78V140M46 140V78Q46 54 57 44Q68 54 68 78V140'/><circle cx='45' cy='34' r='7'/></g>`);
 export const GUIDE_THEMES = [
   // ---- 진영 ----------------------------------------------------------------------------------------------------------
   {
@@ -76,17 +79,19 @@ export const GUIDE_THEMES = [
   },
   {
     id: 'f-siracusa', name: '시라쿠사', group: 'faction',
-    // 시라쿠사인: charcoal noir, pinned paper-grey case files, red string and red rule lines, serif italic names
-    p: { bg: ['#19191b', '#212022', '#2a292d', '#333238', '#3e3d44'], line: ['#3c3b41', '#595458', '#82807d'], accent: '#b3262e', glow: '#d23a42', accent2: '#b9b7b2', text: ['#f0eeea', '#cfccc6', '#9c9893', '#7a7672'], onAccent: '#ffffff' },
-    body: `background-color: var(--bg-0);
-  background-image: linear-gradient(115deg, transparent 0 62%, rgba(179, 38, 46, .1) 62% 62.3%, transparent 62.3%), radial-gradient(60% 50% at 80% 0%, rgba(185, 183, 178, .1), transparent 70%), linear-gradient(180deg, #1e1e20, #121214);`,
-    panel: `background: rgba(33, 32, 34, .95); border: 0; border-top: 2px solid #b3262e; border-radius: 0; box-shadow: inset 0 0 0 1px rgba(185, 183, 178, .14), .05rem .06rem 0 rgba(0, 0, 0, .45);`,
+    // 시라쿠사인 — the families' back streets: soot-dark brick under one street lamp, black lacquer and Art Deco gilt,
+    // wine-red name plates, casino chips, pinned case files
+    p: { bg: ['#121214', '#19191b', '#212023', '#2a292c', '#353337'], line: ['#38343a', '#5e5040', '#c8a25a'], accent: '#c8a25a', glow: '#e8c37a', accent2: '#8e1b22', text: ['#efe8da', '#d2c9b8', '#a1988a', '#7f776c'], onAccent: '#18120a' },
+    body: `background-color: #141315;
+  background-image: radial-gradient(40% 55% at 16% 0%, rgba(240, 180, 100, .32), transparent 70%), radial-gradient(120% 90% at 50% 50%, transparent 40%, rgba(0, 0, 0, .7)),
+    linear-gradient(#0d0c0d 2px, transparent 2px), linear-gradient(90deg, #0d0c0d 2px, transparent 2px), linear-gradient(90deg, #0d0c0d 2px, transparent 2px),
+    linear-gradient(#3a2420, #3a2420);
+  background-size: 100% 100%, 100% 100%, .5rem .2rem, .5rem .4rem, .5rem .4rem, 100% 100%;
+  background-position: 0 0, 0 0, 0 0, 0 0, .25rem .2rem, 0 0;`,
+    panel: `background: rgba(22, 22, 24, .97); border: 1px solid #5e5040; border-radius: 0;`,
     btn: `border-radius: 0;`,
-    primary: `background: #b3262e; color: #ffffff; border-color: #7e1a20;`,
-    extra: heads('f-siracusa', {
-      label: `color: #1c1c1c; padding: .02rem .14rem; background: #b9b7b2; letter-spacing: .06em;`,
-      title: `font-style: italic;`,
-    }),
+    primary: `background: #8e1b22; color: #efe8da; border-color: #c8a25a;`,
+    extra: '',
   },
   {
     id: 'f-aegir', name: '에기르', group: 'faction',
@@ -118,48 +123,29 @@ export const GUIDE_THEMES = [
   },
   {
     id: 'f-leithanien', name: '라이타니엔', group: 'faction',
-    // 츠빌링슈튀르메의 가을: dusk burnt-umber, rust-orange frames, «◇ title ◇» headers, pale score sheets
-    p: { bg: ['#1a110d', '#221611', '#2c1d16', '#37251b', '#432f23'], line: ['#45291d', '#6b3b25', '#9a5a36'], accent: '#d4743c', glow: '#ee9a5a', accent2: '#c6c1bc', text: ['#f4e9df', '#d6c6b8', '#a69284', '#84736a'], onAccent: '#1f0e05' },
+    // 츠빌링슈튀르메의 가을 — the Gothic capital and its orchestras: soot black and oxblood, lancet-arch tracery and organ
+    // pipes, antique-gold hairlines, a five-line staff with a clef under every heading
+    p: { bg: ['#130a0c', '#1b1013', '#241619', '#2e1d21', '#3a262a'], line: ['#3a2629', '#6a4a36', '#c9a35a'], accent: '#c9a35a', glow: '#e6c784', accent2: '#7a1f2b', text: ['#f3e9da', '#d8c8b2', '#a8977f', '#857664'], onAccent: '#1a0f08' },
     body: `background-color: var(--bg-0);
-  background-image: radial-gradient(60% 45% at 50% 0%, rgba(212, 116, 60, .16), transparent 70%), radial-gradient(70% 50% at 50% 110%, rgba(117, 60, 40, .3), transparent 70%), linear-gradient(180deg, #1e140f, #0f0a08);`,
-    panel: `background: linear-gradient(180deg, rgba(44, 29, 22, .94), rgba(28, 18, 13, .96)); border: 1px solid #6b3b25; border-radius: .04rem; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .4), 0 .06rem .28rem rgba(0, 0, 0, .55);`,
+  background-image: ${LANCET}, repeating-linear-gradient(90deg, rgba(201, 163, 90, .035) 0 .04rem, transparent .04rem .22rem);
+  background-size: .9rem 1.4rem, 100% 100%;`,
+    panel: `background: rgba(27, 16, 19, .96); border: 1px solid #6a4a36; border-radius: 0;`,
     btn: `border-radius: 0;`,
-    primary: `background: linear-gradient(180deg, #e08546, #b85a26); color: #1f0e05; border-color: #ee9a5a;`,
-    extra: heads('f-leithanien', {
-      label: `color: #ee9a5a; letter-spacing: .1em;`,
-      title: `color: #f4e9df;`,
-    }) + `\n${S('f-leithanien')} .section-label::before { content: '«◇ '; color: #d4743c; }\n${S('f-leithanien')} .section-label::after { content: ' ◇»'; color: #d4743c; }`,
-  },
-  {
-    id: 'f-kjerag', name: '쉐라그', group: 'faction',
-    // RETRACING (설산 강림 1101): deep royal-blue snowfield, frosted white plates, blue ribbon headers with white type, ice-white glints
-    p: { bg: ['#16206a', '#1c287c', '#22318d', '#2b3c9f', '#3548b0'], line: ['#2e3f9a', '#5266c4', '#9aa8e6'], accent: '#e9eefc', glow: '#ffffff', accent2: '#7f97ff', text: ['#f5f7ff', '#d3daf6', '#a4afdc', '#8590c4'], onAccent: '#16206a' },
-    body: `background-color: var(--bg-0);
-  background-image: radial-gradient(1.5px 1.5px at 20% 30%, rgba(255, 255, 255, .55), transparent 70%), radial-gradient(1px 1px at 70% 60%, rgba(255, 255, 255, .5), transparent 70%), radial-gradient(60% 45% at 50% 0%, rgba(127, 151, 255, .3), transparent 70%), linear-gradient(180deg, #1d2a85, #101850);
-  background-size: 180px 180px, 240px 240px, 100% 100%, 100% 100%;`,
-    panel: `background: linear-gradient(180deg, rgba(34, 49, 141, .92), rgba(20, 30, 96, .95)); border: 1px solid #9aa8e6; border-radius: 0; box-shadow: inset 0 0 0 2px rgba(16, 24, 80, .7), inset 0 0 0 3px rgba(233, 238, 252, .2), 0 .06rem .28rem rgba(5, 10, 40, .5);`,
-    btn: `border-radius: 0;`,
-    primary: `background: linear-gradient(180deg, #ffffff, #d6def8); color: #16206a; border-color: #ffffff;`,
-    extra: heads('f-kjerag', {
-      label: `color: #16206a; padding: .02rem .16rem; background: linear-gradient(90deg, transparent, #e9eefc .12rem calc(100% - .12rem), transparent); letter-spacing: .08em;`,
-      title: `text-shadow: 0 0 .1rem rgba(127, 151, 255, .6);`,
-    }),
+    primary: `background: #7a1f2b; color: #f3e9da; border-color: #c9a35a;`,
+    extra: '',
   },
   // ---- 사이드 스토리 ---------------------------------------------------------------------------------------------------
   {
     id: 'ss-adele', name: '화산의 꿈 여행', group: 'side', light: true,
-    // cream shop pages, olive-sage plates, chocolate header strips with red ribbon titles, stitched dashed rules
-    p: { bg: ['#fbeedd', '#fef6ea', '#fffaf2', '#f0e4cf', '#e3d6bd'], line: ['#e0d3b8', '#b7c19a', '#8a9a66'], accent: '#b72f2b', glow: '#d1453e', accent2: '#8a9a66', text: ['#2e1d1a', '#4c3631', '#6e5751', '#7c6660'], onAccent: '#ffffff' },
+    // So Long, Adele: a rose sunset over the Siesta volcano — pink sky, drifting clouds and wool-sheep fleece, the gold
+    // Adele script, rose-red ribbons
+    p: { bg: ['#f8e1e5', '#fdf0f2', '#fff8f9', '#f2d3d9', '#e8c0c8'], line: ['#eccad1', '#d8a2ae', '#b0707e'], accent: '#d34a62', glow: '#e66a80', accent2: '#f2b53a', text: ['#3a1f26', '#5a3a42', '#7a5a62', '#86666e'], onAccent: '#ffffff' },
     body: `background-color: var(--bg-0);
-  background-image: radial-gradient(circle, rgba(183, 193, 154, .22) 1px, transparent 1.5px), linear-gradient(180deg, #fdf3e5, #f3e6d1);
-  background-size: .24rem .24rem, 100% 100%;`,
-    panel: `background: rgba(255, 250, 242, .96); border: 1px solid #b7c19a; border-radius: .04rem; box-shadow: inset 0 0 0 3px #fffaf2, inset 0 0 0 4px rgba(183, 193, 154, .45), 0 .04rem .16rem rgba(82, 47, 43, .12);`,
-    btn: `border-radius: .04rem;`,
-    primary: `background: #b72f2b; color: #ffffff; border-color: #8a1f1c;`,
-    extra: heads('ss-adele', {
-      label: `color: #ffffff; padding: .02rem .14rem; background: #3b2a26; box-shadow: inset 0 -2px 0 #b72f2b; letter-spacing: .08em;`,
-      title: `color: #b72f2b;`,
-    }),
+  background-image: radial-gradient(30% 14% at 20% 18%, rgba(255, 255, 255, .8), transparent 70%), radial-gradient(26% 12% at 78% 30%, rgba(255, 255, 255, .7), transparent 70%), radial-gradient(34% 16% at 55% 82%, rgba(255, 255, 255, .6), transparent 70%), radial-gradient(80% 60% at 50% 0%, rgba(232, 140, 160, .35), transparent 75%);`,
+    panel: `background: #fff8f9; border-radius: .1rem;`,
+    btn: `border-radius: 99px;`,
+    primary: `background: #d34a62; color: #ffffff; border-color: #b83a52;`,
+    extra: '',
   },
   {
     id: 'ss-vultures', name: '부정축재', group: 'side',
@@ -296,11 +282,11 @@ export const GUIDE_TEXTURES = {
   },
   'f-siracusa': {
     radius: '0',
-    face: 'linear-gradient(90deg, transparent, rgba(255, 255, 255, .28)) right center / .34rem 100% no-repeat',
-    grain: 'linear-gradient(180deg, rgba(185, 183, 178, .05), transparent 30%)',
-    card: 'linear-gradient(115deg, transparent 0 55%, rgba(179, 38, 46, .3) 55% 55.6%, transparent 55.6%), radial-gradient(60% 60% at 50% 40%, rgba(185, 183, 178, .1), transparent 70%)',
-    stripe: 'linear-gradient(90deg, #b3262e 0 40%, #b9b7b2 40%)',
-    corner: 'none', clip: 'none', sprite: 'grayscale(1)',
+    face: 'linear-gradient(90deg, transparent, rgba(232, 195, 122, .45)) right center / .34rem 100% no-repeat',
+    grain: 'linear-gradient(transparent calc(100% - 1px), rgba(200, 162, 90, .25) calc(100% - 1px))',
+    card: 'radial-gradient(60% 70% at 20% 0%, rgba(224, 168, 90, .14), transparent 70%)',
+    stripe: 'linear-gradient(90deg, #8e1b22 0 40%, #c8a25a 40% 42%, transparent 42%)',
+    corner: 'none', clip: 'none', sprite: 'none',
   },
   'f-aegir': {
     radius: '0',
@@ -319,20 +305,20 @@ export const GUIDE_TEXTURES = {
     corner: 'none', clip: 'none', sprite: 'hue-rotate(150deg) saturate(1.2)',
   },
   'f-leithanien': {
-    radius: '.04rem',
-    face: 'linear-gradient(90deg, transparent, rgba(238, 154, 90, .55)) right center / .34rem 100% no-repeat',
-    grain: 'radial-gradient(50% 40% at 50% 0%, rgba(238, 154, 90, .06), transparent 70%)',
-    card: 'radial-gradient(55% 45% at 50% 0%, rgba(212, 116, 60, .24), transparent 70%), radial-gradient(60% 50% at 50% 100%, rgba(117, 60, 40, .3), transparent 70%)',
-    stripe: 'linear-gradient(90deg, transparent, #d4743c 25% 75%, transparent)',
-    corner: DIAMONDS('#d4743c'), clip: 'none', sprite: 'sepia(.6) saturate(1.2) hue-rotate(-10deg)',
+    radius: '0',
+    face: 'linear-gradient(90deg, transparent, rgba(230, 199, 132, .5)) right center / .34rem 100% no-repeat',
+    grain: 'repeating-linear-gradient(90deg, rgba(201, 163, 90, .03) 0 .03rem, transparent .03rem .18rem)',
+    card: 'repeating-linear-gradient(90deg, rgba(201, 163, 90, .06) 0 .04rem, transparent .04rem .2rem)',
+    stripe: 'linear-gradient(90deg, transparent, #c9a35a 25% 75%, transparent)',
+    corner: 'none', clip: 'none', sprite: 'none',
   },
   'ss-adele': {
-    radius: '.04rem',
-    face: 'repeating-linear-gradient(90deg, rgba(255, 255, 255, .45) 0 2px, transparent 2px 5px) right center / .34rem 100% no-repeat',
-    grain: 'linear-gradient(180deg, rgba(183, 193, 154, .1), transparent 30%)',
-    card: 'radial-gradient(circle, rgba(138, 154, 102, .2) 1px, transparent 1.5px) 0 0 / .16rem .16rem, linear-gradient(180deg, rgba(183, 193, 154, .3), transparent 60%)',
-    stripe: 'repeating-linear-gradient(90deg, #b72f2b 0 .1rem, transparent .1rem .16rem)',
-    corner: 'none', clip: 'none', sprite: 'sepia(.3) saturate(.9)',
+    radius: '.1rem',
+    face: 'radial-gradient(circle at 30% 50%, rgba(255, 255, 255, .7) 0 4px, transparent 5px) right center / .34rem 100% no-repeat',
+    grain: 'radial-gradient(40% 30% at 20% 0%, rgba(255, 255, 255, .6), transparent 70%)',
+    card: 'radial-gradient(30% 20% at 80% 15%, rgba(255, 255, 255, .8), transparent 70%), radial-gradient(60% 40% at 50% 100%, rgba(232, 140, 160, .25), transparent 70%)',
+    stripe: 'linear-gradient(90deg, #d34a62 0 70%, #f2b53a 70%)',
+    corner: 'none', clip: 'none', sprite: 'none',
   },
   'ss-vultures': {
     radius: '0',
@@ -392,11 +378,11 @@ export const GUIDE_MAT = {
   'f-laterano': { noise: { f: 1.2, o: 2, c: [90, 108, 128], a: .025 }, font: SERIF_KR },
   'f-ursus': { noise: { f: .9, o: 5, c: [200, 195, 190], a: .07 } },
   'f-victoria': { noise: { f: .8, o: 3, c: [255, 220, 160], a: .035 }, font: SERIF_KR },
-  'f-siracusa': { noise: { f: 1, o: 3, c: [255, 255, 255], a: .04 }, font: SERIF_KR },
+  'f-siracusa': { noise: { f: .9, o: 3, c: [255, 240, 220], a: .035 } },
   'f-aegir': { noise: { f: .6, o: 3, c: [95, 211, 208], a: .035 } },
   'f-kazimierz': { noise: { f: 1.1, o: 2, c: [255, 255, 255], a: .03 } },
-  'f-leithanien': { noise: { f: .7, o: 3, c: [238, 154, 90], a: .04 }, font: SERIF_KR },
-  'ss-adele': { noise: { f: .9, o: 2, c: [82, 47, 43], a: .03 } },
+  'f-leithanien': { noise: { f: .7, o: 3, c: [201, 163, 90], a: .03 } },
+  'ss-adele': {},
   'ss-vultures': { noise: { f: 1, o: 3, c: [212, 217, 58], a: .03 } },
   'ss-lonetrail': {},
   'ss-mendacium': { noise: { f: .8, o: 4, c: [66, 55, 46], a: .06 }, font: SERIF_KR },
@@ -429,7 +415,7 @@ export const THEME_FONTS = {
   'f-siracusa': F('family=Nanum+Myeongjo:wght@400;700;800&family=Noto+Serif+KR:wght@400;600', "'Noto Serif KR'", "'Nanum Myeongjo'"),
   'f-kazimierz': F('family=Black+Han+Sans&family=Gothic+A1:wght@400;600;800', "'Gothic A1'", "'Black Han Sans'"),
   'f-ursus': F('family=Do+Hyeon&family=Nanum+Gothic:wght@400;700;800', "'Nanum Gothic'", "'Do Hyeon'"),
-  'f-leithanien': F('family=Gowun+Batang:wght@400;700', "'Gowun Batang'"),
+  'f-leithanien': F('family=Nanum+Myeongjo:wght@700;800&family=Gowun+Batang:wght@400;700', "'Gowun Batang'", "'Nanum Myeongjo'"),
   'ss-adele': F('family=Jua&family=Gowun+Dodum', "'Gowun Dodum'", "'Jua'"),
   'ss-vultures': F('family=Gothic+A1:wght@400;600;900&family=IBM+Plex+Sans+KR:wght@400;500', "'IBM Plex Sans KR'", "'Gothic A1'"),
   'ss-lonetrail': F('family=Lexend:wght@600;800&family=Gothic+A1:wght@400;600;800', "'Gothic A1'", "'Lexend', 'Gothic A1'"),
@@ -450,8 +436,8 @@ export const THEME_MICRO = {
   'f-yan': M('family=Noto+Serif:wght@600', "'Noto Serif'"), 'f-sargon': M('family=Bungee', "'Bungee'"),
   'f-victoria': M('family=Cinzel:wght@600', "'Cinzel'"), 'f-kjerag': M('family=Rajdhani:wght@600', "'Rajdhani'"),
   'f-laterano': M('family=Cormorant+SC:wght@600', "'Cormorant SC'"), 'f-aegir': M('family=Exo+2:wght@600', "'Exo 2'"),
-  'f-siracusa': M('family=Playfair+Display:ital,wght@1,600', "'Playfair Display'"), 'f-kazimierz': M('family=Barlow+Condensed:wght@700', "'Barlow Condensed'"),
-  'f-ursus': M('family=Oswald:wght@500', "'Oswald'"), 'f-leithanien': M('family=Cinzel:wght@600', "'Cinzel'"),
+  'f-siracusa': M('family=Limelight', "'Limelight'"), 'f-kazimierz': M('family=Barlow+Condensed:wght@700', "'Barlow Condensed'"),
+  'f-ursus': M('family=Oswald:wght@500', "'Oswald'"), 'f-leithanien': M('family=Grenze+Gotisch:wght@600', "'Grenze Gotisch'"),
   'ss-adele': M('family=Fredoka:wght@600', "'Fredoka'"), 'ss-vultures': M('family=Saira+Condensed:wght@600', "'Saira Condensed'"),
   'ss-lonetrail': M('family=Lexend:wght@500', "'Lexend'"), 'ss-mendacium': M('family=Marcellus+SC', "'Marcellus SC'"),
   'ss-unrealized': M('family=Comfortaa:wght@700', "'Comfortaa'"), 'ss-elegies': M('family=Cinzel:wght@600', "'Cinzel'"),
