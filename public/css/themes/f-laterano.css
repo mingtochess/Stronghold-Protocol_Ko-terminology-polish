@@ -139,6 +139,8 @@
 :root[data-ui-theme="f-laterano"] .bond-ring path.on { stroke: var(--hb-ring-on, var(--mint-400)); }
 :root[data-ui-theme="f-laterano"] .hbond.is-full .bond-ring path.on, :root[data-ui-theme="f-laterano"] .bond:not(.hbond).is-active .bond-ring path.on { stroke: var(--hb-ring-full, var(--hb-ring-on, var(--mint-400))); }
 :root[data-ui-theme="f-laterano"] .hbond__icon { left: 26%; top: 26%; width: 48%; height: 48%; }
+:root[data-ui-theme="f-laterano"] .bslot__count { z-index: 4; text-shadow: 0 0 2px #000, 0 0 3px #000; }
+
 :root[data-ui-theme="f-laterano"] { --hb-band-bg: #6f8291; --hb-band-ink: #fff; --hb-band-line: #3ec6e0; --hb-band-clip: polygon(12% 0, 88% 0, 100% 50%, 88% 100%, 12% 100%, 0 50%); }
 :root[data-ui-theme="f-laterano"] .section-label :is(.section-label__idx, .micro) { color: inherit; border-color: currentColor; opacity: .85; }
 :root[data-ui-theme="f-laterano"] body::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none; background: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%2780%27%20height%3D%2780%27%20viewBox%3D%270%200%2080%2080%27%3E%3Cg%20fill%3D%27none%27%20stroke%3D%27%233ec6e0%27%20stroke-opacity%3D%27.12%27%3E%3Ccircle%20cx%3D%2740%27%20cy%3D%2740%27%20r%3D%2722%27%2F%3E%3Ccircle%20cx%3D%2740%27%20cy%3D%2740%27%20r%3D%2714%27%2F%3E%3Cpath%20d%3D%27M40%2018V62M18%2040H62M24%2024L56%2056M56%2024L24%2056%27%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E") 0 0 / 80px 80px repeat; }

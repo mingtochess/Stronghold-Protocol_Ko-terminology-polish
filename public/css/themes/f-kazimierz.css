@@ -120,6 +120,9 @@
 :root[data-ui-theme="f-kazimierz"] .bond-ring path.on { stroke: var(--hb-ring-on, var(--mint-400)); }
 :root[data-ui-theme="f-kazimierz"] .hbond.is-full .bond-ring path.on, :root[data-ui-theme="f-kazimierz"] .bond:not(.hbond).is-active .bond-ring path.on { stroke: var(--hb-ring-full, var(--hb-ring-on, var(--mint-400))); }
 :root[data-ui-theme="f-kazimierz"] .hbond__icon { left: 26%; top: 26%; width: 48%; height: 48%; }
+:root[data-ui-theme="f-kazimierz"] .bslot__count { z-index: 4; text-shadow: 0 0 2px #000, 0 0 3px #000; }
+:root[data-ui-theme="f-kazimierz"] .hbond__board::before, :root[data-ui-theme="f-kazimierz"] .bond:not(.hbond) .bond__core::before { border: 0; background: #1b2650; box-shadow: inset 0 calc(-7 * var(--u)) 0 #d02b3a, inset 0 0 0 calc(3 * var(--u)) #3a63c8; }
+:root[data-ui-theme="f-kazimierz"] .hbond.is-full .hbond__board::before, :root[data-ui-theme="f-kazimierz"] .bond:not(.hbond).is-active .bond__core::before { background: #2f5bd0; box-shadow: inset 0 calc(-7 * var(--u)) 0 #d02b3a, inset 0 0 0 calc(3 * var(--u)) #ffffff; }
 :root[data-ui-theme="f-kazimierz"] { --hb-band-bg: #1b2f6e; --hb-band-line: #d02b3a; --hb-band-clip: polygon(15% 0, 100% 0, 85% 100%, 0 100%); }
 :root[data-ui-theme="f-kazimierz"] :is(.micro--mint, .countdown__label, .gm__bond-toggle, .funds__collapse, .funds__collapse *) { color: #ff7a86; }
 :root[data-ui-theme="f-kazimierz"] .section-label :is(.section-label__idx, .micro) { color: inherit; border-color: currentColor; opacity: .85; }

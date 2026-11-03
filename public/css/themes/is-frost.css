@@ -125,6 +125,8 @@
 :root[data-ui-theme="is-frost"] .bond-ring path.on { stroke: var(--hb-ring-on, var(--mint-400)); }
 :root[data-ui-theme="is-frost"] .hbond.is-full .bond-ring path.on, :root[data-ui-theme="is-frost"] .bond:not(.hbond).is-active .bond-ring path.on { stroke: var(--hb-ring-full, var(--hb-ring-on, var(--mint-400))); }
 :root[data-ui-theme="is-frost"] .hbond__icon { left: 26%; top: 26%; width: 48%; height: 48%; }
+:root[data-ui-theme="is-frost"] .bslot__count { z-index: 4; text-shadow: 0 0 2px #000, 0 0 3px #000; }
+
 :root[data-ui-theme="is-frost"] { --hb-band-bg: #071c20; --hb-band-line: #1fc4d6; }
 :root[data-ui-theme="is-frost"] .section-label :is(.section-label__idx, .micro) { color: inherit; border-color: currentColor; opacity: .85; }
 :root[data-ui-theme="is-frost"] body::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none; background: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%2770%27%20height%3D%2770%27%20viewBox%3D%270%200%2070%2070%27%3E%3Cg%20fill%3D%27none%27%20stroke%3D%27%237fd6ff%27%20stroke-opacity%3D%27.16%27%3E%3Cpath%20d%3D%27M10%200L22%2018L14%2034L30%2052L24%2070%27%2F%3E%3Cpath%20d%3D%27M22%2018L44%2026L60%2012M30%2052L52%2060%27%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E") 0 0 / 70px 70px repeat; }

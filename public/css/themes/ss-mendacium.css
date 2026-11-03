@@ -136,6 +136,8 @@
 :root[data-ui-theme="ss-mendacium"] .bond-ring path.on { stroke: var(--hb-ring-on, var(--mint-400)); }
 :root[data-ui-theme="ss-mendacium"] .hbond.is-full .bond-ring path.on, :root[data-ui-theme="ss-mendacium"] .bond:not(.hbond).is-active .bond-ring path.on { stroke: var(--hb-ring-full, var(--hb-ring-on, var(--mint-400))); }
 :root[data-ui-theme="ss-mendacium"] .hbond__icon { left: 26%; top: 26%; width: 48%; height: 48%; }
+:root[data-ui-theme="ss-mendacium"] .bslot__count { z-index: 4; text-shadow: 0 0 2px #000, 0 0 3px #000; }
+
 :root[data-ui-theme="ss-mendacium"] { --hb-band-bg: #42372e; --hb-band-ink: #fff4ea; --hb-band-line: #c8622a; --hb-band-radius: 99px; }
 :root[data-ui-theme="ss-mendacium"] .section-label :is(.section-label__idx, .micro) { color: inherit; border-color: currentColor; opacity: .85; }
 :root[data-ui-theme="ss-mendacium"] body::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none; background: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%2740%27%20height%3D%2740%27%20viewBox%3D%270%200%2040%2040%27%3E%3Cpath%20d%3D%27M0%2036H8V28H16V32H12V30H10V36H24V28H32V32H28V30H26V36H40%27%20fill%3D%27none%27%20stroke%3D%27%2342372e%27%20stroke-opacity%3D%27.1%27%2F%3E%3C%2Fsvg%3E") 0 0 / 40px 40px repeat; }

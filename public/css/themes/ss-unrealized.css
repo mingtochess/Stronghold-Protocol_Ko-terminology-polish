@@ -136,6 +136,8 @@
 :root[data-ui-theme="ss-unrealized"] .bond-ring path.on { stroke: var(--hb-ring-on, var(--mint-400)); }
 :root[data-ui-theme="ss-unrealized"] .hbond.is-full .bond-ring path.on, :root[data-ui-theme="ss-unrealized"] .bond:not(.hbond).is-active .bond-ring path.on { stroke: var(--hb-ring-full, var(--hb-ring-on, var(--mint-400))); }
 :root[data-ui-theme="ss-unrealized"] .hbond__icon { left: 26%; top: 26%; width: 48%; height: 48%; }
+:root[data-ui-theme="ss-unrealized"] .bslot__count { z-index: 4; text-shadow: 0 0 2px #000, 0 0 3px #000; }
+
 :root[data-ui-theme="ss-unrealized"] { --hb-band-bg: #2b525a; --hb-band-ink: #fff; --hb-band-line: #c4333a; }
 :root[data-ui-theme="ss-unrealized"] .section-label :is(.section-label__idx, .micro) { color: inherit; border-color: currentColor; opacity: .85; }
 :root[data-ui-theme="ss-unrealized"] body::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none; background: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%27120%27%20height%3D%2760%27%20viewBox%3D%270%200%20120%2060%27%3E%3Cg%20fill%3D%27%23ffffff%27%20fill-opacity%3D%27.35%27%3E%3Ccircle%20cx%3D%2730%27%20cy%3D%2734%27%20r%3D%2710%27%2F%3E%3Ccircle%20cx%3D%2744%27%20cy%3D%2728%27%20r%3D%2713%27%2F%3E%3Ccircle%20cx%3D%2758%27%20cy%3D%2734%27%20r%3D%279%27%2F%3E%3C%2Fg%3E%3Cpath%20d%3D%27M90%2012l4%202-4%202%27%20fill%3D%27none%27%20stroke%3D%27%232b525a%27%20stroke-opacity%3D%27.3%27%2F%3E%3C%2Fsvg%3E") 0 0 / 120px 60px repeat; }

@@ -128,6 +128,8 @@
 :root[data-ui-theme="is-phantom"] .bond-ring path.on { stroke: var(--hb-ring-on, var(--mint-400)); }
 :root[data-ui-theme="is-phantom"] .hbond.is-full .bond-ring path.on, :root[data-ui-theme="is-phantom"] .bond:not(.hbond).is-active .bond-ring path.on { stroke: var(--hb-ring-full, var(--hb-ring-on, var(--mint-400))); }
 :root[data-ui-theme="is-phantom"] .hbond__icon { left: 26%; top: 26%; width: 48%; height: 48%; }
+:root[data-ui-theme="is-phantom"] .bslot__count { z-index: 4; text-shadow: 0 0 2px #000, 0 0 3px #000; }
+
 :root[data-ui-theme="is-phantom"] { --hb-band-bg: #121010; --hb-band-ink: #f4f0ec; --hb-band-line: #e3a33b; --hb-band-radius: 99px; }
 :root[data-ui-theme="is-phantom"] .section-label :is(.section-label__idx, .micro) { color: inherit; border-color: currentColor; opacity: .85; }
 :root[data-ui-theme="is-phantom"] body::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none; background: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%2764%27%20height%3D%2764%27%20viewBox%3D%270%200%2064%2064%27%3E%3Cpath%20d%3D%27M0%200Q8%2064%2016%200M16%200Q24%2064%2032%200M32%200Q40%2064%2048%200M48%200Q56%2064%2064%200%27%20fill%3D%27none%27%20stroke%3D%27%23b3171f%27%20stroke-opacity%3D%27.14%27%20stroke-width%3D%273%27%2F%3E%3C%2Fsvg%3E") 0 0 / 64px 64px repeat; }

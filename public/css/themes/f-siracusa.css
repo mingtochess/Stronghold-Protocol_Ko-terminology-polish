@@ -122,6 +122,8 @@
 :root[data-ui-theme="f-siracusa"] .bond-ring path.on { stroke: var(--hb-ring-on, var(--mint-400)); }
 :root[data-ui-theme="f-siracusa"] .hbond.is-full .bond-ring path.on, :root[data-ui-theme="f-siracusa"] .bond:not(.hbond).is-active .bond-ring path.on { stroke: var(--hb-ring-full, var(--hb-ring-on, var(--mint-400))); }
 :root[data-ui-theme="f-siracusa"] .hbond__icon { left: 26%; top: 26%; width: 48%; height: 48%; }
+:root[data-ui-theme="f-siracusa"] .bslot__count { z-index: 4; text-shadow: 0 0 2px #000, 0 0 3px #000; }
+
 :root[data-ui-theme="f-siracusa"] { --hb-band-bg: #d6d2c9; --hb-band-ink: #1c1c1c; --hb-band-line: #b3262e; }
 :root[data-ui-theme="f-siracusa"] :is(.micro--mint, .countdown__label, .gm__bond-toggle, .funds__collapse, .funds__collapse *) { color: #ea7a80; }
 :root[data-ui-theme="f-siracusa"] .section-label :is(.section-label__idx, .micro) { color: inherit; border-color: currentColor; opacity: .85; }

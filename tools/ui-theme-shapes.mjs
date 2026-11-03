@@ -348,14 +348,15 @@ const GEOM = {
   'is-frost': [[25, 3], [75, 3], [100, 50], [75, 97], [25, 97], [0, 50]],
   'is-sarkaz': [[50, 0], [100, 28], [88, 100], [12, 100], [0, 28]],
   'f-yan': 'circle', 'f-aegir': 'circle', 'f-siracusa': 'circle',
-  'f-sargon': SQ(-8),
-  'f-victoria': [[50, 0], [100, 50], [50, 100], [0, 50]],
+  'f-sargon': [[50.0, 0.0], [58.2, 8.8], [69.1, 3.8], [73.3, 15.1], [85.4, 14.6], [84.9, 26.7], [96.2, 30.9], [91.2, 41.8], [100.0, 50.0], [91.2, 58.2], [96.2, 69.1], [84.9, 73.3], [85.4, 85.4], [73.3, 84.9], [69.1, 96.2], [58.2, 91.2], [50.0, 100.0], [41.8, 91.2], [30.9, 96.2], [26.7, 84.9], [14.6, 85.4], [15.1, 73.3], [3.8, 69.1], [8.8, 58.2], [0.0, 50.0], [8.8, 41.8], [3.8, 30.9], [15.1, 26.7], [14.6, 14.6], [26.7, 15.1], [30.9, 3.8], [41.8, 8.8]],
+  'f-victoria': [[0, 0], [100, 0], [100, 46], [93, 70], [76, 88], [50, 100], [24, 88], [7, 70], [0, 46]],
   'f-kjerag': [[50, 0], [93, 25], [93, 75], [50, 100], [7, 75], [7, 25]],
   'f-laterano': [[30, 0], [70, 0], [100, 30], [100, 70], [70, 100], [30, 100], [0, 70], [0, 30]],
   'f-kazimierz': [[12, 0], [88, 0], [100, 12], [100, 88], [88, 100], [12, 100], [0, 88], [0, 12]],
   'f-ursus': [[3, 6], [30, 0], [62, 5], [97, 0], [100, 38], [97, 100], [62, 95], [30, 100], [0, 96], [3, 52]],
   'f-leithanien': [[50, 0], [72, 8], [88, 24], [98, 44], [100, 62], [100, 100], [0, 100], [0, 62], [2, 44], [12, 24], [28, 8]],
-  'ss-adele': 'circle', 'ss-lonetrail': 'circle', 'ss-mendacium': 'circle', 'ss-unrealized': 'circle', 'ss-elegies': 'circle',
+  'ss-lonetrail': 'circle', 'ss-mendacium': 'circle', 'ss-unrealized': 'circle', 'ss-elegies': 'circle',
+  'ss-adele': [[50.0, 0.0], [53.3, 0.2], [56.5, 0.7], [59.6, 1.6], [62.6, 2.9], [65.5, 4.4], [68.1, 6.2], [70.6, 8.3], [72.8, 10.6], [74.7, 13.0], [76.4, 15.6], [77.8, 18.3], [79.0, 21.0], [81.7, 22.2], [84.4, 23.6], [87.0, 25.3], [89.4, 27.2], [91.7, 29.4], [93.8, 31.9], [95.6, 34.5], [97.1, 37.4], [98.4, 40.4], [99.3, 43.5], [99.8, 46.7], [100.0, 50.0], [99.8, 53.3], [99.3, 56.5], [98.4, 59.6], [97.1, 62.6], [95.6, 65.5], [93.8, 68.1], [91.7, 70.6], [89.4, 72.7], [87.0, 74.7], [84.4, 76.4], [81.7, 77.8], [79.0, 79.0], [77.8, 81.7], [76.4, 84.4], [74.7, 87.0], [72.8, 89.4], [70.6, 91.7], [68.1, 93.8], [65.5, 95.6], [62.6, 97.1], [59.6, 98.4], [56.5, 99.3], [53.3, 99.8], [50.0, 100.0], [46.7, 99.8], [43.5, 99.3], [40.4, 98.4], [37.4, 97.1], [34.5, 95.6], [31.9, 93.8], [29.4, 91.7], [27.3, 89.4], [25.3, 87.0], [23.6, 84.4], [22.2, 81.7], [21.0, 79.0], [18.3, 77.8], [15.6, 76.4], [13.0, 74.7], [10.6, 72.8], [8.3, 70.6], [6.2, 68.1], [4.4, 65.5], [2.9, 62.6], [1.6, 59.6], [0.7, 56.5], [0.2, 53.3], [0.0, 50.0], [0.2, 46.7], [0.7, 43.5], [1.6, 40.4], [2.9, 37.4], [4.4, 34.5], [6.2, 31.9], [8.3, 29.4], [10.6, 27.2], [13.0, 25.3], [15.6, 23.6], [18.3, 22.2], [21.0, 21.0], [22.2, 18.3], [23.6, 15.6], [25.3, 13.0], [27.2, 10.6], [29.4, 8.3], [31.9, 6.2], [34.5, 4.4], [37.4, 2.9], [40.4, 1.6], [43.5, 0.7], [46.7, 0.2]],
   'ss-vultures': [[25, 3], [75, 3], [100, 50], [75, 97], [25, 97], [0, 50]],
 };
 const f1 = (v) => +v.toFixed(2);
@@ -373,7 +374,28 @@ ${S} .bond:not(.hbond) .bond-ring { inset: calc(var(--disc) * -.04); width: calc
 ${S} .bond-ring path { d: path("${ring}"); fill: none; stroke-width: 6.5; stroke-linejoin: round; stroke: var(--hb-ring-off, rgba(140, 140, 140, .6)); filter: drop-shadow(0 0 1px rgba(0, 0, 0, .85)); }
 ${S} .bond-ring path.on { stroke: var(--hb-ring-on, var(--mint-400)); }
 ${S} .hbond.is-full .bond-ring path.on, ${S} .bond:not(.hbond).is-active .bond-ring path.on { stroke: var(--hb-ring-full, var(--hb-ring-on, var(--mint-400))); }
-${S} .hbond__icon { left: 26%; top: 26%; width: 48%; height: 48%; }`;
+${S} .hbond__icon { left: 26%; top: 26%; width: 48%; height: 48%; }
+${S} .bslot__count { z-index: 4; text-shadow: 0 0 2px #000, 0 0 3px #000; }`;
+}
+
+
+// marker fills restated after the geometry (shape-specific looks)
+const FILL = {
+  'f-ursus': `border: 0; box-shadow: inset 0 0 0 calc(3 * var(--u)) #847b78; background: #2b292d;`,
+  'f-ursus:full': `background: #a3242b; box-shadow: inset 0 0 0 calc(3 * var(--u)) #d2ccc7;`,
+  'f-kazimierz': `border: 0; background: #1b2650; box-shadow: inset 0 calc(-7 * var(--u)) 0 #d02b3a, inset 0 0 0 calc(3 * var(--u)) #3a63c8;`,
+  'f-kazimierz:full': `background: #2f5bd0; box-shadow: inset 0 calc(-7 * var(--u)) 0 #d02b3a, inset 0 0 0 calc(3 * var(--u)) #ffffff;`,
+  'f-victoria': `border: 0; background: #2a1a12; box-shadow: inset 0 0 0 calc(3 * var(--u)) #d6a64a, inset 0 0 0 calc(5 * var(--u)) #2a1a12, inset 0 0 0 calc(6 * var(--u)) rgba(214, 166, 74, .5);`,
+  'f-victoria:full': `background: #c99440; box-shadow: inset 0 0 0 calc(3 * var(--u)) #f2d48a;`,
+  'f-sargon': `border: 0; background: #ffffff; box-shadow: inset 0 0 0 calc(4 * var(--u)) #fcce46;`,
+  'f-sargon:full': `background: #2f7fd0; box-shadow: inset 0 0 0 calc(4 * var(--u)) #fcce46;`,
+  'ss-adele': `border: 0; background: #fff8f9; box-shadow: inset 0 0 0 calc(3 * var(--u)) #f2d6da;`,
+  'ss-adele:full': `background: #d34a62; box-shadow: inset 0 0 0 calc(3 * var(--u)) #f6a8b6;`,
+};
+function fillRules(id, S) {
+  if (!FILL[id]) return '';
+  return `${S} .hbond__board::before, ${S} .bond:not(.hbond) .bond__core::before { ${FILL[id]} }
+${S} .hbond.is-full .hbond__board::before, ${S} .bond:not(.hbond).is-active .bond__core::before { ${FILL[id + ':full']} }`;
 }
 
 export function shapeCss(id) {
@@ -385,6 +407,7 @@ export function shapeCss(id) {
 ${discRules(body)}
 ${ringRules(S, body).split('\n').filter((l) => !/::after|::after,|^\s+(background|-webkit-mask|mask|filter|-webkit-mask-composite)/.test(l)).join('\n')}
 ${markerRules(id, S)}
+${fillRules(id, S)}
 ${BAND[id] ? `${S} { ${BAND[id]} }\n` : ''}${ACCENT_INK[id] ? `${S} :is(.micro--mint, .countdown__label, .gm__bond-toggle, .funds__collapse, .funds__collapse *) { color: ${ACCENT_INK[id]}; }\n` : ''}${S} .section-label :is(.section-label__idx, .micro) { color: inherit; border-color: currentColor; opacity: .85; }
 `;
 }

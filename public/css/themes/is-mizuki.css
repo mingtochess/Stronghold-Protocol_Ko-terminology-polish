@@ -126,6 +126,8 @@
 :root[data-ui-theme="is-mizuki"] .bond-ring path.on { stroke: var(--hb-ring-on, var(--mint-400)); }
 :root[data-ui-theme="is-mizuki"] .hbond.is-full .bond-ring path.on, :root[data-ui-theme="is-mizuki"] .bond:not(.hbond).is-active .bond-ring path.on { stroke: var(--hb-ring-full, var(--hb-ring-on, var(--mint-400))); }
 :root[data-ui-theme="is-mizuki"] .hbond__icon { left: 26%; top: 26%; width: 48%; height: 48%; }
+:root[data-ui-theme="is-mizuki"] .bslot__count { z-index: 4; text-shadow: 0 0 2px #000, 0 0 3px #000; }
+
 :root[data-ui-theme="is-mizuki"] { --hb-band-bg: rgba(10, 20, 60, .92); --hb-band-ink: #dff6ff; --hb-band-line: #5fd4ff; --hb-band-radius: 99px; }
 :root[data-ui-theme="is-mizuki"] .section-label :is(.section-label__idx, .micro) { color: inherit; border-color: currentColor; opacity: .85; }
 :root[data-ui-theme="is-mizuki"] body::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none; background: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%2780%27%20height%3D%2780%27%20viewBox%3D%270%200%2080%2080%27%3E%3Cg%20fill%3D%27none%27%20stroke%3D%27%237ff7ff%27%20stroke-opacity%3D%27.14%27%3E%3Ccircle%20cx%3D%2720%27%20cy%3D%2722%27%20r%3D%276%27%2F%3E%3Ccircle%20cx%3D%2760%27%20cy%3D%2752%27%20r%3D%279%27%2F%3E%3Ccircle%20cx%3D%2736%27%20cy%3D%2766%27%20r%3D%273%27%2F%3E%3Cpath%20d%3D%27M0%2040Q20%2030%2040%2040T80%2040%27%20stroke-opacity%3D%27.08%27%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E") 0 0 / 80px 80px repeat; }
