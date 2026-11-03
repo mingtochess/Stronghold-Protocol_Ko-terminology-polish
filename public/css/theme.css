@@ -490,3 +490,9 @@ select option, select optgroup { background-color: var(--bg-2, var(--surf-2, #11
 
 /* Desktop CSS zoom keeps viewport-sized panels within the visible window. */
 :root { --ui-vw:calc(1vw / var(--ui-viewport-scale,1)); --ui-vh:calc(1vh / var(--ui-viewport-scale,1)); --ui-dvh:calc(1dvh / var(--ui-viewport-scale,1)); --ui-svh:calc(1svh / var(--ui-viewport-scale,1)); }
+
+/* UI themes: the in-game detail windows take the theme's panel (the official dark plate stays in the default theme) */
+:root[data-ui-theme] .bpop--official { background-image: none; }
+/* the bond list's text over the field (a dark battlefield in every theme): white with a dark outline, above the ring */
+:root[data-ui-theme] :is(.hbond__num, .hbond__name, .bslot__count, .bslot .bond__name) { z-index: 3; }
+:root[data-ui-theme] :is(.hbond__name, .bslot .bond__name, .bslot__count) { color: #fff; text-shadow: 0 0 2px #000, 0 0 2px #000, 0 1px 3px #000; font-weight: 700; }

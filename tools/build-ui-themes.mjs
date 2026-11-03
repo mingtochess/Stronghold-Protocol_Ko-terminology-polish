@@ -76,7 +76,7 @@ export const THEMES = [
     btn: `border-radius: 0; font-family: var(--font-display); letter-spacing: .06em;`,
     primary: `background: linear-gradient(90deg, #b3171f, #7a0c12); color: #f4f0ec; border-color: rgba(255, 255, 255, .7);`,
     extra: `:root[data-ui-theme="is-phantom"] .micro::before { content: '◆ '; color: #e3a33b; }
-:root[data-ui-theme="is-phantom"] :is(.panel, .modal__box)::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .45), transparent); pointer-events: none; }
+:root[data-ui-theme="is-phantom"] :is(.panel, .modal__box, .bpop, .dpanel)::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .45), transparent); pointer-events: none; }
 :root[data-ui-theme="is-phantom"] .mode-card.is-selected { box-shadow: 0 0 .24rem rgba(227, 163, 59, .35); border-color: #e3a33b; }
 :root[data-ui-theme="is-phantom"] :is(.dtag, .bslot__count, .ui-theme-chip) { border-radius: 999px; }`,
     bondFilter: 'hue-rotate(160deg) saturate(.9) brightness(1.05)',
@@ -135,7 +135,7 @@ export const THEMES = [
     btn: `border-radius: 0;`,
     primary: `background: linear-gradient(100deg, transparent 0 4%, #d9a63a 6% 92%, transparent 95%), radial-gradient(60% 120% at 50% 50%, #e9bb55, #a87a1f); color: #1a1203; border-color: transparent;`,
     extra: `:root[data-ui-theme="is-sarkaz"] .micro::before { content: '» '; color: #f5c84a; }
-:root[data-ui-theme="is-sarkaz"] :is(.panel, .modal__box)::after { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: linear-gradient(180deg, #b3202a, transparent 70%); pointer-events: none; }`,
+:root[data-ui-theme="is-sarkaz"] :is(.panel, .modal__box, .bpop, .dpanel)::after { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: linear-gradient(180deg, #b3202a, transparent 70%); pointer-events: none; }`,
     bondFilter: 'sepia(.6) saturate(1.3) hue-rotate(-10deg)',
   },
   {
@@ -211,7 +211,7 @@ export const THEMES = [
     panel: `background: linear-gradient(180deg, rgba(31, 26, 44, .9), rgba(9, 8, 14, .95)); border: 1px solid rgba(201, 194, 230, .25); border-radius: 0; box-shadow: 0 .1rem .35rem rgba(0, 0, 0, .6);`,
     btn: `border-radius: 0; font-family: var(--font-display); letter-spacing: .06em;`,
     primary: `background: linear-gradient(180deg, #e0dbf2, #a9a1cc); color: #0c0a14; border-color: #efedf7;`,
-    extra: `:root[data-ui-theme="f-victoria"] :is(.panel, .modal__box)::after { content: ''; position: absolute; left: 20%; right: 20%; bottom: -1px; height: 5px; background: repeating-linear-gradient(90deg, transparent 0 4px, rgba(201, 194, 230, .5) 4px 6px); clip-path: polygon(0 50%, 50% 0, 100% 50%, 50% 100%); pointer-events: none; }`,
+    extra: `:root[data-ui-theme="f-victoria"] :is(.panel, .modal__box, .bpop, .dpanel)::after { content: ''; position: absolute; left: 20%; right: 20%; bottom: -1px; height: 5px; background: repeating-linear-gradient(90deg, transparent 0 4px, rgba(201, 194, 230, .5) 4px 6px); clip-path: polygon(0 50%, 50% 0, 100% 50%, 50% 100%); pointer-events: none; }`,
     bondFilter: 'hue-rotate(220deg) saturate(.7) brightness(1.1)',
   },
   {
@@ -261,7 +261,7 @@ export const THEMES = [
     btn: `border-radius: 0; font-family: var(--font-display); letter-spacing: .06em;`,
     primary: `background: #d1242f; color: #ffffff; border-color: #ff4a52;`,
     extra: `:root[data-ui-theme="f-siracusa"] .section-label { color: #d1242f; }
-:root[data-ui-theme="f-siracusa"] :is(.panel, .modal__box)::after { content: ''; position: absolute; left: 0; right: 0; top: .1rem; height: 1px; background: linear-gradient(90deg, transparent, rgba(209, 36, 47, .6), transparent); pointer-events: none; }`,
+:root[data-ui-theme="f-siracusa"] :is(.panel, .modal__box, .bpop, .dpanel)::after { content: ''; position: absolute; left: 0; right: 0; top: .1rem; height: 1px; background: linear-gradient(90deg, transparent, rgba(209, 36, 47, .6), transparent); pointer-events: none; }`,
     bondFilter: 'grayscale(1) contrast(1.1)',
   },
   {
@@ -298,7 +298,7 @@ export const THEMES = [
     panel: `background: linear-gradient(180deg, rgba(42, 20, 24, .92), rgba(13, 6, 7, .96)); border: 1px solid rgba(214, 181, 108, .35); border-radius: 0; box-shadow: 0 .1rem .35rem rgba(0, 0, 0, .65);`,
     btn: `border-radius: 0; font-family: var(--font-display); letter-spacing: .06em;`,
     primary: `background: linear-gradient(180deg, #8a1c2b, #5a0f1a); color: #f0d290; border-color: #d6b56c;`,
-    extra: `:root[data-ui-theme="f-leithanien"] :is(.panel, .modal__box)::after { content: ''; position: absolute; left: .12rem; right: .12rem; top: .06rem; height: 1px; background: linear-gradient(90deg, transparent, rgba(214, 181, 108, .55), transparent); pointer-events: none; }`,
+    extra: `:root[data-ui-theme="f-leithanien"] :is(.panel, .modal__box, .bpop, .dpanel)::after { content: ''; position: absolute; left: .12rem; right: .12rem; top: .06rem; height: 1px; background: linear-gradient(90deg, transparent, rgba(214, 181, 108, .55), transparent); pointer-events: none; }`,
     bondFilter: 'sepia(.7) saturate(1.2) hue-rotate(-10deg)',
   },
 ];
@@ -375,7 +375,9 @@ ${sel} body {
 }
 ${sel} .screen:not(.gm) { background: transparent; }
 ${sel} .panel,
-${sel} .modal__box {
+${sel} .modal__box,
+${sel} .bpop,
+${sel} .dpanel {
   ${flatFill(t.panel)}
 }
 ${sel} .btn { ${t.btn} }

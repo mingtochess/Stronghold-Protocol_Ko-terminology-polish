@@ -258,8 +258,8 @@ export function textureCss(id, light = false) {
   out.push(`${s} .btn--primary:disabled { background-image: none; }`);
   // panel / dialog surface
   // (isolation: the surface paints between the box's own background and its content, whatever their positioning)
-  out.push(`${s} :is(.panel, .modal__box) { isolation: isolate; }`);
-  out.push(`${s} :is(.panel, .modal__box)::before { content: ''; position: absolute; inset: 0; pointer-events: none; background: ${x.grain}; z-index: -1; }`);
+  out.push(`${s} :is(.panel, .modal__box, .bpop, .dpanel) { isolation: isolate; }`);
+  out.push(`${s} :is(.panel, .modal__box, .bpop, .dpanel)::before { content: ''; position: absolute; inset: 0; pointer-events: none; background: ${x.grain}; z-index: -1; }`);
   // cards
   out.push(`${s} :is(.mode-card__bg, .seat__stripes) { background: ${x.card}; }`);
   out.push(`${s} .seat { background-image: ${topLayers(x.card)[0].replace(/\s+\d[^)]*\/[^,]*$/, '').replace(/ 0 0 \/.*$/, '')}; }`);
@@ -307,7 +307,7 @@ ${s} body { font-family: var(--font-cjk); }
 ${s} :is(.topbar__title, .modal__title, .panel__title, .mode-card__name, .section-label, .btn, .scard__name, .seat__name, .capsule__label, .hbond__name, h1, h2, h3, h4) { font-family: var(--font-display); }`);
     if (m.noise) {
       const n = noise(m.noise);
-      out.push(`${s} :is(.panel, .modal__box)::before { background: ${n}, ${x.grain}; background-size: ${m.noise.size || '240px'} auto, auto; }`);
+      out.push(`${s} :is(.panel, .modal__box, .bpop, .dpanel)::before { background: ${n}, ${x.grain}; background-size: ${m.noise.size || '240px'} auto, auto; }`);
       out.push(`${s} body { background-image: ${n}, var(--ui-body-art, none); }`);
       out.push(`${s} .mode-card__bg { background: ${n}, ${x.card}; }`);
       out.push(`${s} .scard__bg { background: ${n}, ${x.card}, linear-gradient(180deg, ${light ? '#3a3e42, #1d2023' : 'var(--bg-3), var(--bg-1)'}); }`);

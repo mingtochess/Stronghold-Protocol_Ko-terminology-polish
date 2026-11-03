@@ -22,8 +22,8 @@ const SHAPES = {
 ${S} .section-label { width: fit-content; padding: .04rem .26rem; color: #fff; background: linear-gradient(180deg, #a3242b, #7d161c);
   clip-path: polygon(1% 8%, 6% 0, 18% 6%, 31% 1%, 47% 7%, 62% 0, 78% 5%, 92% 0, 100% 9%, 98% 32%, 100% 58%, 97% 82%, 100% 100%, 84% 94%, 68% 100%, 51% 93%, 36% 100%, 20% 94%, 6% 100%, 0 88%, 2% 62%, 0 36%);
   box-shadow: none; text-shadow: 0 1px 0 rgba(0, 0, 0, .5); }
-${S} :is(.panel, .modal__box) { ${frame(`<rect x='1' y='1' width='58' height='58' fill='none' stroke='%23111' stroke-width='2'/><rect x='3' y='3' width='54' height='54' fill='none' stroke='%23787070' stroke-width='5'/><rect x='6.5' y='6.5' width='47' height='47' fill='none' stroke='%23141417' stroke-width='2'/><path d='M3 3h54' stroke='%23a59c98' stroke-width='1.2'/>`, '.09rem')} }
-${S} :is(.panel, .modal__box)::after { content: ''; position: absolute; left: -.06rem; top: -.06rem; width: 1.6rem; height: .5rem; pointer-events: none; height: .5rem; top: -.1rem; background: ${svg(160, 50, `<path d='M4 40 L60 8 L118 30 L156 6' fill='none' stroke='%23b3242c' stroke-width='1.6'/><circle cx='4' cy='40' r='3.5' fill='%23d8d0cc'/><circle cx='60' cy='8' r='3.5' fill='%23d8d0cc'/><circle cx='118' cy='30' r='3.5' fill='%23d8d0cc'/>`)} left top / contain no-repeat; }
+${S} :is(.panel, .modal__box, .bpop, .dpanel) { ${frame(`<rect x='1' y='1' width='58' height='58' fill='none' stroke='%23111' stroke-width='2'/><rect x='3' y='3' width='54' height='54' fill='none' stroke='%23787070' stroke-width='5'/><rect x='6.5' y='6.5' width='47' height='47' fill='none' stroke='%23141417' stroke-width='2'/><path d='M3 3h54' stroke='%23a59c98' stroke-width='1.2'/>`, '.09rem')} }
+${S} :is(.panel, .modal__box, .bpop, .dpanel)::after { content: ''; position: absolute; left: -.06rem; top: -.06rem; width: 1.6rem; height: .5rem; pointer-events: none; height: .5rem; top: -.1rem; background: ${svg(160, 50, `<path d='M4 40 L60 8 L118 30 L156 6' fill='none' stroke='%23b3242c' stroke-width='1.6'/><circle cx='4' cy='40' r='3.5' fill='%23d8d0cc'/><circle cx='60' cy='8' r='3.5' fill='%23d8d0cc'/><circle cx='118' cy='30' r='3.5' fill='%23d8d0cc'/>`)} left top / contain no-repeat; }
 ${NO_RING(S)}
 ${S} .hbond__board::before { inset: 14%; background: #2b292d; border: calc(3 * var(--u)) solid #847b78; transform: rotate(-4deg); box-shadow: 0 0 0 calc(1 * var(--u)) #111; }
 ${S} .hbond.is-full .hbond__board::before { background: #a3242b; border-color: #d2ccc7; }`,
@@ -33,7 +33,7 @@ ${S} .hbond.is-full .hbond__board::before { background: #a3242b; border-color: #
 ${S} .section-label { width: fit-content; padding: .04rem .3rem .04rem .26rem; color: #fff; font-style: italic; font-weight: 900;
   background: linear-gradient(115deg, #1b2f6e 0 .12rem, #fff .12rem .16rem, #3a63c8 .16rem .22rem, transparent .22rem), linear-gradient(90deg, #454b5c, #2b2f3a 70%, #d02b3a 70% 74%, #2b2f3a 74%);
   clip-path: polygon(.14rem 0, 100% 0, calc(100% - .14rem) 100%, 0 100%); }
-${S} :is(.panel, .modal__box) { border: 2px solid transparent; border-radius: .14rem;
+${S} :is(.panel, .modal__box, .bpop, .dpanel) { border: 2px solid transparent; border-radius: .14rem;
   background: linear-gradient(180deg, rgba(20, 26, 48, .96), rgba(12, 15, 28, .97)) padding-box, linear-gradient(135deg, #3a63c8, #8a6fb0 50%, #d02b3a) border-box; }
 ${S} .panel__title { font-style: italic; }
 ${S} :is(.mode-card, .seat) { border-radius: .12rem; }
@@ -46,7 +46,7 @@ ${S} .hbond.is-full .hbond__board::before { background: linear-gradient(115deg, 
 ${S} .section-label { width: fit-content; padding: .04rem .24rem .04rem .2rem; border-radius: 99px; color: #e8f2f3;
   background: linear-gradient(180deg, rgba(95, 211, 208, .32), rgba(47, 111, 114, .5)); box-shadow: inset 0 0 0 1px rgba(143, 240, 236, .6), 0 0 .12rem rgba(95, 211, 208, .35); }
 ${S} .section-label::before { content: '○'; color: #8ff0ec; font-size: .8em; margin-right: .06rem; }
-${S} :is(.panel, .modal__box) { ${frame(`<rect x='8' y='8' width='44' height='44' fill='none' stroke='%232f6f72' stroke-width='1'/><path d='M1 8h14M8 1v14M45 8h14M52 1v14M1 52h14M8 45v14M45 52h14M52 45v14' stroke='%235fd3d0' stroke-width='1'/><circle cx='1.5' cy='8' r='1.5' fill='%238ff0ec'/><circle cx='58.5' cy='52' r='1.5' fill='%238ff0ec'/>`, '.1rem')} box-shadow: 0 0 .16rem rgba(95, 211, 208, .1); }
+${S} :is(.panel, .modal__box, .bpop, .dpanel) { ${frame(`<rect x='8' y='8' width='44' height='44' fill='none' stroke='%232f6f72' stroke-width='1'/><path d='M1 8h14M8 1v14M45 8h14M52 1v14M1 52h14M8 45v14M45 52h14M52 45v14' stroke='%235fd3d0' stroke-width='1'/><circle cx='1.5' cy='8' r='1.5' fill='%238ff0ec'/><circle cx='58.5' cy='52' r='1.5' fill='%238ff0ec'/>`, '.1rem')} box-shadow: 0 0 .16rem rgba(95, 211, 208, .1); }
 ${S} :is(.panel__title, .modal__title)::before { content: '✦ '; color: #5fd3d0; }
 ${S} .btn { border-radius: .04rem; }
 ${S} .btn--primary { border-radius: 99px; }
@@ -60,7 +60,7 @@ ${S} .section-label { padding: .04rem .5rem .04rem .26rem; color: #fff; letter-s
   background: ${svg(40, 20, `<path d='M2 10 L9 3 L16 10 L9 17Z' fill='%233ec6e0'/>`)} right .08rem center / .3rem .16rem no-repeat,
     repeating-linear-gradient(135deg, rgba(255, 255, 255, .5) 0 1px, transparent 1px 4px) right .44rem center / .5rem .1rem no-repeat,
     linear-gradient(90deg, #3ec6e0 0 .06rem, #45535e .06rem .1rem, #566673 .1rem); }
-${S} :is(.panel, .modal__box) { ${frame(`<path d='M14 1 H46 L59 14 V46 L46 59 H14 L1 46 V14Z' fill='%23fbfcfc' stroke='%23b8c4cc' stroke-width='1'/><path d='M16 5 H44 L55 16 V44 L44 55 H16 L5 44 V16Z' fill='none' stroke='%23d5dde3' stroke-width='1'/>`, '.14rem', 20)} box-shadow: none; filter: drop-shadow(0 .03rem .08rem rgba(60, 80, 95, .12)); }
+${S} :is(.panel, .modal__box, .bpop, .dpanel) { ${frame(`<path d='M14 1 H46 L59 14 V46 L46 59 H14 L1 46 V14Z' fill='%23fbfcfc' stroke='%23b8c4cc' stroke-width='1'/><path d='M16 5 H44 L55 16 V44 L44 55 H16 L5 44 V16Z' fill='none' stroke='%23d5dde3' stroke-width='1'/>`, '.14rem', 20)} box-shadow: none; filter: drop-shadow(0 .03rem .08rem rgba(60, 80, 95, .12)); }
 ${NO_RING(S)}
 ${S} .hbond__board::before { inset: 12%; clip-path: polygon(30% 0, 70% 0, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0 70%, 0 30%); background: linear-gradient(180deg, #7a8c9a, #4f606d); }
 ${S} .hbond.is-full .hbond__board::before { background: linear-gradient(180deg, #57d5ea, #2c9ab4); }`,
@@ -70,7 +70,7 @@ ${S} .hbond.is-full .hbond__board::before { background: linear-gradient(180deg, 
 ${S} .section-label { width: fit-content; padding: .05rem .3rem; color: #2a1606; text-shadow: 0 1px 0 rgba(255, 240, 200, .5);
   background: linear-gradient(180deg, #f2d48a, #c99440 55%, #a8742c);
   clip-path: polygon(3% 12%, 9% 0, 30% 6%, 52% 0, 76% 5%, 93% 0, 98% 14%, 100% 50%, 97% 88%, 90% 100%, 66% 95%, 44% 100%, 20% 94%, 6% 100%, 1% 84%, 0 48%); }
-${S} :is(.panel, .modal__box) { ${frame(`<rect x='2' y='2' width='56' height='56' fill='none' stroke='%23d6a64a' stroke-width='2.5'/><rect x='6' y='6' width='48' height='48' fill='none' stroke='%237a5a30' stroke-width='1'/><path d='M2 2l7 7M58 2l-7 7M2 58l7-7M58 58l-7-7' stroke='%23f0c870' stroke-width='1'/>`, '.1rem')} box-shadow: 0 0 .22rem rgba(240, 200, 112, .18), 0 .08rem .3rem rgba(0, 0, 0, .6); }
+${S} :is(.panel, .modal__box, .bpop, .dpanel) { ${frame(`<rect x='2' y='2' width='56' height='56' fill='none' stroke='%23d6a64a' stroke-width='2.5'/><rect x='6' y='6' width='48' height='48' fill='none' stroke='%237a5a30' stroke-width='1'/><path d='M2 2l7 7M58 2l-7 7M2 58l7-7M58 58l-7-7' stroke='%23f0c870' stroke-width='1'/>`, '.1rem')} box-shadow: 0 0 .22rem rgba(240, 200, 112, .18), 0 .08rem .3rem rgba(0, 0, 0, .6); }
 ${S} .panel__title::after { content: ''; display: block; height: .1rem; margin-top: .03rem; background: ${svg(200, 10, `<path d='M0 5H88M112 5H200' stroke='%23a07a48' stroke-width='1'/><path d='M100 0L103 5L100 10L97 5Z M92 5L100 3.5L108 5L100 6.5Z' fill='%23d6a64a'/>`)} center / 100% 100% no-repeat; }
 ${S} :is(.mode-card, .seat) { box-shadow: inset 0 0 0 1px #d6a64a, inset 0 0 0 3px rgba(0, 0, 0, .5), inset 0 0 0 4px rgba(214, 166, 74, .35); }
 ${NO_RING(S)}
@@ -83,7 +83,7 @@ ${S} .section-label { width: fit-content; padding: .08rem .3rem .08rem .38rem; c
   background: ${svg(30, 40, `<text x='2' y='31' font-size='34' fill='%23c9a35a' font-family='serif'>𝄞</text>`)} .04rem center / .22rem .3rem no-repeat,
     repeating-linear-gradient(180deg, transparent 0 calc(20% - 1px), rgba(201, 163, 90, .45) calc(20% - 1px) 20%) 0 .03rem / 100% calc(100% - .06rem) no-repeat; }
 ${S} .section-label::after { content: '♪'; color: #c9a35a; margin-left: .1rem; }
-${S} :is(.panel, .modal__box) { ${frame(`<rect x='1' y='1' width='58' height='58' fill='none' stroke='%236a4a36'/><rect x='4' y='4' width='52' height='52' fill='none' stroke='%23c9a35a' stroke-opacity='.55'/><g fill='none' stroke='%23c9a35a' stroke-width='1.1'><path d='M4 12 Q4 4 12 4'/><path d='M48 4 Q56 4 56 12'/><path d='M4 48 Q4 56 12 56'/><path d='M56 48 Q56 56 48 56'/></g><g fill='%23c9a35a'><circle cx='4' cy='4' r='1.6'/><circle cx='56' cy='4' r='1.6'/><circle cx='4' cy='56' r='1.6'/><circle cx='56' cy='56' r='1.6'/></g>`, '.1rem')} }
+${S} :is(.panel, .modal__box, .bpop, .dpanel) { ${frame(`<rect x='1' y='1' width='58' height='58' fill='none' stroke='%236a4a36'/><rect x='4' y='4' width='52' height='52' fill='none' stroke='%23c9a35a' stroke-opacity='.55'/><g fill='none' stroke='%23c9a35a' stroke-width='1.1'><path d='M4 12 Q4 4 12 4'/><path d='M48 4 Q56 4 56 12'/><path d='M4 48 Q4 56 12 56'/><path d='M56 48 Q56 56 48 56'/></g><g fill='%23c9a35a'><circle cx='4' cy='4' r='1.6'/><circle cx='56' cy='4' r='1.6'/><circle cx='4' cy='56' r='1.6'/><circle cx='56' cy='56' r='1.6'/></g>`, '.1rem')} }
 ${S} .mode-card__bg { background-position: center; }
 ${S} .panel__title::after { content: ''; display: block; height: .08rem; margin-top: .04rem; background: repeating-linear-gradient(180deg, rgba(201, 163, 90, .5) 0 1px, transparent 1px 2px) 0 0 / 1.2rem 100% no-repeat; }
 ${S} .btn--primary { box-shadow: inset 0 0 0 1px #c9a35a, inset 0 0 0 3px #7a1f2b, inset 0 0 0 4px rgba(201, 163, 90, .5); }
@@ -98,7 +98,7 @@ ${S} .section-label { width: fit-content; padding: .05rem .34rem; color: #efe8da
   background: ${svg(20, 20, `<path d='M2 10L8 4M2 10L8 16M8 10L14 4M8 10L14 16' fill='none' stroke='%23c8a25a' stroke-width='1.4'/>`)} .06rem center / .14rem .14rem no-repeat,
     ${svg(20, 20, `<path d='M18 10L12 4M18 10L12 16M12 10L6 4M12 10L6 16' fill='none' stroke='%23c8a25a' stroke-width='1.4'/>`)} calc(100% - .06rem) center / .14rem .14rem no-repeat, #6e151b;
   box-shadow: inset 0 1px 0 #c8a25a, inset 0 -1px 0 #c8a25a; }
-${S} :is(.panel, .modal__box) { ${frame(`<rect x='1' y='1' width='58' height='58' fill='none' stroke='%235e5040'/><rect x='4' y='4' width='52' height='52' fill='none' stroke='%23c8a25a' stroke-opacity='.7'/><g fill='none' stroke='%23c8a25a' stroke-width='1'><path d='M4 16A12 12 0 0 1 16 4M4 11A7 7 0 0 1 11 4'/><path d='M56 16A12 12 0 0 0 44 4M56 11A7 7 0 0 0 49 4'/><path d='M4 44A12 12 0 0 0 16 56M4 49A7 7 0 0 0 11 56'/><path d='M56 44A12 12 0 0 1 44 56M56 49A7 7 0 0 1 49 56'/></g>`, '.12rem')} }
+${S} :is(.panel, .modal__box, .bpop, .dpanel) { ${frame(`<rect x='1' y='1' width='58' height='58' fill='none' stroke='%235e5040'/><rect x='4' y='4' width='52' height='52' fill='none' stroke='%23c8a25a' stroke-opacity='.7'/><g fill='none' stroke='%23c8a25a' stroke-width='1'><path d='M4 16A12 12 0 0 1 16 4M4 11A7 7 0 0 1 11 4'/><path d='M56 16A12 12 0 0 0 44 4M56 11A7 7 0 0 0 49 4'/><path d='M4 44A12 12 0 0 0 16 56M4 49A7 7 0 0 0 11 56'/><path d='M56 44A12 12 0 0 1 44 56M56 49A7 7 0 0 1 49 56'/></g>`, '.12rem')} }
 ${S} .panel__title { font-style: italic; }
 ${S} .btn--primary { box-shadow: inset 0 0 0 1px #c8a25a; }
 ${NO_RING(S)}
@@ -111,7 +111,7 @@ ${S} { --hb-ring-on: #f0cf86; --hb-ring-off: rgba(150, 140, 130, .55); --hb-ring
 ${S} .section-label { width: fit-content; padding: .06rem .4rem .06rem .3rem; color: #f7f3ee; background: linear-gradient(90deg, rgba(29, 31, 30, .75), #1d1f1e 18% 80%, rgba(29, 31, 30, .55));
   clip-path: polygon(2% 30%, 8% 6%, 22% 12%, 40% 2%, 58% 9%, 76% 0, 92% 10%, 100% 34%, 97% 60%, 100% 88%, 84% 96%, 64% 90%, 44% 100%, 26% 92%, 10% 98%, 0 76%, 3% 52%); }
 ${S} .section-label::after { content: ''; display: inline-block; width: .14rem; height: .14rem; margin-left: .1rem; vertical-align: middle; background: #a92d2a; box-shadow: inset 0 0 0 2px #a92d2a, inset 0 0 0 3px #f7f3ee; }
-${S} :is(.panel, .modal__box) { border: 0; box-shadow: inset 0 0 .3rem rgba(29, 31, 30, .12), 0 0 .5rem rgba(29, 31, 30, .08); }
+${S} :is(.panel, .modal__box, .bpop, .dpanel) { border: 0; box-shadow: inset 0 0 .3rem rgba(29, 31, 30, .12), 0 0 .5rem rgba(29, 31, 30, .08); }
 ${S} .panel__title { writing-mode: horizontal-tb; letter-spacing: .3em; }
 ${S} .btn--primary { border-radius: 0; box-shadow: .03rem .03rem 0 #a92d2a; }
 ${NO_RING(S)}
@@ -125,8 +125,8 @@ ${S} .hbond.is-full .hbond__icon:not(.hbond__glyph) { filter: brightness(0) inve
 ${S} .section-label { width: fit-content; padding: .04rem .3rem; color: #fff; font-style: italic; font-weight: 900; -webkit-text-stroke: .5px #12345a; text-shadow: .02rem .02rem 0 #12345a;
   background: radial-gradient(circle, rgba(255, 255, 255, .22) 1px, transparent 1.6px) 0 0 / 5px 5px, linear-gradient(90deg, #1f5fa8, #2a70c0);
   clip-path: polygon(.1rem 0, 100% 0, calc(100% - .1rem) 100%, 0 100%); }
-${S} :is(.panel, .modal__box) { border: 0; border-radius: 0; background: radial-gradient(circle, rgba(255, 255, 255, .5) 1px, transparent 1.6px) 0 0 / 6px 6px, linear-gradient(180deg, #fdd552, #f9c330); box-shadow: .05rem .05rem 0 #f19b48, 0 .06rem .2rem rgba(60, 50, 20, .18); }
-${S} :is(.panel, .modal__box) :is(.panel__body, .modal__body) { color: #24241f; }
+${S} :is(.panel, .modal__box, .bpop, .dpanel) { border: 0; border-radius: 0; background: radial-gradient(circle, rgba(255, 255, 255, .5) 1px, transparent 1.6px) 0 0 / 6px 6px, linear-gradient(180deg, #fdd552, #f9c330); box-shadow: .05rem .05rem 0 #f19b48, 0 .06rem .2rem rgba(60, 50, 20, .18); }
+${S} :is(.panel, .modal__box, .bpop, .dpanel) :is(.panel__body, .modal__body) { color: #24241f; }
 ${S} :is(.mode-card, .seat) { border: .03rem solid #fcce46; box-shadow: .04rem .04rem 0 #f19b48; }
 ${NO_RING(S)}
 ${S} .hbond__board::before { inset: 15%; transform: rotate(-8deg); border-radius: calc(6 * var(--u)); background: #fff; border: calc(4 * var(--u)) solid #fcce46; box-shadow: calc(3 * var(--u)) calc(3 * var(--u)) 0 #f19b48; }
@@ -138,7 +138,7 @@ ${S} .hbond.is-full .hbond__icon:not(.hbond__glyph) { filter: brightness(0) inve
   'f-kjerag': (S) => `
 ${S} .section-label { width: fit-content; padding: .04rem .36rem; color: #16206a; background: linear-gradient(180deg, #ffffff, #dfe6fb);
   clip-path: polygon(0 0, 100% 0, calc(100% - .14rem) 50%, 100% 100%, 0 100%, .14rem 50%); }
-${S} :is(.panel, .modal__box) { ${frame(`<rect x='1' y='1' width='58' height='58' fill='none' stroke='%239aa8e6' stroke-width='1'/><path d='M1 12V1H12M48 1H59V12M59 48V59H48M12 59H1V48' fill='none' stroke='%23ffffff' stroke-width='3'/>`, '.08rem')} }
+${S} :is(.panel, .modal__box, .bpop, .dpanel) { ${frame(`<rect x='1' y='1' width='58' height='58' fill='none' stroke='%239aa8e6' stroke-width='1'/><path d='M1 12V1H12M48 1H59V12M59 48V59H48M12 59H1V48' fill='none' stroke='%23ffffff' stroke-width='3'/>`, '.08rem')} }
 ${NO_RING(S)}
 ${S} .hbond__board::before { inset: 12%; clip-path: polygon(50% 0, 93% 25%, 93% 75%, 50% 100%, 7% 75%, 7% 25%); background: linear-gradient(180deg, #2b3c9f, #16206a); box-shadow: inset 0 0 0 calc(3 * var(--u)) #e9eefc; }
 ${S} .hbond.is-full .hbond__board::before { background: linear-gradient(180deg, #ffffff, #c9d4f7); }
@@ -150,7 +150,7 @@ ${S} .section-label { width: fit-content; padding: .06rem .34rem; color: #d34a62
   background: radial-gradient(circle at 12% 30%, #fff 0 .1rem, transparent .1rem), radial-gradient(circle at 88% 30%, #fff 0 .1rem, transparent .1rem), radial-gradient(circle at 30% 0%, #fff 0 .12rem, transparent .12rem), radial-gradient(circle at 70% 0%, #fff 0 .12rem, transparent .12rem), #ffffff;
   box-shadow: 0 .02rem .08rem rgba(176, 112, 126, .25); }
 ${S} .section-label::after { content: '✦'; color: #f2b53a; margin-left: .08rem; }
-${S} :is(.panel, .modal__box) { ${frame(`<g fill='%23ffffff' stroke='%23e8b9c2' stroke-width='1'><circle cx='10' cy='10' r='9'/><circle cx='30' cy='6' r='7'/><circle cx='50' cy='10' r='9'/><circle cx='6' cy='30' r='7'/><circle cx='54' cy='30' r='7'/><circle cx='10' cy='50' r='9'/><circle cx='30' cy='54' r='7'/><circle cx='50' cy='50' r='9'/></g><rect x='8' y='8' width='44' height='44' fill='%23fff8f8'/>`, '.12rem', 20, 'round')} box-shadow: 0 .04rem .2rem rgba(176, 112, 126, .2); }
+${S} :is(.panel, .modal__box, .bpop, .dpanel) { ${frame(`<g fill='%23ffffff' stroke='%23e8b9c2' stroke-width='1'><circle cx='10' cy='10' r='9'/><circle cx='30' cy='6' r='7'/><circle cx='50' cy='10' r='9'/><circle cx='6' cy='30' r='7'/><circle cx='54' cy='30' r='7'/><circle cx='10' cy='50' r='9'/><circle cx='30' cy='54' r='7'/><circle cx='50' cy='50' r='9'/></g><rect x='8' y='8' width='44' height='44' fill='%23fff8f8'/>`, '.12rem', 20, 'round')} box-shadow: 0 .04rem .2rem rgba(176, 112, 126, .2); }
 ${S} .modal__head .modal__title { color: #d34a62; }
 ${S} .btn { border-radius: 99px; }
 ${NO_RING(S)}
@@ -165,8 +165,8 @@ ${S} { --hb-ring-on: #d34a62; --hb-ring-off: rgba(176, 112, 126, .45); --hb-ring
 ${S} .section-label { padding: .05rem .2rem .08rem .7rem; color: #fff; justify-content: flex-end;
   background: linear-gradient(#d4d93a, #d4d93a) right bottom / 85% .05rem no-repeat, repeating-linear-gradient(-55deg, #2c3a3f 0 .06rem, transparent .06rem .14rem) .1rem center / .5rem 70% no-repeat, #182226; }
 ${S} .section-label::after { content: '#'; color: #d4d93a; font-style: italic; margin-left: .06rem; }
-${S} :is(.panel, .modal__box) { border: 1px solid #4a5a60; box-shadow: inset 0 0 0 .04rem #111a1d, inset 0 0 0 calc(.04rem + 1px) #2f3d42; }
-${S} :is(.panel, .modal__box)::after { content: ''; position: absolute; right: .06rem; top: .06rem; width: .14rem; height: .14rem; pointer-events: none; background: linear-gradient(225deg, #c0282e 50%, transparent 50%); }
+${S} :is(.panel, .modal__box, .bpop, .dpanel) { border: 1px solid #4a5a60; box-shadow: inset 0 0 0 .04rem #111a1d, inset 0 0 0 calc(.04rem + 1px) #2f3d42; }
+${S} :is(.panel, .modal__box, .bpop, .dpanel)::after { content: ''; position: absolute; right: .06rem; top: .06rem; width: .14rem; height: .14rem; pointer-events: none; background: linear-gradient(225deg, #c0282e 50%, transparent 50%); }
 ${NO_RING(S)}
 ${S} .hbond__board::before { inset: 12%; clip-path: polygon(25% 3%, 75% 3%, 100% 50%, 75% 97%, 25% 97%, 0 50%); background: repeating-linear-gradient(-45deg, #2c3a3f 0 calc(5 * var(--u)), #1a2427 calc(5 * var(--u)) calc(10 * var(--u))); }
 ${S} .hbond.is-full .hbond__board::before { background: repeating-linear-gradient(-45deg, #d4d93a 0 calc(6 * var(--u)), #b9be22 calc(6 * var(--u)) calc(12 * var(--u))); }`,
@@ -176,7 +176,7 @@ ${S} .hbond.is-full .hbond__board::before { background: repeating-linear-gradien
 ${S} .section-label { width: fit-content; padding: .05rem .26rem .05rem .3rem; color: #fbf9f5; letter-spacing: .04em;
   background: linear-gradient(90deg, #a8402e 0 .04rem, #e3a23d .04rem .08rem, #6fb0a3 .08rem .12rem, transparent .12rem), linear-gradient(#e8602c, #e8602c) right top / .08rem .08rem no-repeat, #2b2a28; }
 ${S} .section-label .section-label__idx { color: #fff; background: #e8602c; border-color: #e8602c; opacity: 1; }
-${S} :is(.panel, .modal__box) { border-top: .04rem solid #2b2a28; }
+${S} :is(.panel, .modal__box, .bpop, .dpanel) { border-top: .04rem solid #2b2a28; }
 ${S} :is(.panel__title, .modal__title) { font-weight: 800; letter-spacing: -.01em; }
 ${S} :is(.panel__title, .modal__title)::before { content: ''; display: inline-block; width: .16rem; height: .16rem; margin-right: .08rem; vertical-align: -.02rem; border-radius: 50%; background: radial-gradient(circle, #fbf9f5 30%, #e8602c 32%); }
 ${S} :is(.mode-card, .seat) { box-shadow: inset 0 .04rem 0 #e8602c; }
@@ -190,7 +190,7 @@ ${S} { --hb-ring-on: #e8602c; --hb-ring-off: #c9c2b6; --hb-ring-full: #2b2a28; }
   'ss-mendacium': (S) => `
 ${S} .section-label { justify-content: center; padding: .06rem .3rem; color: #fff4ea;
   background: ${svg(40, 8, `<path d='M0 7H6V1H14V5H10V3H8V7H20V1H28V5H24V3H22V7H34V1H40' fill='none' stroke='%23e9b48a' stroke-width='1.2'/>`)} 0 .02rem / .4rem .08rem repeat-x, ${svg(40, 8, `<path d='M0 1H6V7H14V3H10V5H8V1H20V7H28V3H24V5H22V1H34V7H40' fill='none' stroke='%23e9b48a' stroke-width='1.2'/>`)} 0 calc(100% - .02rem) / .4rem .08rem repeat-x, linear-gradient(180deg, #b35424, #8c3c16); }
-${S} :is(.panel, .modal__box) { ${frame(`<rect x='1' y='1' width='58' height='58' fill='none' stroke='%2342372e' stroke-width='2'/><path d='M4 8H8V4H14V10H10V8 M4 52H8V56H14V50H10V52 M56 8H52V4H46V10H50V8 M56 52H52V56H46V50H50V52' fill='none' stroke='%23b4521f' stroke-width='1.4'/><rect x='4' y='4' width='52' height='52' fill='none' stroke='%23a77e5a' stroke-width='.8'/>`, '.12rem')} }
+${S} :is(.panel, .modal__box, .bpop, .dpanel) { ${frame(`<rect x='1' y='1' width='58' height='58' fill='none' stroke='%2342372e' stroke-width='2'/><path d='M4 8H8V4H14V10H10V8 M4 52H8V56H14V50H10V52 M56 8H52V4H46V10H50V8 M56 52H52V56H46V50H50V52' fill='none' stroke='%23b4521f' stroke-width='1.4'/><rect x='4' y='4' width='52' height='52' fill='none' stroke='%23a77e5a' stroke-width='.8'/>`, '.12rem')} }
 ${S} .btn { border-radius: 99px .04rem .04rem 99px; }
 ${S} .btn--primary::before { content: '◀'; font-size: .7em; margin-right: .06rem; color: #fff4ea; }
 ${NO_RING(S)}
@@ -205,7 +205,7 @@ ${S} .section-label { justify-content: center; padding: .05rem .5rem; color: #ff
   background: radial-gradient(30% 90% at 50% 60%, rgba(255, 255, 255, .95), rgba(255, 255, 255, 0) 70%), radial-gradient(18% 70% at 35% 50%, rgba(255, 255, 255, .85), transparent 70%), radial-gradient(18% 70% at 65% 50%, rgba(255, 255, 255, .85), transparent 70%),
     ${svg(20, 20, `<path d='M10 1L13 7H7Z M3 16L8 10L11 15Z M17 16L12 10L9 15Z' fill='%23c4333a'/>`)} .1rem center / .18rem .18rem no-repeat, ${svg(20, 20, `<path d='M10 1L13 7H7Z M3 16L8 10L11 15Z M17 16L12 10L9 15Z' fill='%23c4333a'/>`)} calc(100% - .1rem) center / .18rem .18rem no-repeat,
     linear-gradient(90deg, transparent, #4f8590 .3rem calc(100% - .3rem), transparent); color: #15292d; text-shadow: none; }
-${S} :is(.panel, .modal__box) { border: 0; border-top: 2px solid #2b525a; border-bottom: 2px solid #2b525a; border-radius: 0; }
+${S} :is(.panel, .modal__box, .bpop, .dpanel) { border: 0; border-top: 2px solid #2b525a; border-bottom: 2px solid #2b525a; border-radius: 0; }
 ${NO_RING(S)}
 ${S} .hbond__board::before { inset: 14% 8%; border-radius: 50% 45% 48% 52% / 60% 55% 45% 40%; background: radial-gradient(60% 50% at 40% 40%, #ffffff, #dcf0f3); border: calc(3 * var(--u)) solid #2b525a; }
 ${S} .hbond.is-full .hbond__board::before { background: radial-gradient(60% 50% at 40% 40%, #e8585e, #c4333a); border-color: #15292d; }
@@ -218,7 +218,7 @@ ${S} .section-label { width: fit-content; padding: .05rem .4rem; color: #e8cf92;
   background: linear-gradient(180deg, #2a2638, #17142a) padding-box; border: 1px solid #a39274;
   clip-path: polygon(.16rem 0, calc(100% - .16rem) 0, 100% 50%, calc(100% - .16rem) 100%, .16rem 100%, 0 50%); box-shadow: inset 0 0 0 3px #17142a, inset 0 0 0 4px rgba(201, 174, 114, .5); }
 ${S} .section-label::after { content: ' ✦'; color: #c9ae72; font-size: .8em; }
-${S} :is(.panel, .modal__box) { ${frame(`<rect x='5' y='5' width='50' height='50' fill='none' stroke='%23a39274' stroke-width='1'/><path d='M1 18 C3 8 8 3 18 1 M42 1 C52 3 57 8 59 18 M59 42 C57 52 52 57 42 59 M18 59 C8 57 3 52 1 42' fill='none' stroke='%23c9ae72' stroke-width='1.3'/><circle cx='5' cy='5' r='2' fill='%23e8cf92'/><circle cx='55' cy='5' r='2' fill='%23e8cf92'/><circle cx='5' cy='55' r='2' fill='%23e8cf92'/><circle cx='55' cy='55' r='2' fill='%23e8cf92'/>`, '.12rem')} }
+${S} :is(.panel, .modal__box, .bpop, .dpanel) { ${frame(`<rect x='5' y='5' width='50' height='50' fill='none' stroke='%23a39274' stroke-width='1'/><path d='M1 18 C3 8 8 3 18 1 M42 1 C52 3 57 8 59 18 M59 42 C57 52 52 57 42 59 M18 59 C8 57 3 52 1 42' fill='none' stroke='%23c9ae72' stroke-width='1.3'/><circle cx='5' cy='5' r='2' fill='%23e8cf92'/><circle cx='55' cy='5' r='2' fill='%23e8cf92'/><circle cx='5' cy='55' r='2' fill='%23e8cf92'/><circle cx='55' cy='55' r='2' fill='%23e8cf92'/>`, '.12rem')} }
 ${NO_RING(S)}
 ${S} .hbond__board::before { inset: 12%; border-radius: 50%; background: radial-gradient(circle, #202852 58%, #c9ae72 59% 63%, #0d1023 64% 70%, #a39274 71% 74%, transparent 75%); }
 ${S} .hbond.is-full .hbond__board::before { background: radial-gradient(circle, #e8cf92 58%, #c9ae72 59% 63%, #0d1023 64% 70%, #a39274 71% 74%, transparent 75%); }`,
@@ -228,7 +228,7 @@ ${S} .hbond.is-full .hbond__board::before { background: radial-gradient(circle, 
   'is-fungi': (S) => `
 ${S} .section-label { width: fit-content; padding: .04rem .26rem; color: #e7d49a; background: #2b302b; border: 1px solid #c9b27a; border-radius: 99px 99px .06rem .06rem; }
 ${S} .section-label::after { content: ''; width: .16rem; height: .1rem; margin-left: .08rem; background: radial-gradient(circle, #e7d49a 0 2px, transparent 2.5px) 0 50% / .06rem .06rem repeat-x; }
-${S} :is(.panel, .modal__box) { border-radius: .16rem; box-shadow: inset 0 0 0 1px #3d4439, inset 0 0 0 3px rgba(201, 178, 122, .18), 0 .06rem .3rem rgba(0, 0, 0, .5); }
+${S} :is(.panel, .modal__box, .bpop, .dpanel) { border-radius: .16rem; box-shadow: inset 0 0 0 1px #3d4439, inset 0 0 0 3px rgba(201, 178, 122, .18), 0 .06rem .3rem rgba(0, 0, 0, .5); }
 ${S} .btn { border-radius: 99px; }
 ${NO_RING(S)}
 ${S} .hbond__board::before { inset: 14% 10% 22%; border-radius: 50% 50% 22% 22% / 72% 72% 28% 28%; background: radial-gradient(circle at 35% 30%, rgba(231, 212, 154, .35) 0 8%, transparent 9%), radial-gradient(circle at 65% 45%, rgba(231, 212, 154, .3) 0 6%, transparent 7%), #343a33; border: calc(3 * var(--u)) solid #c9b27a; }
@@ -236,15 +236,15 @@ ${S} .hbond.is-full .hbond__board::before { background: radial-gradient(circle a
   'is-phantom': (S) => `
 ${S} .section-label { width: fit-content; padding: .03rem .24rem; color: #f4f0ec; background: none; border: 1px solid rgba(244, 240, 236, .7); border-radius: 99px; }
 ${S} .section-label::before { content: '◆'; color: #e3a33b; font-size: .7em; margin-right: .08rem; }
-${S} :is(.panel, .modal__box) { border: 0; border-top: 1px solid rgba(244, 240, 236, .45); box-shadow: inset 0 .1rem 0 -.06rem rgba(179, 23, 31, .0), 0 .06rem .3rem rgba(0, 0, 0, .55); }
-${S} :is(.panel, .modal__box)::after { content: ''; position: absolute; left: 0; right: 0; top: 0; height: .12rem; pointer-events: none; background: radial-gradient(circle at 50% 0, #7a0f16 0 .1rem, transparent .1rem) 0 0 / .24rem .12rem repeat-x; opacity: .85; }
+${S} :is(.panel, .modal__box, .bpop, .dpanel) { border: 0; border-top: 1px solid rgba(244, 240, 236, .45); box-shadow: inset 0 .1rem 0 -.06rem rgba(179, 23, 31, .0), 0 .06rem .3rem rgba(0, 0, 0, .55); }
+${S} :is(.panel, .modal__box, .bpop, .dpanel)::after { content: ''; position: absolute; left: 0; right: 0; top: 0; height: .12rem; pointer-events: none; background: radial-gradient(circle at 50% 0, #7a0f16 0 .1rem, transparent .1rem) 0 0 / .24rem .12rem repeat-x; opacity: .85; }
 ${S} .btn { border-radius: 99px; }
 ${NO_RING(S)}
 ${S} .hbond__board::before { inset: 18%; transform: rotate(45deg); background: #221c1c; border: calc(2 * var(--u)) solid #e3a33b; box-shadow: 0 0 0 calc(3 * var(--u)) rgba(244, 240, 236, .15); }
 ${S} .hbond.is-full .hbond__board::before { background: radial-gradient(circle, #d2303a, #7a0f16); border-color: #f2c46a; }`,
   'is-mizuki': (S) => `
 ${S} .section-label { width: fit-content; padding: .04rem .26rem; color: #dff6ff; border-radius: 99px; background: radial-gradient(60% 120% at 30% 0, rgba(127, 247, 255, .35), transparent 70%), rgba(20, 40, 110, .7); box-shadow: 0 0 .12rem rgba(95, 212, 255, .45), inset 0 0 0 1px rgba(127, 247, 255, .5); }
-${S} :is(.panel, .modal__box) { border-radius: .22rem; box-shadow: 0 0 .18rem rgba(75, 140, 255, .25), inset 0 0 0 1px rgba(95, 212, 255, .3); }
+${S} :is(.panel, .modal__box, .bpop, .dpanel) { border-radius: .22rem; box-shadow: 0 0 .18rem rgba(75, 140, 255, .25), inset 0 0 0 1px rgba(95, 212, 255, .3); }
 ${S} .btn { border-radius: 99px; }
 ${NO_RING(S)}
 ${S} .hbond__board::before { inset: 12%; border-radius: 50%; background: radial-gradient(circle at 32% 28%, rgba(255, 255, 255, .6) 0 10%, transparent 12%), radial-gradient(circle, rgba(30, 60, 160, .85) 55%, rgba(95, 212, 255, .7) 70%, transparent 72%); box-shadow: 0 0 calc(8 * var(--u)) rgba(95, 212, 255, .5); }
@@ -252,7 +252,7 @@ ${S} .hbond.is-full .hbond__board::before { background: radial-gradient(circle a
   'is-frost': (S) => `
 ${S} .section-label { width: fit-content; padding: .04rem .26rem .04rem .2rem; color: #e8fbff; background: linear-gradient(90deg, #1fc4d6 0 .05rem, rgba(14, 60, 70, .85) .05rem);
   clip-path: polygon(0 0, calc(100% - .12rem) 0, 100% .12rem, 100% 100%, 0 100%); }
-${S} :is(.panel, .modal__box) { ${frame(`<path d='M0 12V0H12M48 0H60V12M60 48V60H48M12 60H0V48' fill='none' stroke='%231fc4d6' stroke-width='2'/><rect x='3' y='3' width='54' height='54' fill='none' stroke='%23264a52' stroke-width='1'/>`, '.08rem')} }
+${S} :is(.panel, .modal__box, .bpop, .dpanel) { ${frame(`<path d='M0 12V0H12M48 0H60V12M60 48V60H48M12 60H0V48' fill='none' stroke='%231fc4d6' stroke-width='2'/><rect x='3' y='3' width='54' height='54' fill='none' stroke='%23264a52' stroke-width='1'/>`, '.08rem')} }
 ${NO_RING(S)}
 ${S} .hbond__board::before { inset: 12%; clip-path: polygon(25% 3%, 75% 3%, 100% 50%, 75% 97%, 25% 97%, 0 50%); background: linear-gradient(180deg, #123a42, #071c20); box-shadow: inset 0 0 0 calc(3 * var(--u)) #1fc4d6; }
 ${S} .hbond.is-full .hbond__board::before { background: linear-gradient(180deg, #7af0d0, #1fc4d6); }`,
@@ -260,14 +260,14 @@ ${S} .hbond.is-full .hbond__board::before { background: linear-gradient(180deg, 
 ${S} .section-label { width: fit-content; padding: .04rem .26rem .05rem; color: #f0d28a; background: linear-gradient(#b3202a, #b3202a) bottom / 100% 2px no-repeat, #141416;
   clip-path: polygon(.1rem 0, 100% 0, 100% 100%, 0 100%, 0 .1rem); }
 ${S} .section-label::before { content: ''; width: .08rem; height: .14rem; margin-right: .08rem; background: radial-gradient(50% 60% at 50% 70%, #ffd36a, #d9a63a 50%, transparent 70%); }
-${S} :is(.panel, .modal__box) { box-shadow: inset 0 0 0 1px rgba(217, 166, 58, .35), 0 .06rem .3rem rgba(0, 0, 0, .55); }
+${S} :is(.panel, .modal__box, .bpop, .dpanel) { box-shadow: inset 0 0 0 1px rgba(217, 166, 58, .35), 0 .06rem .3rem rgba(0, 0, 0, .55); }
 ${NO_RING(S)}
 ${S} .hbond__board::before { inset: 10% 16% 14%; clip-path: polygon(50% 0, 100% 30%, 86% 100%, 14% 100%, 0 30%); background: linear-gradient(180deg, #2a2a2e, #141416); box-shadow: inset 0 0 0 calc(3 * var(--u)) #d9a63a; }
 ${S} .hbond.is-full .hbond__board::before { background: radial-gradient(60% 50% at 50% 65%, #ffd36a, #d9a63a 60%, #b3202a); }`,
   'is-sui': (S) => `
 ${S} .section-label { width: fit-content; padding: .04rem .3rem; color: #f4f8f5; background: ${svg(20, 20, `<path d='M2 2h16v16H2z M2 10h16 M10 2v16' fill='none' stroke='%23dfe9e2' stroke-width='1.4'/>`)} .06rem center / .14rem .14rem no-repeat, ${svg(20, 20, `<path d='M2 2h16v16H2z M2 10h16 M10 2v16' fill='none' stroke='%23dfe9e2' stroke-width='1.4'/>`)} calc(100% - .06rem) center / .14rem .14rem no-repeat, #167f78; }
 ${S} .section-label::after { content: ''; width: .12rem; height: .12rem; margin-left: .08rem; background: #b8232b; }
-${S} :is(.panel, .modal__box) { ${frame(`<path d='M1 1H22V5H5V22H1Z M59 1H38V5H55V22H59Z M1 59H22V55H5V38H1Z M59 59H38V55H55V38H59Z' fill='%23167f78'/><path d='M9 9h8v8H9z M43 9h8v8h-8z M9 43h8v8H9z M43 43h8v8h-8z' fill='none' stroke='%23167f78' stroke-width='1.2'/>`, '.12rem')} }
+${S} :is(.panel, .modal__box, .bpop, .dpanel) { ${frame(`<path d='M1 1H22V5H5V22H1Z M59 1H38V5H55V22H59Z M1 59H22V55H5V38H1Z M59 59H38V55H55V38H59Z' fill='%23167f78'/><path d='M9 9h8v8H9z M43 9h8v8h-8z M9 43h8v8H9z M43 43h8v8h-8z' fill='none' stroke='%23167f78' stroke-width='1.2'/>`, '.12rem')} }
 ${NO_RING(S)}
 ${S} .hbond__board::before { inset: 12%; border-radius: 50%; background: radial-gradient(circle, #f4f8f5 55%, #167f78 56% 63%, #f4f8f5 64% 68%, #167f78 69%); }
 ${S} .hbond.is-full .hbond__board::before { background: radial-gradient(circle, #1a9a91 55%, #0f5e58 56% 63%, #f4f8f5 64% 68%, #b8232b 69%); }
@@ -275,8 +275,8 @@ ${S} .hbond__icon:not(.hbond__glyph) { filter: brightness(0) invert(.2) sepia(.3
 ${S} .hbond.is-full .hbond__icon:not(.hbond__glyph) { filter: brightness(0) invert(1); }`,
   'is-blackflow': (S) => `
 ${S} .section-label { width: fit-content; padding: .03rem .2rem .08rem; color: #e6d48a; background: ${svg(40, 8, `<path d='M0 4 Q5 0 10 4 T20 4 T30 4 T40 4' fill='none' stroke='%23e6d48a' stroke-width='1.2'/>`)} bottom / .4rem .08rem repeat-x; }
-${S} :is(.panel, .modal__box) { border-radius: .02rem .02rem .14rem .14rem; box-shadow: inset 0 0 0 1px rgba(230, 212, 138, .3), 0 .06rem .3rem rgba(0, 0, 0, .55); }
-${S} :is(.panel, .modal__box)::after { content: ''; position: absolute; left: .1rem; right: .1rem; bottom: .04rem; height: .08rem; pointer-events: none; opacity: .5; background: ${svg(40, 8, `<path d='M0 4 Q5 0 10 4 T20 4 T30 4 T40 4' fill='none' stroke='%23e6d48a' stroke-width='1'/>`)} 0 0 / .4rem .08rem repeat-x; }
+${S} :is(.panel, .modal__box, .bpop, .dpanel) { border-radius: .02rem .02rem .14rem .14rem; box-shadow: inset 0 0 0 1px rgba(230, 212, 138, .3), 0 .06rem .3rem rgba(0, 0, 0, .55); }
+${S} :is(.panel, .modal__box, .bpop, .dpanel)::after { content: ''; position: absolute; left: .1rem; right: .1rem; bottom: .04rem; height: .08rem; pointer-events: none; opacity: .5; background: ${svg(40, 8, `<path d='M0 4 Q5 0 10 4 T20 4 T30 4 T40 4' fill='none' stroke='%23e6d48a' stroke-width='1'/>`)} 0 0 / .4rem .08rem repeat-x; }
 ${NO_RING(S)}
 ${S} .hbond__board::before { inset: 12%; border-radius: 50%; background: radial-gradient(circle, #121210 56%, #e6d48a 57% 61%, transparent 62%), radial-gradient(circle at 50% 120%, rgba(230, 212, 138, .3), transparent 60%); }
 ${S} .hbond.is-full .hbond__board::before { background: radial-gradient(circle, #e6d48a 56%, #fff0b0 57% 61%, transparent 62%); }`,
@@ -446,5 +446,5 @@ export function motifCss(id) {
   if (!m || /width='1'/.test(m[0])) return '';
   const S = `:root[data-ui-theme="${id}"]`;
   return `${S} body::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none; background: ${m[0]} 0 0 / ${m[1]} repeat; }
-${S} :is(.panel, .modal__box)::before { background-image: ${m[0]}; background-size: ${m[1]}; background-repeat: repeat; opacity: .8; }\n`;
+${S} :is(.panel, .modal__box, .bpop, .dpanel)::before { background-image: ${m[0]}; background-size: ${m[1]}; background-repeat: repeat; opacity: .8; }\n`;
 }
