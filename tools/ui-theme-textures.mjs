@@ -8,6 +8,7 @@
 //   clip    the card silhouette (mode / seat / shop cards), or 'none'
 //   sprite  a filter for the official shop sprites (refresh / freeze plates, cost mattes, their icons)
 // All CSS gradients: no official artwork. Colours are literal so each theme reads on its own.
+import { THEME_ART as ART } from './build-ui-theme-resources.mjs';
 const L = (c, w = 'var(--bk-w)', l = 'var(--bk-l)') => [
   `linear-gradient(${c}, ${c}) top left / ${l} ${w} no-repeat`, `linear-gradient(${c}, ${c}) top left / ${w} ${l} no-repeat`,
   `linear-gradient(${c}, ${c}) top right / ${l} ${w} no-repeat`, `linear-gradient(${c}, ${c}) top right / ${w} ${l} no-repeat`,
@@ -197,6 +198,44 @@ export const TEXTURES = {
   },
 };
 
+/** An SVG fractal-noise grain as a data URI: { f: base frequency, o: octaves, c: [r, g, b], a: alpha, t: 'fractalNoise' | 'turbulence' } */
+function noise({ f = .8, o = 3, c = [255, 255, 255], a = .08, t = 'fractalNoise' }) {
+  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='${t}' baseFrequency='${f}' numOctaves='${o}' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 ${(c[0] / 255).toFixed(3)} 0 0 0 0 ${(c[1] / 255).toFixed(3)} 0 0 0 0 ${(c[2] / 255).toFixed(3)} 0 0 0 ${a} 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>`;
+  return `url("data:image/svg+xml,${svg.replace(/"/g, "'").replace(/</g, '%3C').replace(/>/g, '%3E')}")`;
+}
+const SERIF_KR = { q: 'family=Noto+Serif+KR:wght@500;700;900', family: "'Noto Serif KR'" };
+const CINZEL = { q: 'family=Cinzel:wght@600;800&family=Noto+Serif+KR:wght@500;700;900', family: "'Cinzel', 'Noto Serif KR'" };
+const MONO = { q: 'family=Share+Tech+Mono', family: "'Share Tech Mono'" };
+const BRUSH = { q: 'family=Nanum+Myeongjo:wght@700;800', family: "'Nanum Myeongjo'" };
+const GOLD = (c = '#d9b25f') => `inset 0 0 0 1px rgba(0, 0, 0, .7), inset 0 0 0 3px ${c}, inset 0 0 0 4px rgba(0, 0, 0, .6), inset 0 0 0 5px rgba(255, 230, 170, .25), 0 .1rem .4rem rgba(0, 0, 0, .65)`;
+// the materials: grain, face, frame
+const MAT = {
+  white: { noise: { f: .9, o: 2, c: [20, 30, 40], a: .03 } },
+  space: { noise: { f: .6, o: 2, c: [190, 200, 255], a: .05 } },
+  rhine: { noise: { f: 1.2, o: 1, c: [17, 19, 18], a: .025 }, font: { q: 'family=IBM+Plex+Mono:wght@500', family: "'IBM Plex Mono'" } },
+  cyber: { noise: { f: 1.4, o: 1, c: [0, 240, 255], a: .05 }, font: MONO, frame: 'inset 0 0 0 1px rgba(0, 240, 255, .18), 0 0 .18rem rgba(255, 46, 136, .35)' },
+  'is-fungi': { noise: { f: .5, o: 4, c: [201, 178, 122], a: .09 }, font: SERIF_KR },
+  'is-phantom': { noise: { f: .35, o: 5, c: [120, 20, 35], a: .22, size: '320px' }, font: CINZEL, frame: GOLD(), edge: '1px solid #3a1a12',
+    extra: `$S :is(.panel, .modal__box)::after { content: ''; position: absolute; inset: 6px; pointer-events: none; border: 1px solid rgba(217, 178, 95, .28); }
+$S .btn--primary { box-shadow: inset 0 0 0 1px #d9b25f, inset 0 0 0 3px #4a0a14, 0 .04rem .12rem rgba(0, 0, 0, .7); text-shadow: 0 1px 0 rgba(0, 0, 0, .6); }
+$S .mode-card.is-selected { box-shadow: ${GOLD('#ffd88a')}, 0 0 .2rem rgba(236, 58, 85, .45); }` },
+  'is-mizuki': { noise: { f: .25, o: 4, c: [63, 224, 232], a: .07, t: 'turbulence' }, font: SERIF_KR },
+  'is-frost': { noise: { f: 1.6, o: 2, c: [255, 255, 255], a: .5 }, font: SERIF_KR },
+  'is-sarkaz': { noise: { f: .45, o: 5, c: [255, 138, 61], a: .08 }, font: SERIF_KR, frame: 'inset 0 0 0 1px rgba(255, 138, 61, .18), inset 0 -.06rem .2rem rgba(255, 138, 61, .12), 0 .08rem .3rem rgba(0, 0, 0, .55)' },
+  'is-sui': { noise: { f: .7, o: 4, c: [90, 70, 40], a: .14, size: '300px' }, font: BRUSH, frame: 'inset 0 0 0 4px rgba(251, 248, 241, .9), inset 0 0 0 5px rgba(168, 145, 106, .6), 0 .06rem .2rem rgba(60, 45, 25, .15)' },
+  'is-blackflow': { noise: { f: .2, o: 3, c: [127, 209, 194], a: .06, t: 'turbulence' } },
+  'f-yan': { noise: { f: .6, o: 4, c: [224, 164, 58], a: .07 }, font: BRUSH, frame: GOLD('#e0a43a') },
+  'f-sargon': { noise: { f: .5, o: 5, c: [135, 75, 8], a: .12 }, font: SERIF_KR },
+  'f-victoria': { noise: { f: .9, o: 3, c: [212, 175, 90], a: .05 }, font: CINZEL, frame: GOLD('#d4af5a') },
+  'f-kjerag': { noise: { f: 1.4, o: 2, c: [255, 255, 255], a: .45 }, font: SERIF_KR },
+  'f-laterano': { noise: { f: 1, o: 3, c: [168, 125, 31], a: .05 }, font: CINZEL, frame: 'inset 0 0 0 1px rgba(255, 255, 255, .9), inset 0 0 0 2px rgba(224, 178, 74, .55), 0 .05rem .2rem rgba(120, 95, 40, .14)' },
+  'f-aegir': { noise: { f: .3, o: 3, c: [34, 211, 197], a: .06, t: 'turbulence' } },
+  'f-siracusa': { noise: { f: .9, o: 3, c: [255, 240, 210], a: .05 }, font: CINZEL, frame: 'inset 0 0 0 1px rgba(184, 149, 90, .45), inset 0 0 0 4px rgba(14, 11, 11, .9), inset 0 0 0 5px rgba(184, 149, 90, .25), 0 .1rem .4rem rgba(0, 0, 0, .6)' },
+  'f-kazimierz': { noise: { f: 1.1, o: 2, c: [232, 226, 208], a: .04 } },
+  'f-ursus': { noise: { f: .8, o: 4, c: [200, 205, 210], a: .07 }, frame: 'inset 0 0 0 2px rgba(0, 0, 0, .6), inset 0 0 0 3px rgba(115, 125, 131, .35), 0 .08rem .3rem rgba(0, 0, 0, .6)' },
+  'f-leithanien': { noise: { f: .8, o: 3, c: [216, 184, 106], a: .05 }, font: CINZEL, frame: GOLD('#d8b86a') },
+};
+
 /** A background stack's top-level layers (commas inside parentheses are not separators). */
 function topLayers(v) {
   const out = []; let depth = 0, cur = '';
@@ -206,7 +245,7 @@ function topLayers(v) {
 }
 
 /** The texture rules of one theme. */
-export function textureCss(id) {
+export function textureCss(id, light = false) {
   const x = TEXTURES[id];
   if (!x) return '';
   const s = `:root[data-ui-theme="${id}"]`;
@@ -243,5 +282,27 @@ export function textureCss(id) {
   // the title backdrop art gives way to the theme's own page
   out.push(`${s} :is(.title-bg__art, .title-bg__ridge-art, .title-bg__ridges, .title-bg__target, .title-bg__radar, .title-bg__haze) { display: none; }`);
   out.push(`${s} .app-bg, ${s} .app-bg::before, ${s} .app-bg::after { background: none; }`);
+  // the theme's official art (tools/build-ui-theme-resources.mjs), only once it is downloaded (<html data-ui-art>)
+  const a = `${s}[data-ui-art]`;
+  const veil = light ? 'rgba(var(--bg-0-rgb), .78)' : 'rgba(var(--bg-0-rgb), .62)';
+  const veilCard = light ? 'rgba(var(--bg-1-rgb), .82)' : 'rgba(var(--bg-1-rgb), .55)';
+  const art = ART[id] || {};
+  if (art.left) out.push(`${a} body { background-image: ${MAT[id]?.noise ? noise(MAT[id].noise) + ', ' : ''}linear-gradient(${veil}, ${veil}), var(--ta-left), var(--ta-right); background-size: ${MAT[id]?.noise?.size || '240px'} auto, 100% 100%, 50.1% 100%, 50.1% 100%; background-position: 0 0, 0 0, left center, right center; background-repeat: repeat, no-repeat, no-repeat, no-repeat; }`);
+  if (art.logo) out.push(`${a} body::after { content: ''; position: fixed; right: 4vw; bottom: 6vh; width: 34vmin; height: 34vmin; background: var(--ta-logo) center / contain no-repeat; opacity: ${light ? '.08' : '.07'}; pointer-events: none; z-index: -1; ${light ? 'filter: invert(1);' : ''} }`);
+  // material: an SVG noise grain (paper / velvet / stone / frost) over the surfaces, the theme's face, its frame
+  const m = MAT[id];
+  if (m) {
+    if (m.font) out.unshift(`@import url("https://fonts.googleapis.com/css2?${m.font.q}&display=swap");`);
+    if (m.font) out.push(`${s} :is(.topbar__title, .modal__title, .panel__title, .mode-card__name, .btn, .section-label, .capsule__label, .lvcard__label, .scard__name, .seat__name) { font-family: ${m.font.family}, var(--font-cjk); }`);
+    if (m.noise) {
+      const n = noise(m.noise);
+      out.push(`${s} :is(.panel, .modal__box)::before { background: ${n}, ${x.grain}; background-size: ${m.noise.size || '240px'} auto, auto; }`);
+      out.push(`${s} body { background-image: ${n}, var(--ui-body-art, none); }`);
+      out.push(`${s} :is(.mode-card__bg, .scard__bg) { background: ${n}, ${x.card}; }`);
+    }
+    if (m.frame) out.push(`${s} :is(.panel, .modal__box, .mode-card, .seat, .gtop__center) { box-shadow: ${m.frame}; }`);
+    if (m.edge) out.push(`${s} :is(.panel, .modal__box, .mode-card, .seat) { border: ${m.edge}; }`);
+    if (m.extra) out.push(m.extra.replaceAll('$S', s));
+  }
   return `/* ---- texture layer (tools/ui-theme-textures.mjs) */\n${out.join('\n')}\n`;
 }

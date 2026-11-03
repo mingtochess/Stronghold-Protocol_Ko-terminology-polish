@@ -139,6 +139,9 @@
 /* HUD controls that keep their own dark plates in a light theme keep light text on them */
 :root[data-ui-light] :is(.funds__collapse, .gm__bond-toggle, .hex__value) { color: #e8fff7; }
 
+/* in battle (the game screen) no theme backdrop: neither the scene art nor the emblem shows behind the field */
+:root[data-ui-theme] .screen.gm { background: var(--bg-0); }
+
 /* the battlefield (fallback DOM board) is play, not UI: every theme token back at its default inside it */
 :root[data-ui-theme] .ff {
   color-scheme: dark;

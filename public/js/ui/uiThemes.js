@@ -2,6 +2,7 @@
 // keyed by <html data-ui-theme>. A theme restyles every HTML UI — menus, rooms, the prep / battle HUD (shop, bond list,
 // panels) — never what the renderer draws (battlefield, units, effects, the official HP bars). A theme with `assets`
 // (images) asks before it downloads them; until they are in, its CSS-only look is shown.
+import { UI_THEME_ASSETS } from './uiThemeAssets.js';
 /** Theme groups of the picker, in order. */
 export const UI_THEME_GROUPS = Object.freeze([
   Object.freeze({ id: 'basic', name: '기본' }), Object.freeze({ id: 'special', name: '스타일' }),
@@ -11,7 +12,7 @@ export const UI_THEME_GROUPS = Object.freeze([
 export const UI_THEME_LIST = Object.freeze([
   Object.freeze({ id: 'default', name: '기본', group: 'basic', swatch: ['#0c0f0e', '#4ed8af'] }),
   Object.freeze({ id: 'white', name: '화이트', group: 'basic', swatch: ['#eef1f3', '#00967d'], light: true }),
-  Object.freeze({ id: 'space', name: '우주', group: 'special', swatch: ['#05060d', '#84aaff'], assets: Object.freeze([]) }),
+  Object.freeze({ id: 'space', name: '우주', group: 'special', swatch: ['#05060d', '#84aaff'] }),
   Object.freeze({ id: 'rhine', name: '라인 생명', group: 'special', swatch: ['#f4f5f2', '#1a1c1b'], light: true }),
   Object.freeze({ id: 'cyber', name: '사이버펑크', group: 'special', swatch: ['#07060c', '#ff2e88'] }),
   Object.freeze({ id: 'is-fungi', name: '케오베의 버섯 안개 미궁', group: 'is', swatch: ['#121412', '#c9b27a'] }),
@@ -35,49 +36,55 @@ export const UI_THEME_LIST = Object.freeze([
 export const UI_THEMES = Object.freeze(UI_THEME_LIST.map((t) => t.id));
 export const uiTheme = (id) => UI_THEME_LIST.find((t) => t.id === id) || UI_THEME_LIST[0];
 
-/** Bytes a theme still has to download (0: nothing, or all of it is already in the browser cache). */
+/** A theme's downloaded official art: { key: { path, bytes } } (ui/uiThemeAssets.js). */
+export const themeAssets = (id) => UI_THEME_ASSETS[uiTheme(id).id] || {};
+/** Bytes of a theme's art (0: CSS only). */
 export function themeDownloadBytes(id) {
-  return (uiTheme(id).assets || []).reduce((n, a) => n + (a.bytes || 0), 0);
+  return Object.values(themeAssets(id)).reduce((n, a) => n + (a.bytes || 0), 0);
+}
+/** Whether the theme's art was downloaded on this browser (resource-bootstrap.js marks it when its scope finished). */
+export function themeAssetsReady(id) {
+  if (!themeDownloadBytes(id)) return true;
+  try { return !!globalThis.localStorage?.getItem('sp.resources.themeReady.' + uiTheme(id).id); } catch { return false; }
 }
 
 const LINK_ID = 'ui-theme-css';
-/** Put the theme on the page: its stylesheet (once) and <html data-ui-theme>. */
+/** Put the theme on the page: its stylesheet (once), <html data-ui-theme>, and its art as --ta-<key> once downloaded. */
 export function applyUiTheme(id) {
   const doc = globalThis.document;
   if (!doc) return;
   const t = uiTheme(id);
   const el = doc.documentElement;
-  let link = doc.getElementById(LINK_ID);
+  for (const k of [...el.style]) if (k.startsWith('--ta-')) el.style.removeProperty(k);
   if (t.light) el.dataset.uiLight = ''; else delete el.dataset.uiLight;
+  let link = doc.getElementById(LINK_ID);
   if (t.id === 'default') {
     delete el.dataset.uiTheme;
+    delete el.dataset.uiArt;
     if (link) link.remove();
-    el.style.removeProperty('--space-nebula');
     return;
   }
   const href = `/css/themes/${t.id}.css`;
   if (!link) { link = doc.createElement('link'); link.id = LINK_ID; link.rel = 'stylesheet'; doc.head.appendChild(link); }
   if (link.getAttribute('href') !== href) link.setAttribute('href', href);
   el.dataset.uiTheme = t.id;
-  for (const a of t.assets || []) if (a.cssVar && themeAssetsReady(t.id)) el.style.setProperty(a.cssVar, `url("${a.url}")`);
+  const art = themeAssets(t.id);
+  if (Object.keys(art).length && themeAssetsReady(t.id)) {
+    for (const [k, a] of Object.entries(art)) el.style.setProperty(`--ta-${k}`, `url("${a.path}")`);
+    el.dataset.uiArt = '';
+  } else delete el.dataset.uiArt;
 }
 
-const READY_KEY = 'sp.uiTheme.assets';
-const readyMap = () => { try { return JSON.parse(globalThis.localStorage?.getItem(READY_KEY) || '{}') || {}; } catch { return {}; } };
-/** Whether the theme's images were downloaded on this browser (the user agreed and they loaded). */
-export function themeAssetsReady(id) { const t = uiTheme(id); return !(t.assets || []).length || readyMap()[id] === assetsKey(t); }
-const assetsKey = (t) => (t.assets || []).map((a) => a.url).join('|');
-
-/** Download a theme's images (after the user agreed): resolves true when every one loaded. */
-export async function downloadThemeAssets(id, onProgress = () => {}) {
-  const t = uiTheme(id), list = t.assets || [];
-  let done = 0;
-  for (const a of list) {
-    const r = await fetch(a.url, { cache: 'force-cache' });
-    if (!r.ok) throw new Error(`${a.url}: ${r.status}`);
-    await r.blob();
-    onProgress(++done, list.length);
-  }
-  try { const m = readyMap(); m[id] = assetsKey(t); globalThis.localStorage?.setItem(READY_KEY, JSON.stringify(m)); } catch { /* the next start asks again */ }
-  return true;
+/** Download a theme's art through the resource worker (the player agreed): resolves true when it is in. */
+export function downloadThemeAssets(id) {
+  const theme = uiTheme(id).id;
+  return new Promise((resolve, reject) => {
+    const done = (e) => {
+      if (e.detail?.theme !== theme) return;
+      globalThis.removeEventListener('sp-ui-theme-ready', done);
+      if (e.detail.error || e.detail.missing) reject(new Error(e.detail.error || 'missing')); else resolve(true);
+    };
+    globalThis.addEventListener('sp-ui-theme-ready', done);
+    globalThis.dispatchEvent(new CustomEvent('sp-request-theme-download', { detail: { theme } }));
+  });
 }

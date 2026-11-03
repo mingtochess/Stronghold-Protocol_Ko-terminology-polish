@@ -1,0 +1,285 @@
+{
+ "commit": "44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48",
+ "files": [
+  {
+   "path": "/assets/ui-themes/is-phantom/left.png",
+   "sources": [
+    "https://cdn.jsdelivr.net/gh/ArknightsAssets/ArknightsAssets2@44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/ui/homebackground/wrapper/bg_rogue_1/bg_rogue_1_left.png",
+    "https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets2/44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/ui/homebackground/wrapper/bg_rogue_1/bg_rogue_1_left.png"
+   ],
+   "bytes": 1487804
+  },
+  {
+   "path": "/assets/ui-themes/is-phantom/right.png",
+   "sources": [
+    "https://cdn.jsdelivr.net/gh/ArknightsAssets/ArknightsAssets2@44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/ui/homebackground/wrapper/bg_rogue_1/bg_rogue_1_right.png",
+    "https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets2/44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/ui/homebackground/wrapper/bg_rogue_1/bg_rogue_1_right.png"
+   ],
+   "bytes": 1438416
+  },
+  {
+   "path": "/assets/ui-themes/is-mizuki/left.png",
+   "sources": [
+    "https://cdn.jsdelivr.net/gh/ArknightsAssets/ArknightsAssets2@44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/ui/homebackground/wrapper/bg_rogue_2/bg_rogue_2_left.png",
+    "https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets2/44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/ui/homebackground/wrapper/bg_rogue_2/bg_rogue_2_left.png"
+   ],
+   "bytes": 1297079
+  },
+  {
+   "path": "/assets/ui-themes/is-mizuki/right.png",
+   "sources": [
+    "https://cdn.jsdelivr.net/gh/ArknightsAssets/ArknightsAssets2@44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/ui/homebackground/wrapper/bg_rogue_2/bg_rogue_2_right.png",
+    "https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets2/44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/ui/homebackground/wrapper/bg_rogue_2/bg_rogue_2_right.png"
+   ],
+   "bytes": 1478684
+  },
+  {
+   "path": "/assets/ui-themes/is-frost/left.png",
+   "sources": [
+    "https://cdn.jsdelivr.net/gh/ArknightsAssets/ArknightsAssets2@44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/ui/homebackground/wrapper/bg_rogue_3/bg_rogue_3_left.png",
+    "https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets2/44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/ui/homebackground/wrapper/bg_rogue_3/bg_rogue_3_left.png"
+   ],
+   "bytes": 1193679
+  },
+  {
+   "path": "/assets/ui-themes/is-frost/right.png",
+   "sources": [
+    "https://cdn.jsdelivr.net/gh/ArknightsAssets/ArknightsAssets2@44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/ui/homebackground/wrapper/bg_rogue_3/bg_rogue_3_right.png",
+    "https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets2/44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/ui/homebackground/wrapper/bg_rogue_3/bg_rogue_3_right.png"
+   ],
+   "bytes": 1054200
+  },
+  {
+   "path": "/assets/ui-themes/is-sarkaz/left.png",
+   "sources": [
+    "https://cdn.jsdelivr.net/gh/ArknightsAssets/ArknightsAssets2@44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/ui/homebackground/wrapper/bg_rogue_4/bg_rogue_4_left.png",
+    "https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets2/44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/ui/homebackground/wrapper/bg_rogue_4/bg_rogue_4_left.png"
+   ],
+   "bytes": 793068
+  },
+  {
+   "path": "/assets/ui-themes/is-sarkaz/right.png",
+   "sources": [
+    "https://cdn.jsdelivr.net/gh/ArknightsAssets/ArknightsAssets2@44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/ui/homebackground/wrapper/bg_rogue_4/bg_rogue_4_right.png",
+    "https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets2/44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/ui/homebackground/wrapper/bg_rogue_4/bg_rogue_4_right.png"
+   ],
+   "bytes": 824455
+  },
+  {
+   "path": "/assets/ui-themes/is-sui/left.png",
+   "sources": [
+    "https://cdn.jsdelivr.net/gh/ArknightsAssets/ArknightsAssets2@44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/ui/homebackground/wrapper/bg_rogue_5/bg_rogue_5_left.png",
+    "https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets2/44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/ui/homebackground/wrapper/bg_rogue_5/bg_rogue_5_left.png"
+   ],
+   "bytes": 1500304
+  },
+  {
+   "path": "/assets/ui-themes/is-sui/right.png",
+   "sources": [
+    "https://cdn.jsdelivr.net/gh/ArknightsAssets/ArknightsAssets2@44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/ui/homebackground/wrapper/bg_rogue_5/bg_rogue_5_right.png",
+    "https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets2/44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/ui/homebackground/wrapper/bg_rogue_5/bg_rogue_5_right.png"
+   ],
+   "bytes": 1413860
+  },
+  {
+   "path": "/assets/ui-themes/rhine/left.png",
+   "sources": [
+    "https://cdn.jsdelivr.net/gh/ArknightsAssets/ArknightsAssets2@44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/ui/homebackground/wrapper/bg_rhine_1/bg_rhine_1_left.png",
+    "https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets2/44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/ui/homebackground/wrapper/bg_rhine_1/bg_rhine_1_left.png"
+   ],
+   "bytes": 1120441
+  },
+  {
+   "path": "/assets/ui-themes/rhine/right.png",
+   "sources": [
+    "https://cdn.jsdelivr.net/gh/ArknightsAssets/ArknightsAssets2@44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/ui/homebackground/wrapper/bg_rhine_1/bg_rhine_1_right.png",
+    "https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets2/44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/ui/homebackground/wrapper/bg_rhine_1/bg_rhine_1_right.png"
+   ],
+   "bytes": 1003951
+  },
+  {
+   "path": "/assets/ui-themes/rhine/logo.png",
+   "sources": [
+    "https://cdn.jsdelivr.net/gh/ArknightsAssets/ArknightsAssets2@44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/camplogo/logo_rhine.png",
+    "https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets2/44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/camplogo/logo_rhine.png"
+   ],
+   "bytes": 40907
+  },
+  {
+   "path": "/assets/ui-themes/f-yan/left.png",
+   "sources": [
+    "https://cdn.jsdelivr.net/gh/ArknightsAssets/ArknightsAssets2@44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/ui/homebackground/wrapper/bg_yan_1/bg_yan_1_left.png",
+    "https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets2/44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/ui/homebackground/wrapper/bg_yan_1/bg_yan_1_left.png"
+   ],
+   "bytes": 1193382
+  },
+  {
+   "path": "/assets/ui-themes/f-yan/right.png",
+   "sources": [
+    "https://cdn.jsdelivr.net/gh/ArknightsAssets/ArknightsAssets2@44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/ui/homebackground/wrapper/bg_yan_1/bg_yan_1_right.png",
+    "https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets2/44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/ui/homebackground/wrapper/bg_yan_1/bg_yan_1_right.png"
+   ],
+   "bytes": 751888
+  },
+  {
+   "path": "/assets/ui-themes/f-yan/logo.png",
+   "sources": [
+    "https://cdn.jsdelivr.net/gh/ArknightsAssets/ArknightsAssets2@44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/camplogo/logo_yan.png",
+    "https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets2/44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/camplogo/logo_yan.png"
+   ],
+   "bytes": 83882
+  },
+  {
+   "path": "/assets/ui-themes/f-victoria/left.png",
+   "sources": [
+    "https://cdn.jsdelivr.net/gh/ArknightsAssets/ArknightsAssets2@44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/ui/homebackground/wrapper/bg_main_victoria_1/bg_main_victoria_1_left.png",
+    "https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets2/44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/ui/homebackground/wrapper/bg_main_victoria_1/bg_main_victoria_1_left.png"
+   ],
+   "bytes": 1376230
+  },
+  {
+   "path": "/assets/ui-themes/f-victoria/right.png",
+   "sources": [
+    "https://cdn.jsdelivr.net/gh/ArknightsAssets/ArknightsAssets2@44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/ui/homebackground/wrapper/bg_main_victoria_1/bg_main_victoria_1_right.png",
+    "https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets2/44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/ui/homebackground/wrapper/bg_main_victoria_1/bg_main_victoria_1_right.png"
+   ],
+   "bytes": 1320984
+  },
+  {
+   "path": "/assets/ui-themes/f-victoria/logo.png",
+   "sources": [
+    "https://cdn.jsdelivr.net/gh/ArknightsAssets/ArknightsAssets2@44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/camplogo/logo_victoria.png",
+    "https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets2/44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/camplogo/logo_victoria.png"
+   ],
+   "bytes": 77037
+  },
+  {
+   "path": "/assets/ui-themes/f-laterano/left.png",
+   "sources": [
+    "https://cdn.jsdelivr.net/gh/ArknightsAssets/ArknightsAssets2@44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/ui/homebackground/wrapper/bg_laterano_1/bg_laterano_1_left.png",
+    "https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets2/44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/ui/homebackground/wrapper/bg_laterano_1/bg_laterano_1_left.png"
+   ],
+   "bytes": 1411013
+  },
+  {
+   "path": "/assets/ui-themes/f-laterano/right.png",
+   "sources": [
+    "https://cdn.jsdelivr.net/gh/ArknightsAssets/ArknightsAssets2@44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/ui/homebackground/wrapper/bg_laterano_1/bg_laterano_1_right.png",
+    "https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets2/44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/ui/homebackground/wrapper/bg_laterano_1/bg_laterano_1_right.png"
+   ],
+   "bytes": 1487217
+  },
+  {
+   "path": "/assets/ui-themes/f-laterano/logo.png",
+   "sources": [
+    "https://cdn.jsdelivr.net/gh/ArknightsAssets/ArknightsAssets2@44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/camplogo/logo_laterano.png",
+    "https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets2/44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/camplogo/logo_laterano.png"
+   ],
+   "bytes": 59658
+  },
+  {
+   "path": "/assets/ui-themes/f-kazimierz/left.png",
+   "sources": [
+    "https://cdn.jsdelivr.net/gh/ArknightsAssets/ArknightsAssets2@44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/ui/homebackground/wrapper/bg_kazimierz_1/bg_kazimierz_1_left.png",
+    "https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets2/44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/ui/homebackground/wrapper/bg_kazimierz_1/bg_kazimierz_1_left.png"
+   ],
+   "bytes": 1325241
+  },
+  {
+   "path": "/assets/ui-themes/f-kazimierz/right.png",
+   "sources": [
+    "https://cdn.jsdelivr.net/gh/ArknightsAssets/ArknightsAssets2@44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/ui/homebackground/wrapper/bg_kazimierz_1/bg_kazimierz_1_right.png",
+    "https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets2/44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/ui/homebackground/wrapper/bg_kazimierz_1/bg_kazimierz_1_right.png"
+   ],
+   "bytes": 1307741
+  },
+  {
+   "path": "/assets/ui-themes/f-kazimierz/logo.png",
+   "sources": [
+    "https://cdn.jsdelivr.net/gh/ArknightsAssets/ArknightsAssets2@44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/camplogo/logo_kazimierz.png",
+    "https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets2/44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/camplogo/logo_kazimierz.png"
+   ],
+   "bytes": 39239
+  },
+  {
+   "path": "/assets/ui-themes/f-ursus/left.png",
+   "sources": [
+    "https://cdn.jsdelivr.net/gh/ArknightsAssets/ArknightsAssets2@44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/ui/homebackground/wrapper/bg_ursus_1/bg_ursus_1_left.png",
+    "https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets2/44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/ui/homebackground/wrapper/bg_ursus_1/bg_ursus_1_left.png"
+   ],
+   "bytes": 1176997
+  },
+  {
+   "path": "/assets/ui-themes/f-ursus/right.png",
+   "sources": [
+    "https://cdn.jsdelivr.net/gh/ArknightsAssets/ArknightsAssets2@44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/ui/homebackground/wrapper/bg_ursus_1/bg_ursus_1_right.png",
+    "https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets2/44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/ui/homebackground/wrapper/bg_ursus_1/bg_ursus_1_right.png"
+   ],
+   "bytes": 1170896
+  },
+  {
+   "path": "/assets/ui-themes/f-ursus/logo.png",
+   "sources": [
+    "https://cdn.jsdelivr.net/gh/ArknightsAssets/ArknightsAssets2@44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/camplogo/logo_ursus.png",
+    "https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets2/44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/camplogo/logo_ursus.png"
+   ],
+   "bytes": 42383
+  },
+  {
+   "path": "/assets/ui-themes/f-aegir/left.png",
+   "sources": [
+    "https://cdn.jsdelivr.net/gh/ArknightsAssets/ArknightsAssets2@44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/ui/homebackground/wrapper/bg_iberia_1/bg_iberia_1_left.png",
+    "https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets2/44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/ui/homebackground/wrapper/bg_iberia_1/bg_iberia_1_left.png"
+   ],
+   "bytes": 1223817
+  },
+  {
+   "path": "/assets/ui-themes/f-aegir/right.png",
+   "sources": [
+    "https://cdn.jsdelivr.net/gh/ArknightsAssets/ArknightsAssets2@44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/ui/homebackground/wrapper/bg_iberia_1/bg_iberia_1_right.png",
+    "https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets2/44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/ui/homebackground/wrapper/bg_iberia_1/bg_iberia_1_right.png"
+   ],
+   "bytes": 1238127
+  },
+  {
+   "path": "/assets/ui-themes/f-aegir/logo.png",
+   "sources": [
+    "https://cdn.jsdelivr.net/gh/ArknightsAssets/ArknightsAssets2@44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/camplogo/logo_egir.png",
+    "https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets2/44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/camplogo/logo_egir.png"
+   ],
+   "bytes": 49693
+  },
+  {
+   "path": "/assets/ui-themes/f-sargon/logo.png",
+   "sources": [
+    "https://cdn.jsdelivr.net/gh/ArknightsAssets/ArknightsAssets2@44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/camplogo/logo_sargon.png",
+    "https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets2/44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/camplogo/logo_sargon.png"
+   ],
+   "bytes": 32641
+  },
+  {
+   "path": "/assets/ui-themes/f-kjerag/logo.png",
+   "sources": [
+    "https://cdn.jsdelivr.net/gh/ArknightsAssets/ArknightsAssets2@44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/camplogo/logo_kjerag.png",
+    "https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets2/44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/camplogo/logo_kjerag.png"
+   ],
+   "bytes": 76998
+  },
+  {
+   "path": "/assets/ui-themes/f-siracusa/logo.png",
+   "sources": [
+    "https://cdn.jsdelivr.net/gh/ArknightsAssets/ArknightsAssets2@44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/camplogo/logo_siracusa.png",
+    "https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets2/44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/camplogo/logo_siracusa.png"
+   ],
+   "bytes": 88131
+  },
+  {
+   "path": "/assets/ui-themes/f-leithanien/logo.png",
+   "sources": [
+    "https://cdn.jsdelivr.net/gh/ArknightsAssets/ArknightsAssets2@44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/camplogo/logo_leithanien.png",
+    "https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets2/44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/camplogo/logo_leithanien.png"
+   ],
+   "bytes": 73831
+  }
+ ]
+}

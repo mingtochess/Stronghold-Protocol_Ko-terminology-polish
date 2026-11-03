@@ -360,19 +360,23 @@ ${sel} .modal__box {
 ${sel} .btn { ${t.btn} }
 ${sel} .btn--primary { ${t.primary.replace(/background:\s*([^;]+);/, '--ui-primary-face: $1; background-color: var(--mint-500);')} }
 ${sel} .modal { background: ${t.light ? 'rgba(40, 40, 40, .35)' : 'rgba(0, 0, 0, .6)'}; }
-${t.light ? `${sel} :is(.btn--secondary, .btn--ghost) { --btn-bg: #ffffff; --btn-bg-hover: ${t.p.bg[1]}; }\n` : ''}${t.extra ? t.extra + '\n' : ''}${textureCss(t.id)}`;
+${t.light ? `${sel} :is(.btn--secondary, .btn--ghost) { --btn-bg: #ffffff; --btn-bg-hover: ${t.p.bg[1]}; }\n` : ''}${t.extra ? t.extra + '\n' : ''}${textureCss(t.id, !!t.light)}`;
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   await mkdir(resolve(ROOT, 'public/css/themes'), { recursive: true });
-  for (const t of THEMES) await writeFile(resolve(ROOT, `public/css/themes/${t.id}.css`), css(t));
+  // (an @import is only valid at the very top of a stylesheet)
+  const hoist = (src) => { const imports = src.match(/^@import [^\n]+\n/gm) || []; return imports.join('') + imports.reduce((x, i) => x.replace(i, ''), src); };
+  for (const t of THEMES) await writeFile(resolve(ROOT, `public/css/themes/${t.id}.css`), hoist(css(t)));
   // the hand-written themes get the texture layer between their markers
   for (const id of ['white', 'space', 'rhine']) {
     const p = resolve(ROOT, `public/css/themes/${id}.css`);
-    let src = await readFile(p, 'utf8');
-    const block = `/* tx:start */\n${textureCss(id)}/* tx:end */\n`;
+    const tx = textureCss(id, id !== 'space');
+    const imports = (tx.match(/^@import [^\n]+\n/gm) || []).join('');
+    const block = `/* tx:start */\n${tx.replace(/^@import [^\n]+\n/gm, '')}/* tx:end */\n`;
+    let src = (await readFile(p, 'utf8')).replace(/^@import [^\n]+\n/gm, '');
     src = /\/\* tx:start \*\/[\s\S]*?\/\* tx:end \*\/\n/.test(src) ? src.replace(/\/\* tx:start \*\/[\s\S]*?\/\* tx:end \*\/\n/, block) : src + '\n' + block;
-    await writeFile(p, src);
+    await writeFile(p, imports + src);
   }
   console.log(JSON.stringify(THEMES.map((t) => ({ id: t.id, name: t.name, group: t.group, light: !!t.light, swatch: t.swatch || [t.p.bg[0], t.p.accent] }))));
 }
