@@ -22,10 +22,10 @@
 .st__bg {
   position: absolute; inset: 0; pointer-events: none;
   background:
-    radial-gradient(70% 90% at 18% 10%, rgba(78, 216, 175, .07), transparent 60%),
+    radial-gradient(70% 90% at 18% 10%, rgba(var(--accent-rgb),.07), transparent 60%),
     radial-gradient(60% 70% at 100% 100%, rgba(246, 163, 41, .05), transparent 60%),
-    linear-gradient(rgba(78, 216, 175, .035) 1px, transparent 1px) 0 0 / .6rem .6rem,
-    linear-gradient(90deg, rgba(78, 216, 175, .035) 1px, transparent 1px) 0 0 / .6rem .6rem,
+    linear-gradient(rgba(var(--accent-rgb),.035) 1px, transparent 1px) 0 0 / .6rem .6rem,
+    linear-gradient(90deg, rgba(var(--accent-rgb),.035) 1px, transparent 1px) 0 0 / .6rem .6rem,
     linear-gradient(180deg, #0f1312, #090b0a);
 }
 .st-top, .st-note, .st-body { position: relative; }
@@ -61,7 +61,7 @@
 .st-note {
   flex: none; display: flex; align-items: center; gap: .08rem; margin: 0; padding: .07rem .36rem;
   font-size: max(.15rem, 10px); color: var(--text-lo);
-  background: linear-gradient(90deg, rgba(78, 216, 175, .08), transparent 70%);
+  background: linear-gradient(90deg, rgba(var(--accent-rgb),.08), transparent 70%);
   border-bottom: 1px solid rgba(47, 58, 53, .6);
 }
 .st-note .icon { width: max(.16rem, 11px); height: max(.16rem, 11px); color: var(--mint-500); flex: none; }
@@ -247,7 +247,7 @@
 /* the per-difficulty and per-strategy tables stay narrow enough to read across; the history takes the width */
 .st-table:not(.st-table--history) { max-width: max(9.4rem, 560px); }
 .st-table th.num, .st-table td.num { text-align: right; }
-.st-table tbody tr:hover td { background: rgba(78, 216, 175, .05); }
+.st-table tbody tr:hover td { background: rgba(var(--accent-rgb),.05); }
 .st-table td.st-diff { color: var(--d-color, var(--text-md)); font-weight: 700; white-space: nowrap; }
 .st-band { display: inline-flex; align-items: center; gap: .06rem; color: var(--text-hi); white-space: nowrap; vertical-align: middle; }
 .st-band .bandicon { flex: none; }
@@ -271,7 +271,7 @@
 .st-modded { display: inline-flex; align-items: center; gap: .08rem; margin-bottom: .1rem; color: var(--text-md); font-size: calc(.14 * var(--t)); cursor: pointer; }
 .st-table tr.is-excluded td { opacity: .6; }
 .st-table tr.is-clickable { cursor: pointer; }
-.st-table tr.is-clickable:hover td, .st-table tr.is-clickable:focus-visible td { background: rgba(78, 216, 175, .1); color: var(--text-hi); }
+.st-table tr.is-clickable:hover td, .st-table tr.is-clickable:focus-visible td { background: rgba(var(--accent-rgb),.1); color: var(--text-hi); }
 .st-table tr.is-clickable:focus-visible { outline: 2px solid var(--mint-400); outline-offset: -2px; }
 .st-go { width: .24rem; color: var(--text-lo); }
 .st-go .icon { width: max(.18rem, 12px); height: max(.18rem, 12px); }

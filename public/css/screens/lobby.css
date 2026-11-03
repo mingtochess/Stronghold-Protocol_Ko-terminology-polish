@@ -40,7 +40,7 @@
   inset: 0;
   pointer-events: none;
   background:
-    radial-gradient(70% 55% at 100% 0%, rgba(78, 216, 175, .10), transparent 70%),
+    radial-gradient(70% 55% at 100% 0%, rgba(var(--accent-rgb),.10), transparent 70%),
     repeating-linear-gradient(-45deg, rgba(255, 255, 255, .018) 0 2px, transparent 2px 12px),
     linear-gradient(transparent 70%, rgba(0, 0, 0, .35));
   transition: opacity var(--t-med);
@@ -63,7 +63,7 @@
   height: .88rem;
   display: grid;
   place-items: center;
-  background: #0c0f0e;
+  background: var(--bg-0);
   border: 1px solid var(--line-2);
   color: var(--text-md);
   clip-path: polygon(25% 0, 75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%);
@@ -106,7 +106,7 @@
 .mode-card.is-selected {
   --bk-c: var(--mint-400);
   border-color: var(--mint-700);
-  box-shadow: 0 0 0 1px rgba(78, 216, 175, .22), 0 0 .44rem rgba(23, 249, 183, .13), inset 0 0 .7rem rgba(23, 249, 183, .05);
+  box-shadow: 0 0 0 1px rgba(var(--accent-rgb),.22), 0 0 .44rem rgba(var(--glow-rgb),.13), inset 0 0 .7rem rgba(var(--glow-rgb),.05);
 }
 .mode-card.is-selected::before { transform: scaleX(1); }
 .mode-card.is-selected .mode-card__icon { background: var(--mint-500); border-color: var(--mint-400); color: var(--text-on-mint); }
@@ -226,7 +226,7 @@
 .diff-card:hover { border-color: var(--line-3); }
 .diff-card.is-selected {
   border-color: var(--d-color); border-color: color-mix(in srgb, var(--d-color) 65%, transparent);
-  background: linear-gradient(90deg, #151a18, rgba(15, 19, 17, .95) 70%); background: linear-gradient(90deg, color-mix(in srgb, var(--d-color) 15%, #151a18), rgba(15, 19, 17, .95) 70%);
+  background: linear-gradient(90deg, var(--bg-panel), rgba(15, 19, 17, .95) 70%); background: linear-gradient(90deg, color-mix(in srgb, var(--d-color) 15%, var(--bg-panel)), rgba(15, 19, 17, .95) 70%);
   box-shadow: 0 0 .3rem transparent; box-shadow: 0 0 .3rem color-mix(in srgb, var(--d-color) 16%, transparent);
 }
 .diff-card.is-selected .diff-card__bar { opacity: 1; box-shadow: 0 0 .14rem var(--d-color); }

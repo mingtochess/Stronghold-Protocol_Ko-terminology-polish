@@ -219,7 +219,7 @@ button.sw-eth:hover { border-color: #fff; }
 .sw-codex__top .sw-back { padding-right: .12rem; }
 .sw-codex__title { font-size: max(calc(.26 * var(--t)), 14px); font-weight: 900; letter-spacing: .1em; }
 .sw-scope { display: inline-flex; align-items: center; gap: .06rem; height: max(.42rem, 26px); padding: 0 .12rem 0 .16rem; font: inherit; font-size: max(calc(.16 * var(--t)), 11px);
-  color: #eef2f1; background: rgba(78, 216, 175, .14); border: 1px solid var(--mint-700); border-radius: 999px; cursor: pointer; white-space: nowrap; }
+  color: #eef2f1; background: rgba(var(--accent-rgb),.14); border: 1px solid var(--mint-700); border-radius: 999px; cursor: pointer; white-space: nowrap; }
 .sw-scope .icon { width: max(.16rem, 10px); height: max(.16rem, 10px); }
 .sw-search { display: inline-flex; align-items: center; gap: .06rem; margin-left: auto; height: max(.46rem, 28px); padding: 0 .12rem; background: rgba(0, 0, 0, .4); border: 1px solid rgba(255, 255, 255, .16); }
 .sw-search .icon { width: max(.2rem, 12px); height: max(.2rem, 12px); color: #aab4b1; }

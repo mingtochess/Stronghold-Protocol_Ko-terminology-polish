@@ -7,7 +7,7 @@
    prefers-reduced-motion (no animation) the plate simply shows.
    ========================================================================================== */
 
-.mpop { --mp: var(--mint-500); --mp-hi: var(--mint-400); --mp-glow: rgba(23, 249, 183, .35);
+.mpop { --mp: var(--mint-500); --mp-hi: var(--mint-400); --mp-glow: rgba(var(--glow-rgb),.35);
   position: fixed; inset: 0; z-index: var(--z-banner); display: flex; flex-direction: column; align-items: center; justify-content: center;
   gap: .1rem; pointer-events: none; }
 .mpop img { max-width: none; }

@@ -18,22 +18,34 @@
   --bg-2: #1e2421;
   --bg-3: #252c29;
   --bg-4: #2d3632;
-  --bg-glass: rgba(16, 20, 18, .82);
+  --bg-glass: rgba(var(--bg-glass-rgb), .82);
+  /* (settings → UI 테마: data-ui-theme on <html> redefines these and the accents below) */
+  --bg-deep: #0a0d0c;
+  --bg-panel: #151a18;
+  --bg-panel-2: #111513;
+  --bg-tint: #101b18;
+  --bg-0-rgb: 12, 15, 14;
+  --bg-1-rgb: 20, 24, 22;
+  --bg-glass-rgb: 16, 20, 18;
+  --shade-rgb: 8, 11, 10;
   --line: #2f3a35;
   --line-2: #3e4b45;
   --line-3: #58675f;
 
   /* accents (official hex values where research marks [DATA]) */
+  --accent-rgb: 78, 216, 175;
+  --glow-rgb: 23, 249, 183;
   --mint-500: #4ed8af;
+  --mint-350: #4af2c4;
   --mint-400: #59f4ca;
   --mint-600: #35d8b4;
   --mint-glow: #17f9b7;
   --mint-700: #2a9e7f;
   --mint-800: #145443;
   --mint-900: #0d2c24;
-  --mint-a10: rgba(78, 216, 175, .10);
-  --mint-a20: rgba(78, 216, 175, .20);
-  --mint-a35: rgba(78, 216, 175, .35);
+  --mint-a10: rgba(var(--accent-rgb), .10);
+  --mint-a20: rgba(var(--accent-rgb), .20);
+  --mint-a35: rgba(var(--accent-rgb), .35);
   --gold: #ffc600;
   --gold-2: #f2bd3e;
   --gold-a20: rgba(255, 198, 0, .2);
@@ -105,6 +117,47 @@
   --bk-c: var(--mint-500);
   --bk-l: .14rem;
   --bk-w: 2px;
+}
+
+/* ---- UI themes (설정 → 접근성 → UI 테마; ui/settings.js applyUiTheme) ----------------------------------------------
+   Dark presets only: the surfaces, lines and the accent family (the mint tokens — every hard-coded mint and surface
+   colour of the stylesheets reads them). The battlefield, the units, the effects and the official HP bars are drawn by
+   the renderer and keep their colours. */
+:root[data-ui-theme="abyss"] {
+  --bg-0: #0a0e14; --bg-1: #111722; --bg-2: #19212f; --bg-3: #202a3b; --bg-4: #283447;
+  --bg-deep: #080b11; --bg-panel: #121927; --bg-panel-2: #0e141e; --bg-tint: #0e1726;
+  --bg-0-rgb: 10, 14, 20; --bg-1-rgb: 17, 23, 34; --bg-glass-rgb: 13, 18, 27; --shade-rgb: 6, 9, 14;
+  --line: #2a3648; --line-2: #384760; --line-3: #50627d;
+  --accent-rgb: 97, 182, 255; --glow-rgb: 64, 196, 255;
+  --mint-500: #61b6ff; --mint-400: #84c9ff; --mint-350: #78c2ff; --mint-600: #4aa6f2; --mint-glow: #40c4ff;
+  --mint-700: #2f78b8; --mint-800: #163a5c; --mint-900: #0d2136; --text-on-mint: #04101c;
+}
+:root[data-ui-theme="violet"] {
+  --bg-0: #0e0c13; --bg-1: #16131d; --bg-2: #201b29; --bg-3: #282232; --bg-4: #312a3d;
+  --bg-deep: #0b0a10; --bg-panel: #18141f; --bg-panel-2: #131019; --bg-tint: #17111f;
+  --bg-0-rgb: 14, 12, 19; --bg-1-rgb: 22, 19, 29; --bg-glass-rgb: 18, 15, 24; --shade-rgb: 10, 8, 14;
+  --line: #342d40; --line-2: #443b53; --line-3: #5f5472;
+  --accent-rgb: 178, 140, 255; --glow-rgb: 190, 120, 255;
+  --mint-500: #b28cff; --mint-400: #c8a9ff; --mint-350: #c09eff; --mint-600: #a079f2; --mint-glow: #be78ff;
+  --mint-700: #7650c0; --mint-800: #3c2766; --mint-900: #22163a; --text-on-mint: #120a20;
+}
+:root[data-ui-theme="ember"] {
+  --bg-0: #110d0a; --bg-1: #191410; --bg-2: #231c16; --bg-3: #2b231b; --bg-4: #342a21;
+  --bg-deep: #0d0a08; --bg-panel: #1a1511; --bg-panel-2: #15110d; --bg-tint: #1d150e;
+  --bg-0-rgb: 17, 13, 10; --bg-1-rgb: 25, 20, 16; --bg-glass-rgb: 21, 16, 12; --shade-rgb: 12, 9, 7;
+  --line: #3b3127; --line-2: #4c3f32; --line-3: #6a5a49;
+  --accent-rgb: 255, 168, 76; --glow-rgb: 255, 176, 64;
+  --mint-500: #ffa84c; --mint-400: #ffc07a; --mint-350: #ffb86a; --mint-600: #f2953a; --mint-glow: #ffb040;
+  --mint-700: #b86a20; --mint-800: #5c3410; --mint-900: #361e0a; --text-on-mint: #1c0e02;
+}
+:root[data-ui-theme="crimson"] {
+  --bg-0: #110b0c; --bg-1: #1a1213; --bg-2: #241a1b; --bg-3: #2d2122; --bg-4: #37292a;
+  --bg-deep: #0d0809; --bg-panel: #1b1314; --bg-panel-2: #160f10; --bg-tint: #1f1012;
+  --bg-0-rgb: 17, 11, 12; --bg-1-rgb: 26, 18, 19; --bg-glass-rgb: 22, 14, 15; --shade-rgb: 12, 7, 8;
+  --line: #3e2c2e; --line-2: #503a3c; --line-3: #6e5254;
+  --accent-rgb: 255, 102, 112; --glow-rgb: 255, 80, 96;
+  --mint-500: #ff6670; --mint-400: #ff8a92; --mint-350: #ff7e87; --mint-600: #f2525d; --mint-glow: #ff5060;
+  --mint-700: #b83a44; --mint-800: #5c1c22; --mint-900: #361014; --text-on-mint: #1c0406;
 }
 
 /* ---- root scale ----------------------------------------------------------------------------- */
@@ -248,9 +301,9 @@ h1, h2, h3, h4, p { margin: 0; }
   z-index: 0;
   pointer-events: none;
   background:
-    radial-gradient(120% 80% at 50% 110%, rgba(23, 249, 183, .10), transparent 55%),
+    radial-gradient(120% 80% at 50% 110%, rgba(var(--glow-rgb),.10), transparent 55%),
     radial-gradient(80% 60% at 50% 40%, rgba(40, 60, 52, .35), transparent 70%),
-    linear-gradient(180deg, #0b0e0d 0%, #0e1311 55%, #0a0d0c 100%);
+    linear-gradient(180deg, #0b0e0d 0%, #0e1311 55%, var(--bg-deep) 100%);
 }
 .app-bg::before {
   /* faint survey grid */
@@ -258,8 +311,8 @@ h1, h2, h3, h4, p { margin: 0; }
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(rgba(78, 216, 175, .045) 1px, transparent 1px) 0 0 / .8rem .8rem,
-    linear-gradient(90deg, rgba(78, 216, 175, .045) 1px, transparent 1px) 0 0 / .8rem .8rem;
+    linear-gradient(rgba(var(--accent-rgb),.045) 1px, transparent 1px) 0 0 / .8rem .8rem,
+    linear-gradient(90deg, rgba(var(--accent-rgb),.045) 1px, transparent 1px) 0 0 / .8rem .8rem;
   -webkit-mask-image: radial-gradient(90% 80% at 50% 50%, #000 30%, transparent 85%);
   mask-image: radial-gradient(90% 80% at 50% 50%, #000 30%, transparent 85%);
 }
@@ -324,7 +377,7 @@ h1, h2, h3, h4, p { margin: 0; }
   border: 2px solid var(--mint-500);
   clip-path: polygon(25% 3%, 75% 3%, 100% 50%, 75% 97%, 25% 97%, 0 50%);
   animation: boot-spin 1.4s linear infinite;
-  background: linear-gradient(135deg, transparent 45%, rgba(78, 216, 175, .35) 50%, transparent 55%);
+  background: linear-gradient(135deg, transparent 45%, rgba(var(--accent-rgb),.35) 50%, transparent 55%);
 }
 .boot__text { font-family: var(--font-display); font-size: .13rem; letter-spacing: .4em; color: var(--mint-700); }
 .boot__err { max-width: 6rem; text-align: center; color: var(--text-lo); font-size: .16rem; }
@@ -352,7 +405,7 @@ h1, h2, h3, h4, p { margin: 0; }
   border-radius: 9px;
   position: relative;
   animation: rotate-phone 2.4s var(--ease-in-out) infinite;
-  box-shadow: 0 0 24px rgba(23, 249, 183, .25);
+  box-shadow: 0 0 24px rgba(var(--glow-rgb),.25);
 }
 .rotate-hint__phone::after {
   content: '';
