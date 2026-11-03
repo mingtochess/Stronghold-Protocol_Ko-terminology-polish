@@ -118,10 +118,10 @@
 :root[data-ui-theme="f-ursus"] .bond:not(.hbond) .bond__core { position: relative; isolation: isolate; background: none; box-shadow: none; border-radius: 0; overflow: visible; }
 :root[data-ui-theme="f-ursus"] .bond:not(.hbond) .bond__core::before { content: ''; position: absolute; z-index: -1; pointer-events: none; }
 :root[data-ui-theme="f-ursus"] .bond:not(.hbond).is-disabled .bond__core { filter: grayscale(1) brightness(.6); }
-:root[data-ui-theme="f-ursus"] .hbond__board::before, :root[data-ui-theme="f-ursus"] .bond:not(.hbond) .bond__core::before { inset: 12%; border-radius: 0; transform: none; clip-path: polygon(3% 6%, 30% 0%, 62% 5%, 97% 0%, 100% 38%, 97% 100%, 62% 95%, 30% 100%, 0% 96%, 3% 52%); }
+:root[data-ui-theme="f-ursus"] .hbond__board::before, :root[data-ui-theme="f-ursus"] .bond:not(.hbond) .bond__core::before { inset: 12%; border-radius: 0; transform: none; clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%); }
 :root[data-ui-theme="f-ursus"] .bond-ring { display: block; position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; z-index: 1; }
 :root[data-ui-theme="f-ursus"] .bond:not(.hbond) .bond-ring { inset: calc(var(--disc) * -.04); width: calc(100% + var(--disc) * .08); height: calc(100% + var(--disc) * .08); }
-:root[data-ui-theme="f-ursus"] .bond-ring path { d: path("M6.76 9.52L31.6 4L61.04 8.6L93.24 4L96 38.96L93.24 96L61.04 91.4L31.6 96L4 92.32L6.76 51.84Z"); fill: none; stroke-width: 6.5; stroke-linejoin: round; stroke: var(--hb-ring-off, rgba(140, 140, 140, .6)); filter: drop-shadow(0 0 1px rgba(0, 0, 0, .85)); }
+:root[data-ui-theme="f-ursus"] .bond-ring path { d: path("M4 4L96 4L96 96L4 96Z"); fill: none; stroke-width: 6.5; stroke-linejoin: round; stroke: var(--hb-ring-off, rgba(140, 140, 140, .6)); filter: drop-shadow(0 0 1px rgba(0, 0, 0, .85)); }
 :root[data-ui-theme="f-ursus"] .bond-ring path.on { stroke: var(--hb-ring-on, var(--mint-400)); }
 :root[data-ui-theme="f-ursus"] .hbond.is-full .bond-ring path.on, :root[data-ui-theme="f-ursus"] .bond:not(.hbond).is-active .bond-ring path.on { stroke: var(--hb-ring-full, var(--hb-ring-on, var(--mint-400))); }
 :root[data-ui-theme="f-ursus"] .hbond__icon { left: 26%; top: 26%; width: 48%; height: 48%; }
