@@ -8,6 +8,7 @@ import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { readFile } from 'node:fs/promises';
 import { textureCss } from './ui-theme-textures.mjs';
+import { GUIDE_THEMES } from './ui-theme-guides.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const hex = (h) => { h = h.replace('#', ''); if (h.length === 3) h = [...h].map((c) => c + c).join(''); return [0, 2, 4].map((i) => parseInt(h.slice(i, i + 2), 16)); };
@@ -300,6 +301,8 @@ export const THEMES = [
     bondFilter: 'sepia(.7) saturate(1.2) hue-rotate(-10deg)',
   },
 ];
+// the event-guide themes (tools/ui-theme-guides.mjs) replace the same ids and add the side-story group
+for (const g of GUIDE_THEMES) { const i = THEMES.findIndex((t) => t.id === g.id); if (i >= 0) THEMES[i] = g; else THEMES.push(g); }
 
 /** The HUD bond boards are official sprites drawn in mint (hue ≈ 162°): turned to the theme's accent hue, desaturated
  *  for a grey accent; never inverted (the board stays a dark disc, so its number keeps reading on every theme). */

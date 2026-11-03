@@ -36,7 +36,7 @@
 :root[data-ui-theme="white"] :is(.panel, .modal__box)::before { content: ''; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg, rgba(255, 255, 255, .7), transparent 40%); z-index: -1; }
 :root[data-ui-theme="white"] :is(.mode-card__bg, .seat__stripes) { background: radial-gradient(90% 60% at 100% 0%, rgba(0, 150, 125, .08), transparent 70%); }
 :root[data-ui-theme="white"] .seat { background-image: radial-gradient(90% 60% at 100% 0%, rgba(0, 150, 125, .08), transparent 70%); }
-:root[data-ui-theme="white"] .scard__bg { background: radial-gradient(90% 60% at 100% 0%, rgba(0, 150, 125, .08), transparent 70%), linear-gradient(180deg, var(--bg-3), var(--bg-1)); }
+:root[data-ui-theme="white"] .scard__bg { background: radial-gradient(90% 60% at 100% 0%, rgba(0, 150, 125, .08), transparent 70%), linear-gradient(180deg, #3a3e42, #1d2023); }
 :root[data-ui-theme="white"] .modal__stripe { background: linear-gradient(90deg, #00967d, #00b894); }
 :root[data-ui-theme="white"] .pbanner__band { background: linear-gradient(90deg, #00967d, #00b894); }
 :root[data-ui-theme="white"] .brackets::after { background: none; }

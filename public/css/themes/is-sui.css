@@ -84,7 +84,7 @@
 :root[data-ui-theme="is-sui"] :is(.panel, .modal__box)::before { content: ''; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg, rgba(245, 190, 205, .12), transparent 50%, rgba(150, 225, 200, .12)); z-index: -1; }
 :root[data-ui-theme="is-sui"] :is(.mode-card__bg, .seat__stripes) { background: linear-gradient(180deg, rgba(245, 190, 205, .3), transparent 50%, rgba(150, 225, 200, .3)), radial-gradient(30% 20% at 80% 85%, rgba(22, 127, 120, .14), transparent 70%); }
 :root[data-ui-theme="is-sui"] .seat { background-image: linear-gradient(180deg, rgba(245, 190, 205, .3), transparent 50%, rgba(150, 225, 200, .3)); }
-:root[data-ui-theme="is-sui"] .scard__bg { background: linear-gradient(180deg, rgba(245, 190, 205, .3), transparent 50%, rgba(150, 225, 200, .3)), radial-gradient(30% 20% at 80% 85%, rgba(22, 127, 120, .14), transparent 70%), linear-gradient(180deg, var(--bg-3), var(--bg-1)); }
+:root[data-ui-theme="is-sui"] .scard__bg { background: linear-gradient(180deg, rgba(245, 190, 205, .3), transparent 50%, rgba(150, 225, 200, .3)), radial-gradient(30% 20% at 80% 85%, rgba(22, 127, 120, .14), transparent 70%), linear-gradient(180deg, #3a3e42, #1d2023); }
 :root[data-ui-theme="is-sui"] :is(.mode-card, .scard) { clip-path: polygon(.12rem 0, calc(100% - .12rem) 0, 100% .12rem, 100% calc(100% - .12rem), calc(100% - .12rem) 100%, .12rem 100%, 0 calc(100% - .12rem), 0 .12rem); }
 :root[data-ui-theme="is-sui"] .modal__stripe { background: linear-gradient(90deg, #167f78 0 50%, #b8232b 50%); }
 :root[data-ui-theme="is-sui"] .pbanner__band { background: linear-gradient(90deg, #167f78 0 50%, #b8232b 50%); }

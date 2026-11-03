@@ -62,7 +62,7 @@
 :root[data-ui-theme="rhine"] :is(.panel, .modal__box)::before { content: ''; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(rgba(17, 19, 18, .05) 1px, transparent 1px) 0 0 / 100% .1rem; z-index: -1; }
 :root[data-ui-theme="rhine"] :is(.mode-card__bg, .seat__stripes) { background: linear-gradient(rgba(17, 19, 18, .06) 1px, transparent 1px) 0 0 / .12rem .12rem, linear-gradient(90deg, rgba(17, 19, 18, .06) 1px, transparent 1px) 0 0 / .12rem .12rem; }
 :root[data-ui-theme="rhine"] .seat { background-image: linear-gradient(rgba(17, 19, 18, .06) 1px, transparent 1px); }
-:root[data-ui-theme="rhine"] .scard__bg { background: linear-gradient(rgba(17, 19, 18, .06) 1px, transparent 1px) 0 0 / .12rem .12rem, linear-gradient(90deg, rgba(17, 19, 18, .06) 1px, transparent 1px) 0 0 / .12rem .12rem, linear-gradient(180deg, var(--bg-3), var(--bg-1)); }
+:root[data-ui-theme="rhine"] .scard__bg { background: linear-gradient(rgba(17, 19, 18, .06) 1px, transparent 1px) 0 0 / .12rem .12rem, linear-gradient(90deg, rgba(17, 19, 18, .06) 1px, transparent 1px) 0 0 / .12rem .12rem, linear-gradient(180deg, #3a3e42, #1d2023); }
 :root[data-ui-theme="rhine"] .modal__stripe { background: repeating-linear-gradient(90deg, #111312 0 .1rem, #e8d400 .1rem .2rem); }
 :root[data-ui-theme="rhine"] .pbanner__band { background: repeating-linear-gradient(90deg, #111312 0 .1rem, #e8d400 .1rem .2rem); }
 :root[data-ui-theme="rhine"] .brackets::after {

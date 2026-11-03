@@ -9,6 +9,7 @@
 //   sprite  a filter for the official shop sprites (refresh / freeze plates, cost mattes, their icons)
 // All CSS gradients: no official artwork. Colours are literal so each theme reads on its own.
 import { THEME_ART as ART } from './build-ui-theme-resources.mjs';
+import { GUIDE_TEXTURES, GUIDE_MAT } from './ui-theme-guides.mjs';
 const L = (c, w = 'var(--bk-w)', l = 'var(--bk-l)') => [
   `linear-gradient(${c}, ${c}) top left / ${l} ${w} no-repeat`, `linear-gradient(${c}, ${c}) top left / ${w} ${l} no-repeat`,
   `linear-gradient(${c}, ${c}) top right / ${l} ${w} no-repeat`, `linear-gradient(${c}, ${c}) top right / ${w} ${l} no-repeat`,
@@ -230,6 +231,9 @@ const MAT = {
   'f-leithanien': { noise: { f: .7, o: 3, c: [214, 181, 108], a: .045 }, font: { q: 'family=Cinzel:wght@600&family=Noto+Serif+KR:wght@500;700', family: "'Cinzel', 'Noto Serif KR'" } },
 };
 
+Object.assign(TEXTURES, GUIDE_TEXTURES);
+Object.assign(MAT, GUIDE_MAT);
+
 /** A background stack's top-level layers (commas inside parentheses are not separators). */
 function topLayers(v) {
   const out = []; let depth = 0, cur = '';
@@ -255,7 +259,8 @@ export function textureCss(id, light = false) {
   // cards
   out.push(`${s} :is(.mode-card__bg, .seat__stripes) { background: ${x.card}; }`);
   out.push(`${s} .seat { background-image: ${topLayers(x.card)[0].replace(/\s+\d[^)]*\/[^,]*$/, '').replace(/ 0 0 \/.*$/, '')}; }`);
-  out.push(`${s} .scard__bg { background: ${x.card}, linear-gradient(180deg, var(--bg-3), var(--bg-1)); }`);
+  // (a shop card holds an operator portrait: its plate stays dark under a light theme)
+  out.push(`${s} .scard__bg { background: ${x.card}, linear-gradient(180deg, ${light ? '#3a3e42, #1d2023' : 'var(--bg-3), var(--bg-1)'}); }`);
   if (x.clip && x.clip !== 'none') out.push(`${s} :is(.mode-card, .scard) { clip-path: ${x.clip}; }`);
   // stripes and bands
   out.push(`${s} .modal__stripe { background: ${x.stripe}; }`);

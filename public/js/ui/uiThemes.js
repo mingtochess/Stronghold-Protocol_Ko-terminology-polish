@@ -7,6 +7,7 @@ import { UI_THEME_ASSETS } from './uiThemeAssets.js';
 export const UI_THEME_GROUPS = Object.freeze([
   Object.freeze({ id: 'basic', name: '기본' }), Object.freeze({ id: 'special', name: '스타일' }),
   Object.freeze({ id: 'is', name: '통합전략' }), Object.freeze({ id: 'faction', name: '진영' }),
+  Object.freeze({ id: 'side', name: '사이드 스토리' }),
 ]);
 // the generated themes (cyber, is-*, f-*): tools/build-ui-themes.mjs writes their stylesheets
 export const UI_THEME_LIST = Object.freeze([
@@ -22,16 +23,22 @@ export const UI_THEME_LIST = Object.freeze([
   Object.freeze({ id: 'is-sarkaz', name: '살카즈의 영겁 기담', group: 'is', swatch: ['#0b0b0c', '#d9a63a'] }),
   Object.freeze({ id: 'is-sui', name: '쉐이의 기이한 계원', group: 'is', swatch: ['#eef3ef', '#167f78'], light: true }),
   Object.freeze({ id: 'is-blackflow', name: '침몰자의 블랙 플로우', group: 'is', swatch: ['#070706', '#e6d48a'] }),
-  Object.freeze({ id: 'f-yan', name: '염국', group: 'faction', swatch: ['#efe6d6', '#a8341f'], light: true }),
-  Object.freeze({ id: 'f-sargon', name: '사르곤', group: 'faction', swatch: ['#1a1b16', '#dfe68a'] }),
-  Object.freeze({ id: 'f-victoria', name: '빅토리아', group: 'faction', swatch: ['#08070d', '#c9c2e6'] }),
-  Object.freeze({ id: 'f-kjerag', name: '쉐라그', group: 'faction', swatch: ['#eef2fb', '#1f3fbf'], light: true }),
-  Object.freeze({ id: 'f-laterano', name: '라테라노', group: 'faction', swatch: ['#f1f3f5', '#5a6c80'], light: true }),
-  Object.freeze({ id: 'f-aegir', name: '에기르', group: 'faction', swatch: ['#0a0c0d', '#a9c2c4'] }),
-  Object.freeze({ id: 'f-siracusa', name: '시라쿠사', group: 'faction', swatch: ['#0b0b0b', '#d1242f'] }),
-  Object.freeze({ id: 'f-kazimierz', name: '카시미어', group: 'faction', swatch: ['#0a0d1a', '#e6283c'] }),
-  Object.freeze({ id: 'f-ursus', name: '우르수스', group: 'faction', swatch: ['#0d0b08', '#f08a1c'] }),
-  Object.freeze({ id: 'f-leithanien', name: '라이타니엔', group: 'faction', swatch: ['#0d0607', '#d6b56c'] }),
+  Object.freeze({ id: 'f-yan', name: '염국', group: 'faction', swatch: ['#e4e7e3', '#a92d2a'], light: true }),
+  Object.freeze({ id: 'f-sargon', name: '사르곤', group: 'faction', swatch: ['#f6f6f8', '#fcce46'], light: true }),
+  Object.freeze({ id: 'f-victoria', name: '빅토리아', group: 'faction', swatch: ['#120806', '#d6a64a'] }),
+  Object.freeze({ id: 'f-kjerag', name: '쉐라그', group: 'faction', swatch: ['#16206a', '#e9eefc'] }),
+  Object.freeze({ id: 'f-laterano', name: '라테라노', group: 'faction', swatch: ['#eceff2', '#3d8fae'], light: true }),
+  Object.freeze({ id: 'f-aegir', name: '에기르', group: 'faction', swatch: ['#101418', '#5fd3d0'] }),
+  Object.freeze({ id: 'f-siracusa', name: '시라쿠사', group: 'faction', swatch: ['#19191b', '#b3262e'] }),
+  Object.freeze({ id: 'f-kazimierz', name: '카시미어', group: 'faction', swatch: ['#1c1e26', '#d02b3a'] }),
+  Object.freeze({ id: 'f-ursus', name: '우르수스', group: 'faction', swatch: ['#141417', '#b3242c'] }),
+  Object.freeze({ id: 'f-leithanien', name: '라이타니엔', group: 'faction', swatch: ['#1a110d', '#d4743c'] }),
+  Object.freeze({ id: 'ss-adele', name: '화산의 꿈 여행', group: 'side', swatch: ['#fbeedd', '#b72f2b'], light: true }),
+  Object.freeze({ id: 'ss-vultures', name: '부정축재', group: 'side', swatch: ['#0f1417', '#d4d93a'] }),
+  Object.freeze({ id: 'ss-lonetrail', name: '론 트레일', group: 'side', swatch: ['#0c0c0c', '#ee6a2b'] }),
+  Object.freeze({ id: 'ss-mendacium', name: '아테누스 복수록', group: 'side', swatch: ['#ebc9aa', '#b4521f'], light: true }),
+  Object.freeze({ id: 'ss-unrealized', name: '허락받지 못한 땅', group: 'side', swatch: ['#c4e5ea', '#c4333a'], light: true }),
+  Object.freeze({ id: 'ss-elegies', name: '불타버린 엘레지여', group: 'side', swatch: ['#0d1023', '#c9ae72'] }),
 ]);
 export const UI_THEMES = Object.freeze(UI_THEME_LIST.map((t) => t.id));
 export const uiTheme = (id) => UI_THEME_LIST.find((t) => t.id === id) || UI_THEME_LIST[0];
