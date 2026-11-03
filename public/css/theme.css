@@ -134,8 +134,8 @@
 :root[data-ui-light] .game-chat button { color: var(--mint-700); }
 :root[data-ui-light] .room-gameplay-modes button[data-gameplay-mode="augment"] { --mode-color: #6f3fc4; }
 :root[data-ui-light] .public-room__details dd[data-mode="augment"] { color: #6f3fc4; }
-:root[data-ui-theme] .lvcard { color: #04140f; }
-:root[data-ui-theme] .lvcard__key { color: #0d2c24 !important; }
+:root[data-ui-theme] .lvcard { color: var(--text-on-mint); }
+:root[data-ui-theme] .lvcard__key { color: var(--text-on-mint) !important; opacity: .8; }
 /* HUD controls that keep their own dark plates in a light theme keep light text on them */
 :root[data-ui-light] :is(.funds__collapse, .gm__bond-toggle, .hex__value) { color: #e8fff7; }
 

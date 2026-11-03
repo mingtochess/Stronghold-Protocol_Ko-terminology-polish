@@ -57,5 +57,40 @@
   box-shadow: inset 0 0 0 3px rgba(7, 11, 22, .9), inset 0 0 0 4px rgba(212, 175, 90, .3), 0 .08rem .3rem rgba(0, 0, 0, .55);
 }
 :root[data-ui-theme="f-victoria"] .btn { border-radius: 0; font-family: var(--font-display); letter-spacing: .1em; }
-:root[data-ui-theme="f-victoria"] .btn--primary { background: linear-gradient(180deg, #e6c46f, #b38a3a); color: #140f02; border-color: #f0cd78; }
+:root[data-ui-theme="f-victoria"] .btn--primary { --ui-primary-face: linear-gradient(180deg, #e6c46f, #b38a3a); background-color: var(--mint-500); color: #140f02; border-color: #f0cd78; }
 :root[data-ui-theme="f-victoria"] .modal { background: rgba(0, 0, 0, .6); }
+/* ---- texture layer (tools/ui-theme-textures.mjs) */
+:root[data-ui-theme="f-victoria"] :is(.btn--amber, .btn--ice, .btn--danger) { background-image: repeating-linear-gradient(90deg, rgba(240, 205, 120, .8) 0 1px, transparent 1px 4px), linear-gradient(180deg, rgba(255, 255, 255, .14), transparent 45%); background-size: .34rem 100%, 100% 100%; background-position: right center, 0 0; background-repeat: no-repeat; }
+:root[data-ui-theme="f-victoria"] .btn--primary { background-image: repeating-linear-gradient(90deg, rgba(240, 205, 120, .8) 0 1px, transparent 1px 4px), var(--ui-primary-face, none); background-size: .34rem 100%, 100% 100%; background-position: right center, 0 0; background-repeat: no-repeat, no-repeat; }
+:root[data-ui-theme="f-victoria"] .btn--primary:disabled { background-image: none; }
+:root[data-ui-theme="f-victoria"] :is(.panel, .modal__box) { isolation: isolate; }
+:root[data-ui-theme="f-victoria"] :is(.panel, .modal__box)::before { content: ''; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(45deg, rgba(212, 175, 90, .03) 25%, transparent 25% 75%, rgba(212, 175, 90, .03) 75%) 0 0 / .2rem .2rem; z-index: -1; }
+:root[data-ui-theme="f-victoria"] :is(.mode-card__bg, .seat__stripes) { background: linear-gradient(45deg, rgba(212, 175, 90, .07) 25%, transparent 25% 75%, rgba(212, 175, 90, .07) 75%) 0 0 / .3rem .3rem, linear-gradient(45deg, rgba(212, 175, 90, .07) 25%, transparent 25% 75%, rgba(212, 175, 90, .07) 75%) .15rem .15rem / .3rem .3rem; }
+:root[data-ui-theme="f-victoria"] .seat { background-image: linear-gradient(45deg, rgba(212, 175, 90, .07) 25%, transparent 25% 75%, rgba(212, 175, 90, .07) 75%); }
+:root[data-ui-theme="f-victoria"] .scard__bg { background: linear-gradient(45deg, rgba(212, 175, 90, .07) 25%, transparent 25% 75%, rgba(212, 175, 90, .07) 75%) 0 0 / .3rem .3rem, linear-gradient(45deg, rgba(212, 175, 90, .07) 25%, transparent 25% 75%, rgba(212, 175, 90, .07) 75%) .15rem .15rem / .3rem .3rem, linear-gradient(180deg, var(--bg-3), var(--bg-1)); }
+:root[data-ui-theme="f-victoria"] .modal__stripe { background: linear-gradient(90deg, #b23a48 0 33%, #d4af5a 33% 66%, #2a3658 66%); }
+:root[data-ui-theme="f-victoria"] .pbanner__band { background: linear-gradient(90deg, #b23a48 0 33%, #d4af5a 33% 66%, #2a3658 66%); }
+:root[data-ui-theme="f-victoria"] .brackets::after {
+  background:
+    linear-gradient(#d4af5a, #d4af5a) top left / .2rem 1px no-repeat,
+    linear-gradient(#d4af5a, #d4af5a) top left / 1px .2rem no-repeat,
+    linear-gradient(#d4af5a, #d4af5a) top right / .2rem 1px no-repeat,
+    linear-gradient(#d4af5a, #d4af5a) top right / 1px .2rem no-repeat,
+    linear-gradient(#d4af5a, #d4af5a) bottom left / .2rem 1px no-repeat,
+    linear-gradient(#d4af5a, #d4af5a) bottom left / 1px .2rem no-repeat,
+    linear-gradient(#d4af5a, #d4af5a) bottom right / .2rem 1px no-repeat,
+    linear-gradient(#d4af5a, #d4af5a) bottom right / 1px .2rem no-repeat,
+    conic-gradient(from 45deg at 50% 50%, #d4af5a 0 90deg, transparent 90deg 360deg) top left / .12rem .12rem no-repeat,
+    conic-gradient(from 45deg at 50% 50%, #d4af5a 0 90deg, transparent 90deg 360deg) top right / .12rem .12rem no-repeat,
+    conic-gradient(from 45deg at 50% 50%, #d4af5a 0 90deg, transparent 90deg 360deg) bottom left / .12rem .12rem no-repeat,
+    conic-gradient(from 45deg at 50% 50%, #d4af5a 0 90deg, transparent 90deg 360deg) bottom right / .12rem .12rem no-repeat;
+}
+:root[data-ui-theme="f-victoria"] .gtop__center { background: linear-gradient(45deg, rgba(212, 175, 90, .03) 25%, transparent 25% 75%, rgba(212, 175, 90, .03) 75%) 0 0 / .2rem .2rem, linear-gradient(180deg, rgba(var(--bg-1-rgb), .92), rgba(var(--bg-0-rgb), .92)); border-radius: 0; }
+:root[data-ui-theme="f-victoria"] .capsule { border-radius: 0; background: linear-gradient(90deg, #b23a48 0 33%, #d4af5a 33% 66%, #2a3658 66%) bottom / 100% 2px no-repeat, rgba(var(--bg-1-rgb), .92); }
+:root[data-ui-theme="f-victoria"] .scard__body { background: linear-gradient(90deg, #b23a48 0 33%, #d4af5a 33% 66%, #2a3658 66%) top / 100% 2px no-repeat, linear-gradient(180deg, rgba(var(--bg-0-rgb), .2), rgba(var(--bg-0-rgb), .94) 35%); }
+:root[data-ui-theme="f-victoria"] :is(.effect, .toolbtn:not(.obtn), .readybtn__box) { border-radius: 0; }
+:root[data-ui-theme="f-victoria"] .effect { background: linear-gradient(45deg, rgba(212, 175, 90, .03) 25%, transparent 25% 75%, rgba(212, 175, 90, .03) 75%) 0 0 / .2rem .2rem, rgba(var(--bg-1-rgb), .88); }
+:root[data-ui-theme="f-victoria"] .lvcard { background: repeating-linear-gradient(90deg, rgba(240, 205, 120, .8) 0 1px, transparent 1px 4px), linear-gradient(180deg, var(--mint-400), var(--mint-600)); background-size: .34rem 100%, 100% 100%; background-position: right bottom, 0 0; background-repeat: no-repeat;  }
+:root[data-ui-theme="f-victoria"] :is(.shopbar .obtn__plate, .obtn__cost, .toolbtn__img) { filter: hue-rotate(185deg) saturate(.9); }
+:root[data-ui-theme="f-victoria"] :is(.title-bg__art, .title-bg__ridge-art, .title-bg__ridges, .title-bg__target, .title-bg__radar, .title-bg__haze) { display: none; }
+:root[data-ui-theme="f-victoria"] .app-bg, :root[data-ui-theme="f-victoria"] .app-bg::before, :root[data-ui-theme="f-victoria"] .app-bg::after { background: none; }

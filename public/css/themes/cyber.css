@@ -60,9 +60,41 @@
   box-shadow: inset 0 0 0 1px rgba(0, 240, 255, .12), 0 0 .2rem rgba(255, 46, 136, .25);
 }
 :root[data-ui-theme="cyber"] .btn { clip-path: polygon(0 0, calc(100% - .1rem) 0, 100% .1rem, 100% 100%, .1rem 100%, 0 calc(100% - .1rem)); text-transform: uppercase; }
-:root[data-ui-theme="cyber"] .btn--primary { background: linear-gradient(90deg, #ff2e88, #b02cff); color: #fff; border-color: transparent; text-shadow: 0 0 6px rgba(255, 255, 255, .5); }
+:root[data-ui-theme="cyber"] .btn--primary { --ui-primary-face: linear-gradient(90deg, #ff2e88, #b02cff); background-color: var(--mint-500); color: #fff; border-color: transparent; text-shadow: 0 0 6px rgba(255, 255, 255, .5); }
 :root[data-ui-theme="cyber"] .modal { background: rgba(0, 0, 0, .6); }
 @keyframes ui-cyber-glitch { 0%, 100% { transform: none; text-shadow: none; } 20% { transform: translate(1px, -1px); text-shadow: -2px 0 #00f0ff, 2px 0 #ff2e88; } 40% { transform: translate(-1px, 1px); } 60% { transform: none; text-shadow: 2px 0 #00f0ff, -2px 0 #ff2e88; } }
 @media (prefers-reduced-motion: no-preference) { :root[data-ui-theme="cyber"] .btn:hover .btn__label { animation: ui-cyber-glitch .35s steps(2) 1; } }
 :root[data-ui-theme="cyber"] .micro { color: #00f0ff; }
 :root[data-ui-theme="cyber"] .topbar__title { text-shadow: 0 0 .1rem rgba(255, 46, 136, .65); }
+/* ---- texture layer (tools/ui-theme-textures.mjs) */
+:root[data-ui-theme="cyber"] :is(.btn--amber, .btn--ice, .btn--danger) { background-image: repeating-linear-gradient(-45deg, rgba(0, 240, 255, .55) 0 2px, transparent 2px 6px), linear-gradient(180deg, rgba(255, 255, 255, .14), transparent 45%); background-size: .34rem 100%, 100% 100%; background-position: right center, 0 0; background-repeat: no-repeat; }
+:root[data-ui-theme="cyber"] .btn--primary { background-image: repeating-linear-gradient(-45deg, rgba(0, 240, 255, .55) 0 2px, transparent 2px 6px), var(--ui-primary-face, none); background-size: .34rem 100%, 100% 100%; background-position: right center, 0 0; background-repeat: no-repeat, no-repeat; }
+:root[data-ui-theme="cyber"] .btn--primary:disabled { background-image: none; }
+:root[data-ui-theme="cyber"] :is(.panel, .modal__box) { isolation: isolate; }
+:root[data-ui-theme="cyber"] :is(.panel, .modal__box)::before { content: ''; position: absolute; inset: 0; pointer-events: none; background: repeating-linear-gradient(0deg, rgba(0, 240, 255, .05) 0 1px, transparent 1px 3px), linear-gradient(90deg, rgba(255, 46, 136, .12), transparent 30%); z-index: -1; }
+:root[data-ui-theme="cyber"] :is(.mode-card__bg, .seat__stripes) { background: linear-gradient(rgba(255, 46, 136, .1) 1px, transparent 1px) 0 0 / .2rem .2rem, linear-gradient(90deg, rgba(0, 240, 255, .08) 1px, transparent 1px) 0 0 / .2rem .2rem, linear-gradient(160deg, rgba(255, 46, 136, .2), transparent 50%); }
+:root[data-ui-theme="cyber"] .seat { background-image: linear-gradient(rgba(255, 46, 136, .1) 1px, transparent 1px); }
+:root[data-ui-theme="cyber"] .scard__bg { background: linear-gradient(rgba(255, 46, 136, .1) 1px, transparent 1px) 0 0 / .2rem .2rem, linear-gradient(90deg, rgba(0, 240, 255, .08) 1px, transparent 1px) 0 0 / .2rem .2rem, linear-gradient(160deg, rgba(255, 46, 136, .2), transparent 50%), linear-gradient(180deg, var(--bg-3), var(--bg-1)); }
+:root[data-ui-theme="cyber"] :is(.mode-card, .scard) { clip-path: polygon(0 0, calc(100% - .16rem) 0, 100% .16rem, 100% 100%, .16rem 100%, 0 calc(100% - .16rem)); }
+:root[data-ui-theme="cyber"] .modal__stripe { background: repeating-linear-gradient(-45deg, #ff2e88 0 .06rem, #0a0410 .06rem .12rem); }
+:root[data-ui-theme="cyber"] .pbanner__band { background: repeating-linear-gradient(-45deg, #ff2e88 0 .06rem, #0a0410 .06rem .12rem); }
+:root[data-ui-theme="cyber"] .brackets::after {
+  background:
+    linear-gradient(#00f0ff, #00f0ff) top left / .16rem 2px no-repeat,
+    linear-gradient(#00f0ff, #00f0ff) top left / 2px .16rem no-repeat,
+    linear-gradient(#00f0ff, #00f0ff) top right / .16rem 2px no-repeat,
+    linear-gradient(#00f0ff, #00f0ff) top right / 2px .16rem no-repeat,
+    linear-gradient(#00f0ff, #00f0ff) bottom left / .16rem 2px no-repeat,
+    linear-gradient(#00f0ff, #00f0ff) bottom left / 2px .16rem no-repeat,
+    linear-gradient(#00f0ff, #00f0ff) bottom right / .16rem 2px no-repeat,
+    linear-gradient(#00f0ff, #00f0ff) bottom right / 2px .16rem no-repeat;
+}
+:root[data-ui-theme="cyber"] .gtop__center { background: repeating-linear-gradient(0deg, rgba(0, 240, 255, .05) 0 1px, transparent 1px 3px), linear-gradient(90deg, rgba(255, 46, 136, .12), transparent 30%), linear-gradient(180deg, rgba(var(--bg-1-rgb), .92), rgba(var(--bg-0-rgb), .92)); border-radius: 0; clip-path: polygon(0 0, calc(100% - .16rem) 0, 100% .16rem, 100% 100%, .16rem 100%, 0 calc(100% - .16rem)); }
+:root[data-ui-theme="cyber"] .capsule { border-radius: 0; background: repeating-linear-gradient(-45deg, #ff2e88 0 .06rem, #0a0410 .06rem .12rem) bottom / 100% 2px no-repeat, rgba(var(--bg-1-rgb), .92); }
+:root[data-ui-theme="cyber"] .scard__body { background: repeating-linear-gradient(-45deg, #ff2e88 0 .06rem, #0a0410 .06rem .12rem) top / 100% 2px no-repeat, linear-gradient(180deg, rgba(var(--bg-0-rgb), .2), rgba(var(--bg-0-rgb), .94) 35%); }
+:root[data-ui-theme="cyber"] :is(.effect, .toolbtn:not(.obtn), .readybtn__box) { border-radius: 0; }
+:root[data-ui-theme="cyber"] .effect { background: repeating-linear-gradient(0deg, rgba(0, 240, 255, .05) 0 1px, transparent 1px 3px), linear-gradient(90deg, rgba(255, 46, 136, .12), transparent 30%), rgba(var(--bg-1-rgb), .88); }
+:root[data-ui-theme="cyber"] .lvcard { background: repeating-linear-gradient(-45deg, rgba(0, 240, 255, .55) 0 2px, transparent 2px 6px), linear-gradient(180deg, var(--mint-400), var(--mint-600)); background-size: .34rem 100%, 100% 100%; background-position: right bottom, 0 0; background-repeat: no-repeat; clip-path: polygon(0 0, calc(100% - .16rem) 0, 100% .16rem, 100% 100%, .16rem 100%, 0 calc(100% - .16rem)); }
+:root[data-ui-theme="cyber"] :is(.shopbar .obtn__plate, .obtn__cost, .toolbtn__img) { filter: hue-rotate(250deg) saturate(1.6) brightness(1.1); }
+:root[data-ui-theme="cyber"] :is(.title-bg__art, .title-bg__ridge-art, .title-bg__ridges, .title-bg__target, .title-bg__radar, .title-bg__haze) { display: none; }
+:root[data-ui-theme="cyber"] .app-bg, :root[data-ui-theme="cyber"] .app-bg::before, :root[data-ui-theme="cyber"] .app-bg::after { background: none; }

@@ -6,6 +6,8 @@
 import { writeFile, mkdir } from 'node:fs/promises';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { readFile } from 'node:fs/promises';
+import { textureCss } from './ui-theme-textures.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const hex = (h) => { h = h.replace('#', ''); if (h.length === 3) h = [...h].map((c) => c + c).join(''); return [0, 2, 4].map((i) => parseInt(h.slice(i, i + 2), 16)); };
@@ -356,13 +358,21 @@ ${sel} .modal__box {
   ${t.panel}
 }
 ${sel} .btn { ${t.btn} }
-${sel} .btn--primary { ${t.primary} }
+${sel} .btn--primary { ${t.primary.replace(/background:\s*([^;]+);/, '--ui-primary-face: $1; background-color: var(--mint-500);')} }
 ${sel} .modal { background: ${t.light ? 'rgba(40, 40, 40, .35)' : 'rgba(0, 0, 0, .6)'}; }
-${t.light ? `${sel} :is(.btn--secondary, .btn--ghost) { --btn-bg: #ffffff; --btn-bg-hover: ${t.p.bg[1]}; }\n` : ''}${t.extra ? t.extra + '\n' : ''}`;
+${t.light ? `${sel} :is(.btn--secondary, .btn--ghost) { --btn-bg: #ffffff; --btn-bg-hover: ${t.p.bg[1]}; }\n` : ''}${t.extra ? t.extra + '\n' : ''}${textureCss(t.id)}`;
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   await mkdir(resolve(ROOT, 'public/css/themes'), { recursive: true });
   for (const t of THEMES) await writeFile(resolve(ROOT, `public/css/themes/${t.id}.css`), css(t));
+  // the hand-written themes get the texture layer between their markers
+  for (const id of ['white', 'space', 'rhine']) {
+    const p = resolve(ROOT, `public/css/themes/${id}.css`);
+    let src = await readFile(p, 'utf8');
+    const block = `/* tx:start */\n${textureCss(id)}/* tx:end */\n`;
+    src = /\/\* tx:start \*\/[\s\S]*?\/\* tx:end \*\/\n/.test(src) ? src.replace(/\/\* tx:start \*\/[\s\S]*?\/\* tx:end \*\/\n/, block) : src + '\n' + block;
+    await writeFile(p, src);
+  }
   console.log(JSON.stringify(THEMES.map((t) => ({ id: t.id, name: t.name, group: t.group, light: !!t.light, swatch: t.swatch || [t.p.bg[0], t.p.accent] }))));
 }

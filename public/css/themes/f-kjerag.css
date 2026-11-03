@@ -67,6 +67,37 @@
   background: rgba(255, 255, 255, .96); border: 1px solid #bccbd7; border-radius: .08rem; box-shadow: 0 .05rem .2rem rgba(30, 60, 90, .12);
 }
 :root[data-ui-theme="f-kjerag"] .btn { border-radius: .08rem; }
-:root[data-ui-theme="f-kjerag"] .btn--primary { background: linear-gradient(180deg, #4a80b8, #2c5c8f); color: #fff; border-color: #2c5c8f; }
+:root[data-ui-theme="f-kjerag"] .btn--primary { --ui-primary-face: linear-gradient(180deg, #4a80b8, #2c5c8f); background-color: var(--mint-500); color: #fff; border-color: #2c5c8f; }
 :root[data-ui-theme="f-kjerag"] .modal { background: rgba(40, 40, 40, .35); }
 :root[data-ui-theme="f-kjerag"] :is(.btn--secondary, .btn--ghost) { --btn-bg: #ffffff; --btn-bg-hover: #f6f9fb; }
+/* ---- texture layer (tools/ui-theme-textures.mjs) */
+:root[data-ui-theme="f-kjerag"] :is(.btn--amber, .btn--ice, .btn--danger) { background-image: linear-gradient(150deg, transparent 50%, rgba(255, 255, 255, .55) 50% 70%, transparent 70%), linear-gradient(180deg, rgba(255, 255, 255, .14), transparent 45%); background-size: .34rem 100%, 100% 100%; background-position: right center, 0 0; background-repeat: no-repeat; }
+:root[data-ui-theme="f-kjerag"] .btn--primary { background-image: linear-gradient(150deg, transparent 50%, rgba(255, 255, 255, .55) 50% 70%, transparent 70%), var(--ui-primary-face, none); background-size: .34rem 100%, 100% 100%; background-position: right center, 0 0; background-repeat: no-repeat, no-repeat; }
+:root[data-ui-theme="f-kjerag"] .btn--primary:disabled { background-image: none; }
+:root[data-ui-theme="f-kjerag"] :is(.panel, .modal__box) { isolation: isolate; }
+:root[data-ui-theme="f-kjerag"] :is(.panel, .modal__box)::before { content: ''; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(150deg, transparent 70%, rgba(47, 95, 146, .05) 70% 85%, transparent 85%); z-index: -1; }
+:root[data-ui-theme="f-kjerag"] :is(.mode-card__bg, .seat__stripes) { background: linear-gradient(150deg, transparent 55%, rgba(47, 95, 146, .1) 55% 75%, transparent 75%), linear-gradient(210deg, transparent 62%, rgba(47, 95, 146, .08) 62% 80%, transparent 80%); }
+:root[data-ui-theme="f-kjerag"] .seat { background-image: linear-gradient(150deg, transparent 55%, rgba(47, 95, 146, .1) 55% 75%, transparent 75%); }
+:root[data-ui-theme="f-kjerag"] .scard__bg { background: linear-gradient(150deg, transparent 55%, rgba(47, 95, 146, .1) 55% 75%, transparent 75%), linear-gradient(210deg, transparent 62%, rgba(47, 95, 146, .08) 62% 80%, transparent 80%), linear-gradient(180deg, var(--bg-3), var(--bg-1)); }
+:root[data-ui-theme="f-kjerag"] .modal__stripe { background: linear-gradient(90deg, #2f5f92, #c0392b 50%, #2f5f92); }
+:root[data-ui-theme="f-kjerag"] .pbanner__band { background: linear-gradient(90deg, #2f5f92, #c0392b 50%, #2f5f92); }
+:root[data-ui-theme="f-kjerag"] .brackets::after {
+  background:
+    linear-gradient(#2f5f92, #2f5f92) top left / .12rem 2px no-repeat,
+    linear-gradient(#2f5f92, #2f5f92) top left / 2px .12rem no-repeat,
+    linear-gradient(#2f5f92, #2f5f92) top right / .12rem 2px no-repeat,
+    linear-gradient(#2f5f92, #2f5f92) top right / 2px .12rem no-repeat,
+    linear-gradient(#2f5f92, #2f5f92) bottom left / .12rem 2px no-repeat,
+    linear-gradient(#2f5f92, #2f5f92) bottom left / 2px .12rem no-repeat,
+    linear-gradient(#2f5f92, #2f5f92) bottom right / .12rem 2px no-repeat,
+    linear-gradient(#2f5f92, #2f5f92) bottom right / 2px .12rem no-repeat;
+}
+:root[data-ui-theme="f-kjerag"] .gtop__center { background: linear-gradient(150deg, transparent 70%, rgba(47, 95, 146, .05) 70% 85%, transparent 85%), linear-gradient(180deg, rgba(var(--bg-1-rgb), .92), rgba(var(--bg-0-rgb), .92)); border-radius: .08rem; }
+:root[data-ui-theme="f-kjerag"] .capsule { border-radius: .25rem; background: linear-gradient(90deg, #2f5f92, #c0392b 50%, #2f5f92) bottom / 100% 2px no-repeat, rgba(var(--bg-1-rgb), .92); }
+:root[data-ui-theme="f-kjerag"] .scard__body { background: linear-gradient(90deg, #2f5f92, #c0392b 50%, #2f5f92) top / 100% 2px no-repeat, linear-gradient(180deg, rgba(var(--bg-0-rgb), .2), rgba(var(--bg-0-rgb), .94) 35%); }
+:root[data-ui-theme="f-kjerag"] :is(.effect, .toolbtn:not(.obtn), .readybtn__box) { border-radius: .08rem; }
+:root[data-ui-theme="f-kjerag"] .effect { background: linear-gradient(150deg, transparent 70%, rgba(47, 95, 146, .05) 70% 85%, transparent 85%), rgba(var(--bg-1-rgb), .88); }
+:root[data-ui-theme="f-kjerag"] .lvcard { background: linear-gradient(150deg, transparent 50%, rgba(255, 255, 255, .55) 50% 70%, transparent 70%), linear-gradient(180deg, var(--mint-400), var(--mint-600)); background-size: .34rem 100%, 100% 100%; background-position: right bottom, 0 0; background-repeat: no-repeat;  }
+:root[data-ui-theme="f-kjerag"] :is(.shopbar .obtn__plate, .obtn__cost, .toolbtn__img) { filter: saturate(.7) hue-rotate(15deg) brightness(1.08); }
+:root[data-ui-theme="f-kjerag"] :is(.title-bg__art, .title-bg__ridge-art, .title-bg__ridges, .title-bg__target, .title-bg__radar, .title-bg__haze) { display: none; }
+:root[data-ui-theme="f-kjerag"] .app-bg, :root[data-ui-theme="f-kjerag"] .app-bg::before, :root[data-ui-theme="f-kjerag"] .app-bg::after { background: none; }

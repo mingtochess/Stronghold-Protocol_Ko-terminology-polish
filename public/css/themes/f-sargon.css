@@ -68,6 +68,34 @@
   box-shadow: 0 .05rem .2rem rgba(90, 60, 20, .16);
 }
 :root[data-ui-theme="f-sargon"] .btn { border-radius: .04rem; }
-:root[data-ui-theme="f-sargon"] .btn--primary { background: linear-gradient(180deg, #c9771e, #94500c); color: #fff6e6; border-color: #7c4408; }
+:root[data-ui-theme="f-sargon"] .btn--primary { --ui-primary-face: linear-gradient(180deg, #c9771e, #94500c); background-color: var(--mint-500); color: #fff6e6; border-color: #7c4408; }
 :root[data-ui-theme="f-sargon"] .modal { background: rgba(40, 40, 40, .35); }
 :root[data-ui-theme="f-sargon"] :is(.btn--secondary, .btn--ghost) { --btn-bg: #ffffff; --btn-bg-hover: #f6ecd6; }
+/* ---- texture layer (tools/ui-theme-textures.mjs) */
+:root[data-ui-theme="f-sargon"] :is(.btn--amber, .btn--ice, .btn--danger) { background-image: repeating-linear-gradient(170deg, rgba(255, 240, 200, .6) 0 2px, transparent 2px 6px), linear-gradient(180deg, rgba(255, 255, 255, .14), transparent 45%); background-size: .34rem 100%, 100% 100%; background-position: right center, 0 0; background-repeat: no-repeat; }
+:root[data-ui-theme="f-sargon"] .btn--primary { background-image: repeating-linear-gradient(170deg, rgba(255, 240, 200, .6) 0 2px, transparent 2px 6px), var(--ui-primary-face, none); background-size: .34rem 100%, 100% 100%; background-position: right center, 0 0; background-repeat: no-repeat, no-repeat; }
+:root[data-ui-theme="f-sargon"] .btn--primary:disabled { background-image: none; }
+:root[data-ui-theme="f-sargon"] :is(.panel, .modal__box) { isolation: isolate; }
+:root[data-ui-theme="f-sargon"] :is(.panel, .modal__box)::before { content: ''; position: absolute; inset: 0; pointer-events: none; background: repeating-linear-gradient(170deg, rgba(135, 75, 8, .035) 0 1px, transparent 1px 7px); z-index: -1; }
+:root[data-ui-theme="f-sargon"] :is(.mode-card__bg, .seat__stripes) { background: repeating-linear-gradient(170deg, rgba(135, 75, 8, .06) 0 .03rem, transparent .03rem .2rem), radial-gradient(60% 40% at 80% 0%, rgba(255, 200, 100, .35), transparent 70%); }
+:root[data-ui-theme="f-sargon"] .seat { background-image: repeating-linear-gradient(170deg, rgba(135, 75, 8, .06) 0 .03rem, transparent .03rem .2rem); }
+:root[data-ui-theme="f-sargon"] .scard__bg { background: repeating-linear-gradient(170deg, rgba(135, 75, 8, .06) 0 .03rem, transparent .03rem .2rem), radial-gradient(60% 40% at 80% 0%, rgba(255, 200, 100, .35), transparent 70%), linear-gradient(180deg, var(--bg-3), var(--bg-1)); }
+:root[data-ui-theme="f-sargon"] :is(.mode-card, .scard) { clip-path: polygon(.14rem 0, 100% 0, 100% calc(100% - .14rem), calc(100% - .14rem) 100%, 0 100%, 0 .14rem); }
+:root[data-ui-theme="f-sargon"] .modal__stripe { background: linear-gradient(90deg, #874b08, #e8b860, #2a7a6f); }
+:root[data-ui-theme="f-sargon"] .pbanner__band { background: linear-gradient(90deg, #874b08, #e8b860, #2a7a6f); }
+:root[data-ui-theme="f-sargon"] .brackets::after {
+  background:
+    conic-gradient(from 45deg at 50% 50%, #874b08 0 90deg, transparent 90deg 360deg) top left / .12rem .12rem no-repeat,
+    conic-gradient(from 45deg at 50% 50%, #874b08 0 90deg, transparent 90deg 360deg) top right / .12rem .12rem no-repeat,
+    conic-gradient(from 45deg at 50% 50%, #874b08 0 90deg, transparent 90deg 360deg) bottom left / .12rem .12rem no-repeat,
+    conic-gradient(from 45deg at 50% 50%, #874b08 0 90deg, transparent 90deg 360deg) bottom right / .12rem .12rem no-repeat;
+}
+:root[data-ui-theme="f-sargon"] .gtop__center { background: repeating-linear-gradient(170deg, rgba(135, 75, 8, .035) 0 1px, transparent 1px 7px), linear-gradient(180deg, rgba(var(--bg-1-rgb), .92), rgba(var(--bg-0-rgb), .92)); border-radius: 0; clip-path: polygon(.14rem 0, 100% 0, 100% calc(100% - .14rem), calc(100% - .14rem) 100%, 0 100%, 0 .14rem); }
+:root[data-ui-theme="f-sargon"] .capsule { border-radius: .25rem; background: linear-gradient(90deg, #874b08, #e8b860, #2a7a6f) bottom / 100% 2px no-repeat, rgba(var(--bg-1-rgb), .92); }
+:root[data-ui-theme="f-sargon"] .scard__body { background: linear-gradient(90deg, #874b08, #e8b860, #2a7a6f) top / 100% 2px no-repeat, linear-gradient(180deg, rgba(var(--bg-0-rgb), .2), rgba(var(--bg-0-rgb), .94) 35%); }
+:root[data-ui-theme="f-sargon"] :is(.effect, .toolbtn:not(.obtn), .readybtn__box) { border-radius: .04rem; }
+:root[data-ui-theme="f-sargon"] .effect { background: repeating-linear-gradient(170deg, rgba(135, 75, 8, .035) 0 1px, transparent 1px 7px), rgba(var(--bg-1-rgb), .88); }
+:root[data-ui-theme="f-sargon"] .lvcard { background: repeating-linear-gradient(170deg, rgba(255, 240, 200, .6) 0 2px, transparent 2px 6px), linear-gradient(180deg, var(--mint-400), var(--mint-600)); background-size: .34rem 100%, 100% 100%; background-position: right bottom, 0 0; background-repeat: no-repeat; clip-path: polygon(.14rem 0, 100% 0, 100% calc(100% - .14rem), calc(100% - .14rem) 100%, 0 100%, 0 .14rem); }
+:root[data-ui-theme="f-sargon"] :is(.shopbar .obtn__plate, .obtn__cost, .toolbtn__img) { filter: sepia(.5) saturate(1.2) hue-rotate(-15deg); }
+:root[data-ui-theme="f-sargon"] :is(.title-bg__art, .title-bg__ridge-art, .title-bg__ridges, .title-bg__target, .title-bg__radar, .title-bg__haze) { display: none; }
+:root[data-ui-theme="f-sargon"] .app-bg, :root[data-ui-theme="f-sargon"] .app-bg::before, :root[data-ui-theme="f-sargon"] .app-bg::after { background: none; }

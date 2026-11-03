@@ -58,7 +58,28 @@
   border: 1px solid rgba(63, 224, 232, .35); border-radius: .18rem; box-shadow: 0 0 .3rem rgba(63, 224, 232, .14), inset 0 1px 0 rgba(180, 255, 255, .08);
 }
 :root[data-ui-theme="is-mizuki"] .btn { border-radius: .3rem; }
-:root[data-ui-theme="is-mizuki"] .btn--primary { background: linear-gradient(180deg, #4ff0e8, #1fa8c8); color: #021016; border-color: #8ffff0; }
+:root[data-ui-theme="is-mizuki"] .btn--primary { --ui-primary-face: linear-gradient(180deg, #4ff0e8, #1fa8c8); background-color: var(--mint-500); color: #021016; border-color: #8ffff0; }
 :root[data-ui-theme="is-mizuki"] .modal { background: rgba(0, 0, 0, .6); }
 @keyframes ui-ripple { from { box-shadow: 0 0 0 0 rgba(63, 224, 232, .55); } to { box-shadow: 0 0 0 .14rem rgba(63, 224, 232, 0); } }
 @media (prefers-reduced-motion: no-preference) { :root[data-ui-theme="is-mizuki"] .btn:hover { animation: ui-ripple 1.1s ease-out infinite; } }
+/* ---- texture layer (tools/ui-theme-textures.mjs) */
+:root[data-ui-theme="is-mizuki"] :is(.btn--amber, .btn--ice, .btn--danger) { background-image: radial-gradient(circle at 50% 120%, transparent 40%, rgba(180, 255, 250, .55) 42% 48%, transparent 50%), linear-gradient(180deg, rgba(255, 255, 255, .14), transparent 45%); background-size: .34rem 100%, 100% 100%; background-position: right center, 0 0; background-repeat: no-repeat; }
+:root[data-ui-theme="is-mizuki"] .btn--primary { background-image: radial-gradient(circle at 50% 120%, transparent 40%, rgba(180, 255, 250, .55) 42% 48%, transparent 50%), var(--ui-primary-face, none); background-size: .34rem 100%, 100% 100%; background-position: right center, 0 0; background-repeat: no-repeat, no-repeat; }
+:root[data-ui-theme="is-mizuki"] .btn--primary:disabled { background-image: none; }
+:root[data-ui-theme="is-mizuki"] :is(.panel, .modal__box) { isolation: isolate; }
+:root[data-ui-theme="is-mizuki"] :is(.panel, .modal__box)::before { content: ''; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(circle at 50% 120%, transparent 60%, rgba(63, 224, 232, .05) 62% 66%, transparent 68%) 0 0 / .6rem .3rem; z-index: -1; }
+:root[data-ui-theme="is-mizuki"] :is(.mode-card__bg, .seat__stripes) { background: radial-gradient(circle at 50% 120%, transparent 55%, rgba(63, 224, 232, .1) 57% 61%, transparent 63%) 0 0 / .8rem .4rem, radial-gradient(2px 2px at 30% 40%, rgba(111, 255, 216, .6), transparent 70%); }
+:root[data-ui-theme="is-mizuki"] .seat { background-image: radial-gradient(circle at 50% 120%, transparent 55%, rgba(63, 224, 232, .1) 57% 61%, transparent 63%); }
+:root[data-ui-theme="is-mizuki"] .scard__bg { background: radial-gradient(circle at 50% 120%, transparent 55%, rgba(63, 224, 232, .1) 57% 61%, transparent 63%) 0 0 / .8rem .4rem, radial-gradient(2px 2px at 30% 40%, rgba(111, 255, 216, .6), transparent 70%), linear-gradient(180deg, var(--bg-3), var(--bg-1)); }
+:root[data-ui-theme="is-mizuki"] .modal__stripe { background: linear-gradient(90deg, #1fa8c8, #4ff0e8, #4b8cff); }
+:root[data-ui-theme="is-mizuki"] .pbanner__band { background: linear-gradient(90deg, #1fa8c8, #4ff0e8, #4b8cff); }
+:root[data-ui-theme="is-mizuki"] .brackets::after { background: none; }
+:root[data-ui-theme="is-mizuki"] .gtop__center { background: radial-gradient(circle at 50% 120%, transparent 60%, rgba(63, 224, 232, .05) 62% 66%, transparent 68%) 0 0 / .6rem .3rem, linear-gradient(180deg, rgba(var(--bg-1-rgb), .92), rgba(var(--bg-0-rgb), .92)); border-radius: .3rem; }
+:root[data-ui-theme="is-mizuki"] .capsule { border-radius: .25rem; background: linear-gradient(90deg, #1fa8c8, #4ff0e8, #4b8cff) bottom / 100% 2px no-repeat, rgba(var(--bg-1-rgb), .92); }
+:root[data-ui-theme="is-mizuki"] .scard__body { background: linear-gradient(90deg, #1fa8c8, #4ff0e8, #4b8cff) top / 100% 2px no-repeat, linear-gradient(180deg, rgba(var(--bg-0-rgb), .2), rgba(var(--bg-0-rgb), .94) 35%); }
+:root[data-ui-theme="is-mizuki"] :is(.effect, .toolbtn:not(.obtn), .readybtn__box) { border-radius: .3rem; }
+:root[data-ui-theme="is-mizuki"] .effect { background: radial-gradient(circle at 50% 120%, transparent 60%, rgba(63, 224, 232, .05) 62% 66%, transparent 68%) 0 0 / .6rem .3rem, rgba(var(--bg-1-rgb), .88); }
+:root[data-ui-theme="is-mizuki"] .lvcard { background: radial-gradient(circle at 50% 120%, transparent 40%, rgba(180, 255, 250, .55) 42% 48%, transparent 50%), linear-gradient(180deg, var(--mint-400), var(--mint-600)); background-size: .34rem 100%, 100% 100%; background-position: right bottom, 0 0; background-repeat: no-repeat;  }
+:root[data-ui-theme="is-mizuki"] :is(.shopbar .obtn__plate, .obtn__cost, .toolbtn__img) { filter: hue-rotate(10deg) saturate(1.3); }
+:root[data-ui-theme="is-mizuki"] :is(.title-bg__art, .title-bg__ridge-art, .title-bg__ridges, .title-bg__target, .title-bg__radar, .title-bg__haze) { display: none; }
+:root[data-ui-theme="is-mizuki"] .app-bg, :root[data-ui-theme="is-mizuki"] .app-bg::before, :root[data-ui-theme="is-mizuki"] .app-bg::after { background: none; }

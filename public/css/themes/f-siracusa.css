@@ -55,7 +55,38 @@
   box-shadow: 0 0 0 1px rgba(184, 149, 90, .35), 0 .1rem .4rem rgba(0, 0, 0, .6);
 }
 :root[data-ui-theme="f-siracusa"] .btn { border-radius: 0; letter-spacing: .14em; font-family: var(--font-display); }
-:root[data-ui-theme="f-siracusa"] .btn--primary { background: linear-gradient(180deg, #2b1a1a, #120a0a); color: #e0bf82; border-color: #b8955a; }
+:root[data-ui-theme="f-siracusa"] .btn--primary { --ui-primary-face: linear-gradient(180deg, #2b1a1a, #120a0a); background-color: var(--mint-500); color: #e0bf82; border-color: #b8955a; }
 :root[data-ui-theme="f-siracusa"] .modal { background: rgba(0, 0, 0, .6); }
 :root[data-ui-theme="f-siracusa"] .btn--primary:hover { background: #8a1c2b; color: #f1ebe4; }
 :root[data-ui-theme="f-siracusa"] body { filter: none; }
+/* ---- texture layer (tools/ui-theme-textures.mjs) */
+:root[data-ui-theme="f-siracusa"] :is(.btn--amber, .btn--ice, .btn--danger) { background-image: repeating-linear-gradient(90deg, rgba(224, 191, 130, .7) 0 1px, transparent 1px 3px), linear-gradient(180deg, rgba(255, 255, 255, .14), transparent 45%); background-size: .34rem 100%, 100% 100%; background-position: right center, 0 0; background-repeat: no-repeat; }
+:root[data-ui-theme="f-siracusa"] .btn--primary { background-image: repeating-linear-gradient(90deg, rgba(224, 191, 130, .7) 0 1px, transparent 1px 3px), var(--ui-primary-face, none); background-size: .34rem 100%, 100% 100%; background-position: right center, 0 0; background-repeat: no-repeat, no-repeat; }
+:root[data-ui-theme="f-siracusa"] .btn--primary:disabled { background-image: none; }
+:root[data-ui-theme="f-siracusa"] :is(.panel, .modal__box) { isolation: isolate; }
+:root[data-ui-theme="f-siracusa"] :is(.panel, .modal__box)::before { content: ''; position: absolute; inset: 0; pointer-events: none; background: repeating-linear-gradient(90deg, rgba(184, 149, 90, .03) 0 1px, transparent 1px 5px), radial-gradient(60% 80% at 50% 40%, rgba(255, 240, 210, .04), transparent 70%); z-index: -1; }
+:root[data-ui-theme="f-siracusa"] :is(.mode-card__bg, .seat__stripes) { background: repeating-linear-gradient(90deg, rgba(184, 149, 90, .07) 0 1px, transparent 1px .12rem), linear-gradient(180deg, transparent 60%, rgba(138, 28, 43, .25)); }
+:root[data-ui-theme="f-siracusa"] .seat { background-image: repeating-linear-gradient(90deg, rgba(184, 149, 90, .07) 0 1px, transparent 1px .12rem); }
+:root[data-ui-theme="f-siracusa"] .scard__bg { background: repeating-linear-gradient(90deg, rgba(184, 149, 90, .07) 0 1px, transparent 1px .12rem), linear-gradient(180deg, transparent 60%, rgba(138, 28, 43, .25)), linear-gradient(180deg, var(--bg-3), var(--bg-1)); }
+:root[data-ui-theme="f-siracusa"] .modal__stripe { background: linear-gradient(90deg, #8a1c2b 0 .1rem, #b8955a .1rem .12rem, #120a0a .12rem); }
+:root[data-ui-theme="f-siracusa"] .pbanner__band { background: linear-gradient(90deg, #8a1c2b 0 .1rem, #b8955a .1rem .12rem, #120a0a .12rem); }
+:root[data-ui-theme="f-siracusa"] .brackets::after {
+  background:
+    linear-gradient(#b8955a, #b8955a) top left / .26rem 1px no-repeat,
+    linear-gradient(#b8955a, #b8955a) top left / 1px .26rem no-repeat,
+    linear-gradient(#b8955a, #b8955a) top right / .26rem 1px no-repeat,
+    linear-gradient(#b8955a, #b8955a) top right / 1px .26rem no-repeat,
+    linear-gradient(#b8955a, #b8955a) bottom left / .26rem 1px no-repeat,
+    linear-gradient(#b8955a, #b8955a) bottom left / 1px .26rem no-repeat,
+    linear-gradient(#b8955a, #b8955a) bottom right / .26rem 1px no-repeat,
+    linear-gradient(#b8955a, #b8955a) bottom right / 1px .26rem no-repeat;
+}
+:root[data-ui-theme="f-siracusa"] .gtop__center { background: repeating-linear-gradient(90deg, rgba(184, 149, 90, .03) 0 1px, transparent 1px 5px), radial-gradient(60% 80% at 50% 40%, rgba(255, 240, 210, .04), transparent 70%), linear-gradient(180deg, rgba(var(--bg-1-rgb), .92), rgba(var(--bg-0-rgb), .92)); border-radius: 0; }
+:root[data-ui-theme="f-siracusa"] .capsule { border-radius: 0; background: linear-gradient(90deg, #8a1c2b 0 .1rem, #b8955a .1rem .12rem, #120a0a .12rem) bottom / 100% 2px no-repeat, rgba(var(--bg-1-rgb), .92); }
+:root[data-ui-theme="f-siracusa"] .scard__body { background: linear-gradient(90deg, #8a1c2b 0 .1rem, #b8955a .1rem .12rem, #120a0a .12rem) top / 100% 2px no-repeat, linear-gradient(180deg, rgba(var(--bg-0-rgb), .2), rgba(var(--bg-0-rgb), .94) 35%); }
+:root[data-ui-theme="f-siracusa"] :is(.effect, .toolbtn:not(.obtn), .readybtn__box) { border-radius: 0; }
+:root[data-ui-theme="f-siracusa"] .effect { background: repeating-linear-gradient(90deg, rgba(184, 149, 90, .03) 0 1px, transparent 1px 5px), radial-gradient(60% 80% at 50% 40%, rgba(255, 240, 210, .04), transparent 70%), rgba(var(--bg-1-rgb), .88); }
+:root[data-ui-theme="f-siracusa"] .lvcard { background: repeating-linear-gradient(90deg, rgba(224, 191, 130, .7) 0 1px, transparent 1px 3px), linear-gradient(180deg, var(--mint-400), var(--mint-600)); background-size: .34rem 100%, 100% 100%; background-position: right bottom, 0 0; background-repeat: no-repeat;  }
+:root[data-ui-theme="f-siracusa"] :is(.shopbar .obtn__plate, .obtn__cost, .toolbtn__img) { filter: grayscale(.8) sepia(.4); }
+:root[data-ui-theme="f-siracusa"] :is(.title-bg__art, .title-bg__ridge-art, .title-bg__ridges, .title-bg__target, .title-bg__radar, .title-bg__haze) { display: none; }
+:root[data-ui-theme="f-siracusa"] .app-bg, :root[data-ui-theme="f-siracusa"] .app-bg::before, :root[data-ui-theme="f-siracusa"] .app-bg::after { background: none; }

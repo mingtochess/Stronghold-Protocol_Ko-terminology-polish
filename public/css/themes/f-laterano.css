@@ -69,8 +69,36 @@
   box-shadow: 0 .05rem .2rem rgba(120, 95, 40, .14), inset 0 2px 0 rgba(224, 178, 74, .45);
 }
 :root[data-ui-theme="f-laterano"] .btn { border-radius: .2rem; }
-:root[data-ui-theme="f-laterano"] .btn--primary { background: linear-gradient(180deg, #c99a33, #95701b); color: #fff; border-color: #7f5e14; }
+:root[data-ui-theme="f-laterano"] .btn--primary { --ui-primary-face: linear-gradient(180deg, #c99a33, #95701b); background-color: var(--mint-500); color: #fff; border-color: #7f5e14; }
 :root[data-ui-theme="f-laterano"] .modal { background: rgba(40, 40, 40, .35); }
 :root[data-ui-theme="f-laterano"] :is(.btn--secondary, .btn--ghost) { --btn-bg: #ffffff; --btn-bg-hover: #faf8f2; }
 @keyframes ui-halo { from { box-shadow: 0 0 0 0 rgba(224, 178, 74, .6); } to { box-shadow: 0 0 0 .1rem rgba(224, 178, 74, 0); } }
 @media (prefers-reduced-motion: no-preference) { :root[data-ui-theme="f-laterano"] .btn:hover { animation: ui-halo .9s ease-out infinite; } }
+/* ---- texture layer (tools/ui-theme-textures.mjs) */
+:root[data-ui-theme="f-laterano"] :is(.btn--amber, .btn--ice, .btn--danger) { background-image: conic-gradient(from 0deg at 50% 100%, rgba(255, 240, 190, .6) 0 15deg, transparent 15deg 30deg, rgba(255, 240, 190, .6) 30deg 45deg, transparent 45deg 360deg), linear-gradient(180deg, rgba(255, 255, 255, .14), transparent 45%); background-size: .34rem 100%, 100% 100%; background-position: right center, 0 0; background-repeat: no-repeat; }
+:root[data-ui-theme="f-laterano"] .btn--primary { background-image: conic-gradient(from 0deg at 50% 100%, rgba(255, 240, 190, .6) 0 15deg, transparent 15deg 30deg, rgba(255, 240, 190, .6) 30deg 45deg, transparent 45deg 360deg), var(--ui-primary-face, none); background-size: .34rem 100%, 100% 100%; background-position: right center, 0 0; background-repeat: no-repeat, no-repeat; }
+:root[data-ui-theme="f-laterano"] .btn--primary:disabled { background-image: none; }
+:root[data-ui-theme="f-laterano"] :is(.panel, .modal__box) { isolation: isolate; }
+:root[data-ui-theme="f-laterano"] :is(.panel, .modal__box)::before { content: ''; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(circle at 50% -10%, rgba(224, 178, 74, .12), transparent 45%); z-index: -1; }
+:root[data-ui-theme="f-laterano"] :is(.mode-card__bg, .seat__stripes) { background: conic-gradient(from 180deg at 50% 0%, rgba(224, 178, 74, .08) 0 10deg, transparent 10deg 20deg, rgba(224, 178, 74, .08) 20deg 30deg, transparent 30deg 330deg, rgba(224, 178, 74, .08) 330deg 340deg, transparent 340deg 350deg, rgba(224, 178, 74, .08) 350deg), radial-gradient(circle at 50% -20%, rgba(255, 220, 140, .4), transparent 45%); }
+:root[data-ui-theme="f-laterano"] .seat { background-image: conic-gradient(from 180deg at 50% 0%, rgba(224, 178, 74, .08) 0 10deg, transparent 10deg 20deg, rgba(224, 178, 74, .08) 20deg 30deg, transparent 30deg 330deg, rgba(224, 178, 74, .08) 330deg 340deg, transparent 340deg 350deg, rgba(224, 178, 74, .08) 350deg); }
+:root[data-ui-theme="f-laterano"] .scard__bg { background: conic-gradient(from 180deg at 50% 0%, rgba(224, 178, 74, .08) 0 10deg, transparent 10deg 20deg, rgba(224, 178, 74, .08) 20deg 30deg, transparent 30deg 330deg, rgba(224, 178, 74, .08) 330deg 340deg, transparent 340deg 350deg, rgba(224, 178, 74, .08) 350deg), radial-gradient(circle at 50% -20%, rgba(255, 220, 140, .4), transparent 45%), linear-gradient(180deg, var(--bg-3), var(--bg-1)); }
+:root[data-ui-theme="f-laterano"] :is(.mode-card, .scard) { clip-path: polygon(0 .18rem, .18rem 0, calc(100% - .18rem) 0, 100% .18rem, 100% 100%, 0 100%); }
+:root[data-ui-theme="f-laterano"] .modal__stripe { background: linear-gradient(90deg, #c2455a, #e0b24a, #c2455a); }
+:root[data-ui-theme="f-laterano"] .pbanner__band { background: linear-gradient(90deg, #c2455a, #e0b24a, #c2455a); }
+:root[data-ui-theme="f-laterano"] .brackets::after {
+  background:
+    radial-gradient(circle, #a87d1f 0 3px, transparent calc(3px + 1px)) top left / .14rem .14rem no-repeat,
+    radial-gradient(circle, #a87d1f 0 3px, transparent calc(3px + 1px)) top right / .14rem .14rem no-repeat,
+    radial-gradient(circle, #a87d1f 0 3px, transparent calc(3px + 1px)) bottom left / .14rem .14rem no-repeat,
+    radial-gradient(circle, #a87d1f 0 3px, transparent calc(3px + 1px)) bottom right / .14rem .14rem no-repeat;
+}
+:root[data-ui-theme="f-laterano"] .gtop__center { background: radial-gradient(circle at 50% -10%, rgba(224, 178, 74, .12), transparent 45%), linear-gradient(180deg, rgba(var(--bg-1-rgb), .92), rgba(var(--bg-0-rgb), .92)); border-radius: 0; clip-path: polygon(0 .18rem, .18rem 0, calc(100% - .18rem) 0, 100% .18rem, 100% 100%, 0 100%); }
+:root[data-ui-theme="f-laterano"] .capsule { border-radius: .25rem; background: linear-gradient(90deg, #c2455a, #e0b24a, #c2455a) bottom / 100% 2px no-repeat, rgba(var(--bg-1-rgb), .92); }
+:root[data-ui-theme="f-laterano"] .scard__body { background: linear-gradient(90deg, #c2455a, #e0b24a, #c2455a) top / 100% 2px no-repeat, linear-gradient(180deg, rgba(var(--bg-0-rgb), .2), rgba(var(--bg-0-rgb), .94) 35%); }
+:root[data-ui-theme="f-laterano"] :is(.effect, .toolbtn:not(.obtn), .readybtn__box) { border-radius: .2rem; }
+:root[data-ui-theme="f-laterano"] .effect { background: radial-gradient(circle at 50% -10%, rgba(224, 178, 74, .12), transparent 45%), rgba(var(--bg-1-rgb), .88); }
+:root[data-ui-theme="f-laterano"] .lvcard { background: conic-gradient(from 0deg at 50% 100%, rgba(255, 240, 190, .6) 0 15deg, transparent 15deg 30deg, rgba(255, 240, 190, .6) 30deg 45deg, transparent 45deg 360deg), linear-gradient(180deg, var(--mint-400), var(--mint-600)); background-size: .34rem 100%, 100% 100%; background-position: right bottom, 0 0; background-repeat: no-repeat; clip-path: polygon(0 .18rem, .18rem 0, calc(100% - .18rem) 0, 100% .18rem, 100% 100%, 0 100%); }
+:root[data-ui-theme="f-laterano"] :is(.shopbar .obtn__plate, .obtn__cost, .toolbtn__img) { filter: sepia(.4) saturate(1.1) brightness(1.08); }
+:root[data-ui-theme="f-laterano"] :is(.title-bg__art, .title-bg__ridge-art, .title-bg__ridges, .title-bg__target, .title-bg__radar, .title-bg__haze) { display: none; }
+:root[data-ui-theme="f-laterano"] .app-bg, :root[data-ui-theme="f-laterano"] .app-bg::before, :root[data-ui-theme="f-laterano"] .app-bg::after { background: none; }

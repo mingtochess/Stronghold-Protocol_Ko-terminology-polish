@@ -43,10 +43,6 @@
   border-radius: 0;
   box-shadow: 4px 4px 0 rgba(17, 19, 18, .08);
 }
-:root[data-ui-theme="rhine"] .panel::before,
-:root[data-ui-theme="rhine"] .modal__box::before {
-  content: ''; position: absolute; left: -1px; top: -1px; width: .24rem; height: .05rem; background: var(--rhine-signal); pointer-events: none;
-}
 :root[data-ui-theme="rhine"] .modal { background: rgba(244, 245, 242, .72); }
 :root[data-ui-theme="rhine"] :is(.btn--secondary, .btn--ghost) { --btn-bg: #ffffff; --btn-bg-hover: #f4f5ef; --btn-bd: var(--line); border-radius: 0; }
 :root[data-ui-theme="rhine"] .btn--primary { --btn-bg: var(--line); --btn-bg-hover: #000; --btn-fg: var(--rhine-signal); }
@@ -55,3 +51,37 @@
 :root[data-ui-theme="rhine"] .micro,
 :root[data-ui-theme="rhine"] .num { font-family: var(--font-mono); letter-spacing: .08em; }
 :root[data-ui-theme="rhine"] .micro::before { content: '// '; color: var(--text-dim); }
+
+/* tx:start */
+/* ---- texture layer (tools/ui-theme-textures.mjs) */
+:root[data-ui-theme="rhine"] :is(.btn--amber, .btn--ice, .btn--danger) { background-image: repeating-linear-gradient(90deg, #e8d400 0 2px, transparent 2px 5px), linear-gradient(180deg, rgba(255, 255, 255, .14), transparent 45%); background-size: .34rem 100%, 100% 100%; background-position: right center, 0 0; background-repeat: no-repeat; }
+:root[data-ui-theme="rhine"] .btn--primary { background-image: repeating-linear-gradient(90deg, #e8d400 0 2px, transparent 2px 5px), var(--ui-primary-face, none); background-size: .34rem 100%, 100% 100%; background-position: right center, 0 0; background-repeat: no-repeat, no-repeat; }
+:root[data-ui-theme="rhine"] .btn--primary:disabled { background-image: none; }
+:root[data-ui-theme="rhine"] :is(.panel, .modal__box) { isolation: isolate; }
+:root[data-ui-theme="rhine"] :is(.panel, .modal__box)::before { content: ''; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(rgba(17, 19, 18, .05) 1px, transparent 1px) 0 0 / 100% .1rem; z-index: -1; }
+:root[data-ui-theme="rhine"] :is(.mode-card__bg, .seat__stripes) { background: linear-gradient(rgba(17, 19, 18, .06) 1px, transparent 1px) 0 0 / .12rem .12rem, linear-gradient(90deg, rgba(17, 19, 18, .06) 1px, transparent 1px) 0 0 / .12rem .12rem; }
+:root[data-ui-theme="rhine"] .seat { background-image: linear-gradient(rgba(17, 19, 18, .06) 1px, transparent 1px); }
+:root[data-ui-theme="rhine"] .scard__bg { background: linear-gradient(rgba(17, 19, 18, .06) 1px, transparent 1px) 0 0 / .12rem .12rem, linear-gradient(90deg, rgba(17, 19, 18, .06) 1px, transparent 1px) 0 0 / .12rem .12rem, linear-gradient(180deg, var(--bg-3), var(--bg-1)); }
+:root[data-ui-theme="rhine"] .modal__stripe { background: repeating-linear-gradient(90deg, #111312 0 .1rem, #e8d400 .1rem .2rem); }
+:root[data-ui-theme="rhine"] .pbanner__band { background: repeating-linear-gradient(90deg, #111312 0 .1rem, #e8d400 .1rem .2rem); }
+:root[data-ui-theme="rhine"] .brackets::after {
+  background:
+    linear-gradient(#111312, #111312) top left / .2rem 1px no-repeat,
+    linear-gradient(#111312, #111312) top left / 1px .2rem no-repeat,
+    linear-gradient(#111312, #111312) top right / .2rem 1px no-repeat,
+    linear-gradient(#111312, #111312) top right / 1px .2rem no-repeat,
+    linear-gradient(#111312, #111312) bottom left / .2rem 1px no-repeat,
+    linear-gradient(#111312, #111312) bottom left / 1px .2rem no-repeat,
+    linear-gradient(#111312, #111312) bottom right / .2rem 1px no-repeat,
+    linear-gradient(#111312, #111312) bottom right / 1px .2rem no-repeat;
+}
+:root[data-ui-theme="rhine"] .gtop__center { background: linear-gradient(rgba(17, 19, 18, .05) 1px, transparent 1px) 0 0 / 100% .1rem, linear-gradient(180deg, rgba(var(--bg-1-rgb), .92), rgba(var(--bg-0-rgb), .92)); border-radius: 0; }
+:root[data-ui-theme="rhine"] .capsule { border-radius: 0; background: repeating-linear-gradient(90deg, #111312 0 .1rem, #e8d400 .1rem .2rem) bottom / 100% 2px no-repeat, rgba(var(--bg-1-rgb), .92); }
+:root[data-ui-theme="rhine"] .scard__body { background: repeating-linear-gradient(90deg, #111312 0 .1rem, #e8d400 .1rem .2rem) top / 100% 2px no-repeat, linear-gradient(180deg, rgba(var(--bg-0-rgb), .2), rgba(var(--bg-0-rgb), .94) 35%); }
+:root[data-ui-theme="rhine"] :is(.effect, .toolbtn:not(.obtn), .readybtn__box) { border-radius: 0; }
+:root[data-ui-theme="rhine"] .effect { background: linear-gradient(rgba(17, 19, 18, .05) 1px, transparent 1px) 0 0 / 100% .1rem, rgba(var(--bg-1-rgb), .88); }
+:root[data-ui-theme="rhine"] .lvcard { background: repeating-linear-gradient(90deg, #e8d400 0 2px, transparent 2px 5px), linear-gradient(180deg, var(--mint-400), var(--mint-600)); background-size: .34rem 100%, 100% 100%; background-position: right bottom, 0 0; background-repeat: no-repeat;  }
+:root[data-ui-theme="rhine"] :is(.shopbar .obtn__plate, .obtn__cost, .toolbtn__img) { filter: grayscale(1) contrast(1.15); }
+:root[data-ui-theme="rhine"] :is(.title-bg__art, .title-bg__ridge-art, .title-bg__ridges, .title-bg__target, .title-bg__radar, .title-bg__haze) { display: none; }
+:root[data-ui-theme="rhine"] .app-bg, :root[data-ui-theme="rhine"] .app-bg::before, :root[data-ui-theme="rhine"] .app-bg::after { background: none; }
+/* tx:end */

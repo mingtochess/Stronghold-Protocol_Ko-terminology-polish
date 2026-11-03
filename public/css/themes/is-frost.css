@@ -72,8 +72,39 @@
   box-shadow: 0 .05rem .2rem rgba(40, 70, 95, .14); border-top: 2px solid #2a6f9e;
 }
 :root[data-ui-theme="is-frost"] .btn { border-radius: .04rem; }
-:root[data-ui-theme="is-frost"] .btn--primary { background: linear-gradient(180deg, #3480b4, #22608a); color: #fff; border-color: #22608a; }
+:root[data-ui-theme="is-frost"] .btn--primary { --ui-primary-face: linear-gradient(180deg, #3480b4, #22608a); background-color: var(--mint-500); color: #fff; border-color: #22608a; }
 :root[data-ui-theme="is-frost"] .modal { background: rgba(40, 40, 40, .35); }
 :root[data-ui-theme="is-frost"] :is(.btn--secondary, .btn--ghost) { --btn-bg: #ffffff; --btn-bg-hover: #f2f6f9; }
 :root[data-ui-theme="is-frost"] .btn:hover { box-shadow: 0 0 0 1px #5db6e8, 0 0 .12rem rgba(93, 182, 232, .5); }
 :root[data-ui-theme="is-frost"] .micro { letter-spacing: .24em; }
+/* ---- texture layer (tools/ui-theme-textures.mjs) */
+:root[data-ui-theme="is-frost"] :is(.btn--amber, .btn--ice, .btn--danger) { background-image: repeating-linear-gradient(60deg, rgba(255, 255, 255, .7) 0 1px, transparent 1px 5px), repeating-linear-gradient(-60deg, rgba(255, 255, 255, .7) 0 1px, transparent 1px 5px), linear-gradient(180deg, rgba(255, 255, 255, .14), transparent 45%); background-size: .34rem 100%, 100% 100%; background-position: right center, 0 0; background-repeat: no-repeat; }
+:root[data-ui-theme="is-frost"] .btn--primary { background-image: repeating-linear-gradient(60deg, rgba(255, 255, 255, .7) 0 1px, transparent 1px 5px), repeating-linear-gradient(-60deg, rgba(255, 255, 255, .7) 0 1px, transparent 1px 5px), var(--ui-primary-face, none); background-size: .34rem 100%, 100% 100%; background-position: right center, 0 0; background-repeat: no-repeat, no-repeat; }
+:root[data-ui-theme="is-frost"] .btn--primary:disabled { background-image: none; }
+:root[data-ui-theme="is-frost"] :is(.panel, .modal__box) { isolation: isolate; }
+:root[data-ui-theme="is-frost"] :is(.panel, .modal__box)::before { content: ''; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(160deg, rgba(93, 182, 232, .08), transparent 40%), repeating-linear-gradient(60deg, rgba(36, 95, 136, .025) 0 1px, transparent 1px 8px); z-index: -1; }
+:root[data-ui-theme="is-frost"] :is(.mode-card__bg, .seat__stripes) { background: repeating-linear-gradient(60deg, rgba(36, 95, 136, .05) 0 1px, transparent 1px 10px), repeating-linear-gradient(-60deg, rgba(36, 95, 136, .05) 0 1px, transparent 1px 10px); }
+:root[data-ui-theme="is-frost"] .seat { background-image: repeating-linear-gradient(60deg, rgba(36, 95, 136, .05) 0 1px, transparent 1px 10px); }
+:root[data-ui-theme="is-frost"] .scard__bg { background: repeating-linear-gradient(60deg, rgba(36, 95, 136, .05) 0 1px, transparent 1px 10px), repeating-linear-gradient(-60deg, rgba(36, 95, 136, .05) 0 1px, transparent 1px 10px), linear-gradient(180deg, var(--bg-3), var(--bg-1)); }
+:root[data-ui-theme="is-frost"] .modal__stripe { background: linear-gradient(90deg, #245f88, #8fd0f0, #245f88); }
+:root[data-ui-theme="is-frost"] .pbanner__band { background: linear-gradient(90deg, #245f88, #8fd0f0, #245f88); }
+:root[data-ui-theme="is-frost"] .brackets::after {
+  background:
+    linear-gradient(#245f88, #245f88) top left / .18rem 1px no-repeat,
+    linear-gradient(#245f88, #245f88) top left / 1px .18rem no-repeat,
+    linear-gradient(#245f88, #245f88) top right / .18rem 1px no-repeat,
+    linear-gradient(#245f88, #245f88) top right / 1px .18rem no-repeat,
+    linear-gradient(#245f88, #245f88) bottom left / .18rem 1px no-repeat,
+    linear-gradient(#245f88, #245f88) bottom left / 1px .18rem no-repeat,
+    linear-gradient(#245f88, #245f88) bottom right / .18rem 1px no-repeat,
+    linear-gradient(#245f88, #245f88) bottom right / 1px .18rem no-repeat;
+}
+:root[data-ui-theme="is-frost"] .gtop__center { background: linear-gradient(160deg, rgba(93, 182, 232, .08), transparent 40%), repeating-linear-gradient(60deg, rgba(36, 95, 136, .025) 0 1px, transparent 1px 8px), linear-gradient(180deg, rgba(var(--bg-1-rgb), .92), rgba(var(--bg-0-rgb), .92)); border-radius: .04rem; }
+:root[data-ui-theme="is-frost"] .capsule { border-radius: .25rem; background: linear-gradient(90deg, #245f88, #8fd0f0, #245f88) bottom / 100% 2px no-repeat, rgba(var(--bg-1-rgb), .92); }
+:root[data-ui-theme="is-frost"] .scard__body { background: linear-gradient(90deg, #245f88, #8fd0f0, #245f88) top / 100% 2px no-repeat, linear-gradient(180deg, rgba(var(--bg-0-rgb), .2), rgba(var(--bg-0-rgb), .94) 35%); }
+:root[data-ui-theme="is-frost"] :is(.effect, .toolbtn:not(.obtn), .readybtn__box) { border-radius: .04rem; }
+:root[data-ui-theme="is-frost"] .effect { background: linear-gradient(160deg, rgba(93, 182, 232, .08), transparent 40%), repeating-linear-gradient(60deg, rgba(36, 95, 136, .025) 0 1px, transparent 1px 8px), rgba(var(--bg-1-rgb), .88); }
+:root[data-ui-theme="is-frost"] .lvcard { background: repeating-linear-gradient(60deg, rgba(255, 255, 255, .7) 0 1px, transparent 1px 5px), repeating-linear-gradient(-60deg, rgba(255, 255, 255, .7) 0 1px, transparent 1px 5px), linear-gradient(180deg, var(--mint-400), var(--mint-600)); background-size: .34rem 100%, 100% 100%; background-position: right bottom, 0 0; background-repeat: no-repeat;  }
+:root[data-ui-theme="is-frost"] :is(.shopbar .obtn__plate, .obtn__cost, .toolbtn__img) { filter: saturate(.6) hue-rotate(10deg) brightness(1.1); }
+:root[data-ui-theme="is-frost"] :is(.title-bg__art, .title-bg__ridge-art, .title-bg__ridges, .title-bg__target, .title-bg__radar, .title-bg__haze) { display: none; }
+:root[data-ui-theme="is-frost"] .app-bg, :root[data-ui-theme="is-frost"] .app-bg::before, :root[data-ui-theme="is-frost"] .app-bg::after { background: none; }
