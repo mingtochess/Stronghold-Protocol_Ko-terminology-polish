@@ -53,7 +53,7 @@
 :root[data-ui-theme="f-siracusa"] .modal__box {
   background: linear-gradient(180deg, rgba(34, 34, 34, .94), rgba(12, 12, 12, .96)); border: 1px solid #333333; border-radius: 0; box-shadow: 0 .1rem .35rem rgba(0, 0, 0, .6);
 }
-:root[data-ui-theme="f-siracusa"] .btn { border-radius: 0; font-family: var(--font-display); letter-spacing: .16em; }
+:root[data-ui-theme="f-siracusa"] .btn { border-radius: 0; font-family: var(--font-display); letter-spacing: .06em; }
 :root[data-ui-theme="f-siracusa"] .btn--primary { --ui-primary-face: #d1242f; background-color: var(--mint-500); color: #ffffff; border-color: #ff4a52; }
 :root[data-ui-theme="f-siracusa"] .modal { background: rgba(0, 0, 0, .6); }
 :root[data-ui-theme="f-siracusa"] .section-label { color: #d1242f; }
@@ -79,7 +79,7 @@
 :root[data-ui-theme="f-siracusa"] :is(.title-bg__art, .title-bg__ridge-art, .title-bg__ridges, .title-bg__target, .title-bg__radar, .title-bg__haze) { display: none; }
 :root[data-ui-theme="f-siracusa"] .app-bg, :root[data-ui-theme="f-siracusa"] .app-bg::before, :root[data-ui-theme="f-siracusa"] .app-bg::after { background: none; }
 :root[data-ui-theme="f-siracusa"][data-ui-art] body::after { content: ''; position: fixed; right: 4vw; bottom: 6vh; width: 34vmin; height: 34vmin; background: var(--ta-logo) center / contain no-repeat; opacity: .07; pointer-events: none; z-index: -1;  }
-:root[data-ui-theme="f-siracusa"] :is(.topbar__title, .modal__title, .panel__title, .mode-card__name, .btn, .section-label, .capsule__label, .lvcard__label, .scard__name, .seat__name) { font-family: 'Playfair Display', 'Noto Serif KR', var(--font-cjk); }
+:root[data-ui-theme="f-siracusa"] :is(.topbar__title, .modal__title, .panel__title, .mode-card__name, .section-label) { font-family: 'Playfair Display', 'Noto Serif KR', var(--font-cjk); }
 :root[data-ui-theme="f-siracusa"] :is(.panel, .modal__box)::before { background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1.000 0 0 0 0 1.000 0 0 0 0 1.000 0 0 0 0.045 0'/%3E%3C/filter%3E%3Crect width='100%' height='100%' filter='url(%23n)'/%3E%3C/svg%3E"), repeating-linear-gradient(0deg, rgba(255, 255, 255, .012) 0 1px, transparent 1px 3px); background-size: 240px auto, auto; }
 :root[data-ui-theme="f-siracusa"] body { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1.000 0 0 0 0 1.000 0 0 0 0 1.000 0 0 0 0.045 0'/%3E%3C/filter%3E%3Crect width='100%' height='100%' filter='url(%23n)'/%3E%3C/svg%3E"), var(--ui-body-art, none); }
 :root[data-ui-theme="f-siracusa"] :is(.mode-card__bg, .scard__bg) { background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1.000 0 0 0 0 1.000 0 0 0 0 1.000 0 0 0 0.045 0'/%3E%3C/filter%3E%3Crect width='100%' height='100%' filter='url(%23n)'/%3E%3C/svg%3E"), radial-gradient(60% 70% at 50% 40%, rgba(255, 255, 255, .06), transparent 70%), linear-gradient(180deg, transparent 70%, rgba(209, 36, 47, .14)); }

@@ -213,21 +213,21 @@ const MAT = {
   cyber: { noise: { f: 1.4, o: 1, c: [0, 240, 255], a: .05 }, font: MONO, frame: 'inset 0 0 0 1px rgba(0, 240, 255, .18), 0 0 .18rem rgba(255, 46, 136, .35)' },
   'is-fungi': { noise: { f: .5, o: 4, c: [201, 178, 122], a: .09 }, font: SERIF_KR },
   'is-phantom': { noise: { f: .7, o: 3, c: [255, 255, 255], a: .035 }, font: CINZEL },
-  'is-mizuki': { noise: { f: .25, o: 4, c: [60, 110, 230], a: .08, t: 'turbulence' }, font: { q: 'family=Josefin+Sans:wght@300;600', family: "'Josefin Sans'" } },
+  'is-mizuki': { noise: { f: .25, o: 4, c: [60, 110, 230], a: .08, t: 'turbulence' }, font: { q: 'family=Josefin+Sans:wght@600', family: "'Josefin Sans'" } },
   'is-frost': { noise: { f: .9, o: 3, c: [122, 240, 208], a: .04 } },
   'is-sarkaz': { noise: { f: .55, o: 5, c: [230, 230, 230], a: .07 }, font: SERIF_KR },
   'is-sui': { noise: { f: 1.1, o: 2, c: [60, 80, 70], a: .05 }, font: SERIF_KR },
   'is-blackflow': { noise: { f: .8, o: 3, c: [255, 240, 176], a: .03 }, font: { q: 'family=Cormorant+Garamond:wght@500;700&family=Noto+Serif+KR:wght@500;700', family: "'Cormorant Garamond', 'Noto Serif KR'" } },
   'f-yan': { noise: { f: .9, o: 3, c: [90, 60, 30], a: .07, size: '300px' }, font: BRUSH },
-  'f-sargon': { noise: { f: .8, o: 3, c: [200, 190, 150], a: .05 }, font: { q: 'family=Saira+Stencil+One', family: "'Saira Stencil One'" } },
+  'f-sargon': { noise: { f: .8, o: 3, c: [200, 190, 150], a: .05 }, font: { q: 'family=Oswald:wght@600', family: "'Oswald'" } },
   'f-victoria': { noise: { f: .7, o: 3, c: [200, 190, 240], a: .04 }, font: CINZEL },
   'f-kjerag': { noise: { f: 1, o: 2, c: [30, 60, 190], a: .03 }, font: { q: 'family=Rajdhani:wght@600;700', family: "'Rajdhani'" } },
   'f-laterano': { noise: { f: 1.2, o: 2, c: [90, 108, 128], a: .03 }, font: CINZEL },
   'f-aegir': { noise: { f: .6, o: 3, c: [169, 194, 196], a: .04 }, font: { q: 'family=Cormorant+Garamond:wght@400;600&family=Noto+Serif+KR:wght@500', family: "'Cormorant Garamond', 'Noto Serif KR'" } },
   'f-siracusa': { noise: { f: .9, o: 3, c: [255, 255, 255], a: .045 }, font: { q: 'family=Playfair+Display:wght@600;800&family=Noto+Serif+KR:wght@500;700', family: "'Playfair Display', 'Noto Serif KR'" } },
-  'f-kazimierz': { noise: { f: 1.1, o: 2, c: [255, 255, 255], a: .03 }, font: { q: 'family=Barlow+Condensed:ital,wght@1,800', family: "'Barlow Condensed'" } },
+  'f-kazimierz': { noise: { f: 1.1, o: 2, c: [255, 255, 255], a: .03 }, font: { q: 'family=Barlow+Condensed:wght@700', family: "'Barlow Condensed'" } },
   'f-ursus': { noise: { f: .8, o: 4, c: [240, 200, 150], a: .06 }, font: { q: 'family=Oswald:wght@600;700', family: "'Oswald'" } },
-  'f-leithanien': { noise: { f: .7, o: 3, c: [214, 181, 108], a: .045 }, font: { q: 'family=Pinyon+Script&family=Cinzel:wght@600&family=Noto+Serif+KR:wght@500;700', family: "'Cinzel', 'Noto Serif KR'" } },
+  'f-leithanien': { noise: { f: .7, o: 3, c: [214, 181, 108], a: .045 }, font: { q: 'family=Cinzel:wght@600&family=Noto+Serif+KR:wght@500;700', family: "'Cinzel', 'Noto Serif KR'" } },
 };
 
 /** A background stack's top-level layers (commas inside parentheses are not separators). */
@@ -286,7 +286,7 @@ export function textureCss(id, light = false) {
   const m = MAT[id];
   if (m) {
     if (m.font) out.unshift(`@import url("https://fonts.googleapis.com/css2?${m.font.q}&display=swap");`);
-    if (m.font) out.push(`${s} :is(.topbar__title, .modal__title, .panel__title, .mode-card__name, .btn, .section-label, .capsule__label, .lvcard__label, .scard__name, .seat__name) { font-family: ${m.font.family}, var(--font-cjk); }`);
+    if (m.font) out.push(`${s} :is(.topbar__title, .modal__title, .panel__title, .mode-card__name, .section-label) { font-family: ${m.font.family}, var(--font-cjk); }`);
     if (m.noise) {
       const n = noise(m.noise);
       out.push(`${s} :is(.panel, .modal__box)::before { background: ${n}, ${x.grain}; background-size: ${m.noise.size || '240px'} auto, auto; }`);
