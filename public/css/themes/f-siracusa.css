@@ -72,7 +72,6 @@
 :root[data-ui-theme="f-siracusa"] .brackets::after { background: none; }
 :root[data-ui-theme="f-siracusa"] .gtop__center { background: repeating-linear-gradient(0deg, rgba(255, 255, 255, .012) 0 1px, transparent 1px 3px), linear-gradient(180deg, rgba(var(--bg-1-rgb), .92), rgba(var(--bg-0-rgb), .92)); border-radius: 0; }
 :root[data-ui-theme="f-siracusa"] .capsule { border-radius: 0; background: linear-gradient(90deg, transparent, #d1242f, transparent) bottom / 100% 2px no-repeat, rgba(var(--bg-1-rgb), .92); }
-:root[data-ui-theme="f-siracusa"] .scard__body { background: linear-gradient(90deg, transparent, #d1242f, transparent) top / 100% 2px no-repeat, linear-gradient(180deg, rgba(var(--bg-0-rgb), .2), rgba(var(--bg-0-rgb), .94) 35%); }
 :root[data-ui-theme="f-siracusa"] :is(.effect, .toolbtn:not(.obtn), .readybtn__box) { border-radius: 0; }
 :root[data-ui-theme="f-siracusa"] .effect { background: repeating-linear-gradient(0deg, rgba(255, 255, 255, .012) 0 1px, transparent 1px 3px), rgba(var(--bg-1-rgb), .88); }
 :root[data-ui-theme="f-siracusa"] .lvcard { background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .3)), linear-gradient(180deg, var(--mint-400), var(--mint-600)); background-size: .34rem 100%, 100% 100%; background-position: right bottom, 0 0; background-repeat: no-repeat;  }

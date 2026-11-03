@@ -315,3 +315,10 @@ button.sw-eth:hover { border-color: #fff; }
 
 /* Report contents remain visible when the animation timeline is paused (#fix53b). */
 .modal.sw-veil { animation: none; }
+/* Augment icons are white line art: their plates stay dark under every UI theme (light themes would wash them out). */
+.sw-augments .sw-tile--augment { --surf-2: #141b19; color: #eef2f1; }
+.sw-augments .sw-tile--augment .sw-tile__cap { color: #eef2f1; }
+.sw-augment-detail .sw-hero__box { background: rgba(22, 28, 27, .92); }
+/* Grade colours (silver, gold…) are tuned for dark plates: keep the augment section heads and the grade pill dark too. */
+.sw-augments .sw-sec__head { --surf-2: #19221f; color: #eef2f1; }
+.sw-augment-detail .sw-augment-grade { background: #19221f; border-color: color-mix(in srgb, var(--augment-color) 60%, #19221f); }

@@ -72,7 +72,6 @@
 :root[data-ui-theme="f-aegir"] .brackets::after { background: none; }
 :root[data-ui-theme="f-aegir"] .gtop__center { background: linear-gradient(118deg, rgba(255, 255, 255, .03) 0 40%, transparent 40%), linear-gradient(180deg, rgba(var(--bg-1-rgb), .92), rgba(var(--bg-0-rgb), .92)); border-radius: 0; clip-path: polygon(.16rem 0, 100% 0, 100% 100%, 0 100%, 0 .16rem); }
 :root[data-ui-theme="f-aegir"] .capsule { border-radius: 0; background: linear-gradient(90deg, transparent, #a9c2c4, transparent) bottom / 100% 2px no-repeat, rgba(var(--bg-1-rgb), .92); }
-:root[data-ui-theme="f-aegir"] .scard__body { background: linear-gradient(90deg, transparent, #a9c2c4, transparent) top / 100% 2px no-repeat, linear-gradient(180deg, rgba(var(--bg-0-rgb), .2), rgba(var(--bg-0-rgb), .94) 35%); }
 :root[data-ui-theme="f-aegir"] :is(.effect, .toolbtn:not(.obtn), .readybtn__box) { border-radius: 0; }
 :root[data-ui-theme="f-aegir"] .effect { background: linear-gradient(118deg, rgba(255, 255, 255, .03) 0 40%, transparent 40%), rgba(var(--bg-1-rgb), .88); }
 :root[data-ui-theme="f-aegir"] .lvcard { background: linear-gradient(118deg, transparent 45%, rgba(255, 255, 255, .35) 45% 55%, transparent 55%), linear-gradient(180deg, var(--mint-400), var(--mint-600)); background-size: .34rem 100%, 100% 100%; background-position: right bottom, 0 0; background-repeat: no-repeat; clip-path: polygon(.16rem 0, 100% 0, 100% 100%, 0 100%, 0 .16rem); }

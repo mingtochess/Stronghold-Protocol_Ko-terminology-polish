@@ -72,7 +72,6 @@
 :root[data-ui-theme="f-kazimierz"] .brackets::after { background: none; }
 :root[data-ui-theme="f-kazimierz"] .gtop__center { background: linear-gradient(115deg, rgba(230, 40, 60, .06) 0 18%, transparent 18%), linear-gradient(180deg, rgba(var(--bg-1-rgb), .92), rgba(var(--bg-0-rgb), .92)); border-radius: 0; clip-path: polygon(.12rem 0, 100% 0, calc(100% - .12rem) 100%, 0 100%); }
 :root[data-ui-theme="f-kazimierz"] .capsule { border-radius: 0; background: linear-gradient(115deg, #e6283c 0 45%, #ffffff 45% 55%, #2f6bff 55%) bottom / 100% 2px no-repeat, rgba(var(--bg-1-rgb), .92); }
-:root[data-ui-theme="f-kazimierz"] .scard__body { background: linear-gradient(115deg, #e6283c 0 45%, #ffffff 45% 55%, #2f6bff 55%) top / 100% 2px no-repeat, linear-gradient(180deg, rgba(var(--bg-0-rgb), .2), rgba(var(--bg-0-rgb), .94) 35%); }
 :root[data-ui-theme="f-kazimierz"] :is(.effect, .toolbtn:not(.obtn), .readybtn__box) { border-radius: 0; }
 :root[data-ui-theme="f-kazimierz"] .effect { background: linear-gradient(115deg, rgba(230, 40, 60, .06) 0 18%, transparent 18%), rgba(var(--bg-1-rgb), .88); }
 :root[data-ui-theme="f-kazimierz"] .lvcard { background: linear-gradient(115deg, transparent 40%, #ffffff 40% 52%, transparent 52%), linear-gradient(180deg, var(--mint-400), var(--mint-600)); background-size: .34rem 100%, 100% 100%; background-position: right bottom, 0 0; background-repeat: no-repeat; clip-path: polygon(.12rem 0, 100% 0, calc(100% - .12rem) 100%, 0 100%); }

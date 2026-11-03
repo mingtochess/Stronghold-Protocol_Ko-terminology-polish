@@ -267,7 +267,6 @@ export function textureCss(id, light = false) {
   const shape = x.clip && x.clip !== 'none' ? `border-radius: 0; clip-path: ${x.clip};` : `border-radius: ${x.radius};`;
   out.push(`${s} .gtop__center { background: ${x.grain}, linear-gradient(180deg, rgba(var(--bg-1-rgb), .92), rgba(var(--bg-0-rgb), .92)); ${shape} }`);
   out.push(`${s} .capsule { border-radius: ${x.radius === '0' ? '0' : '.25rem'}; background: ${x.stripe.replace(/;$/, '')} bottom / 100% 2px no-repeat, rgba(var(--bg-1-rgb), .92); }`);
-  out.push(`${s} .scard__body { background: ${x.stripe} top / 100% 2px no-repeat, linear-gradient(180deg, rgba(var(--bg-0-rgb), .2), rgba(var(--bg-0-rgb), .94) 35%); }`);
   out.push(`${s} :is(.effect, .toolbtn:not(.obtn), .readybtn__box) { border-radius: ${x.radius}; }`);
   out.push(`${s} .effect { background: ${x.grain}, rgba(var(--bg-1-rgb), .88); }`);
   out.push(`${s} .lvcard { background: ${x.face.replace(/ right center \/[^,]*?(?=,|$)/g, '')}, linear-gradient(180deg, var(--mint-400), var(--mint-600)); background-size: .34rem 100%, 100% 100%; background-position: right bottom, 0 0; background-repeat: no-repeat; ${x.clip && x.clip !== 'none' ? `clip-path: ${x.clip};` : ''} }`);

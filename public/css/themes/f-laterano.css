@@ -86,7 +86,6 @@
 :root[data-ui-theme="f-laterano"] .brackets::after { background: none; }
 :root[data-ui-theme="f-laterano"] .gtop__center { background: radial-gradient(circle at 50% -10%, rgba(255, 255, 255, .6), transparent 45%), linear-gradient(180deg, rgba(var(--bg-1-rgb), .92), rgba(var(--bg-0-rgb), .92)); border-radius: 0; }
 :root[data-ui-theme="f-laterano"] .capsule { border-radius: 0; background: linear-gradient(90deg, transparent, #98a4b0, transparent) bottom / 100% 2px no-repeat, rgba(var(--bg-1-rgb), .92); }
-:root[data-ui-theme="f-laterano"] .scard__body { background: linear-gradient(90deg, transparent, #98a4b0, transparent) top / 100% 2px no-repeat, linear-gradient(180deg, rgba(var(--bg-0-rgb), .2), rgba(var(--bg-0-rgb), .94) 35%); }
 :root[data-ui-theme="f-laterano"] :is(.effect, .toolbtn:not(.obtn), .readybtn__box) { border-radius: 0; }
 :root[data-ui-theme="f-laterano"] .effect { background: radial-gradient(circle at 50% -10%, rgba(255, 255, 255, .6), transparent 45%), rgba(var(--bg-1-rgb), .88); }
 :root[data-ui-theme="f-laterano"] .lvcard { background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .5)), linear-gradient(180deg, var(--mint-400), var(--mint-600)); background-size: .34rem 100%, 100% 100%; background-position: right bottom, 0 0; background-repeat: no-repeat;  }

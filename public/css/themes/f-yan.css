@@ -89,7 +89,6 @@
 }
 :root[data-ui-theme="f-yan"] .gtop__center { background: radial-gradient(50% 40% at 90% 10%, rgba(200, 110, 50, .06), transparent 70%), linear-gradient(180deg, rgba(var(--bg-1-rgb), .92), rgba(var(--bg-0-rgb), .92)); border-radius: 0; }
 :root[data-ui-theme="f-yan"] .capsule { border-radius: 0; background: linear-gradient(90deg, #a8341f 0 .14rem, transparent .14rem) bottom / 100% 2px no-repeat, rgba(var(--bg-1-rgb), .92); }
-:root[data-ui-theme="f-yan"] .scard__body { background: linear-gradient(90deg, #a8341f 0 .14rem, transparent .14rem) top / 100% 2px no-repeat, linear-gradient(180deg, rgba(var(--bg-0-rgb), .2), rgba(var(--bg-0-rgb), .94) 35%); }
 :root[data-ui-theme="f-yan"] :is(.effect, .toolbtn:not(.obtn), .readybtn__box) { border-radius: 0; }
 :root[data-ui-theme="f-yan"] .effect { background: radial-gradient(50% 40% at 90% 10%, rgba(200, 110, 50, .06), transparent 70%), rgba(var(--bg-1-rgb), .88); }
 :root[data-ui-theme="f-yan"] .lvcard { background: linear-gradient(100deg, transparent 20%, rgba(255, 245, 230, .35) 25% 35%, transparent 45%), linear-gradient(180deg, var(--mint-400), var(--mint-600)); background-size: .34rem 100%, 100% 100%; background-position: right bottom, 0 0; background-repeat: no-repeat;  }

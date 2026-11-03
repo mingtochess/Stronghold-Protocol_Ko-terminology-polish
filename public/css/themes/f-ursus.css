@@ -72,7 +72,6 @@
 :root[data-ui-theme="f-ursus"] .brackets::after { background: none; }
 :root[data-ui-theme="f-ursus"] .gtop__center { background: repeating-linear-gradient(90deg, rgba(240, 138, 28, .04) 0 .3rem, transparent .3rem .6rem), linear-gradient(180deg, rgba(var(--bg-1-rgb), .92), rgba(var(--bg-0-rgb), .92)); border-radius: 0; }
 :root[data-ui-theme="f-ursus"] .capsule { border-radius: 0; background: linear-gradient(90deg, #f2d23a 0 .6rem, #f08a1c .6rem) bottom / 100% 2px no-repeat, rgba(var(--bg-1-rgb), .92); }
-:root[data-ui-theme="f-ursus"] .scard__body { background: linear-gradient(90deg, #f2d23a 0 .6rem, #f08a1c .6rem) top / 100% 2px no-repeat, linear-gradient(180deg, rgba(var(--bg-0-rgb), .2), rgba(var(--bg-0-rgb), .94) 35%); }
 :root[data-ui-theme="f-ursus"] :is(.effect, .toolbtn:not(.obtn), .readybtn__box) { border-radius: 0; }
 :root[data-ui-theme="f-ursus"] .effect { background: repeating-linear-gradient(90deg, rgba(240, 138, 28, .04) 0 .3rem, transparent .3rem .6rem), rgba(var(--bg-1-rgb), .88); }
 :root[data-ui-theme="f-ursus"] .lvcard { background: repeating-linear-gradient(90deg, rgba(0, 0, 0, .35) 0 4px, transparent 4px 8px), linear-gradient(180deg, var(--mint-400), var(--mint-600)); background-size: .34rem 100%, 100% 100%; background-position: right bottom, 0 0; background-repeat: no-repeat;  }

@@ -81,7 +81,6 @@
 }
 :root[data-ui-theme="is-frost"] .gtop__center { background: radial-gradient(60% 30% at 60% 0%, rgba(60, 220, 170, .08), transparent 70%), linear-gradient(180deg, rgba(var(--bg-1-rgb), .92), rgba(var(--bg-0-rgb), .92)); border-radius: .04rem; }
 :root[data-ui-theme="is-frost"] .capsule { border-radius: .25rem; background: linear-gradient(90deg, #0e8fa8, #1fc4d6, transparent) bottom / 100% 2px no-repeat, rgba(var(--bg-1-rgb), .92); }
-:root[data-ui-theme="is-frost"] .scard__body { background: linear-gradient(90deg, #0e8fa8, #1fc4d6, transparent) top / 100% 2px no-repeat, linear-gradient(180deg, rgba(var(--bg-0-rgb), .2), rgba(var(--bg-0-rgb), .94) 35%); }
 :root[data-ui-theme="is-frost"] :is(.effect, .toolbtn:not(.obtn), .readybtn__box) { border-radius: .04rem; }
 :root[data-ui-theme="is-frost"] .effect { background: radial-gradient(60% 30% at 60% 0%, rgba(60, 220, 170, .08), transparent 70%), rgba(var(--bg-1-rgb), .88); }
 :root[data-ui-theme="is-frost"] .lvcard { background: linear-gradient(90deg, transparent, rgba(122, 240, 208, .6)), linear-gradient(180deg, var(--mint-400), var(--mint-600)); background-size: .34rem 100%, 100% 100%; background-position: right bottom, 0 0; background-repeat: no-repeat;  }

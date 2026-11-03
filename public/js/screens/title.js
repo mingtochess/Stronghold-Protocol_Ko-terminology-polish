@@ -27,8 +27,6 @@ import { openStats } from '../ui/statsEntry.js';
 // the page never asks for its catalogue — and the title page loads none of the panel's code.
 
 import { ResumeMatchButton } from '../ui/resumeMatch.js';
-import { AssetDownloadButton } from '../ui/assetDownload.js';
-import { AssetImportButton } from '../ui/assetImport.js';
 import { useEffect, useMemo, useState } from '../../vendor/hooks.module.js';
 import { NAME_MAX_LEN, APP_VERSION, DEV_BUILD } from '../../../shared/constants.js';
 import { html, Button, Icon, MicroLabel, TextField, PingPill } from '../ui/components.js';
@@ -266,10 +264,6 @@ export function TitleScreen() {
           <${FullscreenButton} class="title-fs" />
         </div>
         <${UiThemePicker} />
-      </div>
-      <div class="title-assets">
-        <${AssetDownloadButton} />
-        <${AssetImportButton} />
       </div>
     </main>
 

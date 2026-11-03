@@ -101,7 +101,6 @@
 }
 :root[data-ui-theme="is-sui"] .gtop__center { background: linear-gradient(180deg, rgba(245, 190, 205, .12), transparent 50%, rgba(150, 225, 200, .12)), linear-gradient(180deg, rgba(var(--bg-1-rgb), .92), rgba(var(--bg-0-rgb), .92)); border-radius: 0; clip-path: polygon(.12rem 0, calc(100% - .12rem) 0, 100% .12rem, 100% calc(100% - .12rem), calc(100% - .12rem) 100%, .12rem 100%, 0 calc(100% - .12rem), 0 .12rem); }
 :root[data-ui-theme="is-sui"] .capsule { border-radius: 0; background: linear-gradient(90deg, #167f78 0 50%, #b8232b 50%) bottom / 100% 2px no-repeat, rgba(var(--bg-1-rgb), .92); }
-:root[data-ui-theme="is-sui"] .scard__body { background: linear-gradient(90deg, #167f78 0 50%, #b8232b 50%) top / 100% 2px no-repeat, linear-gradient(180deg, rgba(var(--bg-0-rgb), .2), rgba(var(--bg-0-rgb), .94) 35%); }
 :root[data-ui-theme="is-sui"] :is(.effect, .toolbtn:not(.obtn), .readybtn__box) { border-radius: 0; }
 :root[data-ui-theme="is-sui"] .effect { background: linear-gradient(180deg, rgba(245, 190, 205, .12), transparent 50%, rgba(150, 225, 200, .12)), rgba(var(--bg-1-rgb), .88); }
 :root[data-ui-theme="is-sui"] .lvcard { background: repeating-linear-gradient(90deg, rgba(255, 255, 255, .4) 0 2px, transparent 2px 5px), linear-gradient(180deg, var(--mint-400), var(--mint-600)); background-size: .34rem 100%, 100% 100%; background-position: right bottom, 0 0; background-repeat: no-repeat; clip-path: polygon(.12rem 0, calc(100% - .12rem) 0, 100% .12rem, 100% calc(100% - .12rem), calc(100% - .12rem) 100%, .12rem 100%, 0 calc(100% - .12rem), 0 .12rem); }

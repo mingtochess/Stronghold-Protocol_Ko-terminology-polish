@@ -95,7 +95,6 @@
 }
 :root[data-ui-theme="f-kjerag"] .gtop__center { background: linear-gradient(120deg, rgba(31, 63, 191, .05), transparent 40%), linear-gradient(180deg, rgba(var(--bg-1-rgb), .92), rgba(var(--bg-0-rgb), .92)); border-radius: 0; }
 :root[data-ui-theme="f-kjerag"] .capsule { border-radius: 0; background: linear-gradient(90deg, #1f3fbf 0 80%, #d22c3c 80%) bottom / 100% 2px no-repeat, rgba(var(--bg-1-rgb), .92); }
-:root[data-ui-theme="f-kjerag"] .scard__body { background: linear-gradient(90deg, #1f3fbf 0 80%, #d22c3c 80%) top / 100% 2px no-repeat, linear-gradient(180deg, rgba(var(--bg-0-rgb), .2), rgba(var(--bg-0-rgb), .94) 35%); }
 :root[data-ui-theme="f-kjerag"] :is(.effect, .toolbtn:not(.obtn), .readybtn__box) { border-radius: 0; }
 :root[data-ui-theme="f-kjerag"] .effect { background: linear-gradient(120deg, rgba(31, 63, 191, .05), transparent 40%), rgba(var(--bg-1-rgb), .88); }
 :root[data-ui-theme="f-kjerag"] .lvcard { background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .45)), linear-gradient(180deg, var(--mint-400), var(--mint-600)); background-size: .34rem 100%, 100% 100%; background-position: right bottom, 0 0; background-repeat: no-repeat;  }

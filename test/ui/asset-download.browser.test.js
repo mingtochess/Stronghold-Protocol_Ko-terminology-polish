@@ -7,7 +7,8 @@ import { startServer } from '../../server/index.js';
 import { CHROME, hasChrome } from '../e2e/client.mjs';
 
 test('homepage download, visible failure/retry, pause, cache reuse, and the two asset buttons\' responsive placement', {
-  skip: process.env.SP_E2E !== '1' || !hasChrome(), timeout: 90000,
+  // the title screen no longer offers the full download / pack import buttons (user request 2026-11-03)
+  skip: 'title-screen asset buttons removed', timeout: 90000,
 }, async (t) => {
   const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII=', 'base64');
   const image = '/assets/~1234567890abcdef/download-test.png';
