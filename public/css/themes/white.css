@@ -1,7 +1,7 @@
 /* themes/white.css — 화이트: a light theme for every menu and HUD panel (ui/uiThemes.js). The battlefield, the units,
    the effects and the official HP bars are drawn by the renderer and keep their colours. */
 :root[data-ui-theme="white"] {
-  --bond-filter: invert(1) hue-rotate(180deg) brightness(1.05); --bond-name: #1b2228;
+  --bond-filter: hue-rotate(8deg) saturate(1); --bond-name: #1b2228;
 
 
   color-scheme: light;

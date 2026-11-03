@@ -40,7 +40,7 @@
   --surf-1-rgb: 8, 19, 26;
   --surf-2-rgb: 13, 28, 36;
   --surf-3-rgb: 19, 38, 47;
-  --bond-filter: hue-rotate(5deg) saturate(1.1);
+  --bond-filter: hue-rotate(24deg) saturate(1.20);
   --ui-accent-2: #9b7bff;
 }
 :root[data-ui-theme="is-frost"] body {

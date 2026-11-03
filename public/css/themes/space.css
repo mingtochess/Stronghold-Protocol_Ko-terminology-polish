@@ -1,7 +1,7 @@
 /* themes/space.css — 우주: deep-space surfaces of translucent glass over a starfield and a nebula (ui/uiThemes.js). The
    starfield is CSS; the nebula is an optional downloaded image (--space-nebula, set by ui/uiThemes.js once loaded). */
 :root[data-ui-theme="space"] {
-  --bond-filter: hue-rotate(62deg) saturate(1.15);
+  --bond-filter: hue-rotate(60deg) saturate(1.1);
 
 
   --bg-0: #05060d; --bg-1: #0a0c18; --bg-2: #121528; --bg-3: #181c33; --bg-4: #20253f;

@@ -41,7 +41,7 @@
   --surf-1-rgb: 20, 20, 21;
   --surf-2-rgb: 28, 28, 30;
   --surf-3-rgb: 37, 37, 39;
-  --bond-filter: sepia(.6) saturate(1.3) hue-rotate(-10deg);
+  --bond-filter: hue-rotate(-121deg) saturate(1.14);
   --ui-accent-2: #b3202a;
 }
 :root[data-ui-theme="is-sarkaz"] body {

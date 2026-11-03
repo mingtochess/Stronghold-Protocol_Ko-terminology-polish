@@ -41,7 +41,7 @@
   --surf-1-rgb: 14, 11, 23;
   --surf-2-rgb: 22, 17, 34;
   --surf-3-rgb: 29, 22, 48;
-  --bond-filter: hue-rotate(195deg) saturate(1.6);
+  --bond-filter: hue-rotate(172deg) saturate(1.40);
   --ui-accent-2: #ffe600;
 }
 :root[data-ui-theme="cyber"] body {

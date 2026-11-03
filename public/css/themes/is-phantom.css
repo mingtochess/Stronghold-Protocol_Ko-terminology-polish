@@ -41,7 +41,7 @@
   --surf-1-rgb: 18, 16, 16;
   --surf-2-rgb: 26, 22, 22;
   --surf-3-rgb: 34, 28, 28;
-  --bond-filter: hue-rotate(160deg) saturate(.9) brightness(1.05);
+  --bond-filter: hue-rotate(-125deg) saturate(1.20);
   --ui-accent-2: #b3171f;
 }
 :root[data-ui-theme="is-phantom"] body {

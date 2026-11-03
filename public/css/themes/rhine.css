@@ -2,7 +2,7 @@
 /* themes/rhine.css — 라인 생명: a clinical laboratory look — white sheets ruled with thin black lines, a millimetre grid,
    square corners, tick marks and a signal-yellow accent (ui/uiThemes.js). Drawn with CSS only, no official artwork. */
 :root[data-ui-theme="rhine"] {
-  --bond-filter: grayscale(1) invert(1) contrast(1.4); --bond-name: #111312;
+  --bond-filter: grayscale(1) brightness(.9); --bond-name: #111312;
 
 
   color-scheme: light;

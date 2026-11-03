@@ -41,7 +41,7 @@
   --surf-1-rgb: 7, 12, 26;
   --surf-2-rgb: 12, 20, 38;
   --surf-3-rgb: 18, 27, 51;
-  --bond-filter: hue-rotate(25deg) saturate(1.1);
+  --bond-filter: hue-rotate(34deg) saturate(1.40);
   --ui-accent-2: #d23c8f;
 }
 :root[data-ui-theme="is-mizuki"] body {

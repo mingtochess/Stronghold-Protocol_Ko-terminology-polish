@@ -175,152 +175,144 @@ export const THEMES = [
   },
   // ---- 진영 (core bonds) ---------------------------------------------------------------------------------------------
   {
-    id: 'f-yan', name: '염국', group: 'faction',
-    p: { bg: ['#140807', '#1d0c0a', '#28110e', '#331612', '#3f1c17'], line: ['#5a241b', '#7c3324', '#a44a33'],
-      accent: '#e0a43a', glow: '#ffcf6b', accent2: '#d33a2c', text: ['#fbefe0', '#e2ccb3', '#b2967c', '#8a705a'], onAccent: '#200c04' },
+    id: 'f-yan', name: '염국', group: 'faction', light: true,
+    // event 登临意: warm rice-paper beige, orange-brown ink washes, vertical brush calligraphy, a red seal
+    p: { bg: ['#efe6d6', '#f6efe3', '#fbf7ef', '#e6dac4', '#d9c9ad'], line: ['#cdb894', '#a88a5c', '#7a6038'], accent: '#a8341f', glow: '#c4492c', accent2: '#2e2a24', text: ['#221a10', '#45382a', '#665746', '#6f6150'], onAccent: '#fbf3e6' },
     body: `background-color: var(--bg-0);
-  background-image: radial-gradient(circle at 50% 50%, transparent 58%, rgba(224, 164, 58, .07) 59% 61%, transparent 62%),
-    radial-gradient(70% 55% at 50% 0%, rgba(211, 58, 44, .25), transparent 70%), linear-gradient(180deg, #1d0b09, #0b0403);
-  background-size: .7rem .7rem, 100% 100%, 100% 100%;`,
-    panel: `background: linear-gradient(180deg, rgba(51, 22, 18, .94), rgba(22, 9, 7, .96)); border: 1px solid #a44a33; border-radius: .03rem;
-  box-shadow: inset 0 0 0 2px rgba(20, 8, 7, .9), inset 0 0 0 3px rgba(224, 164, 58, .35), 0 .08rem .3rem rgba(0, 0, 0, .55);`,
-    btn: `border-radius: .03rem;`,
-    primary: `background: linear-gradient(180deg, #d9402f, #9c2116); color: #fff1dc; border-color: #e0a43a;`,
-    bondFilter: 'hue-rotate(195deg) saturate(1.2) sepia(.25)',
+  background-image: radial-gradient(55% 40% at 85% 15%, rgba(200, 110, 50, .18), transparent 70%), radial-gradient(50% 35% at 10% 90%, rgba(60, 45, 30, .14), transparent 70%), linear-gradient(180deg, #f5ecdc, #e9dcc4);`,
+    panel: `background: rgba(251, 247, 239, .95); border: 0; border-left: 3px solid #a8341f; border-radius: 0; box-shadow: 0 .04rem .18rem rgba(70, 50, 25, .14);`,
+    btn: `border-radius: 0;`,
+    primary: `background: #a8341f; color: #fbf3e6; border-color: #7e2414;`,
+    extra: `:root[data-ui-theme="f-yan"] .topbar__title { letter-spacing: .28em; }
+:root[data-ui-theme="f-yan"] .mode-card.is-selected { border-color: #a8341f; box-shadow: inset 0 0 0 1px #a8341f; }`,
+    bondFilter: 'invert(1) sepia(.6) hue-rotate(-20deg) saturate(1.1)',
   },
   {
-    id: 'f-sargon', name: '사르곤', group: 'faction', light: true,
-    p: { bg: ['#efe3c8', '#f6ecd6', '#fcf6e8', '#e6d6b4', '#dac69d'], line: ['#cdb284', '#a98a55', '#7c6234'],
-      accent: '#874b08', glow: '#b8670f', accent2: '#2a7a6f', text: ['#241708', '#47341a', '#5f4b2a', '#6a5836'], onAccent: '#fff6e6' },
+    id: 'f-sargon', name: '사르곤', group: 'faction',
+    // event 生息演算·沙中之火 (Reclamation Algorithm): muted olive / sand, black rectangular plates, a pale lime highlight label, stencil-like type
+    p: { bg: ['#1a1b16', '#22231d', '#2b2c25', '#35362e', '#404137'], line: ['#45463b', '#5e5f51', '#828371'], accent: '#dfe68a', glow: '#eef4a2', accent2: '#b89a62', text: ['#efeee4', '#cfcdbd', '#a19f8e', '#7f7d6d'], onAccent: '#14150c' },
     body: `background-color: var(--bg-0);
-  background-image: repeating-linear-gradient(170deg, rgba(164, 93, 16, .05) 0 .06rem, transparent .06rem .3rem),
-    radial-gradient(70% 50% at 80% 0%, rgba(255, 200, 100, .35), transparent 70%), linear-gradient(180deg, #f6ead0, #e1cda3);`,
-    panel: `background: linear-gradient(180deg, rgba(252, 246, 232, .97), rgba(242, 230, 205, .97)); border: 1px solid #a98a55; border-radius: .04rem;
-  box-shadow: 0 .05rem .2rem rgba(90, 60, 20, .16);`,
-    btn: `border-radius: .04rem;`,
-    primary: `background: linear-gradient(180deg, #c9771e, #94500c); color: #fff6e6; border-color: #7c4408;`,
-    bondFilter: 'invert(1) sepia(.7) hue-rotate(-10deg) saturate(1.2)',
+  background-image: linear-gradient(180deg, rgba(150, 140, 100, .12), transparent 40%), radial-gradient(70% 40% at 50% 100%, rgba(184, 154, 98, .16), transparent 70%), linear-gradient(180deg, #23241d, #121310);`,
+    panel: `background: rgba(18, 18, 15, .92); border: 0; border-radius: 0; box-shadow: none;`,
+    btn: `border-radius: 0; letter-spacing: .1em;`,
+    primary: `background: #dfe68a; color: #14150c; border-color: #dfe68a;`,
+    extra: `:root[data-ui-theme="f-sargon"] .section-label, :root[data-ui-theme="f-sargon"] .micro { color: #dfe68a; }
+:root[data-ui-theme="f-sargon"] .mode-card.is-selected { border-color: #dfe68a; box-shadow: inset 0 0 0 1px #dfe68a; }`,
+    bondFilter: 'grayscale(.4) sepia(.5) hue-rotate(20deg)',
   },
   {
     id: 'f-victoria', name: '빅토리아', group: 'faction',
-    p: { bg: ['#070b16', '#0c1222', '#121a30', '#18213d', '#1f2a4b'], line: ['#2a3658', '#3c4b76', '#5a6c9c'],
-      accent: '#d4af5a', glow: '#f0cd78', accent2: '#b23a48', text: ['#eef1fa', '#c6cde2', '#8f98b5', '#6a7392'], onAccent: '#140f02' },
+    // event 照我以火 (What the Firelight Casts): deep violet-black, silver serif, a diamond lattice rule, purple flame glows
+    p: { bg: ['#08070d', '#0f0d17', '#171421', '#1f1a2c', '#282238'], line: ['#2e2840', '#463c60', '#6a5c8c'], accent: '#c9c2e6', glow: '#a77bff', accent2: '#7b4cd8', text: ['#efedf7', '#c8c3db', '#948ead', '#706b88'], onAccent: '#0c0a14' },
     body: `background-color: var(--bg-0);
-  background-image: linear-gradient(45deg, rgba(212, 175, 90, .04) 25%, transparent 25% 75%, rgba(212, 175, 90, .04) 75%),
-    linear-gradient(45deg, rgba(212, 175, 90, .04) 25%, transparent 25% 75%, rgba(212, 175, 90, .04) 75%),
-    radial-gradient(70% 50% at 50% 0%, rgba(80, 100, 170, .3), transparent 70%), linear-gradient(180deg, #0c1326, #04070e);
-  background-size: .5rem .5rem, .5rem .5rem, 100% 100%, 100% 100%; background-position: 0 0, .25rem .25rem, 0 0, 0 0;`,
-    panel: `background: linear-gradient(180deg, rgba(24, 33, 61, .95), rgba(10, 15, 30, .96)); border: 1px solid #d4af5a; border-radius: 0;
-  box-shadow: inset 0 0 0 3px rgba(7, 11, 22, .9), inset 0 0 0 4px rgba(212, 175, 90, .3), 0 .08rem .3rem rgba(0, 0, 0, .55);`,
-    btn: `border-radius: 0; font-family: var(--font-display); letter-spacing: .1em;`,
-    primary: `background: linear-gradient(180deg, #e6c46f, #b38a3a); color: #140f02; border-color: #f0cd78;`,
-    bondFilter: 'hue-rotate(185deg) sepia(.4) saturate(1.1)',
+  background-image: radial-gradient(45% 35% at 75% 15%, rgba(140, 80, 230, .24), transparent 70%), radial-gradient(40% 30% at 15% 80%, rgba(110, 60, 200, .16), transparent 70%), linear-gradient(180deg, #110e1b, #050409);`,
+    panel: `background: linear-gradient(180deg, rgba(31, 26, 44, .9), rgba(9, 8, 14, .95)); border: 1px solid rgba(201, 194, 230, .25); border-radius: 0; box-shadow: 0 .1rem .35rem rgba(0, 0, 0, .6);`,
+    btn: `border-radius: 0; font-family: var(--font-display); letter-spacing: .14em;`,
+    primary: `background: linear-gradient(180deg, #e0dbf2, #a9a1cc); color: #0c0a14; border-color: #efedf7;`,
+    extra: `:root[data-ui-theme="f-victoria"] :is(.panel, .modal__box)::after { content: ''; position: absolute; left: 20%; right: 20%; bottom: -1px; height: 5px; background: repeating-linear-gradient(90deg, transparent 0 4px, rgba(201, 194, 230, .5) 4px 6px); clip-path: polygon(0 50%, 50% 0, 100% 50%, 50% 100%); pointer-events: none; }`,
+    bondFilter: 'hue-rotate(220deg) saturate(.7) brightness(1.1)',
   },
   {
     id: 'f-kjerag', name: '쉐라그', group: 'faction', light: true,
-    p: { bg: ['#eef3f7', '#f6f9fb', '#ffffff', '#e2eaf0', '#d4dfe8'], line: ['#bccbd7', '#97abbc', '#6d8597'],
-      accent: '#2f5f92', glow: '#4f8cc5', accent2: '#c0392b', text: ['#132030', '#33465a', '#4c5f72', '#576a7c'], onAccent: '#ffffff' },
+    // event 雪山降临: vivid royal blue and white, red ornament accents, a technical display type
+    p: { bg: ['#eef2fb', '#f6f8fd', '#ffffff', '#e1e8f7', '#d0dbf2'], line: ['#b6c5e8', '#7f97d0', '#4d68b0'], accent: '#1f3fbf', glow: '#3c62e6', accent2: '#d22c3c', text: ['#0f1a3a', '#2c3a62', '#4a5880', '#56648c'], onAccent: '#ffffff' },
     body: `background-color: var(--bg-0);
-  background-image: linear-gradient(150deg, transparent 55%, rgba(120, 150, 180, .2) 55% 75%, transparent 75%),
-    linear-gradient(210deg, transparent 62%, rgba(100, 130, 165, .18) 62% 80%, transparent 80%), linear-gradient(180deg, #fafcfd, #dde7ee);`,
-    panel: `background: rgba(255, 255, 255, .96); border: 1px solid #bccbd7; border-radius: .08rem; box-shadow: 0 .05rem .2rem rgba(30, 60, 90, .12);`,
-    btn: `border-radius: .08rem;`,
-    primary: `background: linear-gradient(180deg, #4a80b8, #2c5c8f); color: #fff; border-color: #2c5c8f;`,
-    bondFilter: 'invert(1) hue-rotate(190deg) brightness(1.04)',
+  background-image: linear-gradient(120deg, rgba(31, 63, 191, .16), transparent 45%), radial-gradient(40% 30% at 90% 90%, rgba(60, 98, 230, .14), transparent 70%), linear-gradient(180deg, #f7f9fe, #e3eaf8);`,
+    panel: `background: rgba(255, 255, 255, .96); border: 1px solid #b6c5e8; border-radius: 0; box-shadow: 0 .04rem .16rem rgba(20, 40, 110, .12);`,
+    btn: `border-radius: 0; letter-spacing: .08em;`,
+    primary: `background: linear-gradient(90deg, #1f3fbf, #3c62e6); color: #ffffff; border-color: #16308f;`,
+    extra: `:root[data-ui-theme="f-kjerag"] .micro::before { content: '◆ '; color: #d22c3c; }`,
+    bondFilter: 'invert(1) hue-rotate(195deg) saturate(1.2)',
   },
   {
     id: 'f-laterano', name: '라테라노', group: 'faction', light: true,
-    p: { bg: ['#f4f1ea', '#faf8f2', '#ffffff', '#ebe6da', '#e0d9c8'], line: ['#d6cbb2', '#b9a77f', '#8f7b50'],
-      accent: '#7f5d10', glow: '#a87d1f', accent2: '#c2455a', text: ['#1e1a12', '#3f382a', '#575040', '#655c4a'], onAccent: '#ffffff' },
+    // event 空想花庭 (Hortus de Escapismo): white marble, pale grey-blue, a widely spaced serif, halos, pink wing accents
+    p: { bg: ['#f1f3f5', '#f8f9fa', '#ffffff', '#e5e9ed', '#d6dce2'], line: ['#c6ced6', '#98a4b0', '#6c7884'], accent: '#5a6c80', glow: '#e88aa6', accent2: '#e88aa6', text: ['#1a2027', '#38424d', '#55606b', '#606b76'], onAccent: '#ffffff' },
     body: `background-color: var(--bg-0);
-  background-image: radial-gradient(circle at 50% -20%, rgba(255, 220, 140, .45), transparent 45%),
-    conic-gradient(from 0deg at 50% -10%, rgba(224, 178, 74, .06) 0 10deg, transparent 10deg 20deg, rgba(224, 178, 74, .06) 20deg 30deg, transparent 30deg 360deg),
-    linear-gradient(180deg, #fbf9f3, #ece5d3);`,
-    panel: `background: rgba(255, 255, 255, .97); border: 1px solid #d6cbb2; border-radius: .2rem .2rem .04rem .04rem;
-  box-shadow: 0 .05rem .2rem rgba(120, 95, 40, .14), inset 0 2px 0 rgba(224, 178, 74, .45);`,
-    btn: `border-radius: .2rem;`,
-    primary: `background: linear-gradient(180deg, #c99a33, #95701b); color: #fff; border-color: #7f5e14;`,
-    extra: `@keyframes ui-halo { from { box-shadow: 0 0 0 0 rgba(224, 178, 74, .6); } to { box-shadow: 0 0 0 .1rem rgba(224, 178, 74, 0); } }
-@media (prefers-reduced-motion: no-preference) { :root[data-ui-theme="f-laterano"] .btn:hover { animation: ui-halo .9s ease-out infinite; } }`,
-    bondFilter: 'invert(1) sepia(.6) hue-rotate(-5deg) brightness(1.03)',
+  background-image: radial-gradient(circle at 50% -20%, rgba(255, 255, 255, .9), transparent 50%), radial-gradient(40% 30% at 85% 85%, rgba(232, 138, 166, .1), transparent 70%), linear-gradient(180deg, #f8f9fa, #e3e8ed);`,
+    panel: `background: rgba(255, 255, 255, .95); border: 1px solid #c6ced6; border-radius: 0; box-shadow: 0 .04rem .2rem rgba(40, 60, 80, .1);`,
+    btn: `border-radius: 0; font-family: var(--font-display); letter-spacing: .22em;`,
+    primary: `background: linear-gradient(180deg, #6b7e93, #4c5d70); color: #ffffff; border-color: #3d4b5b;`,
+    extra: `:root[data-ui-theme="f-laterano"] .mode-card.is-selected { border-color: #e88aa6; box-shadow: 0 0 0 1px #e88aa6, 0 0 .2rem rgba(232, 138, 166, .3); }
+:root[data-ui-theme="f-laterano"] .topbar__title { letter-spacing: .3em; }`,
+    bondFilter: 'invert(1) hue-rotate(180deg) saturate(.4) brightness(1.05)',
   },
   {
     id: 'f-aegir', name: '에기르', group: 'faction',
-    p: { bg: ['#020c10', '#05151b', '#091f27', '#0d2933', '#123440'], line: ['#14404c', '#1d5a68', '#2b7f90'],
-      accent: '#22d3c5', glow: '#7cf5e8', accent2: '#3d7bff', text: ['#e6fbfa', '#b2dcda', '#76a4a3', '#557d7e'], onAccent: '#011312' },
+    // event 覆潮之下 (Under Tides): dark grey-black, slanted triangle splits, a widely spaced thin serif, a cold teal cast
+    p: { bg: ['#0a0c0d', '#111416', '#181c1f', '#1f2428', '#272d32'], line: ['#2c3338', '#424b52', '#636e76'], accent: '#a9c2c4', glow: '#6fd0d0', accent2: '#2f8f8f', text: ['#e8eeee', '#c1cbcc', '#8e9a9c', '#6b7779'], onAccent: '#091011' },
     body: `background-color: var(--bg-0);
-  background-image: linear-gradient(rgba(34, 211, 197, .06) 1px, transparent 1px), linear-gradient(90deg, rgba(34, 211, 197, .06) 1px, transparent 1px),
-    radial-gradient(80% 60% at 50% 120%, rgba(34, 211, 197, .18), transparent 70%), linear-gradient(180deg, #04141a, #010608);
-  background-size: .4rem .4rem, .4rem .4rem, 100% 100%, 100% 100%;`,
-    panel: `background: linear-gradient(180deg, rgba(13, 41, 51, .9), rgba(3, 14, 18, .94)); border: 1px solid rgba(34, 211, 197, .5); border-radius: .02rem;
-  clip-path: polygon(.12rem 0, 100% 0, 100% calc(100% - .12rem), calc(100% - .12rem) 100%, 0 100%, 0 .12rem);
-  box-shadow: inset 0 0 .2rem rgba(34, 211, 197, .12);`,
-    btn: `clip-path: polygon(.08rem 0, 100% 0, 100% calc(100% - .08rem), calc(100% - .08rem) 100%, 0 100%, 0 .08rem);`,
-    primary: `background: linear-gradient(90deg, #22d3c5, #1a8fd8); color: #011312; border-color: transparent;`,
-    extra: `@keyframes ui-scan { from { background-position: 0 -100%; } to { background-position: 0 200%; } }
-@media (prefers-reduced-motion: no-preference) { :root[data-ui-theme="f-aegir"] .btn:hover { background-image: linear-gradient(180deg, transparent 40%, rgba(124, 245, 232, .25) 50%, transparent 60%); background-size: 100% 200%; animation: ui-scan 1s linear infinite; } }`,
-    bondFilter: 'hue-rotate(10deg) saturate(1.2)',
+  background-image: linear-gradient(118deg, rgba(255, 255, 255, .04) 0 40%, transparent 40%), linear-gradient(118deg, transparent 0 62%, rgba(0, 0, 0, .35) 62%), linear-gradient(180deg, #161a1c, #050607);`,
+    panel: `background: linear-gradient(180deg, rgba(31, 36, 40, .92), rgba(10, 12, 13, .96)); border: 0; border-top: 1px solid rgba(169, 194, 196, .35); border-radius: 0;`,
+    btn: `border-radius: 0; font-family: var(--font-display); letter-spacing: .24em;`,
+    primary: `background: linear-gradient(90deg, #8eaaac, #c2d6d7); color: #091011; border-color: transparent;`,
+    extra: `:root[data-ui-theme="f-aegir"] .topbar__title { letter-spacing: .3em; font-weight: 400; }`,
+    bondFilter: 'grayscale(.6) hue-rotate(150deg) brightness(1.1)',
   },
   {
     id: 'f-siracusa', name: '시라쿠사', group: 'faction',
-    p: { bg: ['#0b0909', '#131010', '#1b1616', '#231c1c', '#2c2323'], line: ['#3b2e2e', '#544040', '#765a5a'],
-      accent: '#b8955a', glow: '#e0bf82', accent2: '#8a1c2b', text: ['#f1ebe4', '#cfc4ba', '#9c9087', '#776c64'], onAccent: '#140d04' },
+    // event 叙拉古人 (Il Siracusano): monochrome noir greys, red titles with thin red rules, a serif
+    p: { bg: ['#0b0b0b', '#121212', '#1a1a1a', '#222222', '#2b2b2b'], line: ['#333333', '#4a4a4a', '#6e6e6e'], accent: '#d1242f', glow: '#ff4a52', accent2: '#c9c9c9', text: ['#efefef', '#c9c9c9', '#969696', '#737373'], onAccent: '#ffffff' },
     body: `background-color: var(--bg-0);
-  background-image: repeating-linear-gradient(90deg, rgba(184, 149, 90, .05) 0 1px, transparent 1px .3rem),
-    radial-gradient(50% 70% at 50% 40%, rgba(255, 240, 210, .07), transparent 70%), linear-gradient(180deg, #151111, #050404);`,
-    panel: `background: linear-gradient(180deg, rgba(35, 28, 28, .96), rgba(14, 11, 11, .97)); border: 1px solid #765a5a; border-radius: 0;
-  box-shadow: 0 0 0 1px rgba(184, 149, 90, .35), 0 .1rem .4rem rgba(0, 0, 0, .6);`,
-    btn: `border-radius: 0; letter-spacing: .14em; font-family: var(--font-display);`,
-    primary: `background: linear-gradient(180deg, #2b1a1a, #120a0a); color: #e0bf82; border-color: #b8955a;`,
-    extra: `:root[data-ui-theme="f-siracusa"] .btn--primary:hover { background: #8a1c2b; color: #f1ebe4; }
-:root[data-ui-theme="f-siracusa"] body { filter: none; }`,
-    bondFilter: 'grayscale(.7) sepia(.5) hue-rotate(-15deg)',
+  background-image: radial-gradient(60% 70% at 50% 40%, rgba(255, 255, 255, .05), transparent 70%), repeating-linear-gradient(0deg, rgba(255, 255, 255, .012) 0 1px, transparent 1px 3px), linear-gradient(180deg, #151515, #050505);`,
+    panel: `background: linear-gradient(180deg, rgba(34, 34, 34, .94), rgba(12, 12, 12, .96)); border: 1px solid #333333; border-radius: 0; box-shadow: 0 .1rem .35rem rgba(0, 0, 0, .6);`,
+    btn: `border-radius: 0; font-family: var(--font-display); letter-spacing: .16em;`,
+    primary: `background: #d1242f; color: #ffffff; border-color: #ff4a52;`,
+    extra: `:root[data-ui-theme="f-siracusa"] .section-label { color: #d1242f; }
+:root[data-ui-theme="f-siracusa"] :is(.panel, .modal__box)::after { content: ''; position: absolute; left: 0; right: 0; top: .1rem; height: 1px; background: linear-gradient(90deg, transparent, rgba(209, 36, 47, .6), transparent); pointer-events: none; }`,
+    bondFilter: 'grayscale(1) contrast(1.1)',
   },
   {
     id: 'f-kazimierz', name: '카시미어', group: 'faction',
-    p: { bg: ['#0b0a0c', '#141216', '#1d1a20', '#26222a', '#302a35'], line: ['#3f3846', '#5a5064', '#7d7088'],
-      accent: '#e8e2d0', glow: '#ffffff', accent2: '#d22d3d', text: ['#f6f3ec', '#d3cdc2', '#a29b90', '#7d776e'], onAccent: '#141011' },
+    // event 长夜临光 (Near Light): a sports-broadcast look — red / white / blue, a bold italic sans, sharp slashes
+    p: { bg: ['#0a0d1a', '#111628', '#181f36', '#1f2844', '#283252'], line: ['#2b3658', '#3e4c7a', '#5f6fa4'], accent: '#e6283c', glow: '#ff4f62', accent2: '#2f6bff', text: ['#f4f6fc', '#ccd2e6', '#97a0bd', '#727b98'], onAccent: '#ffffff' },
     body: `background-color: var(--bg-0);
-  background-image: linear-gradient(135deg, rgba(210, 45, 61, .12) 0 30%, transparent 30%),
-    linear-gradient(315deg, rgba(232, 226, 208, .05) 0 25%, transparent 25%), linear-gradient(180deg, #161419, #070608);`,
-    panel: `background: linear-gradient(180deg, rgba(38, 34, 42, .95), rgba(15, 13, 17, .96)); border: 1px solid #5a5064; border-left: 3px solid #d22d3d; border-radius: 0;
-  box-shadow: 0 .08rem .3rem rgba(0, 0, 0, .5);`,
-    btn: `border-radius: 0; transform: skewX(-8deg);`,
-    primary: `background: linear-gradient(90deg, #e8e2d0, #c9c1aa); color: #141011; border-color: #ffffff;`,
-    extra: `:root[data-ui-theme="f-kazimierz"] .btn > * { transform: skewX(8deg); }
-:root[data-ui-theme="f-kazimierz"] .btn:hover { box-shadow: -3px 0 0 #d22d3d; }`,
-    bondFilter: 'grayscale(1) brightness(1.15)',
+  background-image: linear-gradient(115deg, rgba(230, 40, 60, .16) 0 18%, transparent 18% 20%, rgba(255, 255, 255, .05) 20% 22%, transparent 22%), radial-gradient(60% 50% at 90% 10%, rgba(47, 107, 255, .2), transparent 70%), linear-gradient(180deg, #131a30, #05070d);`,
+    panel: `background: linear-gradient(180deg, rgba(31, 40, 68, .92), rgba(10, 13, 26, .95)); border: 0; border-left: 4px solid #e6283c; border-radius: 0;`,
+    btn: `border-radius: 0; font-style: italic; font-weight: 900; letter-spacing: .06em;`,
+    primary: `background: linear-gradient(100deg, #e6283c 0 70%, #2f6bff 70%); color: #ffffff; border-color: transparent;`,
+    extra: `:root[data-ui-theme="f-kazimierz"] .topbar__title { font-style: italic; font-weight: 900; }`,
+    bondFilter: 'hue-rotate(150deg) saturate(1.4)',
   },
   {
     id: 'f-ursus', name: '우르수스', group: 'faction',
-    p: { bg: ['#0c0d0e', '#141617', '#1c1f21', '#24282a', '#2d3235'], line: ['#3a4044', '#525a5f', '#737d83'],
-      accent: '#c9473a', glow: '#ff6a55', accent2: '#c7ccd0', text: ['#eef0f1', '#c8cdd0', '#959da2', '#71787d'], onAccent: '#fff2ef' },
+    // event 乌萨斯的孩子们 (Children of Ursus): a constructivist poster — orange / black stripes, a bold condensed type, a yellow highlight bar
+    p: { bg: ['#0d0b08', '#15120d', '#1e1912', '#272118', '#312a1f'], line: ['#3a3022', '#564631', '#7a6446'], accent: '#f08a1c', glow: '#ffb040', accent2: '#f2d23a', text: ['#f6efe2', '#d6cab4', '#a69881', '#82765f'], onAccent: '#140a00' },
     body: `background-color: var(--bg-0);
-  background-image: repeating-linear-gradient(45deg, rgba(200, 205, 210, .03) 0 .04rem, transparent .04rem .16rem),
-    radial-gradient(80% 50% at 50% 0%, rgba(201, 71, 58, .14), transparent 70%), linear-gradient(180deg, #16191b, #060707);`,
-    panel: `background: linear-gradient(180deg, rgba(36, 40, 42, .96), rgba(15, 17, 18, .97)); border: 2px solid #3a4044; border-radius: 0;
-  box-shadow: inset 0 0 0 1px rgba(201, 71, 58, .25), 0 .08rem .3rem rgba(0, 0, 0, .6);`,
-    btn: `border-radius: 0; border-width: 2px;`,
-    primary: `background: linear-gradient(180deg, #d4513f, #9b2f22); color: #fff2ef; border-color: #ff6a55;`,
-    bondFilter: 'grayscale(.6) hue-rotate(180deg) saturate(1.5)',
+  background-image: repeating-linear-gradient(90deg, rgba(240, 138, 28, .14) 0 .5rem, rgba(0, 0, 0, 0) .5rem 1rem), linear-gradient(180deg, rgba(240, 138, 28, .12), transparent 60%), linear-gradient(180deg, #1a140c, #060504);`,
+    panel: `background: rgba(16, 13, 9, .94); border: 2px solid #f08a1c; border-radius: 0; box-shadow: none;`,
+    btn: `border-radius: 0; font-weight: 900; letter-spacing: .02em;`,
+    primary: `background: #f2d23a; color: #140a00; border-color: #140a00;`,
+    extra: `:root[data-ui-theme="f-ursus"] .section-label { background: #f2d23a; color: #140a00; padding: 0 .08rem; }
+:root[data-ui-theme="f-ursus"] .topbar__title { font-weight: 900; letter-spacing: 0; }`,
+    bondFilter: 'sepia(.8) saturate(1.8) hue-rotate(-15deg)',
   },
   {
     id: 'f-leithanien', name: '라이타니엔', group: 'faction',
-    p: { bg: ['#0c0912', '#130f1c', '#1b1527', '#231b33', '#2c2240'], line: ['#3b2e55', '#544276', '#76609e'],
-      accent: '#d8b86a', glow: '#f2d58c', accent2: '#9b7bff', text: ['#f4f0fb', '#d0c8e2', '#9d94b4', '#787090'], onAccent: '#160f02' },
+    // event 尘影余音 (Lingering Echoes): a dark burgundy concert hall, a gold calligraphic script, fine gold rules
+    p: { bg: ['#0d0607', '#160a0c', '#200f12', '#2a1418', '#351a1f'], line: ['#3e1f25', '#5c2f37', '#834651'], accent: '#d6b56c', glow: '#f0d290', accent2: '#8a1c2b', text: ['#f5ece4', '#d8c7bb', '#a89488', '#857166'], onAccent: '#1a0f04' },
     body: `background-color: var(--bg-0);
-  background-image: repeating-linear-gradient(0deg, transparent 0 .5rem, rgba(216, 184, 106, .06) .5rem calc(.5rem + 1px), transparent calc(.5rem + 1px) .52rem,
-      rgba(216, 184, 106, .06) .52rem calc(.52rem + 1px), transparent calc(.52rem + 1px) .54rem),
-    radial-gradient(70% 55% at 50% 0%, rgba(155, 123, 255, .25), transparent 70%), linear-gradient(180deg, #161024, #07050b);`,
-    panel: `background: linear-gradient(180deg, rgba(35, 27, 51, .94), rgba(15, 11, 22, .96)); border: 1px solid #76609e; border-radius: .14rem .02rem;
-  box-shadow: 0 .08rem .3rem rgba(0, 0, 0, .5), inset 0 0 0 1px rgba(216, 184, 106, .18);`,
-    btn: `border-radius: .14rem .02rem;`,
-    primary: `background: linear-gradient(180deg, #e6c87c, #b8953f); color: #160f02; border-color: #f2d58c;`,
-    extra: `@keyframes ui-note { from { letter-spacing: .06em; } to { letter-spacing: .14em; } }
-@media (prefers-reduced-motion: no-preference) { :root[data-ui-theme="f-leithanien"] .btn:hover .btn__label { animation: ui-note .4s var(--ease-out) forwards; } }`,
-    bondFilter: 'hue-rotate(205deg) sepia(.3) saturate(1.2)',
+  background-image: radial-gradient(50% 40% at 50% 0%, rgba(255, 220, 160, .1), transparent 70%), radial-gradient(60% 50% at 50% 100%, rgba(138, 28, 43, .22), transparent 70%), linear-gradient(180deg, #1a0b0e, #060203);`,
+    panel: `background: linear-gradient(180deg, rgba(42, 20, 24, .92), rgba(13, 6, 7, .96)); border: 1px solid rgba(214, 181, 108, .35); border-radius: 0; box-shadow: 0 .1rem .35rem rgba(0, 0, 0, .65);`,
+    btn: `border-radius: 0; font-family: var(--font-display); letter-spacing: .12em;`,
+    primary: `background: linear-gradient(180deg, #8a1c2b, #5a0f1a); color: #f0d290; border-color: #d6b56c;`,
+    extra: `:root[data-ui-theme="f-leithanien"] :is(.panel, .modal__box)::after { content: ''; position: absolute; left: .12rem; right: .12rem; top: .06rem; height: 1px; background: linear-gradient(90deg, transparent, rgba(214, 181, 108, .55), transparent); pointer-events: none; }`,
+    bondFilter: 'sepia(.7) saturate(1.2) hue-rotate(-10deg)',
   },
 ];
+
+/** The HUD bond boards are official sprites drawn in mint (hue ≈ 162°): turned to the theme's accent hue, desaturated
+ *  for a grey accent; never inverted (the board stays a dark disc, so its number keeps reading on every theme). */
+function bondFilter(accent) {
+  const [r, g, b] = hex(accent).map((v) => v / 255);
+  const mx = Math.max(r, g, b), mn = Math.min(r, g, b), d = mx - mn, l = (mx + mn) / 2;
+  const sat = d === 0 ? 0 : d / (1 - Math.abs(2 * l - 1));
+  let h = 0;
+  if (d) h = mx === r ? ((g - b) / d) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4;
+  h = (h * 60 + 360) % 360;
+  if (sat < .25) return `grayscale(${(1 - sat * 2).toFixed(2)}) brightness(1.05)`;
+  return `hue-rotate(${Math.round(h - 162)}deg) saturate(${Math.min(1.4, .6 + sat * .8).toFixed(2)})`;
+}
 
 function tokens(t) {
   const { bg, line, accent, glow, accent2, text, onAccent } = t.p;
@@ -338,7 +330,7 @@ function tokens(t) {
     '--text-on-mint': onAccent, '--text-hi': text[0], '--text-md': text[1], '--text-lo': text[2], '--text-dim': text[3],
     '--surf-0': surf[0], '--surf-1': surf[1], '--surf-2': surf[2], '--surf-3': surf[3],
     '--surf-0-rgb': rgb(surf[0]), '--surf-1-rgb': rgb(surf[1]), '--surf-2-rgb': rgb(surf[2]), '--surf-3-rgb': rgb(surf[3]),
-    '--bond-filter': t.bondFilter || 'none',
+    '--bond-filter': bondFilter(accent),
   };
   if (light) Object.assign(v, {
     '--ink-hi': text[0], '--ink-md': text[1], '--ink-lo': text[2], '--ink-rgb': rgb(text[0]), '--surf-hi': '#ffffff', '--dim-rgb': '150, 150, 150',

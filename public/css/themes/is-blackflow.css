@@ -41,7 +41,7 @@
   --surf-1-rgb: 14, 14, 12;
   --surf-2-rgb: 22, 22, 19;
   --surf-3-rgb: 30, 30, 26;
-  --bond-filter: sepia(.5) saturate(1.1) brightness(1.05);
+  --bond-filter: hue-rotate(-114deg) saturate(1.12);
   --ui-accent-2: #3fb0a0;
 }
 :root[data-ui-theme="is-blackflow"] body {

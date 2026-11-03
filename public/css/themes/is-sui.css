@@ -41,7 +41,7 @@
   --surf-1-rgb: 246, 248, 245;
   --surf-2-rgb: 255, 255, 255;
   --surf-3-rgb: 255, 255, 255;
-  --bond-filter: invert(1) hue-rotate(170deg) saturate(.9);
+  --bond-filter: hue-rotate(14deg) saturate(1.16);
   --ink-hi: #14211d;
   --ink-md: #34443e;
   --ink-lo: #52625c;
