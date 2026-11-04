@@ -524,3 +524,16 @@ select option, select optgroup { background-color: var(--bg-2, var(--surf-2, #11
 :root[data-ui-theme][data-ui-light] .shopbar .obtn { --tb: color-mix(in srgb, var(--mint-500) 70%, #000); }
 :root[data-ui-theme][data-ui-light] .shopbar .toolbtn--ice { --tb: color-mix(in srgb, var(--ui-accent-2, var(--ice, #0a6fb5)) 55%, #000); }
 :root[data-ui-theme][data-ui-light] .shopbar .obtn:disabled { --tb: var(--line-3); }
+/* the round / phase popups and the phase banner sit over the battlefield: they keep a dark plate and light ink in every
+   theme (light themes turned their ink dark and their plates light); the theme shows in their accent */
+:root[data-ui-theme] :is(.mpop, .pbanner) { --text-hi: #f3f6f5; --text-md: #cfd8d5; --text-lo: #a3b0ab; --text-dim: #85918c; --ink-hi: #fff; --ink-md: #cfd8d5; --ink-rgb: 255, 255, 255;
+  --surf-0: #070909; --surf-1: #0d1110; --surf-2: #151a19; --surf-3: #1d2422; --surf-0-rgb: 7, 9, 9; --surf-1-rgb: 13, 17, 16; --surf-2-rgb: 21, 26, 25; --surf-3-rgb: 29, 36, 34;
+  --bg-0: #0b0e0d; --bg-1: #121615; --bg-0-rgb: 11, 14, 13; --bg-1-rgb: 18, 22, 21; --shade-rgb: 8, 11, 10; --dim-rgb: 0, 0, 0; color: #f3f6f5; }
+:root[data-ui-theme] .pbanner__band { background: linear-gradient(90deg, transparent, rgba(8, 11, 10, .94) 12% 88%, transparent) !important; }
+:root[data-ui-theme] .pbanner__band::before, :root[data-ui-theme] .pbanner__band::after { background: var(--mint-500); }
+/* light themes: the HUD's accent-coloured chip text */
+:root[data-ui-theme][data-ui-light] :is(.countdown__label, .lp__val) { color: var(--text-hi) !important; }
+:root[data-ui-theme][data-ui-light] .mpop { --mp: color-mix(in srgb, var(--mint-500) 55%, #fff); --mp-hi: color-mix(in srgb, var(--mint-500) 40%, #fff); }
+:root[data-ui-theme][data-ui-light] .pbanner { --mint-500: color-mix(in srgb, var(--accent, #3a8) 55%, #fff); }
+:root[data-ui-theme][data-ui-light] :is(.ping, .gtop .pill) { background: rgba(255, 255, 255, .92); }
+:root[data-ui-theme][data-ui-light] :is(.ping__value, .ping__unit) { color: var(--text-hi) !important; }
