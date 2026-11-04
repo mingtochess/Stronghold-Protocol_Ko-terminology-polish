@@ -503,6 +503,9 @@ html:not([lang="ko"]) .mode-cards .mode-card--lab .mode-card__name{font-size:.24
 .mode-cards--main .mode-card-tip:nth-child(n) { grid-column: auto; grid-row: auto; width: 100%; justify-self: stretch; }
 /* the right block starts at the cards' top (under the same section-label height) and ends with them */
 .lobby-quick { display: grid; grid-template-rows: minmax(0, 1fr) minmax(0, 1fr); gap: .14rem; padding-top: calc(var(--section-label-h, .44rem)); }
+/* the modes column's label takes exactly the offset the quick / difficulty columns leave (a theme's larger label font must
+   not push the mode cards below the 탐색 / 실험실 cards) */
+.lg-modes > .section-label { box-sizing: border-box; height: var(--section-label-h, .44rem); margin-bottom: 0; padding-bottom: calc(var(--section-label-h, .44rem) * .32); overflow: hidden; align-items: flex-start; }
 .lobby-quick .public-rooms-entry { grid-column: auto; grid-row: auto; min-height: 0; text-align: left; }
 .lobby-quick__labs { display: grid; grid-template-columns: 1fr 1fr; gap: .14rem; min-height: 0; }
 .lobby-quick__labs .mode-card-tip, .lobby-quick__labs .mode-card { min-height: 0; height: 100%; }
