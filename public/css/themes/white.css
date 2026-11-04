@@ -32,8 +32,8 @@
 /* tx:start */
 /* ---- texture layer (tools/ui-theme-textures.mjs) */
 :root[data-ui-theme="white"] { --th-accent: var(--mint-500); --th-accent-rgb: var(--accent-rgb); --th-accent-deep: var(--mint-700); --th-surf1: var(--surf-1); --th-line: var(--line-2); --th-ink-hi: var(--text-hi); --th-ink-md: var(--text-md); --th-ink-lo: var(--text-lo); }
-:root[data-ui-theme="white"] :is(.btn--amber, .btn--ice, .btn--danger) { background-image: linear-gradient(90deg, transparent, rgba(255, 255, 255, .35)), linear-gradient(180deg, rgba(255, 255, 255, .14), transparent 45%); background-size: .34rem 100%, 100% 100%; background-position: right center, 0 0; background-repeat: no-repeat; }
-:root[data-ui-theme="white"] .btn--primary { background-image: linear-gradient(90deg, transparent, rgba(255, 255, 255, .35)), var(--ui-primary-face, none); background-size: .34rem 100%, 100% 100%; background-position: right center, 0 0; background-repeat: no-repeat, no-repeat; }
+:root[data-ui-theme="white"] :is(.btn--amber, .btn--ice, .btn--danger) { background-image: linear-gradient(90deg, transparent, rgba(255, 255, 255, .35)), linear-gradient(180deg, rgba(255, 255, 255, .14), transparent 45%); background-size: .34rem 100%, 100% 100%; background-position: right center, 0 0; background-repeat: no-repeat, no-repeat; }
+:root[data-ui-theme="white"] .btn--primary { background-image: linear-gradient(90deg, transparent, rgba(255, 255, 255, .35)), var(--ui-primary-face, linear-gradient(var(--mint-500), var(--mint-500))); background-size: .34rem 100%, 100% 100%; background-position: right center, 0 0; background-repeat: no-repeat, no-repeat; }
 :root[data-ui-theme="white"] .btn--primary:disabled { background-image: none; }
 :root[data-ui-theme="white"] :is(.panel, .modal__box, .bpop, .dpanel) { isolation: isolate; }
 :root[data-ui-theme="white"] :is(.panel, .modal__box, .bpop, .dpanel)::before { content: ''; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg, rgba(255, 255, 255, .7), transparent 40%); z-index: -1; }
@@ -47,7 +47,7 @@
 :root[data-ui-theme="white"] .capsule { border-radius: .25rem; background: linear-gradient(90deg, #00967d, #00b894) bottom / 100% 2px no-repeat, rgba(var(--bg-1-rgb), .92); }
 :root[data-ui-theme="white"] :is(.effect, .toolbtn:not(.obtn), .readybtn__box) { border-radius: .06rem; }
 :root[data-ui-theme="white"] .effect { background: linear-gradient(180deg, rgba(255, 255, 255, .7), transparent 40%), rgba(var(--bg-1-rgb), .88); }
-:root[data-ui-theme="white"] .lvcard { background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .35)), linear-gradient(var(--mint-500), var(--mint-500)); background-size: .34rem 100%, 100% 100%; background-position: right bottom, 0 0; background-repeat: no-repeat;  }
+:root[data-ui-theme="white"] .lvcard { background-color: var(--mint-500); background-image: linear-gradient(90deg, transparent, rgba(255, 255, 255, .35)); background-size: .34rem 100%; background-position: right bottom; background-repeat: no-repeat; }
 :root[data-ui-theme="white"] :is(.lo-card__art, .lo-dhead__art, .extension-art:not(.extension-art--map), .lo-chip--tier) { background-color: #2b2e31; }
 :root[data-ui-theme="white"] :is(.title-bg__art, .title-bg__ridge-art, .title-bg__ridges, .title-bg__target, .title-bg__radar, .title-bg__haze) { display: none; }
 :root[data-ui-theme="white"] .app-bg, :root[data-ui-theme="white"] .app-bg::before, :root[data-ui-theme="white"] .app-bg::after { background: none; }

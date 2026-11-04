@@ -54,6 +54,7 @@
 }
 :root[data-ui-theme="is-mizuki"] .screen:not(.gm) { background: transparent; }
 :root[data-ui-theme="is-mizuki"] .panel,
+:root[data-ui-theme="is-mizuki"] .diff-card,
 :root[data-ui-theme="is-mizuki"] .modal__box,
 :root[data-ui-theme="is-mizuki"] .bpop,
 :root[data-ui-theme="is-mizuki"] .dpanel {
@@ -68,8 +69,8 @@
 :root[data-ui-theme="is-mizuki"] .num { font-weight: 300; letter-spacing: .04em; }
 /* ---- texture layer (tools/ui-theme-textures.mjs) */
 :root[data-ui-theme="is-mizuki"] { --th-accent: var(--mint-500); --th-accent-rgb: var(--accent-rgb); --th-accent-deep: var(--mint-800); --th-surf1: var(--surf-1); --th-line: var(--line-2); --th-ink-hi: var(--text-hi); --th-ink-md: var(--text-md); --th-ink-lo: var(--text-lo); }
-:root[data-ui-theme="is-mizuki"] :is(.btn--amber, .btn--ice, .btn--danger) { background-image: repeating-linear-gradient(90deg, rgba(255, 255, 255, .5) 0 1px, transparent 1px 4px), linear-gradient(180deg, rgba(255, 255, 255, .14), transparent 45%); background-size: .34rem 100%, 100% 100%; background-position: right center, 0 0; background-repeat: no-repeat; }
-:root[data-ui-theme="is-mizuki"] .btn--primary { background-image: repeating-linear-gradient(90deg, rgba(255, 255, 255, .5) 0 1px, transparent 1px 4px), var(--ui-primary-face, none); background-size: .34rem 100%, 100% 100%; background-position: right center, 0 0; background-repeat: no-repeat, no-repeat; }
+:root[data-ui-theme="is-mizuki"] :is(.btn--amber, .btn--ice, .btn--danger) { background-image: repeating-linear-gradient(90deg, rgba(255, 255, 255, .5) 0 1px, transparent 1px 4px), linear-gradient(180deg, rgba(255, 255, 255, .14), transparent 45%); background-size: .34rem 100%, 100% 100%; background-position: right center, 0 0; background-repeat: no-repeat, no-repeat; }
+:root[data-ui-theme="is-mizuki"] .btn--primary { background-image: repeating-linear-gradient(90deg, rgba(255, 255, 255, .5) 0 1px, transparent 1px 4px), var(--ui-primary-face, linear-gradient(var(--mint-500), var(--mint-500))); background-size: .34rem 100%, 100% 100%; background-position: right center, 0 0; background-repeat: no-repeat, no-repeat; }
 :root[data-ui-theme="is-mizuki"] .btn--primary:disabled { background-image: none; }
 :root[data-ui-theme="is-mizuki"] :is(.panel, .modal__box, .bpop, .dpanel) { isolation: isolate; }
 :root[data-ui-theme="is-mizuki"] :is(.panel, .modal__box, .bpop, .dpanel)::before { content: ''; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(40% 30% at 20% 20%, rgba(40, 80, 200, .1), transparent 70%); z-index: -1; }
@@ -89,7 +90,7 @@
 :root[data-ui-theme="is-mizuki"] .capsule { border-radius: .25rem; background: linear-gradient(90deg, transparent, #5fd4ff, transparent) bottom / 100% 2px no-repeat, rgba(var(--bg-1-rgb), .92); }
 :root[data-ui-theme="is-mizuki"] :is(.effect, .toolbtn:not(.obtn), .readybtn__box) { border-radius: .3rem; }
 :root[data-ui-theme="is-mizuki"] .effect { background: radial-gradient(40% 30% at 20% 20%, rgba(40, 80, 200, .1), transparent 70%), rgba(var(--bg-1-rgb), .88); }
-:root[data-ui-theme="is-mizuki"] .lvcard { background: repeating-linear-gradient(90deg, rgba(255, 255, 255, .5) 0 1px, transparent 1px 4px), linear-gradient(var(--mint-500), var(--mint-500)); background-size: .34rem 100%, 100% 100%; background-position: right bottom, 0 0; background-repeat: no-repeat;  }
+:root[data-ui-theme="is-mizuki"] .lvcard { background-color: var(--mint-500); background-image: repeating-linear-gradient(90deg, rgba(255, 255, 255, .5) 0 1px, transparent 1px 4px); background-size: .34rem 100%; background-position: right bottom; background-repeat: no-repeat; }
 :root[data-ui-theme="is-mizuki"] :is(.title-bg__art, .title-bg__ridge-art, .title-bg__ridges, .title-bg__target, .title-bg__radar, .title-bg__haze) { display: none; }
 :root[data-ui-theme="is-mizuki"] .app-bg, :root[data-ui-theme="is-mizuki"] .app-bg::before, :root[data-ui-theme="is-mizuki"] .app-bg::after { background: none; }
 :root[data-ui-theme="is-mizuki"][data-ui-art] body { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='turbulence' baseFrequency='0.25' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.235 0 0 0 0 0.431 0 0 0 0 0.902 0 0 0 0.08 0'/%3E%3C/filter%3E%3Crect width='100%' height='100%' filter='url(%23n)'/%3E%3C/svg%3E"), linear-gradient(rgba(var(--bg-0-rgb), .62), rgba(var(--bg-0-rgb), .62)), var(--ta-left), var(--ta-right); background-size: 240px auto, 100% 100%, 50.1% 100%, 50.1% 100%; background-position: 0 0, 0 0, left center, right center; background-repeat: repeat, no-repeat, no-repeat, no-repeat; }
@@ -124,6 +125,7 @@
 :root[data-ui-theme="is-mizuki"] .hbond__board::before, :root[data-ui-theme="is-mizuki"] .bond:not(.hbond) .bond__core::before { inset: 12%; border-radius: 50%; clip-path: none; transform: none; }
 :root[data-ui-theme="is-mizuki"] .bond-ring { display: block; position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; z-index: 1; }
 :root[data-ui-theme="is-mizuki"] .bond:not(.hbond) .bond-ring { inset: calc(var(--disc) * -.04); width: calc(100% + var(--disc) * .08); height: calc(100% + var(--disc) * .08); }
+:root[data-ui-theme="is-mizuki"] .bond-ring { transform: scaleX(-1); }
 :root[data-ui-theme="is-mizuki"] .bond-ring path { d: path("M50 4A46 46 0 1 1 49.99 4Z"); fill: none; stroke-width: 6.5; stroke-linejoin: round; stroke: var(--hb-ring-off, rgba(140, 140, 140, .6)); filter: drop-shadow(0 0 1px rgba(0, 0, 0, .85)); }
 :root[data-ui-theme="is-mizuki"] .bond-ring path.on { stroke: var(--hb-ring-on, var(--mint-400)); }
 :root[data-ui-theme="is-mizuki"] .hbond.is-full .bond-ring path.on, :root[data-ui-theme="is-mizuki"] .bond:not(.hbond).is-active .bond-ring path.on { stroke: var(--hb-ring-full, var(--hb-ring-on, var(--mint-400))); }

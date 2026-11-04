@@ -52,6 +52,7 @@
 }
 :root[data-ui-theme="f-leithanien"] .screen:not(.gm) { background: transparent; }
 :root[data-ui-theme="f-leithanien"] .panel,
+:root[data-ui-theme="f-leithanien"] .diff-card,
 :root[data-ui-theme="f-leithanien"] .modal__box,
 :root[data-ui-theme="f-leithanien"] .bpop,
 :root[data-ui-theme="f-leithanien"] .dpanel {
@@ -62,8 +63,8 @@
 :root[data-ui-theme="f-leithanien"] .modal { background: rgba(0, 0, 0, .6); }
 /* ---- texture layer (tools/ui-theme-textures.mjs) */
 :root[data-ui-theme="f-leithanien"] { --th-accent: var(--mint-500); --th-accent-rgb: var(--accent-rgb); --th-accent-deep: var(--mint-800); --th-surf1: var(--surf-1); --th-line: var(--line-2); --th-ink-hi: var(--text-hi); --th-ink-md: var(--text-md); --th-ink-lo: var(--text-lo); }
-:root[data-ui-theme="f-leithanien"] :is(.btn--amber, .btn--ice, .btn--danger) { background-image: linear-gradient(90deg, transparent, rgba(230, 199, 132, .5)), linear-gradient(180deg, rgba(255, 255, 255, .14), transparent 45%); background-size: .34rem 100%, 100% 100%; background-position: right center, 0 0; background-repeat: no-repeat; }
-:root[data-ui-theme="f-leithanien"] .btn--primary { background-image: linear-gradient(90deg, transparent, rgba(230, 199, 132, .5)), var(--ui-primary-face, none); background-size: .34rem 100%, 100% 100%; background-position: right center, 0 0; background-repeat: no-repeat, no-repeat; }
+:root[data-ui-theme="f-leithanien"] :is(.btn--amber, .btn--ice, .btn--danger) { background-image: linear-gradient(90deg, transparent, rgba(230, 199, 132, .5)), linear-gradient(180deg, rgba(255, 255, 255, .14), transparent 45%); background-size: .34rem 100%, 100% 100%; background-position: right center, 0 0; background-repeat: no-repeat, no-repeat; }
+:root[data-ui-theme="f-leithanien"] .btn--primary { background-image: linear-gradient(90deg, transparent, rgba(230, 199, 132, .5)), var(--ui-primary-face, linear-gradient(var(--mint-500), var(--mint-500))); background-size: .34rem 100%, 100% 100%; background-position: right center, 0 0; background-repeat: no-repeat, no-repeat; }
 :root[data-ui-theme="f-leithanien"] .btn--primary:disabled { background-image: none; }
 :root[data-ui-theme="f-leithanien"] :is(.panel, .modal__box, .bpop, .dpanel) { isolation: isolate; }
 :root[data-ui-theme="f-leithanien"] :is(.panel, .modal__box, .bpop, .dpanel)::before { content: ''; position: absolute; inset: 0; pointer-events: none; background: repeating-linear-gradient(90deg, rgba(201, 163, 90, .03) 0 .03rem, transparent .03rem .18rem); z-index: -1; }
@@ -77,7 +78,7 @@
 :root[data-ui-theme="f-leithanien"] .capsule { border-radius: 0; background: linear-gradient(90deg, transparent, #c9a35a 25% 75%, transparent) bottom / 100% 2px no-repeat, rgba(var(--bg-1-rgb), .92); }
 :root[data-ui-theme="f-leithanien"] :is(.effect, .toolbtn:not(.obtn), .readybtn__box) { border-radius: 0; }
 :root[data-ui-theme="f-leithanien"] .effect { background: repeating-linear-gradient(90deg, rgba(201, 163, 90, .03) 0 .03rem, transparent .03rem .18rem), rgba(var(--bg-1-rgb), .88); }
-:root[data-ui-theme="f-leithanien"] .lvcard { background: linear-gradient(90deg, transparent, rgba(230, 199, 132, .5)), linear-gradient(var(--mint-500), var(--mint-500)); background-size: .34rem 100%, 100% 100%; background-position: right bottom, 0 0; background-repeat: no-repeat;  }
+:root[data-ui-theme="f-leithanien"] .lvcard { background-color: var(--mint-500); background-image: linear-gradient(90deg, transparent, rgba(230, 199, 132, .5)); background-size: .34rem 100%; background-position: right bottom; background-repeat: no-repeat; }
 :root[data-ui-theme="f-leithanien"] :is(.title-bg__art, .title-bg__ridge-art, .title-bg__ridges, .title-bg__target, .title-bg__radar, .title-bg__haze) { display: none; }
 :root[data-ui-theme="f-leithanien"] .app-bg, :root[data-ui-theme="f-leithanien"] .app-bg::before, :root[data-ui-theme="f-leithanien"] .app-bg::after { background: none; }
 :root[data-ui-theme="f-leithanien"][data-ui-art] body::after { content: ''; position: fixed; right: 4vw; bottom: 6vh; width: 34vmin; height: 34vmin; background: var(--ta-logo) center / contain no-repeat; opacity: .07; pointer-events: none; z-index: -1;  }
@@ -118,6 +119,7 @@
 :root[data-ui-theme="f-leithanien"] .hbond__board::before, :root[data-ui-theme="f-leithanien"] .bond:not(.hbond) .bond__core::before { inset: 12%; border-radius: 0; transform: none; clip-path: polygon(50% 0%, 75% 6.7%, 93.3% 25%, 100% 50%, 93.3% 75%, 75% 93.3%, 50% 100%, 25% 93.3%, 6.7% 75%, 0% 50%, 6.7% 25%, 25% 6.7%); }
 :root[data-ui-theme="f-leithanien"] .bond-ring { display: block; position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; z-index: 1; }
 :root[data-ui-theme="f-leithanien"] .bond:not(.hbond) .bond-ring { inset: calc(var(--disc) * -.04); width: calc(100% + var(--disc) * .08); height: calc(100% + var(--disc) * .08); }
+:root[data-ui-theme="f-leithanien"] .bond-ring { transform: scaleX(-1); }
 :root[data-ui-theme="f-leithanien"] .bond-ring path { d: path("M50 4L73 10.16L89.84 27L96 50L89.84 73L73 89.84L50 96L27 89.84L10.16 73L4 50L10.16 27L27 10.16Z"); fill: none; stroke-width: 6.5; stroke-linejoin: round; stroke: var(--hb-ring-off, rgba(140, 140, 140, .6)); filter: drop-shadow(0 0 1px rgba(0, 0, 0, .85)); }
 :root[data-ui-theme="f-leithanien"] .bond-ring path.on { stroke: var(--hb-ring-on, var(--mint-400)); }
 :root[data-ui-theme="f-leithanien"] .hbond.is-full .bond-ring path.on, :root[data-ui-theme="f-leithanien"] .bond:not(.hbond).is-active .bond-ring path.on { stroke: var(--hb-ring-full, var(--hb-ring-on, var(--mint-400))); }

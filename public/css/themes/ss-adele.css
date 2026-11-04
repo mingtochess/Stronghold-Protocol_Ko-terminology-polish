@@ -64,6 +64,7 @@
 }
 :root[data-ui-theme="ss-adele"] .screen:not(.gm) { background: transparent; }
 :root[data-ui-theme="ss-adele"] .panel,
+:root[data-ui-theme="ss-adele"] .diff-card,
 :root[data-ui-theme="ss-adele"] .modal__box,
 :root[data-ui-theme="ss-adele"] .bpop,
 :root[data-ui-theme="ss-adele"] .dpanel {
@@ -75,8 +76,8 @@
 :root[data-ui-theme="ss-adele"] :is(.btn--secondary, .btn--ghost) { --btn-bg: #ffffff; --btn-bg-hover: #fdf0f2; }
 /* ---- texture layer (tools/ui-theme-textures.mjs) */
 :root[data-ui-theme="ss-adele"] { --th-accent: var(--mint-500); --th-accent-rgb: var(--accent-rgb); --th-accent-deep: var(--mint-700); --th-surf1: var(--surf-1); --th-line: var(--line-2); --th-ink-hi: var(--text-hi); --th-ink-md: var(--text-md); --th-ink-lo: var(--text-lo); }
-:root[data-ui-theme="ss-adele"] :is(.btn--amber, .btn--ice, .btn--danger) { background-image: radial-gradient(circle at 30% 50%, rgba(255, 255, 255, .7) 0 4px, transparent 5px), linear-gradient(180deg, rgba(255, 255, 255, .14), transparent 45%); background-size: .34rem 100%, 100% 100%; background-position: right center, 0 0; background-repeat: no-repeat; }
-:root[data-ui-theme="ss-adele"] .btn--primary { background-image: radial-gradient(circle at 30% 50%, rgba(255, 255, 255, .7) 0 4px, transparent 5px), var(--ui-primary-face, none); background-size: .34rem 100%, 100% 100%; background-position: right center, 0 0; background-repeat: no-repeat, no-repeat; }
+:root[data-ui-theme="ss-adele"] :is(.btn--amber, .btn--ice, .btn--danger) { background-image: radial-gradient(circle at 30% 50%, rgba(255, 255, 255, .7) 0 4px, transparent 5px), linear-gradient(180deg, rgba(255, 255, 255, .14), transparent 45%); background-size: .34rem 100%, 100% 100%; background-position: right center, 0 0; background-repeat: no-repeat, no-repeat; }
+:root[data-ui-theme="ss-adele"] .btn--primary { background-image: radial-gradient(circle at 30% 50%, rgba(255, 255, 255, .7) 0 4px, transparent 5px), var(--ui-primary-face, linear-gradient(var(--mint-500), var(--mint-500))); background-size: .34rem 100%, 100% 100%; background-position: right center, 0 0; background-repeat: no-repeat, no-repeat; }
 :root[data-ui-theme="ss-adele"] .btn--primary:disabled { background-image: none; }
 :root[data-ui-theme="ss-adele"] :is(.panel, .modal__box, .bpop, .dpanel) { isolation: isolate; }
 :root[data-ui-theme="ss-adele"] :is(.panel, .modal__box, .bpop, .dpanel)::before { content: ''; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(40% 30% at 20% 0%, rgba(255, 255, 255, .6), transparent 70%); z-index: -1; }
@@ -90,7 +91,7 @@
 :root[data-ui-theme="ss-adele"] .capsule { border-radius: .25rem; background: linear-gradient(90deg, #d34a62 0 70%, #f2b53a 70%) bottom / 100% 2px no-repeat, rgba(var(--bg-1-rgb), .92); }
 :root[data-ui-theme="ss-adele"] :is(.effect, .toolbtn:not(.obtn), .readybtn__box) { border-radius: .1rem; }
 :root[data-ui-theme="ss-adele"] .effect { background: radial-gradient(40% 30% at 20% 0%, rgba(255, 255, 255, .6), transparent 70%), rgba(var(--bg-1-rgb), .88); }
-:root[data-ui-theme="ss-adele"] .lvcard { background: radial-gradient(circle at 30% 50%, rgba(255, 255, 255, .7) 0 4px, transparent 5px), linear-gradient(var(--mint-500), var(--mint-500)); background-size: .34rem 100%, 100% 100%; background-position: right bottom, 0 0; background-repeat: no-repeat;  }
+:root[data-ui-theme="ss-adele"] .lvcard { background-color: var(--mint-500); background-image: radial-gradient(circle at 30% 50%, rgba(255, 255, 255, .7) 0 4px, transparent 5px); background-size: .34rem 100%; background-position: right bottom; background-repeat: no-repeat; }
 :root[data-ui-theme="ss-adele"] :is(.lo-card__art, .lo-dhead__art, .extension-art:not(.extension-art--map), .lo-chip--tier) { background-color: #2b2e31; }
 :root[data-ui-theme="ss-adele"] :is(.title-bg__art, .title-bg__ridge-art, .title-bg__ridges, .title-bg__target, .title-bg__radar, .title-bg__haze) { display: none; }
 :root[data-ui-theme="ss-adele"] .app-bg, :root[data-ui-theme="ss-adele"] .app-bg::before, :root[data-ui-theme="ss-adele"] .app-bg::after { background: none; }
@@ -131,6 +132,7 @@
 :root[data-ui-theme="ss-adele"] .hbond__board::before, :root[data-ui-theme="ss-adele"] .bond:not(.hbond) .bond__core::before { inset: 12%; border-radius: 0; transform: none; clip-path: polygon(50% 0%, 56.5% 0.6%, 62.7% 2.5%, 68.5% 5.4%, 73.5% 9.3%, 77.7% 13.9%, 81.1% 18.9%, 86.1% 22.3%, 90.7% 26.5%, 94.6% 31.5%, 97.5% 37.3%, 99.4% 43.5%, 100% 50%, 99.4% 56.5%, 97.5% 62.7%, 94.6% 68.5%, 90.7% 73.5%, 86.1% 77.7%, 81.1% 81.1%, 77.7% 86.1%, 73.5% 90.7%, 68.5% 94.6%, 62.7% 97.5%, 56.5% 99.4%, 50% 100%, 43.5% 99.4%, 37.3% 97.5%, 31.5% 94.6%, 26.5% 90.7%, 22.3% 86.1%, 18.9% 81.1%, 13.9% 77.7%, 9.3% 73.5%, 5.4% 68.5%, 2.5% 62.7%, 0.6% 56.5%, 0% 50%, 0.6% 43.5%, 2.5% 37.3%, 5.4% 31.5%, 9.3% 26.5%, 13.9% 22.3%, 18.9% 18.9%, 22.3% 13.9%, 26.5% 9.3%, 31.5% 5.4%, 37.3% 2.5%, 43.5% 0.6%); }
 :root[data-ui-theme="ss-adele"] .bond-ring { display: block; position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; z-index: 1; }
 :root[data-ui-theme="ss-adele"] .bond:not(.hbond) .bond-ring { inset: calc(var(--disc) * -.04); width: calc(100% + var(--disc) * .08); height: calc(100% + var(--disc) * .08); }
+:root[data-ui-theme="ss-adele"] .bond-ring { transform: scaleX(-1); }
 :root[data-ui-theme="ss-adele"] .bond-ring path { d: path("M50 4L55.98 4.55L61.68 6.3L67.02 8.97L71.62 12.56L75.48 16.79L78.61 21.39L83.21 24.52L87.44 28.38L91.03 32.98L93.7 38.32L95.45 44.02L96 50L95.45 55.98L93.7 61.68L91.03 67.02L87.44 71.62L83.21 75.48L78.61 78.61L75.48 83.21L71.62 87.44L67.02 91.03L61.68 93.7L55.98 95.45L50 96L44.02 95.45L38.32 93.7L32.98 91.03L28.38 87.44L24.52 83.21L21.39 78.61L16.79 75.48L12.56 71.62L8.97 67.02L6.3 61.68L4.55 55.98L4 50L4.55 44.02L6.3 38.32L8.97 32.98L12.56 28.38L16.79 24.52L21.39 21.39L24.52 16.79L28.38 12.56L32.98 8.97L38.32 6.3L44.02 4.55Z"); fill: none; stroke-width: 6.5; stroke-linejoin: round; stroke: var(--hb-ring-off, rgba(140, 140, 140, .6)); filter: drop-shadow(0 0 1px rgba(0, 0, 0, .85)); }
 :root[data-ui-theme="ss-adele"] .bond-ring path.on { stroke: var(--hb-ring-on, var(--mint-400)); }
 :root[data-ui-theme="ss-adele"] .hbond.is-full .bond-ring path.on, :root[data-ui-theme="ss-adele"] .bond:not(.hbond).is-active .bond-ring path.on { stroke: var(--hb-ring-full, var(--hb-ring-on, var(--mint-400))); }

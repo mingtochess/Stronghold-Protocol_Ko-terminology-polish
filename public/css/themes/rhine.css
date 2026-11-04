@@ -57,8 +57,8 @@
 /* tx:start */
 /* ---- texture layer (tools/ui-theme-textures.mjs) */
 :root[data-ui-theme="rhine"] { --th-accent: var(--mint-500); --th-accent-rgb: var(--accent-rgb); --th-accent-deep: var(--mint-700); --th-surf1: var(--surf-1); --th-line: var(--line-2); --th-ink-hi: var(--text-hi); --th-ink-md: var(--text-md); --th-ink-lo: var(--text-lo); }
-:root[data-ui-theme="rhine"] :is(.btn--amber, .btn--ice, .btn--danger) { background-image: repeating-linear-gradient(90deg, #e8d400 0 2px, transparent 2px 5px), linear-gradient(180deg, rgba(255, 255, 255, .14), transparent 45%); background-size: .34rem 100%, 100% 100%; background-position: right center, 0 0; background-repeat: no-repeat; }
-:root[data-ui-theme="rhine"] .btn--primary { background-image: repeating-linear-gradient(90deg, #e8d400 0 2px, transparent 2px 5px), var(--ui-primary-face, none); background-size: .34rem 100%, 100% 100%; background-position: right center, 0 0; background-repeat: no-repeat, no-repeat; }
+:root[data-ui-theme="rhine"] :is(.btn--amber, .btn--ice, .btn--danger) { background-image: repeating-linear-gradient(90deg, #e8d400 0 2px, transparent 2px 5px), linear-gradient(180deg, rgba(255, 255, 255, .14), transparent 45%); background-size: .34rem 100%, 100% 100%; background-position: right center, 0 0; background-repeat: no-repeat, no-repeat; }
+:root[data-ui-theme="rhine"] .btn--primary { background-image: repeating-linear-gradient(90deg, #e8d400 0 2px, transparent 2px 5px), var(--ui-primary-face, linear-gradient(var(--mint-500), var(--mint-500))); background-size: .34rem 100%, 100% 100%; background-position: right center, 0 0; background-repeat: no-repeat, no-repeat; }
 :root[data-ui-theme="rhine"] .btn--primary:disabled { background-image: none; }
 :root[data-ui-theme="rhine"] :is(.panel, .modal__box, .bpop, .dpanel) { isolation: isolate; }
 :root[data-ui-theme="rhine"] :is(.panel, .modal__box, .bpop, .dpanel)::before { content: ''; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(rgba(17, 19, 18, .05) 1px, transparent 1px) 0 0 / 100% .1rem; z-index: -1; }
@@ -82,7 +82,7 @@
 :root[data-ui-theme="rhine"] .capsule { border-radius: 0; background: repeating-linear-gradient(90deg, #111312 0 .1rem, #e8d400 .1rem .2rem) bottom / 100% 2px no-repeat, rgba(var(--bg-1-rgb), .92); }
 :root[data-ui-theme="rhine"] :is(.effect, .toolbtn:not(.obtn), .readybtn__box) { border-radius: 0; }
 :root[data-ui-theme="rhine"] .effect { background: linear-gradient(rgba(17, 19, 18, .05) 1px, transparent 1px) 0 0 / 100% .1rem, rgba(var(--bg-1-rgb), .88); }
-:root[data-ui-theme="rhine"] .lvcard { background: repeating-linear-gradient(90deg, #e8d400 0 2px, transparent 2px 5px), linear-gradient(var(--mint-500), var(--mint-500)); background-size: .34rem 100%, 100% 100%; background-position: right bottom, 0 0; background-repeat: no-repeat;  }
+:root[data-ui-theme="rhine"] .lvcard { background-color: var(--mint-500); background-image: repeating-linear-gradient(90deg, #e8d400 0 2px, transparent 2px 5px); background-size: .34rem 100%; background-position: right bottom; background-repeat: no-repeat; }
 :root[data-ui-theme="rhine"] :is(.lo-card__art, .lo-dhead__art, .extension-art:not(.extension-art--map), .lo-chip--tier) { background-color: #2b2e31; }
 :root[data-ui-theme="rhine"] :is(.title-bg__art, .title-bg__ridge-art, .title-bg__ridges, .title-bg__target, .title-bg__radar, .title-bg__haze) { display: none; }
 :root[data-ui-theme="rhine"] .app-bg, :root[data-ui-theme="rhine"] .app-bg::before, :root[data-ui-theme="rhine"] .app-bg::after { background: none; }

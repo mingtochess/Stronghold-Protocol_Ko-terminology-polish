@@ -375,6 +375,7 @@ ${sel} body {
 }
 ${sel} .screen:not(.gm) { background: transparent; }
 ${sel} .panel,
+${sel} .diff-card,
 ${sel} .modal__box,
 ${sel} .bpop,
 ${sel} .dpanel {

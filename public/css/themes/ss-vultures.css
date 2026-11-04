@@ -51,6 +51,7 @@
 }
 :root[data-ui-theme="ss-vultures"] .screen:not(.gm) { background: transparent; }
 :root[data-ui-theme="ss-vultures"] .panel,
+:root[data-ui-theme="ss-vultures"] .diff-card,
 :root[data-ui-theme="ss-vultures"] .modal__box,
 :root[data-ui-theme="ss-vultures"] .bpop,
 :root[data-ui-theme="ss-vultures"] .dpanel {
@@ -63,8 +64,8 @@
 :root[data-ui-theme="ss-vultures"] :is(.panel__title, .topbar__title) { letter-spacing: .04em; }
 /* ---- texture layer (tools/ui-theme-textures.mjs) */
 :root[data-ui-theme="ss-vultures"] { --th-accent: var(--mint-500); --th-accent-rgb: var(--accent-rgb); --th-accent-deep: var(--mint-800); --th-surf1: var(--surf-1); --th-line: var(--line-2); --th-ink-hi: var(--text-hi); --th-ink-md: var(--text-md); --th-ink-lo: var(--text-lo); }
-:root[data-ui-theme="ss-vultures"] :is(.btn--amber, .btn--ice, .btn--danger) { background-image: repeating-linear-gradient(-45deg, rgba(20, 22, 5, .5) 0 3px, transparent 3px 7px), linear-gradient(180deg, rgba(255, 255, 255, .14), transparent 45%); background-size: .34rem 100%, 100% 100%; background-position: right center, 0 0; background-repeat: no-repeat; }
-:root[data-ui-theme="ss-vultures"] .btn--primary { background-image: repeating-linear-gradient(-45deg, rgba(20, 22, 5, .5) 0 3px, transparent 3px 7px), var(--ui-primary-face, none); background-size: .34rem 100%, 100% 100%; background-position: right center, 0 0; background-repeat: no-repeat, no-repeat; }
+:root[data-ui-theme="ss-vultures"] :is(.btn--amber, .btn--ice, .btn--danger) { background-image: repeating-linear-gradient(-45deg, rgba(20, 22, 5, .5) 0 3px, transparent 3px 7px), linear-gradient(180deg, rgba(255, 255, 255, .14), transparent 45%); background-size: .34rem 100%, 100% 100%; background-position: right center, 0 0; background-repeat: no-repeat, no-repeat; }
+:root[data-ui-theme="ss-vultures"] .btn--primary { background-image: repeating-linear-gradient(-45deg, rgba(20, 22, 5, .5) 0 3px, transparent 3px 7px), var(--ui-primary-face, linear-gradient(var(--mint-500), var(--mint-500))); background-size: .34rem 100%, 100% 100%; background-position: right center, 0 0; background-repeat: no-repeat, no-repeat; }
 :root[data-ui-theme="ss-vultures"] .btn--primary:disabled { background-image: none; }
 :root[data-ui-theme="ss-vultures"] :is(.panel, .modal__box, .bpop, .dpanel) { isolation: isolate; }
 :root[data-ui-theme="ss-vultures"] :is(.panel, .modal__box, .bpop, .dpanel)::before { content: ''; position: absolute; inset: 0; pointer-events: none; background: repeating-linear-gradient(135deg, rgba(212, 217, 58, .02) 0 .05rem, transparent .05rem .16rem); z-index: -1; }
@@ -81,7 +82,7 @@
 :root[data-ui-theme="ss-vultures"] .capsule { border-radius: 0; background: linear-gradient(90deg, #d4d93a 0 70%, #c0282e 70% 74%, transparent 74%) bottom / 100% 2px no-repeat, rgba(var(--bg-1-rgb), .92); }
 :root[data-ui-theme="ss-vultures"] :is(.effect, .toolbtn:not(.obtn), .readybtn__box) { border-radius: 0; }
 :root[data-ui-theme="ss-vultures"] .effect { background: repeating-linear-gradient(135deg, rgba(212, 217, 58, .02) 0 .05rem, transparent .05rem .16rem), rgba(var(--bg-1-rgb), .88); }
-:root[data-ui-theme="ss-vultures"] .lvcard { background: repeating-linear-gradient(-45deg, rgba(20, 22, 5, .5) 0 3px, transparent 3px 7px), linear-gradient(var(--mint-500), var(--mint-500)); background-size: .34rem 100%, 100% 100%; background-position: right bottom, 0 0; background-repeat: no-repeat;  }
+:root[data-ui-theme="ss-vultures"] .lvcard { background-color: var(--mint-500); background-image: repeating-linear-gradient(-45deg, rgba(20, 22, 5, .5) 0 3px, transparent 3px 7px); background-size: .34rem 100%; background-position: right bottom; background-repeat: no-repeat; }
 :root[data-ui-theme="ss-vultures"] :is(.title-bg__art, .title-bg__ridge-art, .title-bg__ridges, .title-bg__target, .title-bg__radar, .title-bg__haze) { display: none; }
 :root[data-ui-theme="ss-vultures"] .app-bg, :root[data-ui-theme="ss-vultures"] .app-bg::before, :root[data-ui-theme="ss-vultures"] .app-bg::after { background: none; }
 :root[data-ui-theme="ss-vultures"] { --font-micro: 'Saira Condensed', var(--font-display); }
@@ -117,6 +118,7 @@
 :root[data-ui-theme="ss-vultures"] .hbond__board::before, :root[data-ui-theme="ss-vultures"] .bond:not(.hbond) .bond__core::before { inset: 12%; border-radius: 0; transform: none; clip-path: polygon(25% 3%, 75% 3%, 100% 50%, 75% 97%, 25% 97%, 0% 50%); }
 :root[data-ui-theme="ss-vultures"] .bond-ring { display: block; position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; z-index: 1; }
 :root[data-ui-theme="ss-vultures"] .bond:not(.hbond) .bond-ring { inset: calc(var(--disc) * -.04); width: calc(100% + var(--disc) * .08); height: calc(100% + var(--disc) * .08); }
+:root[data-ui-theme="ss-vultures"] .bond-ring { transform: scaleX(-1); }
 :root[data-ui-theme="ss-vultures"] .bond-ring path { d: path("M27 6.76L73 6.76L96 50L73 93.24L27 93.24L4 50Z"); fill: none; stroke-width: 6.5; stroke-linejoin: round; stroke: var(--hb-ring-off, rgba(140, 140, 140, .6)); filter: drop-shadow(0 0 1px rgba(0, 0, 0, .85)); }
 :root[data-ui-theme="ss-vultures"] .bond-ring path.on { stroke: var(--hb-ring-on, var(--mint-400)); }
 :root[data-ui-theme="ss-vultures"] .hbond.is-full .bond-ring path.on, :root[data-ui-theme="ss-vultures"] .bond:not(.hbond).is-active .bond-ring path.on { stroke: var(--hb-ring-full, var(--hb-ring-on, var(--mint-400))); }

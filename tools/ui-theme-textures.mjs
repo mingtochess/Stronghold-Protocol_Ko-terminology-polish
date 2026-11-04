@@ -252,9 +252,12 @@ export function textureCss(id, light = false) {
   // the theme-only aliases (unset in the default theme, whose literal colours stay): screens with their own palette
   // (laboratory / practice setup) read these
   out.push(`${s} { --th-accent: var(--mint-500); --th-accent-rgb: var(--accent-rgb); --th-accent-deep: ${light ? "var(--mint-700)" : "var(--mint-800)"}; --th-surf1: var(--surf-1); --th-line: var(--line-2); --th-ink-hi: var(--text-hi); --th-ink-md: var(--text-md); --th-ink-lo: var(--text-lo); }`);
+  // (one size / position / repeat per face layer, then the fill: a two-layer face shifted the lists and shrank the fill)
+  const nf = topLayers(x.face).length;
+  const lay = (a, b) => Array(nf).fill(a).concat(b).join(', ');
   // the filled buttons: the theme's end strip instead of the black hatch (their colours stay theirs)
-  out.push(`${s} :is(.btn--amber, .btn--ice, .btn--danger) { background-image: ${x.face.replace(/ right center \/[^,]*?(?=,|$)/g, '')}, linear-gradient(180deg, rgba(255, 255, 255, .14), transparent 45%); background-size: .34rem 100%, 100% 100%; background-position: right center, 0 0; background-repeat: no-repeat; }`);
-  out.push(`${s} .btn--primary { background-image: ${x.face.replace(/ right center \/[^,]*?(?=,|$)/g, '')}, var(--ui-primary-face, none); background-size: .34rem 100%, 100% 100%; background-position: right center, 0 0; background-repeat: no-repeat, no-repeat; }`);
+  out.push(`${s} :is(.btn--amber, .btn--ice, .btn--danger) { background-image: ${x.face.replace(/ right center \/[^,]*?(?=,|$)/g, '')}, linear-gradient(180deg, rgba(255, 255, 255, .14), transparent 45%); background-size: ${lay('.34rem 100%', '100% 100%')}; background-position: ${lay('right center', '0 0')}; background-repeat: ${lay('no-repeat', 'no-repeat')}; }`);
+  out.push(`${s} .btn--primary { background-image: ${x.face.replace(/ right center \/[^,]*?(?=,|$)/g, '')}, var(--ui-primary-face, linear-gradient(var(--mint-500), var(--mint-500))); background-size: ${lay('.34rem 100%', '100% 100%')}; background-position: ${lay('right center', '0 0')}; background-repeat: ${lay('no-repeat', 'no-repeat')}; }`);
   out.push(`${s} .btn--primary:disabled { background-image: none; }`);
   // panel / dialog surface
   // (isolation: the surface paints between the box's own background and its content, whatever their positioning)
@@ -278,7 +281,7 @@ export function textureCss(id, light = false) {
   out.push(`${s} .capsule { border-radius: ${x.radius === '0' ? '0' : '.25rem'}; background: ${x.stripe.replace(/;$/, '')} bottom / 100% 2px no-repeat, rgba(var(--bg-1-rgb), .92); }`);
   out.push(`${s} :is(.effect, .toolbtn:not(.obtn), .readybtn__box) { border-radius: ${x.radius}; }`);
   out.push(`${s} .effect { background: ${x.grain}, rgba(var(--bg-1-rgb), .88); }`);
-  out.push(`${s} .lvcard { background: ${x.face.replace(/ right center \/[^,]*?(?=,|$)/g, '')}, linear-gradient(var(--mint-500), var(--mint-500)); background-size: .34rem 100%, 100% 100%; background-position: right bottom, 0 0; background-repeat: no-repeat;  }`);
+  out.push(`${s} .lvcard { background-color: var(--mint-500); background-image: ${x.face.replace(/ right center \/[^,]*?(?=,|$)/g, '')}; background-size: .34rem 100%; background-position: right bottom; background-repeat: no-repeat; }`);
   // the official shop sprites
   // (the official shop sprites — 冻结 / 刷新 plates, cost mattes — keep their own colours in every theme)
   // official portraits / icons are drawn light on dark: their plates stay dark under a light theme

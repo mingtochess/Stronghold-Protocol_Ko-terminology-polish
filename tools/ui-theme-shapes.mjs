@@ -371,6 +371,7 @@ function markerRules(id, S) {
   return `${S} .hbond__board::before, ${S} .bond:not(.hbond) .bond__core::before { ${mk} }
 ${S} .bond-ring { display: block; position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; z-index: 1; }
 ${S} .bond:not(.hbond) .bond-ring { inset: calc(var(--disc) * -.04); width: calc(100% + var(--disc) * .08); height: calc(100% + var(--disc) * .08); }
+${S} .bond-ring { transform: scaleX(-1); }
 ${S} .bond-ring path { d: path("${ring}"); fill: none; stroke-width: 6.5; stroke-linejoin: round; stroke: var(--hb-ring-off, rgba(140, 140, 140, .6)); filter: drop-shadow(0 0 1px rgba(0, 0, 0, .85)); }
 ${S} .bond-ring path.on { stroke: var(--hb-ring-on, var(--mint-400)); }
 ${S} .hbond.is-full .bond-ring path.on, ${S} .bond:not(.hbond).is-active .bond-ring path.on { stroke: var(--hb-ring-full, var(--hb-ring-on, var(--mint-400))); }

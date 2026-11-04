@@ -64,6 +64,7 @@
 }
 :root[data-ui-theme="f-kjerag"] .screen:not(.gm) { background: transparent; }
 :root[data-ui-theme="f-kjerag"] .panel,
+:root[data-ui-theme="f-kjerag"] .diff-card,
 :root[data-ui-theme="f-kjerag"] .modal__box,
 :root[data-ui-theme="f-kjerag"] .bpop,
 :root[data-ui-theme="f-kjerag"] .dpanel {
@@ -76,8 +77,8 @@
 :root[data-ui-theme="f-kjerag"] .micro::before { content: '◆ '; color: #d22c3c; }
 /* ---- texture layer (tools/ui-theme-textures.mjs) */
 :root[data-ui-theme="f-kjerag"] { --th-accent: var(--mint-500); --th-accent-rgb: var(--accent-rgb); --th-accent-deep: var(--mint-700); --th-surf1: var(--surf-1); --th-line: var(--line-2); --th-ink-hi: var(--text-hi); --th-ink-md: var(--text-md); --th-ink-lo: var(--text-lo); }
-:root[data-ui-theme="f-kjerag"] :is(.btn--amber, .btn--ice, .btn--danger) { background-image: linear-gradient(90deg, transparent, rgba(127, 151, 255, .5)), linear-gradient(180deg, rgba(255, 255, 255, .14), transparent 45%); background-size: .34rem 100%, 100% 100%; background-position: right center, 0 0; background-repeat: no-repeat; }
-:root[data-ui-theme="f-kjerag"] .btn--primary { background-image: linear-gradient(90deg, transparent, rgba(127, 151, 255, .5)), var(--ui-primary-face, none); background-size: .34rem 100%, 100% 100%; background-position: right center, 0 0; background-repeat: no-repeat, no-repeat; }
+:root[data-ui-theme="f-kjerag"] :is(.btn--amber, .btn--ice, .btn--danger) { background-image: linear-gradient(90deg, transparent, rgba(127, 151, 255, .5)), linear-gradient(180deg, rgba(255, 255, 255, .14), transparent 45%); background-size: .34rem 100%, 100% 100%; background-position: right center, 0 0; background-repeat: no-repeat, no-repeat; }
+:root[data-ui-theme="f-kjerag"] .btn--primary { background-image: linear-gradient(90deg, transparent, rgba(127, 151, 255, .5)), var(--ui-primary-face, linear-gradient(var(--mint-500), var(--mint-500))); background-size: .34rem 100%, 100% 100%; background-position: right center, 0 0; background-repeat: no-repeat, no-repeat; }
 :root[data-ui-theme="f-kjerag"] .btn--primary:disabled { background-image: none; }
 :root[data-ui-theme="f-kjerag"] :is(.panel, .modal__box, .bpop, .dpanel) { isolation: isolate; }
 :root[data-ui-theme="f-kjerag"] :is(.panel, .modal__box, .bpop, .dpanel)::before { content: ''; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(1px 1px at 30% 30%, rgba(255, 255, 255, .4), transparent 70%), radial-gradient(1px 1px at 70% 70%, rgba(255, 255, 255, .3), transparent 70%); z-index: -1; }
@@ -97,7 +98,7 @@
 :root[data-ui-theme="f-kjerag"] .capsule { border-radius: 0; background: linear-gradient(90deg, transparent, #e9eefc 20% 80%, transparent) bottom / 100% 2px no-repeat, rgba(var(--bg-1-rgb), .92); }
 :root[data-ui-theme="f-kjerag"] :is(.effect, .toolbtn:not(.obtn), .readybtn__box) { border-radius: 0; }
 :root[data-ui-theme="f-kjerag"] .effect { background: radial-gradient(1px 1px at 30% 30%, rgba(255, 255, 255, .4), transparent 70%), radial-gradient(1px 1px at 70% 70%, rgba(255, 255, 255, .3), transparent 70%), rgba(var(--bg-1-rgb), .88); }
-:root[data-ui-theme="f-kjerag"] .lvcard { background: linear-gradient(90deg, transparent, rgba(127, 151, 255, .5)), linear-gradient(var(--mint-500), var(--mint-500)); background-size: .34rem 100%, 100% 100%; background-position: right bottom, 0 0; background-repeat: no-repeat;  }
+:root[data-ui-theme="f-kjerag"] .lvcard { background-color: var(--mint-500); background-image: linear-gradient(90deg, transparent, rgba(127, 151, 255, .5)); background-size: .34rem 100%; background-position: right bottom; background-repeat: no-repeat; }
 :root[data-ui-theme="f-kjerag"] :is(.lo-card__art, .lo-dhead__art, .extension-art:not(.extension-art--map), .lo-chip--tier) { background-color: #2b2e31; }
 :root[data-ui-theme="f-kjerag"] :is(.title-bg__art, .title-bg__ridge-art, .title-bg__ridges, .title-bg__target, .title-bg__radar, .title-bg__haze) { display: none; }
 :root[data-ui-theme="f-kjerag"] .app-bg, :root[data-ui-theme="f-kjerag"] .app-bg::before, :root[data-ui-theme="f-kjerag"] .app-bg::after { background: none; }
@@ -135,6 +136,7 @@
 :root[data-ui-theme="f-kjerag"] .hbond__board::before, :root[data-ui-theme="f-kjerag"] .bond:not(.hbond) .bond__core::before { inset: 12%; border-radius: 0; transform: none; clip-path: polygon(50% 0%, 93% 25%, 93% 75%, 50% 100%, 7% 75%, 7% 25%); }
 :root[data-ui-theme="f-kjerag"] .bond-ring { display: block; position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; z-index: 1; }
 :root[data-ui-theme="f-kjerag"] .bond:not(.hbond) .bond-ring { inset: calc(var(--disc) * -.04); width: calc(100% + var(--disc) * .08); height: calc(100% + var(--disc) * .08); }
+:root[data-ui-theme="f-kjerag"] .bond-ring { transform: scaleX(-1); }
 :root[data-ui-theme="f-kjerag"] .bond-ring path { d: path("M50 4L89.56 27L89.56 73L50 96L10.44 73L10.44 27Z"); fill: none; stroke-width: 6.5; stroke-linejoin: round; stroke: var(--hb-ring-off, rgba(140, 140, 140, .6)); filter: drop-shadow(0 0 1px rgba(0, 0, 0, .85)); }
 :root[data-ui-theme="f-kjerag"] .bond-ring path.on { stroke: var(--hb-ring-on, var(--mint-400)); }
 :root[data-ui-theme="f-kjerag"] .hbond.is-full .bond-ring path.on, :root[data-ui-theme="f-kjerag"] .bond:not(.hbond).is-active .bond-ring path.on { stroke: var(--hb-ring-full, var(--hb-ring-on, var(--mint-400))); }

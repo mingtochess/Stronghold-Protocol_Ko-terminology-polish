@@ -64,6 +64,7 @@
 }
 :root[data-ui-theme="f-laterano"] .screen:not(.gm) { background: transparent; }
 :root[data-ui-theme="f-laterano"] .panel,
+:root[data-ui-theme="f-laterano"] .diff-card,
 :root[data-ui-theme="f-laterano"] .modal__box,
 :root[data-ui-theme="f-laterano"] .bpop,
 :root[data-ui-theme="f-laterano"] .dpanel {
@@ -77,8 +78,8 @@
 :root[data-ui-theme="f-laterano"] :is(.panel__title, .topbar__title) { color: #2a343c; }
 /* ---- texture layer (tools/ui-theme-textures.mjs) */
 :root[data-ui-theme="f-laterano"] { --th-accent: var(--mint-500); --th-accent-rgb: var(--accent-rgb); --th-accent-deep: var(--mint-700); --th-surf1: var(--surf-1); --th-line: var(--line-2); --th-ink-hi: var(--text-hi); --th-ink-md: var(--text-md); --th-ink-lo: var(--text-lo); }
-:root[data-ui-theme="f-laterano"] :is(.btn--amber, .btn--ice, .btn--danger) { background-image: linear-gradient(90deg, transparent, rgba(255, 255, 255, .45)), linear-gradient(180deg, rgba(255, 255, 255, .14), transparent 45%); background-size: .34rem 100%, 100% 100%; background-position: right center, 0 0; background-repeat: no-repeat; }
-:root[data-ui-theme="f-laterano"] .btn--primary { background-image: linear-gradient(90deg, transparent, rgba(255, 255, 255, .45)), var(--ui-primary-face, none); background-size: .34rem 100%, 100% 100%; background-position: right center, 0 0; background-repeat: no-repeat, no-repeat; }
+:root[data-ui-theme="f-laterano"] :is(.btn--amber, .btn--ice, .btn--danger) { background-image: linear-gradient(90deg, transparent, rgba(255, 255, 255, .45)), linear-gradient(180deg, rgba(255, 255, 255, .14), transparent 45%); background-size: .34rem 100%, 100% 100%; background-position: right center, 0 0; background-repeat: no-repeat, no-repeat; }
+:root[data-ui-theme="f-laterano"] .btn--primary { background-image: linear-gradient(90deg, transparent, rgba(255, 255, 255, .45)), var(--ui-primary-face, linear-gradient(var(--mint-500), var(--mint-500))); background-size: .34rem 100%, 100% 100%; background-position: right center, 0 0; background-repeat: no-repeat, no-repeat; }
 :root[data-ui-theme="f-laterano"] .btn--primary:disabled { background-image: none; }
 :root[data-ui-theme="f-laterano"] :is(.panel, .modal__box, .bpop, .dpanel) { isolation: isolate; }
 :root[data-ui-theme="f-laterano"] :is(.panel, .modal__box, .bpop, .dpanel)::before { content: ''; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(circle at 50% -10%, rgba(255, 255, 255, .6), transparent 45%); z-index: -1; }
@@ -98,7 +99,7 @@
 :root[data-ui-theme="f-laterano"] .capsule { border-radius: 0; background: linear-gradient(90deg, #3ec6e0 0 .14rem, #6f8291 .14rem) bottom / 100% 2px no-repeat, rgba(var(--bg-1-rgb), .92); }
 :root[data-ui-theme="f-laterano"] :is(.effect, .toolbtn:not(.obtn), .readybtn__box) { border-radius: 0; }
 :root[data-ui-theme="f-laterano"] .effect { background: radial-gradient(circle at 50% -10%, rgba(255, 255, 255, .6), transparent 45%), rgba(var(--bg-1-rgb), .88); }
-:root[data-ui-theme="f-laterano"] .lvcard { background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .45)), linear-gradient(var(--mint-500), var(--mint-500)); background-size: .34rem 100%, 100% 100%; background-position: right bottom, 0 0; background-repeat: no-repeat;  }
+:root[data-ui-theme="f-laterano"] .lvcard { background-color: var(--mint-500); background-image: linear-gradient(90deg, transparent, rgba(255, 255, 255, .45)); background-size: .34rem 100%; background-position: right bottom; background-repeat: no-repeat; }
 :root[data-ui-theme="f-laterano"] :is(.lo-card__art, .lo-dhead__art, .extension-art:not(.extension-art--map), .lo-chip--tier) { background-color: #2b2e31; }
 :root[data-ui-theme="f-laterano"] :is(.title-bg__art, .title-bg__ridge-art, .title-bg__ridges, .title-bg__target, .title-bg__radar, .title-bg__haze) { display: none; }
 :root[data-ui-theme="f-laterano"] .app-bg, :root[data-ui-theme="f-laterano"] .app-bg::before, :root[data-ui-theme="f-laterano"] .app-bg::after { background: none; }
@@ -137,6 +138,7 @@
 :root[data-ui-theme="f-laterano"] .hbond__board::before, :root[data-ui-theme="f-laterano"] .bond:not(.hbond) .bond__core::before { inset: 12%; border-radius: 0; transform: none; clip-path: polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%); }
 :root[data-ui-theme="f-laterano"] .bond-ring { display: block; position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; z-index: 1; }
 :root[data-ui-theme="f-laterano"] .bond:not(.hbond) .bond-ring { inset: calc(var(--disc) * -.04); width: calc(100% + var(--disc) * .08); height: calc(100% + var(--disc) * .08); }
+:root[data-ui-theme="f-laterano"] .bond-ring { transform: scaleX(-1); }
 :root[data-ui-theme="f-laterano"] .bond-ring path { d: path("M31.6 4L68.4 4L96 31.6L96 68.4L68.4 96L31.6 96L4 68.4L4 31.6Z"); fill: none; stroke-width: 6.5; stroke-linejoin: round; stroke: var(--hb-ring-off, rgba(140, 140, 140, .6)); filter: drop-shadow(0 0 1px rgba(0, 0, 0, .85)); }
 :root[data-ui-theme="f-laterano"] .bond-ring path.on { stroke: var(--hb-ring-on, var(--mint-400)); }
 :root[data-ui-theme="f-laterano"] .hbond.is-full .bond-ring path.on, :root[data-ui-theme="f-laterano"] .bond:not(.hbond).is-active .bond-ring path.on { stroke: var(--hb-ring-full, var(--hb-ring-on, var(--mint-400))); }

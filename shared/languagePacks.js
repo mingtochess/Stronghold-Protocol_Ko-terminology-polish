@@ -3,8 +3,8 @@ export const LANGUAGE_PACKS = {
   "en": [
     {
       "path": "/i18n/en/audit.json",
-      "bytes": 3208882,
-      "hash": "85e456813fa3ebdb8755fc6d255d63d58e52d16b6817c1ff2537c9fda5bab9bc"
+      "bytes": 3208838,
+      "hash": "69cdc9dfc0a6ceebbc5491c41080efd4f1eb166a6d06a7c26e2a423eafc554a8"
     },
     {
       "path": "/i18n/en/fork.json",
@@ -13,13 +13,13 @@ export const LANGUAGE_PACKS = {
     },
     {
       "path": "/i18n/ko/compiled.json",
-      "bytes": 2611401,
-      "hash": "953c812cc1574f060117e6bf4f5ffb91b5535594a0390ee9592c92896846b8d0"
+      "bytes": 2611337,
+      "hash": "65c016ce104486d8e4181aae15b7c5271bf16e142a0a93b01f21d92d43625dc4"
     },
     {
       "path": "/i18n/en.json",
-      "bytes": 155367,
-      "hash": "001d036a4160d8ec255c8ea7a8b8689ae6fc5ab2af8ed53079d5de8285a04872"
+      "bytes": 155323,
+      "hash": "ddeb636ed81731da212c39d2bfc848d0633e498110387d58b01070be1a9a6f3c"
     },
     {
       "path": "/i18n/en/data.json",
@@ -40,8 +40,8 @@ export const LANGUAGE_PACKS = {
     },
     {
       "path": "/i18n/ko/compiled.json",
-      "bytes": 2611401,
-      "hash": "953c812cc1574f060117e6bf4f5ffb91b5535594a0390ee9592c92896846b8d0"
+      "bytes": 2611337,
+      "hash": "65c016ce104486d8e4181aae15b7c5271bf16e142a0a93b01f21d92d43625dc4"
     },
     {
       "path": "/i18n/ja.json",
@@ -55,8 +55,8 @@ export const LANGUAGE_PACKS = {
     },
     {
       "path": "/i18n/en/audit.json",
-      "bytes": 3208882,
-      "hash": "85e456813fa3ebdb8755fc6d255d63d58e52d16b6817c1ff2537c9fda5bab9bc"
+      "bytes": 3208838,
+      "hash": "69cdc9dfc0a6ceebbc5491c41080efd4f1eb166a6d06a7c26e2a423eafc554a8"
     },
     {
       "path": "/i18n/en/fork.json",
@@ -65,8 +65,8 @@ export const LANGUAGE_PACKS = {
     },
     {
       "path": "/i18n/en.json",
-      "bytes": 155367,
-      "hash": "001d036a4160d8ec255c8ea7a8b8689ae6fc5ab2af8ed53079d5de8285a04872"
+      "bytes": 155323,
+      "hash": "ddeb636ed81731da212c39d2bfc848d0633e498110387d58b01070be1a9a6f3c"
     },
     {
       "path": "/i18n/en/data.json",
@@ -82,13 +82,13 @@ export const LANGUAGE_PACKS = {
     },
     {
       "path": "/i18n/zh/fork.json",
-      "bytes": 306602,
-      "hash": "7d3476a6e3968e8102965dbf4149d0081d5e2e2ad1033bf2f72ec79f52c26d91"
+      "bytes": 306714,
+      "hash": "3867a1cf1489758cc059082a33fb829394541717d7cb4cf1a6a7aac828a959dd"
     },
     {
       "path": "/i18n/ko/compiled.json",
-      "bytes": 2611401,
-      "hash": "953c812cc1574f060117e6bf4f5ffb91b5535594a0390ee9592c92896846b8d0"
+      "bytes": 2611337,
+      "hash": "65c016ce104486d8e4181aae15b7c5271bf16e142a0a93b01f21d92d43625dc4"
     }
   ]
 };

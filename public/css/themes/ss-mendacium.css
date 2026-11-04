@@ -65,6 +65,7 @@
 }
 :root[data-ui-theme="ss-mendacium"] .screen:not(.gm) { background: transparent; }
 :root[data-ui-theme="ss-mendacium"] .panel,
+:root[data-ui-theme="ss-mendacium"] .diff-card,
 :root[data-ui-theme="ss-mendacium"] .modal__box,
 :root[data-ui-theme="ss-mendacium"] .bpop,
 :root[data-ui-theme="ss-mendacium"] .dpanel {
@@ -78,8 +79,8 @@
 :root[data-ui-theme="ss-mendacium"] :is(.panel__title, .topbar__title) { color: #42372e; }
 /* ---- texture layer (tools/ui-theme-textures.mjs) */
 :root[data-ui-theme="ss-mendacium"] { --th-accent: var(--mint-500); --th-accent-rgb: var(--accent-rgb); --th-accent-deep: var(--mint-700); --th-surf1: var(--surf-1); --th-line: var(--line-2); --th-ink-hi: var(--text-hi); --th-ink-md: var(--text-md); --th-ink-lo: var(--text-lo); }
-:root[data-ui-theme="ss-mendacium"] :is(.btn--amber, .btn--ice, .btn--danger) { background-image: linear-gradient(90deg, transparent, rgba(255, 240, 220, .45)), linear-gradient(180deg, rgba(255, 255, 255, .14), transparent 45%); background-size: .34rem 100%, 100% 100%; background-position: right center, 0 0; background-repeat: no-repeat; }
-:root[data-ui-theme="ss-mendacium"] .btn--primary { background-image: linear-gradient(90deg, transparent, rgba(255, 240, 220, .45)), var(--ui-primary-face, none); background-size: .34rem 100%, 100% 100%; background-position: right center, 0 0; background-repeat: no-repeat, no-repeat; }
+:root[data-ui-theme="ss-mendacium"] :is(.btn--amber, .btn--ice, .btn--danger) { background-image: linear-gradient(90deg, transparent, rgba(255, 240, 220, .45)), linear-gradient(180deg, rgba(255, 255, 255, .14), transparent 45%); background-size: .34rem 100%, 100% 100%; background-position: right center, 0 0; background-repeat: no-repeat, no-repeat; }
+:root[data-ui-theme="ss-mendacium"] .btn--primary { background-image: linear-gradient(90deg, transparent, rgba(255, 240, 220, .45)), var(--ui-primary-face, linear-gradient(var(--mint-500), var(--mint-500))); background-size: .34rem 100%, 100% 100%; background-position: right center, 0 0; background-repeat: no-repeat, no-repeat; }
 :root[data-ui-theme="ss-mendacium"] .btn--primary:disabled { background-image: none; }
 :root[data-ui-theme="ss-mendacium"] :is(.panel, .modal__box, .bpop, .dpanel) { isolation: isolate; }
 :root[data-ui-theme="ss-mendacium"] :is(.panel, .modal__box, .bpop, .dpanel)::before { content: ''; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(circle, rgba(124, 90, 60, .06) 1px, transparent 1.5px) 0 0 / .14rem .14rem; z-index: -1; }
@@ -93,7 +94,7 @@
 :root[data-ui-theme="ss-mendacium"] .capsule { border-radius: 0; background: linear-gradient(90deg, #42372e 0 15%, #c8622a 15% 85%, #42372e 85%) bottom / 100% 2px no-repeat, rgba(var(--bg-1-rgb), .92); }
 :root[data-ui-theme="ss-mendacium"] :is(.effect, .toolbtn:not(.obtn), .readybtn__box) { border-radius: 0; }
 :root[data-ui-theme="ss-mendacium"] .effect { background: radial-gradient(circle, rgba(124, 90, 60, .06) 1px, transparent 1.5px) 0 0 / .14rem .14rem, rgba(var(--bg-1-rgb), .88); }
-:root[data-ui-theme="ss-mendacium"] .lvcard { background: linear-gradient(90deg, transparent, rgba(255, 240, 220, .45)), linear-gradient(var(--mint-500), var(--mint-500)); background-size: .34rem 100%, 100% 100%; background-position: right bottom, 0 0; background-repeat: no-repeat;  }
+:root[data-ui-theme="ss-mendacium"] .lvcard { background-color: var(--mint-500); background-image: linear-gradient(90deg, transparent, rgba(255, 240, 220, .45)); background-size: .34rem 100%; background-position: right bottom; background-repeat: no-repeat; }
 :root[data-ui-theme="ss-mendacium"] :is(.lo-card__art, .lo-dhead__art, .extension-art:not(.extension-art--map), .lo-chip--tier) { background-color: #2b2e31; }
 :root[data-ui-theme="ss-mendacium"] :is(.title-bg__art, .title-bg__ridge-art, .title-bg__ridges, .title-bg__target, .title-bg__radar, .title-bg__haze) { display: none; }
 :root[data-ui-theme="ss-mendacium"] .app-bg, :root[data-ui-theme="ss-mendacium"] .app-bg::before, :root[data-ui-theme="ss-mendacium"] .app-bg::after { background: none; }
@@ -135,6 +136,7 @@
 :root[data-ui-theme="ss-mendacium"] .hbond__board::before, :root[data-ui-theme="ss-mendacium"] .bond:not(.hbond) .bond__core::before { inset: 12%; border-radius: 50%; clip-path: none; transform: none; }
 :root[data-ui-theme="ss-mendacium"] .bond-ring { display: block; position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; z-index: 1; }
 :root[data-ui-theme="ss-mendacium"] .bond:not(.hbond) .bond-ring { inset: calc(var(--disc) * -.04); width: calc(100% + var(--disc) * .08); height: calc(100% + var(--disc) * .08); }
+:root[data-ui-theme="ss-mendacium"] .bond-ring { transform: scaleX(-1); }
 :root[data-ui-theme="ss-mendacium"] .bond-ring path { d: path("M50 4A46 46 0 1 1 49.99 4Z"); fill: none; stroke-width: 6.5; stroke-linejoin: round; stroke: var(--hb-ring-off, rgba(140, 140, 140, .6)); filter: drop-shadow(0 0 1px rgba(0, 0, 0, .85)); }
 :root[data-ui-theme="ss-mendacium"] .bond-ring path.on { stroke: var(--hb-ring-on, var(--mint-400)); }
 :root[data-ui-theme="ss-mendacium"] .hbond.is-full .bond-ring path.on, :root[data-ui-theme="ss-mendacium"] .bond:not(.hbond).is-active .bond-ring path.on { stroke: var(--hb-ring-full, var(--hb-ring-on, var(--mint-400))); }
