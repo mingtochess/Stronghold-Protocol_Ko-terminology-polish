@@ -296,5 +296,95 @@
     "https://gcore.jsdelivr.net/gh/projectnoonnu/noonfonts_2105_2@1.0/Cafe24SsurroundAir.woff"
    ]
   ]
+ },
+ "1284": {
+  "name": "넥슨 카트 고딕",
+  "family": "NexonCartGothic",
+  "faces": [
+   [
+    "500",
+    "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2312-1@1.1/KartriderMedium.woff2"
+   ],
+   [
+    "700",
+    "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2312-1@1.1/KartriderBold.woff2"
+   ],
+   [
+    "800",
+    "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2312-1@1.1/KartriderExtraBold.woff2"
+   ]
+  ]
+ },
+ "678": {
+  "name": "원스토어 모바일고딕 제목체",
+  "family": "OneStoreMobileGothicTitleFont",
+  "faces": [
+   [
+    "400",
+    "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2105_2@1.0/ONE-Mobile-Title.woff"
+   ]
+  ]
+ },
+ "1269": {
+  "name": "Wanted Sans",
+  "family": "WantedSansVariable",
+  "faces": [
+   [
+    "400",
+    "https://cdn.jsdelivr.net/gh/Project-Noonnu/2611030107@font-variable-1269/variable-1269/WantedSansVariable.woff2"
+   ]
+  ]
+ },
+ "1504": {
+  "name": "플라이트 산스",
+  "family": "FlightSans",
+  "faces": [
+   [
+    "400",
+    "https://cdn.jsdelivr.net/gh/projectnoonnu/2410-1@1.0/FlightSans-Regular.woff2"
+   ],
+   [
+    "700",
+    "https://cdn.jsdelivr.net/gh/projectnoonnu/2410-1@1.0/FlightSans-Bold.woff2"
+   ]
+  ]
+ },
+ "1323": {
+  "name": "감탄로드 바탕체",
+  "family": "GamtanRoadBatangNN",
+  "faces": [
+   [
+    "400",
+    "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2402_1@1.0/GamtanRoadBatangRegularTTF.woff2"
+   ],
+   [
+    "700",
+    "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2402_1@1.0/GamtanRoadBatangBoldTTF.woff2"
+   ]
+  ]
+ },
+ "324": {
+  "name": "리디바탕",
+  "family": "RIDIBatang",
+  "faces": [
+   [
+    "400",
+    "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_twelve@1.0/RIDIBatang.woff"
+   ]
+  ]
+ },
+ "1234": {
+  "name": "전주공예명조체",
+  "family": "JeonjuCraftMyungjo",
+  "faces": [
+   [
+    "300",
+    "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2310@1.0/JeonjuCraftMjL.woff2"
+   ],
+   [
+    "700",
+    "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2310@1.0/JeonjuCraftMjB.woff2"
+   ]
+  ]
  }
 }
