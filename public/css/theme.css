@@ -555,3 +555,7 @@ select option, select optgroup { background-color: var(--bg-2, var(--surf-2, #11
 :root[data-ui-theme] .hbond .hbond__num { color: #fff !important; }
 /* light themes: a disabled primary button (시뮬레이션 시작 before every seat is ready) keeps readable ink */
 :root[data-ui-theme][data-ui-light] .btn--primary:disabled { color: var(--text-lo); }
+/* the official bond window kept its fixed dark plate under a theme, so a light theme's dark ink vanished on it */
+:root[data-ui-theme] .bpop--official { background-color: var(--bg-panel); border-color: var(--line-2); }
+:root[data-ui-theme] .bpop--official :is(.bpop__name, .bpop__mname) { color: var(--text-hi); }
+:root[data-ui-theme] .bpop--official .bpop__member:not(.is-on) .bpop__mname { color: var(--text-lo); }
