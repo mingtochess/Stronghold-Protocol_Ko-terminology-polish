@@ -251,7 +251,7 @@ export function textureCss(id, light = false) {
   const out = [];
   // the theme-only aliases (unset in the default theme, whose literal colours stay): screens with their own palette
   // (laboratory / practice setup) read these
-  out.push(`${s} { --th-accent: var(--mint-500); --th-accent-rgb: var(--accent-rgb); --th-accent-deep: ${light ? "var(--mint-700)" : "var(--mint-800)"}; --th-surf1: var(--surf-1); --th-line: var(--line-2); --th-ink-hi: var(--text-hi); --th-ink-md: var(--text-md); --th-ink-lo: var(--text-lo); }`);
+  out.push(`${s} { --tx-radius: ${x.radius}; --th-accent: var(--mint-500); --th-accent-rgb: var(--accent-rgb); --th-accent-deep: ${light ? "var(--mint-700)" : "var(--mint-800)"}; --th-surf1: var(--surf-1); --th-line: var(--line-2); --th-ink-hi: var(--text-hi); --th-ink-md: var(--text-md); --th-ink-lo: var(--text-lo); }`);
   // (one size / position / repeat per face layer, then the fill: a two-layer face shifted the lists and shrank the fill)
   const nf = topLayers(x.face).length;
   const lay = (a, b) => Array(nf).fill(a).concat(b).join(', ');

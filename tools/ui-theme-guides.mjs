@@ -437,7 +437,7 @@ export const THEME_MICRO = {
   'f-victoria': M('family=Cinzel:wght@600', "'Cinzel'"), 'f-kjerag': M('family=Rajdhani:wght@600', "'Rajdhani'"),
   'f-laterano': M('family=Cormorant+SC:wght@600', "'Cormorant SC'"), 'f-aegir': M('family=Exo+2:wght@600', "'Exo 2'"),
   'f-siracusa': M('family=Limelight', "'Limelight'"), 'f-kazimierz': M('family=Barlow+Condensed:wght@700', "'Barlow Condensed'"),
-  'f-ursus': M('family=Oswald:wght@500', "'Oswald'"), 'f-leithanien': M('family=Grenze+Gotisch:wght@600', "'Grenze Gotisch'"),
+  'f-ursus': M('family=Oswald:wght@500', "'Oswald'"), 'f-leithanien': M('family=Cinzel:wght@600', "'Cinzel'"),
   'ss-adele': M('family=Fredoka:wght@600', "'Fredoka'"), 'ss-vultures': M('family=Saira+Condensed:wght@600', "'Saira Condensed'"),
   'ss-lonetrail': M('family=Lexend:wght@500', "'Lexend'"), 'ss-mendacium': M('family=Marcellus+SC', "'Marcellus SC'"),
   'ss-unrealized': M('family=Comfortaa:wght@700', "'Comfortaa'"), 'ss-elegies': M('family=Cinzel:wght@600', "'Cinzel'"),

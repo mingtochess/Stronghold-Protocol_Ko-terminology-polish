@@ -447,6 +447,40 @@ export function motifCss(id) {
   if (!m || /width='1'/.test(m[0])) return '';
   const S = `:root[data-ui-theme="${id}"]`;
   return `${S} body::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none; background: ${m[0]} 0 0 / ${m[1]} repeat; }
-${S} :is(.panel, .modal__box, .bpop, .dpanel)::before { background-image: ${m[0]}; background-size: ${m[1]}; background-repeat: repeat; opacity: .8; }
-${S} .mode-card__bg { background: ${m[0]} 0 0 / ${m[1]} repeat, var(--bg-2) !important; }\n`;
+\n`;
+}
+
+// ---- card emblems: one large line drawing per theme in the corner of the simulation-select cards (its world, not a
+// repeated tile) — c: stroke colour; drawn in a 200×200 box
+const EMB = {
+  cyber: ['#00f0ff', `<path d='M20 160H80L100 140H180M100 140V60L120 40H180M60 160V100L80 80'/><circle cx='120' cy='40' r='6'/><circle cx='80' cy='80' r='5'/><rect x='130' y='90' width='40' height='30'/>`],
+  'is-fungi': ['#e7d49a', `<path d='M40 110Q40 50 100 45Q160 50 160 110Z'/><path d='M85 110V170Q100 178 115 170V110'/><circle cx='75' cy='80' r='7'/><circle cx='120' cy='70' r='9'/><circle cx='140' cy='95' r='5'/>`],
+  'is-phantom': ['#e3a33b', `<path d='M30 30Q60 120 30 190M170 30Q140 120 170 190M30 30H170'/><path d='M70 100Q100 70 130 100Q100 150 70 100Z'/><circle cx='88' cy='98' r='5'/><circle cx='112' cy='98' r='5'/>`],
+  'is-mizuki': ['#7ff7ff', `<circle cx='100' cy='90' r='40'/><circle cx='150' cy='50' r='14'/><circle cx='55' cy='150' r='10'/><path d='M70 130Q60 170 80 185M100 130Q100 175 110 190M130 130Q140 170 125 185'/>`],
+  'is-frost': ['#7fd6ff', `<path d='M100 20V180M30 60L170 140M30 140L170 60'/><path d='M100 20l-12 14M100 20l12 14M100 180l-12-14M100 180l12-14'/><path d='M60 160L90 120L80 90L120 70'/>`],
+  'is-sarkaz': ['#d9a63a', `<path d='M100 40Q85 65 100 80Q115 65 100 40Z'/><rect x='88' y='80' width='24' height='80'/><path d='M60 170H140M50 180H150'/><path d='M70 120Q55 100 70 80M130 120Q145 100 130 80'/>`],
+  'is-sui': ['#167f78', `<rect x='30' y='30' width='140' height='140'/><path d='M30 100H170M100 30V170M30 30L65 65M170 30L135 65M30 170L65 135M170 170L135 135'/><circle cx='100' cy='100' r='22'/>`],
+  'is-blackflow': ['#e6d48a', `<path d='M10 120Q40 100 70 120T130 120T190 120M10 145Q40 125 70 145T130 145T190 145'/><path d='M100 110V40M80 60L100 40L120 60'/><circle cx='100' cy='30' r='8'/>`],
+  'f-yan': ['#1d1f1e', `<path d='M30 170Q60 60 100 40Q140 60 170 170' stroke-width='6'/><path d='M60 170Q90 110 120 100' stroke-width='3'/><rect x='140' y='30' width='26' height='26' fill='%23a92d2a' stroke='none'/>`],
+  'f-sargon': ['#f19b48', `<path d='M20 160H180'/><path d='M40 160L70 110H130L160 160'/><circle cx='65' cy='160' r='14'/><circle cx='135' cy='160' r='14'/><path d='M150 40l8 16 18 2-13 12 4 18-17-9-16 9 4-18-13-12 18-2z'/>`],
+  'f-victoria': ['#d6a64a', `<path d='M60 60L80 30L100 55L120 30L140 60V80H60Z'/><path d='M50 90H150V100H50Z'/><path d='M70 100V170M100 100V170M130 100V170M55 170H145'/>`],
+  'f-kjerag': ['#ffffff', `<path d='M10 180L70 80L100 120L130 60L190 180Z'/><path d='M130 60L115 90L130 85L145 95Z'/><path d='M100 30V50M90 40H110'/>`],
+  'f-laterano': ['#3ec6e0', `<circle cx='100' cy='60' r='26'/><path d='M100 90V180M70 120H130'/><path d='M60 60H40M160 60H140M100 20V10'/>`],
+  'f-aegir': ['#8ff0ec', `<path d='M20 70Q60 50 100 70T180 70M20 110Q60 90 100 110T180 110'/><path d='M100 120V180M80 150L100 180L120 150'/><path d='M70 140Q100 120 130 140'/>`],
+  'f-siracusa': ['#c8a25a', `<path d='M60 180V60Q60 40 80 40H95'/><path d='M85 40L110 40L105 60H90Z'/><path d='M140 110Q140 140 155 140Q170 140 170 110Z'/><path d='M155 140V170M142 170H168'/>`],
+  'f-kazimierz': ['#d02b3a', `<rect x='30' y='50' width='140' height='90' rx='8'/><path d='M50 160H150M100 140V160'/><path d='M60 120L85 80L100 105L115 85L140 120'/>`],
+  'f-ursus': ['#b3242c', `<path d='M50 50L80 160M85 40L110 165M120 45L140 160' stroke-width='7'/><path d='M20 180H180' stroke-width='2'/>`],
+  'f-leithanien': ['#c9a35a', `<circle cx='100' cy='60' r='32'/><circle cx='100' cy='60' r='12'/><path d='M100 28V92M68 60H132M78 38L122 82M122 38L78 82'/><path d='M50 180V120M70 180V110M90 180V105M110 180V105M130 180V110M150 180V120'/>`],
+  'ss-adele': ['#d34a62', `<path d='M30 120Q30 90 60 95Q65 70 95 78Q115 55 140 80Q170 78 170 108Q180 130 150 135H50Q25 135 30 120Z'/><path d='M120 150Q140 140 150 160'/><path d='M150 40l6 12 13 2-10 9 3 13-12-7-12 7 3-13-10-9 13-2z'/>`],
+  'ss-vultures': ['#d4d93a', `<path d='M40 150L100 50L160 150Z'/><path d='M100 85V120M100 132V138'/><path d='M20 180L60 160M180 180L140 160'/>`],
+  'ss-lonetrail': ['#cf4f1c', `<circle cx='100' cy='90' r='50'/><circle cx='100' cy='90' r='30'/><path d='M100 20V40M100 140V160M30 90H50M150 90H170'/><path d='M60 180H140'/>`],
+  'ss-mendacium': ['#42372e', `<path d='M80 40H120M85 40Q70 70 75 100Q60 130 80 170H120Q140 130 125 100Q130 70 115 40'/><path d='M75 100H125M80 130H120'/>`],
+  'ss-unrealized': ['#2b525a', `<path d='M30 130Q30 105 55 110Q60 85 90 92Q110 70 135 95Q165 92 165 120H30Z'/><path d='M140 40l20 10-20 10M150 50H120'/><path d='M60 60l8 4-8 4'/>`],
+  'ss-elegies': ['#c9ae72', `<path d='M100 30V60M90 60H110L115 110H85Z'/><path d='M100 110V170M75 170H125'/><path d='M100 75Q92 88 100 95Q108 88 100 75Z'/><path d='M40 150Q60 120 50 90M160 150Q140 120 150 90'/>`],
+};
+export function emblemCss(id, light) {
+  const e = EMB[id]; if (!e) return '';
+  const S = `:root[data-ui-theme="${id}"]`;
+  const u = svg(200, 200, `<g fill='none' stroke='${e[0].replace('#', '%23')}' stroke-width='3' stroke-opacity='.32' stroke-linecap='round' stroke-linejoin='round'>${e[1]}</g>`);
+  return `${S} .mode-card__bg { background: ${u} right -4% top -6% / 46% auto no-repeat, var(--bg-2) !important; }\n`;
 }

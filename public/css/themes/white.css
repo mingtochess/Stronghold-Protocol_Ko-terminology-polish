@@ -31,7 +31,7 @@
 
 /* tx:start */
 /* ---- texture layer (tools/ui-theme-textures.mjs) */
-:root[data-ui-theme="white"] { --th-accent: var(--mint-500); --th-accent-rgb: var(--accent-rgb); --th-accent-deep: var(--mint-700); --th-surf1: var(--surf-1); --th-line: var(--line-2); --th-ink-hi: var(--text-hi); --th-ink-md: var(--text-md); --th-ink-lo: var(--text-lo); }
+:root[data-ui-theme="white"] { --tx-radius: .06rem; --th-accent: var(--mint-500); --th-accent-rgb: var(--accent-rgb); --th-accent-deep: var(--mint-700); --th-surf1: var(--surf-1); --th-line: var(--line-2); --th-ink-hi: var(--text-hi); --th-ink-md: var(--text-md); --th-ink-lo: var(--text-lo); }
 :root[data-ui-theme="white"] :is(.btn--amber, .btn--ice, .btn--danger) { background-image: linear-gradient(90deg, transparent, rgba(255, 255, 255, .35)), linear-gradient(180deg, rgba(255, 255, 255, .14), transparent 45%); background-size: .34rem 100%, 100% 100%; background-position: right center, 0 0; background-repeat: no-repeat, no-repeat; }
 :root[data-ui-theme="white"] .btn--primary { background-image: linear-gradient(90deg, transparent, rgba(255, 255, 255, .35)), var(--ui-primary-face, linear-gradient(var(--mint-500), var(--mint-500))); background-size: .34rem 100%, 100% 100%; background-position: right center, 0 0; background-repeat: no-repeat, no-repeat; }
 :root[data-ui-theme="white"] .btn--primary:disabled { background-image: none; }
