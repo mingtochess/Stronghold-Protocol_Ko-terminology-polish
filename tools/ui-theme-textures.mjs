@@ -295,7 +295,7 @@ export function textureCss(id, light = false) {
   const veilCard = light ? 'rgba(var(--bg-1-rgb), .82)' : 'rgba(var(--bg-1-rgb), .55)';
   const art = ART[id] || {};
   // (each home background half is 910x1024: together 1820x1024 — sized to cover the viewport at that ratio, the halves meeting at its centre)
-  if (art.left) out.push(`${a} body { background-image: ${MAT[id]?.noise ? noise(MAT[id].noise) + ', ' : ''}linear-gradient(${veil}, ${veil}), var(--ta-left), var(--ta-right); background-size: ${MAT[id]?.noise?.size || '240px'} auto, 100% 100%, auto max(100vh, 56.27vw), auto max(100vh, 56.27vw); background-position: 0 0, 0 0, right 50% center, left 50% center; background-attachment: scroll, scroll, fixed, fixed; background-repeat: repeat, no-repeat, no-repeat, no-repeat; }`);
+  if (art.left) out.push(`${a} body { background-image: ${MAT[id]?.noise ? noise(MAT[id].noise) + ', ' : ''}linear-gradient(${veil}, ${veil}), var(--ta-left), var(--ta-right); background-size: ${MAT[id]?.noise?.size || '240px'} auto, 100% 100%, auto max(100vh, 56.27vw), auto max(100vh, 56.27vw); background-position: 0 0, 0 0, calc(50vw - max(100vh, 56.27vw) * .8887) center, 50vw center; background-attachment: scroll, scroll, fixed, fixed; background-repeat: repeat, no-repeat, no-repeat, no-repeat; }`);
   if (art.logo) out.push(`${a} body::after { content: ''; position: fixed; right: 4vw; bottom: 6vh; width: 34vmin; height: 34vmin; background: var(--ta-logo) center / contain no-repeat; opacity: ${light ? '.08' : '.07'}; pointer-events: none; z-index: -1; ${light ? 'filter: invert(1);' : ''} }`);
   // material: an SVG noise grain (paper / velvet / stone / frost) over the surfaces, the theme's face, its frame
   const m = MAT[id];
