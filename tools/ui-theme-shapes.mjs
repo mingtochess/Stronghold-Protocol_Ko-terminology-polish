@@ -353,7 +353,7 @@ const GEOM = {
   'f-kjerag': [[50, 0], [93, 25], [93, 75], [50, 100], [7, 75], [7, 25]],
   'f-laterano': [[30, 0], [70, 0], [100, 30], [100, 70], [70, 100], [30, 100], [0, 70], [0, 30]],
   'f-kazimierz': [[12, 0], [88, 0], [100, 12], [100, 88], [88, 100], [12, 100], [0, 88], [0, 12]],
-  'f-ursus': [[0, 0], [42, 0], [50, 6], [58, 0], [100, 0], [100, 42], [94, 50], [100, 58], [100, 100], [58, 100], [50, 94], [42, 100], [0, 100], [0, 58], [6, 50], [0, 42]],
+  'f-ursus': [[0, 0], [100, 0], [100, 100], [0, 100]],
   'f-leithanien': [[50.0, 0.0], [75.0, 6.7], [93.3, 25.0], [100.0, 50.0], [93.3, 75.0], [75.0, 93.3], [50.0, 100.0], [25.0, 93.3], [6.7, 75.0], [0.0, 50.0], [6.7, 25.0], [25.0, 6.7]],
   'ss-lonetrail': 'circle', 'ss-mendacium': 'circle', 'ss-unrealized': 'circle', 'ss-elegies': 'circle',
   'ss-adele': [[50.0, 0.0], [56.5, 0.6], [62.7, 2.5], [68.5, 5.4], [73.5, 9.3], [77.7, 13.9], [81.1, 18.9], [86.1, 22.3], [90.7, 26.5], [94.6, 31.5], [97.5, 37.3], [99.4, 43.5], [100.0, 50.0], [99.4, 56.5], [97.5, 62.7], [94.6, 68.5], [90.7, 73.5], [86.1, 77.7], [81.1, 81.1], [77.7, 86.1], [73.5, 90.7], [68.5, 94.6], [62.7, 97.5], [56.5, 99.4], [50.0, 100.0], [43.5, 99.4], [37.3, 97.5], [31.5, 94.6], [26.5, 90.7], [22.3, 86.1], [18.9, 81.1], [13.9, 77.7], [9.3, 73.5], [5.4, 68.5], [2.5, 62.7], [0.6, 56.5], [0.0, 50.0], [0.6, 43.5], [2.5, 37.3], [5.4, 31.5], [9.3, 26.5], [13.9, 22.3], [18.9, 18.9], [22.3, 13.9], [26.5, 9.3], [31.5, 5.4], [37.3, 2.5], [43.5, 0.6]],
@@ -366,9 +366,9 @@ function markerRules(id, S) {
   const at = (k, o) => (p) => [f1(o + p[0] * k), f1(o + p[1] * k)];
   // the ring path starts at the top of the outline (its first point / 12 o'clock) and runs clockwise
   // (the default board: ring centred 15.5 % in, 5.6 % thick, hugging the disc that starts 18 % in)
-  const ring = g === 'circle' ? 'M50 14.7A35.3 35.3 0 1 1 49.99 14.7Z' : 'M' + g.map(at(.706, 14.7)).map((p) => p.join(' ')).join('L') + 'Z';
+  const ring = g === 'circle' ? 'M50 14.7A35.3 35.3 0 1 1 49.99 14.7Z' : 'M' + g.map(at(.62, 19)).map((p) => p.join(' ')).join('L') + 'Z';
   const mk = g === 'circle' ? 'inset: 18.5%; border-radius: 50%; clip-path: none; transform: none;'
-    : `inset: 18.5%; border-radius: 0; transform: none; clip-path: polygon(${g.map((p) => `${f1(p[0])}% ${f1(p[1])}%`).join(', ')});`;
+    : `inset: 22.5%; border-radius: 0; transform: none; clip-path: polygon(${g.map((p) => `${f1(p[0])}% ${f1(p[1])}%`).join(', ')});`;
   // (the ring is the only outline: the marker's own inset borders made a doubled, thick edge)
   return `${S} .hbond__board::before, ${S} .bond:not(.hbond) .bond__core::before { ${mk} border: 0 !important; outline: 0 !important; box-shadow: inset 0 0 calc(6 * var(--u)) rgba(0, 0, 0, .45), inset 0 calc(-3 * var(--u)) calc(5 * var(--u)) rgba(0, 0, 0, .35) !important; }
 ${S} .bond-ring { display: block; position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; z-index: 1; }
@@ -384,6 +384,16 @@ ${S} .bslot__count { z-index: 4; text-shadow: 0 0 2px #000, 0 0 3px #000; }`;
 
 // marker fills restated after the geometry (shape-specific looks)
 const FILL = {
+  'is-fungi': `background: #343a33;`,
+  'is-fungi:full': `background: #c9b27a;`,
+  'is-mizuki': `background: #1c3a8a;`,
+  'is-mizuki:full': `background: #5fd4ff;`,
+  'f-yan': `background: #e9ece8;`,
+  'f-yan:full': `background: #a92d2a;`,
+  'f-siracusa': `background: #2a292d;`,
+  'f-siracusa:full': `background: #8e1b22;`,
+  'ss-vultures': `background: #2c3a3f;`,
+  'ss-vultures:full': `background: #d4d93a;`,
   'is-sui': `background: #f4f8f5;`,
   'is-sui:full': `background: #167f78;`,
   'ss-mendacium': `background: #f7e6d5;`,

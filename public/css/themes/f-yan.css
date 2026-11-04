@@ -148,7 +148,8 @@
 :root[data-ui-theme="f-yan"] .hbond.is-full .bond-ring path.on, :root[data-ui-theme="f-yan"] .bond:not(.hbond).is-active .bond-ring path.on { stroke: var(--hb-ring-full, var(--hb-ring-on, var(--mint-400))); }
 :root[data-ui-theme="f-yan"] .hbond__icon { left: 27.5%; top: 27.5%; width: 45%; height: 45%; }
 :root[data-ui-theme="f-yan"] .bslot__count { z-index: 4; text-shadow: 0 0 2px #000, 0 0 3px #000; }
-
+:root[data-ui-theme="f-yan"] .hbond__board::before, :root[data-ui-theme="f-yan"] .bond:not(.hbond) .bond__core::before { background: #e9ece8; }
+:root[data-ui-theme="f-yan"] .hbond.is-full .hbond__board::before, :root[data-ui-theme="f-yan"] .bond:not(.hbond).is-active .bond__core::before { background: #a92d2a; }
 :root[data-ui-theme="f-yan"] { --hb-band-bg: #1d1f1e; --hb-band-ink: #f7f3ee; --hb-band-line: #1d1f1e; }
 :root[data-ui-theme="f-yan"] .section-label :is(.section-label__idx, .micro) { color: inherit; border-color: currentColor; opacity: .85; }
 :root[data-ui-theme="f-yan"] body::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none; background: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%27140%27%20height%3D%27140%27%20viewBox%3D%270%200%20140%20140%27%3E%3Cfilter%20id%3D%27b%27%3E%3CfeTurbulence%20baseFrequency%3D%27.03%27%20numOctaves%3D%273%27%20seed%3D%274%27%2F%3E%3CfeColorMatrix%20values%3D%270%200%200%200%20.1%20%200%200%200%200%20.12%20%200%200%200%200%20.11%20%200%200%200%20-1.6%20.9%27%2F%3E%3C%2Ffilter%3E%3Crect%20width%3D%27140%27%20height%3D%27140%27%20filter%3D%27url(%23b)%27%20opacity%3D%27.25%27%2F%3E%3C%2Fsvg%3E") 0 0 / 140px 140px repeat; }

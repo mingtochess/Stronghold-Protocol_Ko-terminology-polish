@@ -128,7 +128,8 @@
 :root[data-ui-theme="f-siracusa"] .hbond.is-full .bond-ring path.on, :root[data-ui-theme="f-siracusa"] .bond:not(.hbond).is-active .bond-ring path.on { stroke: var(--hb-ring-full, var(--hb-ring-on, var(--mint-400))); }
 :root[data-ui-theme="f-siracusa"] .hbond__icon { left: 27.5%; top: 27.5%; width: 45%; height: 45%; }
 :root[data-ui-theme="f-siracusa"] .bslot__count { z-index: 4; text-shadow: 0 0 2px #000, 0 0 3px #000; }
-
+:root[data-ui-theme="f-siracusa"] .hbond__board::before, :root[data-ui-theme="f-siracusa"] .bond:not(.hbond) .bond__core::before { background: #2a292d; }
+:root[data-ui-theme="f-siracusa"] .hbond.is-full .hbond__board::before, :root[data-ui-theme="f-siracusa"] .bond:not(.hbond).is-active .bond__core::before { background: #8e1b22; }
 :root[data-ui-theme="f-siracusa"] { --hb-band-bg: #d6d2c9; --hb-band-ink: #1c1c1c; --hb-band-line: #b3262e; }
 :root[data-ui-theme="f-siracusa"] :is(.micro--mint, .countdown__label, .gm__bond-toggle, .funds__collapse, .funds__collapse *, .hex__value, .btn--ghost .btn__label, .lp__icon) { color: #ea7a80; }
 :root[data-ui-theme="f-siracusa"] .section-label :is(.section-label__idx, .micro) { color: inherit; border-color: currentColor; opacity: .85; }
