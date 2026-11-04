@@ -736,3 +736,22 @@ button.bpop__harmony:hover { border-style: solid; color: var(--ink-hi, #fff); }
 .bpop--official .bpop__member.is-on .uthumb__art { border-color: transparent; box-shadow: none; }
 .bpop--official .bpop__mname { color: var(--ink-hi, #fff); }
 .bpop--official .bpop__member:not(.is-on) .bpop__mname { color: rgba(var(--ink-rgb, 255, 255, 255), .6); }
+
+/* 协议已失效 — the dialog when the player's own LP runs out while the team plays on (ui/downedPlate.js): the official
+   map sprite behind, the pixel face and the title over it, the two buttons under it */
+.modal__box.downm{width:min(600px,94vw);max-width:94vw;padding:0;overflow:hidden}
+.downm .modal__body{padding:0}
+.downm__panel{position:relative;display:flex;align-items:center;gap:clamp(14px,3vw,28px);min-height:clamp(150px,30vw,210px);padding:clamp(18px,4vw,34px) clamp(18px,5vw,44px);overflow:hidden;isolation:isolate}
+.downm__map{position:absolute;inset:0;z-index:-1;width:100%;height:100%;object-fit:cover;opacity:.55;pointer-events:none}
+.downm__x{position:absolute;width:10px;height:10px;border:2px solid var(--red-400,#ff5a6a);pointer-events:none}
+.downm__x--tl{top:8px;left:8px;border-right:0;border-bottom:0}.downm__x--tr{top:8px;right:8px;border-left:0;border-bottom:0}
+.downm__x--bl{bottom:8px;left:8px;border-right:0;border-top:0}.downm__x--br{bottom:8px;right:8px;border-left:0;border-top:0}
+.downm__face{flex:none;display:grid;place-items:center;width:clamp(64px,16vw,104px);aspect-ratio:1;color:#d4d8e4;transition:color .25s,transform .25s}
+.downm__face.is-out{color:var(--red-400,#ff5a6a);animation:downm-knock .35s ease-out}
+.downm__pix{display:block;width:100%;height:auto;max-height:100%}
+.downm__text{display:flex;flex-direction:column;gap:6px;min-width:0}
+.modal__box.downm .downm__title{margin:0;white-space:nowrap;font-size:clamp(22px,4.6vw,32px);letter-spacing:.06em;line-height:1.15;color:#fff;text-shadow:0 2px 10px rgba(0,0,0,.6)}
+.modal__box.downm .downm__sub{position:static;font:600 11px/1.2 var(--font-micro,monospace);letter-spacing:.25em;white-space:nowrap;color:rgba(255,255,255,.55)}
+.downm__btns{display:flex;gap:10px;justify-content:flex-end;padding:12px clamp(14px,3vw,20px) 16px;flex-wrap:wrap}
+@keyframes downm-knock{0%{transform:translateX(0)}30%{transform:translateX(-5px) rotate(-4deg)}60%{transform:translateX(4px) rotate(3deg)}100%{transform:none}}
+@media (prefers-reduced-motion:reduce){.downm__face.is-out{animation:none}}

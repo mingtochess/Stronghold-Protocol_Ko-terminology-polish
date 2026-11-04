@@ -120,8 +120,8 @@ export function DownedPlate({ open, onWatch, onLeave }) {
       ${map ? html`<img class="downm__map" src=${map} alt="" draggable="false" />` : null}
       <i class="downm__x downm__x--tl"></i><i class="downm__x downm__x--tr"></i><i class="downm__x downm__x--bl"></i><i class="downm__x downm__x--br"></i>
       <span class=${`downm__face${out ? ' is-out' : ''}`}><${PixFace} kind=${out ? 'downed' : 'calm'} class="downm__pix" /></span>
-      <h2 class="downm__title">${t('协议已失效')}</h2>
-      <span class="downm__sub" aria-hidden="true">STRONGHOLD PROTOCOL</span>
+      <div class="downm__text"><h2 class="downm__title">${t('协议已失效')}</h2>
+      <span class="downm__sub" aria-hidden="true">STRONGHOLD PROTOCOL</span></div>
     </div>
     <div class="downm__btns">
       <${Button} variant="secondary" class="downm__btn downm__btn--watch" data-autofocus=${true} onClick=${onWatch}><${GIcon} name="eye" class="btn__icon" />${t('继续观战')}<//>
