@@ -33,6 +33,7 @@ import {describeError} from "./toasts.js";
 import {pluginMicro} from "./pluginTag.js";
 import { HOTKEY_ACTIONS, hotkeyLabel, captureHotkey, rebindHotkey, DEFAULT_HOTKEYS } from './gameLogic/shortcuts.js';
 import { RestartVoteControls } from './restartVote.js';
+import { UiThemePicker } from './uiThemePicker.js';
 
 
 import { t, N_ } from '../../../shared/i18n.js';
@@ -373,6 +374,7 @@ export function SettingsModal({ open, onClose }) {
       <${Toggle} id="chat-faction-notifications" label="진영 선택·취소 알림" micro="FACTION NOTIFICATIONS" value=${s.chatFactionNotifications} onChange=${v => updateSettings({chatFactionNotifications: v})} />
       <p class="set-hint" data-i18n-skip>대기실과 게임에서 다른 참가자의 새 메시지를 알립니다. 후보를 미리 듣고 적용하세요. 알림음을 변경하면 대기시간이 권장값으로 초기화됩니다. 재생 중에는 알림이 겹치지 않습니다.</p>
     </section><section hidden=${category!=='graphics'} class="set-category" data-category="graphics">
+      <div class="set-row set-row--ui-theme"><span class="set-row__label">UI 테마</span><${UiThemePicker} /></div>
       <${Choice} label="맵 품질" value=${s.mapQuality} options=${[['high','높음 · 원본'],['medium','중간 · 원본'],['low','낮음 · 단순 3D'],['minimal','최하 · 경량 2D']]} onChange=${v=>updateSettings({mapQuality:v})} />
       <p class="set-hint" data-i18n-skip>높음·중간은 원본 맵을 사용합니다. 낮음은 장식을 생략한 단순 3D 맵, 최하는 가장 가벼운 기본 2D 맵을 사용합니다. 전투 타일과 배치 규칙은 동일합니다.</p>
       <${Choice} label="렌더링 해상도" value=${s.renderScale} options=${[[.5,'50%'],[.75,'75%'],[1,'100%'],[1.25,'125%'],[1.5,'150%'],[2,'200%']]} onChange=${v=>updateSettings({renderScale:Number(v)})} />
