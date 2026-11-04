@@ -559,3 +559,6 @@ select option, select optgroup { background-color: var(--bg-2, var(--surf-2, #11
 :root[data-ui-theme] .bpop--official { background-color: var(--bg-panel); border-color: var(--line-2); }
 :root[data-ui-theme] .bpop--official :is(.bpop__name, .bpop__mname) { color: var(--text-hi); }
 :root[data-ui-theme] .bpop--official .bpop__member:not(.is-on) .bpop__mname { color: var(--text-lo); }
+/* light themes keep the shop cards' and the loadout's portrait plates dark: what sits on them reads in light ink */
+:root[data-ui-theme][data-ui-light] :is(.scard, .lo-card, .lo-chip--tier) { --text-hi: #f3f6f5; --text-md: #d4dcd9; --text-lo: #aab5b1; --text-dim: #8c9893; --ink-hi: #fff; --ink-md: #d4dcd9; --ink-rgb: 255, 255, 255; --shade-rgb: 8, 11, 10; --dim-rgb: 0, 0, 0; --surf-0-rgb: 7, 9, 9; --surf-1-rgb: 13, 17, 16; --surf-2-rgb: 21, 26, 25; --bg-0-rgb: 11, 14, 13; --bg-1-rgb: 18, 22, 21; color: #f3f6f5; }
+:root[data-ui-theme][data-ui-light] :is(.scard, .lo-card) :is(img.icon, .scard__bond img, .scard__job img, .bond-tag img) { filter: none; }
