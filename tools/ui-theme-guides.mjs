@@ -134,6 +134,21 @@ export const GUIDE_THEMES = [
     primary: `background: #7a1f2b; color: #f3e9da; border-color: #c9a35a;`,
     extra: '',
   },
+  {
+    id: 'f-kjerag', name: '쉐라그', group: 'faction',
+    // RETRACING (설산 강림 1101): deep royal-blue snowfield, frosted white plates, blue ribbon headers with white type, ice-white glints
+    p: { bg: ['#16206a', '#1c287c', '#22318d', '#2b3c9f', '#3548b0'], line: ['#2e3f9a', '#5266c4', '#9aa8e6'], accent: '#e9eefc', glow: '#ffffff', accent2: '#7f97ff', text: ['#f5f7ff', '#d3daf6', '#a4afdc', '#8590c4'], onAccent: '#16206a' },
+    body: `background-color: var(--bg-0);
+  background-image: radial-gradient(1.5px 1.5px at 20% 30%, rgba(255, 255, 255, .55), transparent 70%), radial-gradient(1px 1px at 70% 60%, rgba(255, 255, 255, .5), transparent 70%), radial-gradient(60% 45% at 50% 0%, rgba(127, 151, 255, .3), transparent 70%), linear-gradient(180deg, #1d2a85, #101850);
+  background-size: 180px 180px, 240px 240px, 100% 100%, 100% 100%;`,
+    panel: `background: linear-gradient(180deg, rgba(34, 49, 141, .92), rgba(20, 30, 96, .95)); border: 1px solid #9aa8e6; border-radius: 0; box-shadow: inset 0 0 0 2px rgba(16, 24, 80, .7), inset 0 0 0 3px rgba(233, 238, 252, .2), 0 .06rem .28rem rgba(5, 10, 40, .5);`,
+    btn: `border-radius: 0;`,
+    primary: `background: linear-gradient(180deg, #ffffff, #d6def8); color: #16206a; border-color: #ffffff;`,
+    extra: heads('f-kjerag', {
+      label: `color: #16206a; padding: .02rem .16rem; background: linear-gradient(90deg, transparent, #e9eefc .12rem calc(100% - .12rem), transparent); letter-spacing: .08em;`,
+      title: `text-shadow: 0 0 .1rem rgba(127, 151, 255, .6);`,
+    }),
+  },
   // ---- 사이드 스토리 ---------------------------------------------------------------------------------------------------
   {
     id: 'ss-adele', name: '화산의 꿈 여행', group: 'side', light: true,

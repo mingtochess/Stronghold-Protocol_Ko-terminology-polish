@@ -542,3 +542,12 @@ select option, select optgroup { background-color: var(--bg-2, var(--surf-2, #11
 :root[data-ui-theme][data-ui-light] .mpop { --mp: color-mix(in srgb, var(--mint-500) 55%, #fff); --mp-hi: color-mix(in srgb, var(--mint-500) 40%, #fff); }
 :root[data-ui-theme][data-ui-light] :is(.ping, .gtop .pill) { background: rgba(255, 255, 255, .92); }
 :root[data-ui-theme][data-ui-light] :is(.ping__value, .ping__unit) { color: var(--text-hi) !important; }
+/* light themes: the briefing's boss timing (orange) and gold micro labels in deepened ink */
+:root[data-ui-theme][data-ui-light] :is(.brief-boss__when, .brief-boss__when .num) { color: color-mix(in srgb, #ff7a33 55%, #000); }
+:root[data-ui-theme][data-ui-light] .micro--gold { color: var(--gold-2, #7d5f00); }
+/* light themes keep the popups dark: their gold labels back to the light gold */
+:root[data-ui-theme][data-ui-light] .mpop :is(.mpop__k, .micro--gold) { color: #ffd75e; }
+/* dark themes whose second accent is a deep red / brown: the freeze button reads in a lightened tone */
+:root[data-ui-theme]:not([data-ui-light]) .shopbar .toolbtn--ice { --tb: color-mix(in srgb, var(--ui-accent-2, var(--ice, #7fd6ff)) 55%, #fff); }
+/* the level card's hot-key over the theme's face strip */
+:root[data-ui-theme] .lvcard__key { text-shadow: 0 0 2px rgba(0, 0, 0, .6); }
