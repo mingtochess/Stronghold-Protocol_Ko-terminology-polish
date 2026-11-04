@@ -143,12 +143,6 @@ export const UI_THEME_ASSETS = Object.freeze({
    "bytes": 32641
   }
  },
- "ss-vultures": {
-  "lobby": {
-   "path": "/assets/ui-themes/ss-vultures/lobby.png",
-   "bytes": 883832
-  }
- },
  "ss-lonetrail": {
   "left": {
    "path": "/assets/ui-themes/ss-lonetrail/left.png",

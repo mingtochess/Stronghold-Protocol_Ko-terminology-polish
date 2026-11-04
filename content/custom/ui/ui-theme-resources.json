@@ -236,14 +236,6 @@
    "bytes": 32641
   },
   {
-   "path": "/assets/ui-themes/ss-vultures/lobby.png",
-   "sources": [
-    "https://cdn.jsdelivr.net/gh/agutyauno/a9sr-data@5782da41a49efbd51a962d01ad6a88d1306ab63b/images/backgrounds/bg_desert_1.png",
-    "https://raw.githubusercontent.com/agutyauno/a9sr-data/5782da41a49efbd51a962d01ad6a88d1306ab63b/images/backgrounds/bg_desert_1.png"
-   ],
-   "bytes": 883832
-  },
-  {
    "path": "/assets/ui-themes/ss-lonetrail/left.png",
    "sources": [
     "https://cdn.jsdelivr.net/gh/ArknightsAssets/ArknightsAssets@c0be4e4428f79c7e87c6889067a6906361ae979b/assets/torappu/dynamicassets/activity/%5Buc%5Dact25sre/prefabs/panel_act25side_entry_01/act25side_bg_01_left.png",

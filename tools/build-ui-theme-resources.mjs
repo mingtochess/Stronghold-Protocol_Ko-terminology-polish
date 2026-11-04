@@ -38,7 +38,6 @@ export const THEME_ART = {
   'f-ursus': { ...home('bg_ursus_1'), logo: `${LOGO}/logo_ursus.png` },
   'f-aegir': { lobby: A1('activity/[uc]act34side/prefabs/act34side_activity_stage/bg.png'), logo: `${LOGO}/logo_egir.png` },
   'f-sargon': { lobby: A9('bg_desert_3'), logo: `${LOGO}/logo_sargon.png` },
-  'ss-vultures': { lobby: A9('bg_desert_1') },
   'ss-lonetrail': { left: A1('activity/[uc]act25sre/prefabs/panel_act25side_entry_01/act25side_bg_01_left.png'), right: A1('activity/[uc]act25sre/prefabs/panel_act25side_entry_01/act25side_bg_01_right.png') },
   'ss-adele': { left: A1('activity/[uc]act27sre/prefabs/panel_act27sre_entry_02/bg_day_left.png'), right: A1('activity/[uc]act27sre/prefabs/panel_act27sre_entry_02/bg_day_right.png') },
   'ss-mendacium': { lobby: ACT(48, 'act48side_entry_img_bkg.png') },
