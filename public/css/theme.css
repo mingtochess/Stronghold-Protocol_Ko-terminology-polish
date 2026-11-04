@@ -544,7 +544,7 @@ select option, select optgroup { background-color: var(--bg-2, var(--surf-2, #11
 :root[data-ui-theme][data-ui-light] :is(.ping__value, .ping__unit) { color: var(--text-hi) !important; }
 /* light themes: the briefing's boss timing (orange) and gold micro labels in deepened ink */
 :root[data-ui-theme][data-ui-light] :is(.brief-boss__when, .brief-boss__when .num) { color: color-mix(in srgb, #ff7a33 55%, #000); }
-:root[data-ui-theme][data-ui-light] .micro--gold { color: var(--gold-2, #7d5f00); }
+:root[data-ui-theme][data-ui-light] .micro--gold { color: var(--text-hi); }
 /* light themes keep the popups dark: their gold labels back to the light gold */
 :root[data-ui-theme][data-ui-light] .mpop :is(.mpop__k, .micro--gold) { color: #ffd75e; }
 /* dark themes whose second accent is a deep red / brown: the freeze button reads in a lightened tone */
@@ -553,3 +553,5 @@ select option, select optgroup { background-color: var(--bg-2, var(--surf-2, #11
 :root[data-ui-theme] .lvcard__key { text-shadow: 0 0 2px rgba(0, 0, 0, .6); }
 /* the HUD stack count is always white over its dark outline (light themes' dark ink turned it into a black blot) */
 :root[data-ui-theme] .hbond .hbond__num { color: #fff !important; }
+/* light themes: a disabled primary button (시뮬레이션 시작 before every seat is ready) keeps readable ink */
+:root[data-ui-theme][data-ui-light] .btn--primary:disabled { color: var(--text-lo); }
