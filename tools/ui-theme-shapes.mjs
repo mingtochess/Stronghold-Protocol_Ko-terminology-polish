@@ -370,8 +370,10 @@ function markerRules(id, S) {
   // (radius 22.5 % + a 2 % margin): then just large enough to hold the whole icon
   let half = 27.5;
   if (g !== 'circle') {
+    // (distance from the centre to each edge segment — not its infinite line, which a short notch edge brings close)
     const inr = Math.min(...g.map((a, i) => { const b = g[(i + 1) % g.length]; const dx = b[0] - a[0], dy = b[1] - a[1];
-      return Math.abs(dx * (a[1] - 50) - dy * (a[0] - 50)) / Math.hypot(dx, dy); })) / 50;
+      const t = Math.max(0, Math.min(1, ((50 - a[0]) * dx + (50 - a[1]) * dy) / (dx * dx + dy * dy)));
+      return Math.hypot(a[0] + t * dx - 50, a[1] + t * dy - 50); })) / 50;
     half = Math.min(34, Math.max(27.5, 24.5 / inr));
   }
   const pin = 50 - half, k = half / 50, rk = k + .14, rin = 50 - 50 * rk;
