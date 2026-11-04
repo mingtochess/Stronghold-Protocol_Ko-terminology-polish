@@ -80,13 +80,9 @@ export const UI_THEME_ASSETS = Object.freeze({
   }
  },
  "f-victoria": {
-  "left": {
-   "path": "/assets/ui-themes/f-victoria/left.png",
-   "bytes": 1376230
-  },
-  "right": {
-   "path": "/assets/ui-themes/f-victoria/right.png",
-   "bytes": 1320984
+  "lobby": {
+   "path": "/assets/ui-themes/f-victoria/lobby.png",
+   "bytes": 586701
   },
   "logo": {
    "path": "/assets/ui-themes/f-victoria/logo.png",
@@ -96,7 +92,7 @@ export const UI_THEME_ASSETS = Object.freeze({
  "f-laterano": {
   "lobby": {
    "path": "/assets/ui-themes/f-laterano/lobby.png",
-   "bytes": 2039962
+   "bytes": 660641
   },
   "logo": {
    "path": "/assets/ui-themes/f-laterano/logo.png",
@@ -132,13 +128,9 @@ export const UI_THEME_ASSETS = Object.freeze({
   }
  },
  "f-aegir": {
-  "left": {
-   "path": "/assets/ui-themes/f-aegir/left.png",
-   "bytes": 1223817
-  },
-  "right": {
-   "path": "/assets/ui-themes/f-aegir/right.png",
-   "bytes": 1238127
+  "lobby": {
+   "path": "/assets/ui-themes/f-aegir/lobby.png",
+   "bytes": 1727388
   },
   "logo": {
    "path": "/assets/ui-themes/f-aegir/logo.png",
@@ -162,21 +154,21 @@ export const UI_THEME_ASSETS = Object.freeze({
  "ss-lonetrail": {
   "left": {
    "path": "/assets/ui-themes/ss-lonetrail/left.png",
-   "bytes": 933940
+   "bytes": 709057
   },
   "right": {
    "path": "/assets/ui-themes/ss-lonetrail/right.png",
-   "bytes": 725078
+   "bytes": 795615
   }
  },
  "ss-adele": {
   "left": {
    "path": "/assets/ui-themes/ss-adele/left.png",
-   "bytes": 1332115
+   "bytes": 797738
   },
   "right": {
    "path": "/assets/ui-themes/ss-adele/right.png",
-   "bytes": 1279545
+   "bytes": 757035
   }
  },
  "ss-mendacium": {

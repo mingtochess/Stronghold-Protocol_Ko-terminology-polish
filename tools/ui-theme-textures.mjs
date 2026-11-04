@@ -304,7 +304,9 @@ export function textureCss(id, light = false) {
   // the art on one fixed layer behind the page, its own ratio kept and covering the viewport: an event lobby scene
   // (one image) or the home background (two 910x1024 halves side by side, 1820:1024); the veil and grain stay on body
   const scene = art.lobby ? 'var(--ta-lobby) center / cover no-repeat' : art.left ? 'var(--ta-left) left top / 50% 100% no-repeat, var(--ta-right) right top / 50% 100% no-repeat' : '';
-  const box = art.lobby ? 'inset: 0;' : 'left: 50%; top: 50%; width: max(100vw, 177.74vh); height: max(100vh, 56.26vw); transform: translate(-50%, -50%);';
+  // (the halves' combined ratio: the home backgrounds 1820:1024, the event entry halves 1560:960)
+  const r = String(art.left || '').startsWith('aa1:') ? 1560 / 960 : 1820 / 1024;
+  const box = art.lobby ? 'inset: 0;' : `left: 50%; top: 50%; width: max(100vw, ${(r * 100).toFixed(2)}vh); height: max(100vh, ${(100 / r).toFixed(2)}vw); transform: translate(-50%, -50%);`;
   if (scene) out.push(`${a} body { background-image: ${MAT[id]?.noise ? noise(MAT[id].noise) + ', ' : ''}linear-gradient(${veil}, ${veil}); background-size: ${MAT[id]?.noise?.size || '240px'} auto, 100% 100%; background-repeat: repeat, no-repeat; background-color: transparent; }
 ${a}::before { content: ''; position: fixed; ${box} z-index: -2; pointer-events: none; background: ${scene}; }
 ${a} { background-color: var(--bg-0); }`);
