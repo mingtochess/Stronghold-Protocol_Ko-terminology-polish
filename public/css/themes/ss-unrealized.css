@@ -133,12 +133,12 @@
 :root[data-ui-theme="ss-unrealized"] .bond:not(.hbond) .bond__core { position: relative; isolation: isolate; background: none; box-shadow: none; border-radius: 0; overflow: visible; }
 :root[data-ui-theme="ss-unrealized"] .bond:not(.hbond) .bond__core::before { content: ''; position: absolute; z-index: -1; pointer-events: none; }
 :root[data-ui-theme="ss-unrealized"] .bond:not(.hbond).is-disabled .bond__core { filter: grayscale(1) brightness(.6); }
-:root[data-ui-theme="ss-unrealized"] .hbond__board::before, :root[data-ui-theme="ss-unrealized"] .bond:not(.hbond) .bond__core::before { inset: 17%; border-radius: 50%; clip-path: none; transform: none; border: 0 !important; box-shadow: none !important; outline: 0 !important; }
+:root[data-ui-theme="ss-unrealized"] .hbond__board::before, :root[data-ui-theme="ss-unrealized"] .bond:not(.hbond) .bond__core::before { inset: 18.5%; border-radius: 50%; clip-path: none; transform: none; border: 0 !important; outline: 0 !important; box-shadow: inset 0 0 calc(6 * var(--u)) rgba(0, 0, 0, .45), inset 0 calc(-3 * var(--u)) calc(5 * var(--u)) rgba(0, 0, 0, .35) !important; }
 :root[data-ui-theme="ss-unrealized"] .bond-ring { display: block; position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; z-index: 1; }
 :root[data-ui-theme="ss-unrealized"] .bond:not(.hbond) .bond-ring { inset: calc(var(--disc) * -.04); width: calc(100% + var(--disc) * .08); height: calc(100% + var(--disc) * .08); }
 :root[data-ui-theme="ss-unrealized"] .bond-ring { transform: scaleX(-1); }
 :root[data-ui-theme="ss-unrealized"] .bond-ring path { d: path("M50 14.7A35.3 35.3 0 1 1 49.99 14.7Z"); fill: none; stroke-width: 5.6; stroke-linejoin: round; stroke: var(--hb-ring-off, rgba(140, 140, 140, .6)); filter: drop-shadow(0 0 1px rgba(0, 0, 0, .85)); }
-:root[data-ui-theme="ss-unrealized"] .bond-ring path.on { stroke: var(--hb-ring-on, var(--mint-400)); }
+:root[data-ui-theme="ss-unrealized"] .bond-ring path.on { stroke: var(--hb-ring-on, var(--mint-400)); filter: drop-shadow(0 0 calc(2.5 * var(--u)) var(--hb-ring-on, var(--mint-400))) drop-shadow(0 0 1px rgba(0, 0, 0, .6)); }
 :root[data-ui-theme="ss-unrealized"] .hbond.is-full .bond-ring path.on, :root[data-ui-theme="ss-unrealized"] .bond:not(.hbond).is-active .bond-ring path.on { stroke: var(--hb-ring-full, var(--hb-ring-on, var(--mint-400))); }
 :root[data-ui-theme="ss-unrealized"] .hbond__icon { left: 27.5%; top: 27.5%; width: 45%; height: 45%; }
 :root[data-ui-theme="ss-unrealized"] .bslot__count { z-index: 4; text-shadow: 0 0 2px #000, 0 0 3px #000; }

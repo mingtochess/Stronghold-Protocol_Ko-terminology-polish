@@ -349,7 +349,7 @@ const GEOM = {
   'is-sarkaz': [[50, 0], [100, 28], [88, 100], [12, 100], [0, 28]],
   'f-yan': 'circle', 'f-aegir': 'circle', 'f-siracusa': 'circle',
   'f-sargon': [[50.0, 0.0], [66.5, 10.3], [85.4, 14.6], [89.7, 33.5], [100.0, 50.0], [89.7, 66.5], [85.4, 85.4], [66.5, 89.7], [50.0, 100.0], [33.5, 89.7], [14.6, 85.4], [10.3, 66.5], [0.0, 50.0], [10.3, 33.5], [14.6, 14.6], [33.5, 10.3]],
-  'f-victoria': [[26, 0], [74, 0], [66, 34], [100, 26], [100, 74], [66, 66], [74, 100], [26, 100], [34, 66], [0, 74], [0, 26], [34, 34]],
+  'f-victoria': 'circle',
   'f-kjerag': [[50, 0], [93, 25], [93, 75], [50, 100], [7, 75], [7, 25]],
   'f-laterano': [[30, 0], [70, 0], [100, 30], [100, 70], [70, 100], [30, 100], [0, 70], [0, 30]],
   'f-kazimierz': [[12, 0], [88, 0], [100, 12], [100, 88], [88, 100], [12, 100], [0, 88], [0, 12]],
@@ -367,15 +367,15 @@ function markerRules(id, S) {
   // the ring path starts at the top of the outline (its first point / 12 o'clock) and runs clockwise
   // (the default board: ring centred 15.5 % in, 5.6 % thick, hugging the disc that starts 18 % in)
   const ring = g === 'circle' ? 'M50 14.7A35.3 35.3 0 1 1 49.99 14.7Z' : 'M' + g.map(at(.706, 14.7)).map((p) => p.join(' ')).join('L') + 'Z';
-  const mk = g === 'circle' ? 'inset: 17%; border-radius: 50%; clip-path: none; transform: none;'
-    : `inset: 17%; border-radius: 0; transform: none; clip-path: polygon(${g.map((p) => `${f1(p[0])}% ${f1(p[1])}%`).join(', ')});`;
+  const mk = g === 'circle' ? 'inset: 18.5%; border-radius: 50%; clip-path: none; transform: none;'
+    : `inset: 18.5%; border-radius: 0; transform: none; clip-path: polygon(${g.map((p) => `${f1(p[0])}% ${f1(p[1])}%`).join(', ')});`;
   // (the ring is the only outline: the marker's own inset borders made a doubled, thick edge)
-  return `${S} .hbond__board::before, ${S} .bond:not(.hbond) .bond__core::before { ${mk} border: 0 !important; box-shadow: none !important; outline: 0 !important; }
+  return `${S} .hbond__board::before, ${S} .bond:not(.hbond) .bond__core::before { ${mk} border: 0 !important; outline: 0 !important; box-shadow: inset 0 0 calc(6 * var(--u)) rgba(0, 0, 0, .45), inset 0 calc(-3 * var(--u)) calc(5 * var(--u)) rgba(0, 0, 0, .35) !important; }
 ${S} .bond-ring { display: block; position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; z-index: 1; }
 ${S} .bond:not(.hbond) .bond-ring { inset: calc(var(--disc) * -.04); width: calc(100% + var(--disc) * .08); height: calc(100% + var(--disc) * .08); }
 ${S} .bond-ring { transform: scaleX(-1); }
 ${S} .bond-ring path { d: path("${ring}"); fill: none; stroke-width: 5.6; stroke-linejoin: round; stroke: var(--hb-ring-off, rgba(140, 140, 140, .6)); filter: drop-shadow(0 0 1px rgba(0, 0, 0, .85)); }
-${S} .bond-ring path.on { stroke: var(--hb-ring-on, var(--mint-400)); }
+${S} .bond-ring path.on { stroke: var(--hb-ring-on, var(--mint-400)); filter: drop-shadow(0 0 calc(2.5 * var(--u)) var(--hb-ring-on, var(--mint-400))) drop-shadow(0 0 1px rgba(0, 0, 0, .6)); }
 ${S} .hbond.is-full .bond-ring path.on, ${S} .bond:not(.hbond).is-active .bond-ring path.on { stroke: var(--hb-ring-full, var(--hb-ring-on, var(--mint-400))); }
 ${S} .hbond__icon { left: 27.5%; top: 27.5%; width: 45%; height: 45%; }
 ${S} .bslot__count { z-index: 4; text-shadow: 0 0 2px #000, 0 0 3px #000; }`;
@@ -398,8 +398,8 @@ const FILL = {
   'f-ursus:full': `background: #a3242b; box-shadow: inset 0 0 0 calc(3 * var(--u)) #d2ccc7;`,
   'f-kazimierz': `border: 0; background: #1b2650; box-shadow: inset 0 calc(-7 * var(--u)) 0 #d02b3a, inset 0 0 0 calc(3 * var(--u)) #3a63c8;`,
   'f-kazimierz:full': `background: #2f5bd0; box-shadow: inset 0 calc(-7 * var(--u)) 0 #d02b3a, inset 0 0 0 calc(3 * var(--u)) #ffffff;`,
-  'f-victoria': `border: 0; background: #2a1a12; box-shadow: inset 0 0 0 calc(3 * var(--u)) #d6a64a, inset 0 0 0 calc(5 * var(--u)) #2a1a12, inset 0 0 0 calc(6 * var(--u)) rgba(214, 166, 74, .5);`,
-  'f-victoria:full': `background: #c99440; box-shadow: inset 0 0 0 calc(3 * var(--u)) #f2d48a;`,
+  'f-victoria': `border: 0; background: radial-gradient(circle at 40% 35%, #3b2a1d, #22150e 70%); box-shadow: inset 0 0 0 calc(3 * var(--u)) #d6a64a, inset 0 0 0 calc(5 * var(--u)) #2a1a12, inset 0 0 0 calc(6 * var(--u)) rgba(214, 166, 74, .5);`,
+  'f-victoria:full': `background: radial-gradient(circle at 40% 35%, #f2d48a, #c99440 60%, #9a6e2a); box-shadow: inset 0 0 0 calc(3 * var(--u)) #f2d48a;`,
   'f-sargon': `border: 0; background: #ffffff; box-shadow: inset 0 0 0 calc(4 * var(--u)) #fcce46;`,
   'f-sargon:full': `background: #2f7fd0; box-shadow: inset 0 0 0 calc(4 * var(--u)) #fcce46;`,
   'ss-adele': `border: 0; background: #fff8f9; box-shadow: inset 0 0 0 calc(3 * var(--u)) #f2d6da;`,
