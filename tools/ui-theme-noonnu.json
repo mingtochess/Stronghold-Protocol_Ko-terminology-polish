@@ -276,5 +276,25 @@
     "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2302_01@1.0/TheJamsil6ExtraBold.woff2"
    ]
   ]
+ },
+ "63": {
+  "name": "조선일보명조체",
+  "family": "ChosunIlboMyungjo",
+  "faces": [
+   [
+    "400",
+    "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_one@1.0/Chosunilbo_myungjo.woff"
+   ]
+  ]
+ },
+ "670": {
+  "name": "카페24 써라운드에어",
+  "family": "Cafe24SurroundAir",
+  "faces": [
+   [
+    "400",
+    "https://gcore.jsdelivr.net/gh/projectnoonnu/noonfonts_2105_2@1.0/Cafe24SsurroundAir.woff"
+   ]
+  ]
  }
 }
