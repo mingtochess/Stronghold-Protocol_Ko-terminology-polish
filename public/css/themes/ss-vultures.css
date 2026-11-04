@@ -116,14 +116,14 @@
 :root[data-ui-theme="ss-vultures"] .bond:not(.hbond) .bond__core { position: relative; isolation: isolate; background: none; box-shadow: none; border-radius: 0; overflow: visible; }
 :root[data-ui-theme="ss-vultures"] .bond:not(.hbond) .bond__core::before { content: ''; position: absolute; z-index: -1; pointer-events: none; }
 :root[data-ui-theme="ss-vultures"] .bond:not(.hbond).is-disabled .bond__core { filter: grayscale(1) brightness(.6); }
-:root[data-ui-theme="ss-vultures"] .hbond__board::before, :root[data-ui-theme="ss-vultures"] .bond:not(.hbond) .bond__core::before { inset: 12%; border-radius: 0; transform: none; clip-path: polygon(25% 3%, 75% 3%, 100% 50%, 75% 97%, 25% 97%, 0% 50%); }
+:root[data-ui-theme="ss-vultures"] .hbond__board::before, :root[data-ui-theme="ss-vultures"] .bond:not(.hbond) .bond__core::before { inset: 17%; border-radius: 0; transform: none; clip-path: polygon(25% 3%, 75% 3%, 100% 50%, 75% 97%, 25% 97%, 0% 50%); border: 0 !important; box-shadow: none !important; outline: 0 !important; }
 :root[data-ui-theme="ss-vultures"] .bond-ring { display: block; position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; z-index: 1; }
 :root[data-ui-theme="ss-vultures"] .bond:not(.hbond) .bond-ring { inset: calc(var(--disc) * -.04); width: calc(100% + var(--disc) * .08); height: calc(100% + var(--disc) * .08); }
 :root[data-ui-theme="ss-vultures"] .bond-ring { transform: scaleX(-1); }
-:root[data-ui-theme="ss-vultures"] .bond-ring path { d: path("M27 6.76L73 6.76L96 50L73 93.24L27 93.24L4 50Z"); fill: none; stroke-width: 6.5; stroke-linejoin: round; stroke: var(--hb-ring-off, rgba(140, 140, 140, .6)); filter: drop-shadow(0 0 1px rgba(0, 0, 0, .85)); }
+:root[data-ui-theme="ss-vultures"] .bond-ring path { d: path("M32.35 16.82L67.65 16.82L85.3 50L67.65 83.18L32.35 83.18L14.7 50Z"); fill: none; stroke-width: 5.6; stroke-linejoin: round; stroke: var(--hb-ring-off, rgba(140, 140, 140, .6)); filter: drop-shadow(0 0 1px rgba(0, 0, 0, .85)); }
 :root[data-ui-theme="ss-vultures"] .bond-ring path.on { stroke: var(--hb-ring-on, var(--mint-400)); }
 :root[data-ui-theme="ss-vultures"] .hbond.is-full .bond-ring path.on, :root[data-ui-theme="ss-vultures"] .bond:not(.hbond).is-active .bond-ring path.on { stroke: var(--hb-ring-full, var(--hb-ring-on, var(--mint-400))); }
-:root[data-ui-theme="ss-vultures"] .hbond__icon { left: 26%; top: 26%; width: 48%; height: 48%; }
+:root[data-ui-theme="ss-vultures"] .hbond__icon { left: 27.5%; top: 27.5%; width: 45%; height: 45%; }
 :root[data-ui-theme="ss-vultures"] .bslot__count { z-index: 4; text-shadow: 0 0 2px #000, 0 0 3px #000; }
 
 :root[data-ui-theme="ss-vultures"] { --hb-band-bg: #182226; --hb-band-ink: #d4d93a; --hb-band-line: #d4d93a; }

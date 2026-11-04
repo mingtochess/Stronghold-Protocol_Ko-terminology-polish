@@ -114,16 +114,17 @@
 :root[data-ui-theme="is-blackflow"] .bond:not(.hbond) .bond__core { position: relative; isolation: isolate; background: none; box-shadow: none; border-radius: 0; overflow: visible; }
 :root[data-ui-theme="is-blackflow"] .bond:not(.hbond) .bond__core::before { content: ''; position: absolute; z-index: -1; pointer-events: none; }
 :root[data-ui-theme="is-blackflow"] .bond:not(.hbond).is-disabled .bond__core { filter: grayscale(1) brightness(.6); }
-:root[data-ui-theme="is-blackflow"] .hbond__board::before, :root[data-ui-theme="is-blackflow"] .bond:not(.hbond) .bond__core::before { inset: 12%; border-radius: 50%; clip-path: none; transform: none; }
+:root[data-ui-theme="is-blackflow"] .hbond__board::before, :root[data-ui-theme="is-blackflow"] .bond:not(.hbond) .bond__core::before { inset: 17%; border-radius: 50%; clip-path: none; transform: none; border: 0 !important; box-shadow: none !important; outline: 0 !important; }
 :root[data-ui-theme="is-blackflow"] .bond-ring { display: block; position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; z-index: 1; }
 :root[data-ui-theme="is-blackflow"] .bond:not(.hbond) .bond-ring { inset: calc(var(--disc) * -.04); width: calc(100% + var(--disc) * .08); height: calc(100% + var(--disc) * .08); }
 :root[data-ui-theme="is-blackflow"] .bond-ring { transform: scaleX(-1); }
-:root[data-ui-theme="is-blackflow"] .bond-ring path { d: path("M50 4A46 46 0 1 1 49.99 4Z"); fill: none; stroke-width: 6.5; stroke-linejoin: round; stroke: var(--hb-ring-off, rgba(140, 140, 140, .6)); filter: drop-shadow(0 0 1px rgba(0, 0, 0, .85)); }
+:root[data-ui-theme="is-blackflow"] .bond-ring path { d: path("M50 14.7A35.3 35.3 0 1 1 49.99 14.7Z"); fill: none; stroke-width: 5.6; stroke-linejoin: round; stroke: var(--hb-ring-off, rgba(140, 140, 140, .6)); filter: drop-shadow(0 0 1px rgba(0, 0, 0, .85)); }
 :root[data-ui-theme="is-blackflow"] .bond-ring path.on { stroke: var(--hb-ring-on, var(--mint-400)); }
 :root[data-ui-theme="is-blackflow"] .hbond.is-full .bond-ring path.on, :root[data-ui-theme="is-blackflow"] .bond:not(.hbond).is-active .bond-ring path.on { stroke: var(--hb-ring-full, var(--hb-ring-on, var(--mint-400))); }
-:root[data-ui-theme="is-blackflow"] .hbond__icon { left: 26%; top: 26%; width: 48%; height: 48%; }
+:root[data-ui-theme="is-blackflow"] .hbond__icon { left: 27.5%; top: 27.5%; width: 45%; height: 45%; }
 :root[data-ui-theme="is-blackflow"] .bslot__count { z-index: 4; text-shadow: 0 0 2px #000, 0 0 3px #000; }
-
+:root[data-ui-theme="is-blackflow"] .hbond__board::before, :root[data-ui-theme="is-blackflow"] .bond:not(.hbond) .bond__core::before { background: #121210; }
+:root[data-ui-theme="is-blackflow"] .hbond.is-full .hbond__board::before, :root[data-ui-theme="is-blackflow"] .bond:not(.hbond).is-active .bond__core::before { background: #e6d48a; }
 :root[data-ui-theme="is-blackflow"] { --hb-band-bg: #121210; --hb-band-ink: #e6d48a; --hb-band-line: #e6d48a; --hb-band-radius: 99px; }
 :root[data-ui-theme="is-blackflow"] .section-label :is(.section-label__idx, .micro) { color: inherit; border-color: currentColor; opacity: .85; }
 :root[data-ui-theme="is-blackflow"] body::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none; background: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%2780%27%20height%3D%2730%27%20viewBox%3D%270%200%2080%2030%27%3E%3Cpath%20d%3D%27M0%2015Q10%205%2020%2015T40%2015T60%2015T80%2015%27%20fill%3D%27none%27%20stroke%3D%27%23e6d48a%27%20stroke-opacity%3D%27.1%27%2F%3E%3C%2Fsvg%3E") 0 0 / 80px 30px repeat; }

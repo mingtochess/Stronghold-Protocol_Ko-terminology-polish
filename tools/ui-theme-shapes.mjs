@@ -365,23 +365,35 @@ function markerRules(id, S) {
   if (!g) return '';
   const at = (k, o) => (p) => [f1(o + p[0] * k), f1(o + p[1] * k)];
   // the ring path starts at the top of the outline (its first point / 12 o'clock) and runs clockwise
-  const ring = g === 'circle' ? 'M50 4A46 46 0 1 1 49.99 4Z' : 'M' + g.map(at(.92, 4)).map((p) => p.join(' ')).join('L') + 'Z';
-  const mk = g === 'circle' ? 'inset: 12%; border-radius: 50%; clip-path: none; transform: none;'
-    : `inset: 12%; border-radius: 0; transform: none; clip-path: polygon(${g.map((p) => `${f1(p[0])}% ${f1(p[1])}%`).join(', ')});`;
-  return `${S} .hbond__board::before, ${S} .bond:not(.hbond) .bond__core::before { ${mk} }
+  // (the default board: ring centred 15.5 % in, 5.6 % thick, hugging the disc that starts 18 % in)
+  const ring = g === 'circle' ? 'M50 14.7A35.3 35.3 0 1 1 49.99 14.7Z' : 'M' + g.map(at(.706, 14.7)).map((p) => p.join(' ')).join('L') + 'Z';
+  const mk = g === 'circle' ? 'inset: 17%; border-radius: 50%; clip-path: none; transform: none;'
+    : `inset: 17%; border-radius: 0; transform: none; clip-path: polygon(${g.map((p) => `${f1(p[0])}% ${f1(p[1])}%`).join(', ')});`;
+  // (the ring is the only outline: the marker's own inset borders made a doubled, thick edge)
+  return `${S} .hbond__board::before, ${S} .bond:not(.hbond) .bond__core::before { ${mk} border: 0 !important; box-shadow: none !important; outline: 0 !important; }
 ${S} .bond-ring { display: block; position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; z-index: 1; }
 ${S} .bond:not(.hbond) .bond-ring { inset: calc(var(--disc) * -.04); width: calc(100% + var(--disc) * .08); height: calc(100% + var(--disc) * .08); }
 ${S} .bond-ring { transform: scaleX(-1); }
-${S} .bond-ring path { d: path("${ring}"); fill: none; stroke-width: 6.5; stroke-linejoin: round; stroke: var(--hb-ring-off, rgba(140, 140, 140, .6)); filter: drop-shadow(0 0 1px rgba(0, 0, 0, .85)); }
+${S} .bond-ring path { d: path("${ring}"); fill: none; stroke-width: 5.6; stroke-linejoin: round; stroke: var(--hb-ring-off, rgba(140, 140, 140, .6)); filter: drop-shadow(0 0 1px rgba(0, 0, 0, .85)); }
 ${S} .bond-ring path.on { stroke: var(--hb-ring-on, var(--mint-400)); }
 ${S} .hbond.is-full .bond-ring path.on, ${S} .bond:not(.hbond).is-active .bond-ring path.on { stroke: var(--hb-ring-full, var(--hb-ring-on, var(--mint-400))); }
-${S} .hbond__icon { left: 26%; top: 26%; width: 48%; height: 48%; }
+${S} .hbond__icon { left: 27.5%; top: 27.5%; width: 45%; height: 45%; }
 ${S} .bslot__count { z-index: 4; text-shadow: 0 0 2px #000, 0 0 3px #000; }`;
 }
 
 
 // marker fills restated after the geometry (shape-specific looks)
 const FILL = {
+  'is-sui': `background: #f4f8f5;`,
+  'is-sui:full': `background: #167f78;`,
+  'ss-mendacium': `background: #f7e6d5;`,
+  'ss-mendacium:full': `background: #c8622a;`,
+  'is-blackflow': `background: #121210;`,
+  'is-blackflow:full': `background: #e6d48a;`,
+  'ss-elegies': `background: #202852;`,
+  'ss-elegies:full': `background: #e8cf92;`,
+  'ss-lonetrail': `background: #fbf9f5;`,
+  'ss-lonetrail:full': `background: #cf4f1c;`,
   'f-ursus': `border: 0; box-shadow: inset 0 0 0 calc(3 * var(--u)) #847b78; background: #2b292d;`,
   'f-ursus:full': `background: #a3242b; box-shadow: inset 0 0 0 calc(3 * var(--u)) #d2ccc7;`,
   'f-kazimierz': `border: 0; background: #1b2650; box-shadow: inset 0 calc(-7 * var(--u)) 0 #d02b3a, inset 0 0 0 calc(3 * var(--u)) #3a63c8;`,

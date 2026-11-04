@@ -122,14 +122,14 @@
 :root[data-ui-theme="f-victoria"] .bond:not(.hbond) .bond__core { position: relative; isolation: isolate; background: none; box-shadow: none; border-radius: 0; overflow: visible; }
 :root[data-ui-theme="f-victoria"] .bond:not(.hbond) .bond__core::before { content: ''; position: absolute; z-index: -1; pointer-events: none; }
 :root[data-ui-theme="f-victoria"] .bond:not(.hbond).is-disabled .bond__core { filter: grayscale(1) brightness(.6); }
-:root[data-ui-theme="f-victoria"] .hbond__board::before, :root[data-ui-theme="f-victoria"] .bond:not(.hbond) .bond__core::before { inset: 12%; border-radius: 0; transform: none; clip-path: polygon(26% 0%, 74% 0%, 66% 34%, 100% 26%, 100% 74%, 66% 66%, 74% 100%, 26% 100%, 34% 66%, 0% 74%, 0% 26%, 34% 34%); }
+:root[data-ui-theme="f-victoria"] .hbond__board::before, :root[data-ui-theme="f-victoria"] .bond:not(.hbond) .bond__core::before { inset: 17%; border-radius: 0; transform: none; clip-path: polygon(26% 0%, 74% 0%, 66% 34%, 100% 26%, 100% 74%, 66% 66%, 74% 100%, 26% 100%, 34% 66%, 0% 74%, 0% 26%, 34% 34%); border: 0 !important; box-shadow: none !important; outline: 0 !important; }
 :root[data-ui-theme="f-victoria"] .bond-ring { display: block; position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; z-index: 1; }
 :root[data-ui-theme="f-victoria"] .bond:not(.hbond) .bond-ring { inset: calc(var(--disc) * -.04); width: calc(100% + var(--disc) * .08); height: calc(100% + var(--disc) * .08); }
 :root[data-ui-theme="f-victoria"] .bond-ring { transform: scaleX(-1); }
-:root[data-ui-theme="f-victoria"] .bond-ring path { d: path("M27.92 4L72.08 4L64.72 35.28L96 27.92L96 72.08L64.72 64.72L72.08 96L27.92 96L35.28 64.72L4 72.08L4 27.92L35.28 35.28Z"); fill: none; stroke-width: 6.5; stroke-linejoin: round; stroke: var(--hb-ring-off, rgba(140, 140, 140, .6)); filter: drop-shadow(0 0 1px rgba(0, 0, 0, .85)); }
+:root[data-ui-theme="f-victoria"] .bond-ring path { d: path("M33.06 14.7L66.94 14.7L61.3 38.7L85.3 33.06L85.3 66.94L61.3 61.3L66.94 85.3L33.06 85.3L38.7 61.3L14.7 66.94L14.7 33.06L38.7 38.7Z"); fill: none; stroke-width: 5.6; stroke-linejoin: round; stroke: var(--hb-ring-off, rgba(140, 140, 140, .6)); filter: drop-shadow(0 0 1px rgba(0, 0, 0, .85)); }
 :root[data-ui-theme="f-victoria"] .bond-ring path.on { stroke: var(--hb-ring-on, var(--mint-400)); }
 :root[data-ui-theme="f-victoria"] .hbond.is-full .bond-ring path.on, :root[data-ui-theme="f-victoria"] .bond:not(.hbond).is-active .bond-ring path.on { stroke: var(--hb-ring-full, var(--hb-ring-on, var(--mint-400))); }
-:root[data-ui-theme="f-victoria"] .hbond__icon { left: 26%; top: 26%; width: 48%; height: 48%; }
+:root[data-ui-theme="f-victoria"] .hbond__icon { left: 27.5%; top: 27.5%; width: 45%; height: 45%; }
 :root[data-ui-theme="f-victoria"] .bslot__count { z-index: 4; text-shadow: 0 0 2px #000, 0 0 3px #000; }
 :root[data-ui-theme="f-victoria"] .hbond__board::before, :root[data-ui-theme="f-victoria"] .bond:not(.hbond) .bond__core::before { border: 0; background: #2a1a12; box-shadow: inset 0 0 0 calc(3 * var(--u)) #d6a64a, inset 0 0 0 calc(5 * var(--u)) #2a1a12, inset 0 0 0 calc(6 * var(--u)) rgba(214, 166, 74, .5); }
 :root[data-ui-theme="f-victoria"] .hbond.is-full .hbond__board::before, :root[data-ui-theme="f-victoria"] .bond:not(.hbond).is-active .bond__core::before { background: #c99440; box-shadow: inset 0 0 0 calc(3 * var(--u)) #f2d48a; }
