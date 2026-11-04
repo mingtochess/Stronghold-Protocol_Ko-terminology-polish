@@ -25,6 +25,43 @@ except Exception as e:  # missing, or failed to import in this interpreter
     sys.exit(f'UnityPy could not be imported in {sys.executable} (Python {sys.version.split()[0]}): {e!r}\n'
              f'install it for this interpreter: "{sys.executable}" -m pip install UnityPy Pillow')
 
+
+# The PC (and recent mobile) client compresses its bundles with Arknights' own LZ4 variant ("LZ4AK"), stored under
+# the LZHAM flag that UnityPy does not implement: each sequence token has its two nibbles swapped and each match offset
+# is big-endian. Undo both, then decode as plain LZ4.
+def _lz4ak(data, uncompressed_size):
+    import lz4.block
+    b, ip, n = bytearray(data), 0, len(data)
+    while ip < n:
+        tok = b[ip]
+        lit, mat = tok & 0xF, tok >> 4
+        b[ip] = (lit << 4) | mat
+        ip += 1
+        if lit == 15:
+            while True:
+                x = b[ip]; ip += 1; lit += x
+                if x != 255:
+                    break
+        ip += lit
+        if ip >= n:
+            break
+        b[ip], b[ip + 1] = b[ip + 1], b[ip]
+        ip += 2
+        if mat == 15:
+            while True:
+                x = b[ip]; ip += 1
+                if x != 255:
+                    break
+    return lz4.block.decompress(bytes(b), uncompressed_size=uncompressed_size)
+
+
+try:
+    from UnityPy.helpers import CompressionHelper
+    from UnityPy.enums.BundleFile import CompressionFlags
+    CompressionHelper.DECOMPRESSION_MAP[CompressionFlags.LZHAM] = _lz4ak
+except Exception as e:
+    print(f'(could not register the LZ4AK decompressor: {e!r})')
+
 NAME_HINT = re.compile(r'(bg|bkg|kv|entry|main|scene|back|illust|title)', re.I)
 
 
