@@ -508,21 +508,19 @@ select option, select optgroup { background-color: var(--bg-2, var(--surf-2, #11
 :root[data-ui-theme] .hbond .hbond__num { -webkit-text-stroke: 3px #000; paint-order: stroke fill; }
 /* light themes: faint ghost-button labels and the chat send button read in the body ink */
 :root[data-ui-theme][data-ui-light] :is(.btn--ghost .btn__label, .game-chat__send, .game-chat__panel button) { color: var(--text-md); }
-/* UI themes: the shop's 冻结 / 刷新 drawn in the theme instead of the official plates — refresh a solid accent plate,
-   freeze an outlined plate in the theme's second accent that fills while frozen; icons in the button's ink */
-:root[data-ui-theme] .shopbar .obtn__plate { inset: 1px 3px; width: auto; height: auto; background: var(--mint-500) !important; border: 1px solid var(--mint-400); border-radius: var(--tx-radius, 0); box-shadow: inset 0 -.04rem 0 rgba(0, 0, 0, .25), 0 .03rem .1rem rgba(0, 0, 0, .35); }
-:root[data-ui-theme] .shopbar .toolbtn--ice .obtn__plate { background: rgba(var(--bg-1-rgb), .94) !important; border: 2px solid var(--ui-accent-2, var(--ice, #7fd6ff)); }
-:root[data-ui-theme] .shopbar .toolbtn--ice.is-on .obtn__plate { background: var(--ui-accent-2, var(--ice, #7fd6ff)) !important; }
-:root[data-ui-theme] .shopbar .obtn:disabled .obtn__plate { background: rgba(var(--bg-1-rgb), .7) !important; border-color: var(--line-2); box-shadow: none; }
-:root[data-ui-theme] .shopbar .obtn, :root[data-ui-theme] .shopbar .obtn:hover:not(:disabled) { color: var(--text-on-mint, #061410); }
-:root[data-ui-theme] .shopbar .toolbtn--ice, :root[data-ui-theme] .shopbar .toolbtn--ice:hover:not(:disabled) { color: var(--text-hi); }
-:root[data-ui-theme] .shopbar .toolbtn--ice.is-on { color: var(--bg-0); }
-:root[data-ui-theme] .shopbar .obtn:disabled { color: var(--text-dim); }
+/* UI themes: the shop's 冻结 / 刷新 in the pre-official tool-button look (outline + ink in the button colour, the freeze
+   button filled while frozen), coloured by the theme: refresh the accent, freeze the second accent */
+:root[data-ui-theme] .shopbar .obtn__plate { display: none; }
+:root[data-ui-theme] .shopbar .obtn { --tb: var(--mint-500); background: rgba(var(--shade-rgb), .9); border: 2px solid var(--tb); color: var(--tb); border-radius: var(--tx-radius, 0); box-shadow: 0 .04rem .14rem rgba(0, 0, 0, .45); }
+:root[data-ui-theme] .shopbar .toolbtn--ice { --tb: var(--ui-accent-2, var(--ice, #7fd6ff)); }
+:root[data-ui-theme] .shopbar .obtn:hover:not(:disabled) { background: color-mix(in srgb, var(--tb) 16%, rgba(var(--shade-rgb), .9)); color: var(--tb); filter: none; }
+:root[data-ui-theme] .shopbar .toolbtn--ice.is-on, :root[data-ui-theme] .shopbar .toolbtn--ice.is-on:hover:not(:disabled) { background: var(--tb); color: var(--bg-0); }
+:root[data-ui-theme] .shopbar .obtn:disabled { --tb: var(--line-3); color: var(--text-dim); }
 :root[data-ui-theme] .shopbar .obtn .toolbtn__img { display: none; }
 :root[data-ui-theme] .shopbar .obtn::before { content: '⟳'; font-size: .22rem; font-weight: 700; line-height: 1; }
 :root[data-ui-theme] .shopbar .toolbtn--ice::before { content: '❄'; }
-:root[data-ui-theme] .shopbar .toolbtn--ice .toolbtn__img { --obtn-ink-inv: 1; }
-:root[data-ui-theme][data-ui-light] .shopbar .toolbtn--ice .toolbtn__img { --obtn-ink-inv: 0; }
-:root[data-ui-theme] .shopbar .toolbtn--ice.is-on .toolbtn__img { --obtn-ink-inv: 0; }
 :root[data-ui-theme] .shopbar .obtn kbd { color: inherit !important; border-color: currentColor !important; background: transparent !important; opacity: .7; }
 :root[data-ui-theme] .shopbar .obtn__cost { background: rgba(0, 0, 0, .55) !important; border-radius: .04rem; }
+:root[data-ui-theme][data-ui-light] .shopbar .obtn { --tb: color-mix(in srgb, var(--mint-500) 70%, #000); }
+:root[data-ui-theme][data-ui-light] .shopbar .toolbtn--ice { --tb: color-mix(in srgb, var(--ui-accent-2, var(--ice, #0a6fb5)) 55%, #000); }
+:root[data-ui-theme][data-ui-light] .shopbar .obtn:disabled { --tb: var(--line-3); }
