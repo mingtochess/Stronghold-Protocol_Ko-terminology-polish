@@ -27,14 +27,13 @@ import { openStats } from '../ui/statsEntry.js';
 // the page never asks for its catalogue — and the title page loads none of the panel's code.
 
 import { ResumeMatchButton } from '../ui/resumeMatch.js';
-import { AssetDownloadButton } from '../ui/assetDownload.js';
-import { AssetImportButton } from '../ui/assetImport.js';
 import { useEffect, useMemo, useState } from '../../vendor/hooks.module.js';
 import { NAME_MAX_LEN, APP_VERSION, DEV_BUILD } from '../../../shared/constants.js';
 import { html, Button, Icon, MicroLabel, TextField, PingPill } from '../ui/components.js';
 import { SettingsButton } from '../ui/settings.js';
 import { PatchNotesButton } from '../ui/patchNotes.js';
 import { GuideButton } from '../ui/guide.js';
+import { UiThemePicker } from '../ui/uiThemePicker.js';
 
 import { toast } from '../ui/toasts.js';
 import { net, identity } from '../net.js';
@@ -264,10 +263,7 @@ export function TitleScreen() {
             onClick=${() => setSettingsOpen(true)}><${GIcon} name="gear" /></button>
           <${FullscreenButton} class="title-fs" />
         </div>
-      </div>
-      <div class="title-assets">
-        <${AssetDownloadButton} />
-        <${AssetImportButton} />
+        <${UiThemePicker} />
       </div>
     </main>
 

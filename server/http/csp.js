@@ -20,5 +20,5 @@ export function siteCsp(publicDir,{release=null}={}) {
       hashes.add(`'sha256-${createHash('sha256').update(m[1]).digest('base64')}'`);
     }
   }
-  return `default-src 'self'; script-src 'self'${hashes.size ? ' ' + [...hashes].join(' ') : ''}; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self'; worker-src 'self' blob:; frame-src 'self'; object-src 'none'; base-uri ${release ? "'self'" : "'none'"}`;
+  return `default-src 'self'; script-src 'self'${hashes.size ? ' ' + [...hashes].join(' ') : ''}; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net/gh/projectnoonnu/ https://hangeul.pstatic.net/hangeul_static/webfont/; img-src 'self' data: blob:; connect-src 'self'; worker-src 'self' blob:; frame-src 'self'; object-src 'none'; base-uri ${release ? "'self'" : "'none'"}`;
 }

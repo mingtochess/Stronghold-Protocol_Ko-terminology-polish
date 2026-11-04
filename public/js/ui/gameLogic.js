@@ -40,6 +40,7 @@ import { DAMAGE_NUMBER_MODES, damageNumberMode } from '../../../shared/damageDis
 
 import { sanitizeVoiceOverrides } from '../voicePrefs.js';
 export const TEXT_SIZES=Object.freeze(['sm','md','lg','xl']);
+import { UI_THEMES } from './uiThemes.js';
 export const VOICE_LANGS=Object.freeze(['kr','jp']);
 import { GEO, PHASE, UF } from '../../../shared/constants.js';
 import { chatNotificationSound, defaultChatCooldown } from '../chatNotificationSounds.js';
@@ -1577,7 +1578,7 @@ export function shortcutBlocked(act, { modal = false, drawer = false } = {}) {
 
 // ---- settings ------------------------------------------------------------------------------------------------------
 
-export const DEFAULT_SETTINGS = Object.freeze({ keys: DEFAULT_HOTKEYS, shopItemLeft: true, hpBarStyle: 'default', tileMarkStyle: 'default', bgm: 0.6, sfx: 0.8, voice: 0.6, voiceLanguage: 'kr', voiceOverrides: Object.freeze({}), textSize: 'sm', chatVolume: 0.5, chatSound: 'emote', chatSoundCustomized: false, chatFactionNotifications: false, chatCooldown: defaultChatCooldown('emote'), muted: false, damageNumbers: true, damageNumberMode: 'basic', officialDamageNumbers:false, ammoCount:false, showFps:false, combatMetrics:false, deployCameraZoom:true, tileMagnet:true, mysticEnergy:false, officialFx:'auto', quality: 'high', mapQuality: 'high', renderScale: 1, mobileUiScale: 1, effectsQuality: 'high', shadows: true, skillRanges: true, unitRanges: true, animationQuality: 'high', frameLimit: 60, adaptiveQuality: true });
+export const DEFAULT_SETTINGS = Object.freeze({ keys: DEFAULT_HOTKEYS, shopItemLeft: true, hpBarStyle: 'default', tileMarkStyle: 'default', bgm: 0.6, sfx: 0.8, voice: 0.6, voiceLanguage: 'kr', voiceOverrides: Object.freeze({}), textSize: 'sm', uiTheme: 'default', chatVolume: 0.5, chatSound: 'emote', chatSoundCustomized: false, chatFactionNotifications: false, chatCooldown: defaultChatCooldown('emote'), muted: false, damageNumbers: true, damageNumberMode: 'basic', officialDamageNumbers:false, ammoCount:false, showFps:false, combatMetrics:false, deployCameraZoom:true, tileMagnet:true, mysticEnergy:false, officialFx:'auto', quality: 'high', mapQuality: 'high', renderScale: 1, mobileUiScale: 1, effectsQuality: 'high', shadows: true, skillRanges: true, unitRanges: true, animationQuality: 'high', frameLimit: 60, adaptiveQuality: true });
 const QUALITIES = ['high', 'medium', 'low'];
 
 /**
@@ -1597,6 +1598,7 @@ export function sanitizeSettings(raw) {
     voice: vol(r.voice, DEFAULT_SETTINGS.voice),
     voiceOverrides: sanitizeVoiceOverrides(r.voiceOverrides),
     textSize: TEXT_SIZES.includes(r.textSize)?r.textSize:'sm',
+    uiTheme: UI_THEMES.includes(r.uiTheme)?r.uiTheme:'default',
     chatVolume: vol(r.chatVolume, DEFAULT_SETTINGS.chatVolume),
     chatSound,
     chatSoundCustomized: r.chatSoundCustomized === true,

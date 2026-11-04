@@ -23,7 +23,7 @@ import { useEffect, useRef } from '../../vendor/hooks.module.js';
 // the strip carries an amber "👁 name" tag (`owner`, the observing pill's spelling, research 09 §3.1) and amber rings,
 // the popup a "👁 name 的盟约" line; its member list reads the teammate's operators on the field (no hand: never sent).
 
-import { html, Icon, MicroLabel, Tooltip } from './components.js';
+import { html, Icon, MicroLabel, Tooltip, BondRing } from './components.js';
 import { RichText, UnitThumb, BondGlyph, GIcon } from './gameComponents.js';
 import { sortBonds, bondMembers, nextThreshold, bondTier, harmonyMembers, HARMONY_BOND, memberHeadCount, briefingBondTip } from './gameLogic.js';
 import { formatBondEffect } from './richText.js';
@@ -64,6 +64,7 @@ function HudBond({ name, icon, thresholds, tier, layers, active, disabled = fals
     <span class="hbond__board" aria-hidden="true">
       ${ring ? html`<img class="hbond__ring" src=${ring} alt="" draggable=${false} />` : html`<span class="hbond__ring hbond__ring--css"></span>`}
       ${icon ? html`<img class="hbond__icon" src=${icon} alt="" draggable=${false} />` : html`<span class="hbond__icon hbond__glyph">${(name || '?').trim().charAt(0)}</span>`}
+      ${BondRing(n, disabled ? 0 : Math.min(n, tier | 0))}
     </span>
     ${layers != null ? html`<span class=${cx('bond__count', 'hbond__num', 'num', matte && 'has-matte')} style=${matte ? `background-image:url("${matte}")` : undefined}>${layers}</span>` : null}
     ${disabled ? html`<span class="bond__ban" aria-label="禁用"><${Icon} name="close" /></span>` : null}

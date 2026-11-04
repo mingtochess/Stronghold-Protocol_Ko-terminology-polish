@@ -101,7 +101,7 @@ html:not(.sp-in-match) .toast-host { margin-top: var(--sa-t); }
 }
 
 /* ---- 4. misc ------------------------------------------------------------------------------------------------------ */
-.fsbtn { display: grid; place-items: center; padding: 0; background: rgba(8, 11, 10, .85); border: 1px solid var(--line-2); color: var(--text-lo); transition: color var(--t-fast), border-color var(--t-fast); }
+.fsbtn { display: grid; place-items: center; padding: 0; background: rgba(var(--shade-rgb),.85); border: 1px solid var(--line-2); color: var(--text-lo); transition: color var(--t-fast), border-color var(--t-fast); }
 .fsbtn .icon { width: .26rem; height: .26rem; }
 .fsbtn:hover, .fsbtn[aria-pressed="true"] { color: var(--mint-400); border-color: var(--mint-700); }
 .title-fs, .title-settings { width: .4rem; height: .4rem; margin-left: .06rem; }
@@ -175,6 +175,6 @@ html[data-fit] :is(.app-root, .st, .lo, .guide) {
 }
 .set-fit { display: flex; flex-direction: column; gap: .06rem; }
 .set-fit__row { grid-template-columns: minmax(0, 1.5rem) auto minmax(.8rem, 1fr) auto minmax(.36rem, auto); gap: .1rem; }
-.set-fit__step { flex: none; width: .4rem; min-width: 28px; height: .34rem; min-height: 26px; padding: 0; border: 1px solid var(--line-2); background: rgba(0, 0, 0, .3);
+.set-fit__step { flex: none; width: .4rem; min-width: 28px; height: .34rem; min-height: 26px; padding: 0; border: 1px solid var(--line-2); background: rgba(var(--dim-rgb, 0, 0, 0), .3);
   color: var(--text-hi); font-size: calc(.2 * var(--t)); line-height: 1; cursor: pointer; }
 .set-fit__step:disabled { opacity: .35; cursor: default; }

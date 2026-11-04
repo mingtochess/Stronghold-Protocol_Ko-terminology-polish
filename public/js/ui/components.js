@@ -222,6 +222,15 @@ export function TierChip({ tier, golden = false, size = 'md', class: cls }) {
  *   active?: boolean, disabled?: boolean, layersDisabled?: boolean, size?: 'sm'|'md'|'lg', showName?: boolean,
  *   onClick?: Function, class?: string, title?: string }} props
  */
+/** A bond's members toward its threshold as a segmented outline (`n` segments, `on` lit) for UI themes that draw their own
+ *  bond marker: each segment is the same theme-given path (CSS `d: var(--hb-ring-path)`) with pathLength 100, dashed to
+ *  its slice — so the ring follows the marker's shape whatever it is. Hidden in the default theme (its ring stays). */
+export function BondRing(n, on) {
+  const k = Math.max(1, n | 0), gap = k > 1 ? 5 : 0, seg = 100 / k - gap;
+  return html`<svg class="bond-ring" viewBox="0 0 100 100" aria-hidden="true">${Array.from({ length: k }, (_, i) => html`<path key=${i}
+    class=${i < on ? 'on' : 'off'} pathLength="100" stroke-dasharray=${`${seg} ${100 - seg}`} stroke-dashoffset=${-(i * 100) / k - gap / 2} />`)}</svg>`;
+}
+
 export function BondDisc({
   name = '', icon, count, layers, tier = 0, maxTier = 3, active = false, disabled = false, layersDisabled = false,
   size = 'md', showName = true, onClick, class: cls, title, ringGap = 5,
@@ -247,6 +256,7 @@ export function BondDisc({
           class=${i < filled ? 'on' : 'off'} stroke-dasharray=${`${seg} ${C - seg}`}
           stroke-dashoffset=${-(i * C) / n - gap / 2} transform="rotate(-90)" />`)}
       </svg>
+      ${BondRing(n, filled)}
       <span class="bond__core">
         ${imgOk
           ? html`<img class="bond__icon" src=${icon} alt="" draggable=${false} onError=${() => setBadSrc(icon)} />`

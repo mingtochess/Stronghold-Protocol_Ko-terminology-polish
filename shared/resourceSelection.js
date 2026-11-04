@@ -1,10 +1,14 @@
 // Download choices affect background asset storage only, never simulation data.
 export const RESOURCE_SELECTION_KEY='sp.resources.downloadSelection';
 export const OFFICIAL_FX_READY_KEY='sp.resources.officialFxReady';
-export function normalizeResourceSelection(value){return {voice:value?.voice==='jp'?'jp':'kr',effects:value?.effects==='simple'?'simple':'official',...(['officialFx','voice-kr','voice-jp'].includes(value?.scope)?{scope:value.scope}:{})};}
+// a UI theme's official art (/assets/ui-themes/<id>/, ui/uiThemes.js) is downloaded only by its own scope `theme-<id>`
+export const validScope=(s)=>['officialFx','voice-kr','voice-jp'].includes(s)||(typeof s==='string'&&/^theme-[a-z0-9-]{1,40}$/.test(s));
+export function normalizeResourceSelection(value){return {voice:value?.voice==='jp'?'jp':'kr',effects:value?.effects==='simple'?'simple':'official',...(validScope(value?.scope)?{scope:value.scope}:{})};}
 export function readResourceSelection(storage=globalThis.localStorage){try{return normalizeResourceSelection(JSON.parse(storage?.getItem(RESOURCE_SELECTION_KEY)||'null'));}catch{return normalizeResourceSelection(null);}}
 export function resourceFileSelected(file,selection){
  const s=normalizeResourceSelection(selection),path=typeof file==='string'?file:file.path;
+ if(s.scope?.startsWith('theme-'))return path.startsWith('/assets/ui-themes/'+s.scope.slice(6)+'/');
+ if(path.startsWith('/assets/ui-themes/'))return false;
  if(s.scope?.startsWith('voice-'))return path.startsWith('/assets/audio/voice/'+s.scope.slice(6)+'/');
  if(s.scope==='officialFx')return path.startsWith('/assets/local/fx/');
  if(path.startsWith('/assets/local/fx/'))return s.effects==='official';

@@ -45,6 +45,7 @@ import { useLayoutEffect, useState } from '../../vendor/hooks.module.js';
 import { html, Modal, Button, Icon, MicroLabel } from './components.js';
 import { createStore, useStore, loadPref, savePref } from '../store.js';
 import { sanitizeSettings, migrateSavedSettings, TEXT_SIZES } from './gameLogic.js';
+import { applyUiTheme } from './uiThemes.js';
 import { audio } from '../audio.js';
 import { CHAT_NOTIFICATION_SOUNDS, defaultChatCooldown } from '../chatNotificationSounds.js';
 import { openGuide } from './guide.js';
@@ -70,12 +71,14 @@ settingsStore.subscribe((s) => {
   audio.setVolumes(s);
   audio.setVoiceLang(s.voiceLanguage, s.voiceOverrides);
   applyTextSize(s.textSize);
+  applyUiTheme(s.uiTheme);
 });
 savePref('settings', settingsStore.get());
 audio.setVolumes(settingsStore.get());
 audio.setVoiceLang(settingsStore.get().voiceLanguage, settingsStore.get().voiceOverrides);
 // before the first render (main.js boot renders after its imports ran): the stored step is on screen without a flash
 applyTextSize(settingsStore.get().textSize);
+applyUiTheme(settingsStore.get().uiTheme);
 installMobileUiScale(settingsStore);
 
 /** @param {Partial<ReturnType<typeof sanitizeSettings>>} patch */

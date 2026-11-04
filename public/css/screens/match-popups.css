@@ -7,7 +7,7 @@
    prefers-reduced-motion (no animation) the plate simply shows.
    ========================================================================================== */
 
-.mpop { --mp: var(--mint-500); --mp-hi: var(--mint-400); --mp-glow: rgba(23, 249, 183, .35);
+.mpop { --mp: var(--mint-500); --mp-hi: var(--mint-400); --mp-glow: rgba(var(--glow-rgb),.35);
   position: fixed; inset: 0; z-index: var(--z-banner); display: flex; flex-direction: column; align-items: center; justify-content: center;
   gap: .1rem; pointer-events: none; }
 .mpop img { max-width: none; }
@@ -16,7 +16,7 @@
 .mpop--gold { --mp: var(--gold); --mp-hi: #ffd75e; --mp-glow: rgba(255, 198, 0, .38); }
 
 .mpop__panel { position: relative; display: flex; align-items: center; gap: .3rem; min-height: 2.48rem; padding: .3rem .4rem .3rem .36rem;
-  background: rgba(36, 38, 38, .9); box-shadow: 0 .1rem .5rem rgba(0, 0, 0, .45); animation: mpop-in 200ms var(--ease-out) backwards; }
+  background: rgba(var(--surf-3-rgb, 36, 38, 38), .9); box-shadow: 0 .1rem .5rem rgba(0, 0, 0, .45); animation: mpop-in 200ms var(--ease-out) backwards; }
 .mpop--phase .mpop__panel { min-width: 7.2rem; }
 /* round_bg_line (496×168): the contour lines over the panel */
 .mpop__lines { position: absolute; left: 0; top: 50%; width: 4.96rem; height: 1.68rem; transform: translateY(-50%); opacity: .35; pointer-events: none; }
@@ -25,7 +25,7 @@
    round_frame (6×33) brackets on the side edges, round_text_01 at the bottom */
 .mpop__art { position: relative; flex: none; width: 2.58rem; height: 1.81rem; margin-right: .2rem; }
 .mpop__artbg { position: absolute; left: .38rem; top: .08rem; width: 1.85rem; height: 1.73rem; opacity: .7; }
-.mpop__artbg--css { background: radial-gradient(closest-side, rgba(0, 0, 0, .55), rgba(0, 0, 0, .15)); }
+.mpop__artbg--css { background: radial-gradient(closest-side, rgba(var(--dim-rgb, 0, 0, 0), .55), rgba(var(--dim-rgb, 0, 0, 0), .15)); }
 /* round_cross through a mask in the plate's colour (teal; orange for 联防), else a CSS + */
 .mpop__x { position: absolute; width: .24rem; height: .24rem; color: var(--mp); opacity: .6; animation: mpop-fade 220ms 330ms both;
   background: linear-gradient(currentColor, currentColor) center / 100% 2px no-repeat, linear-gradient(currentColor, currentColor) center / 2px 100% no-repeat; }
@@ -70,14 +70,14 @@
 
 /* 回合 / 获得 */
 .mpop__cell { position: relative; flex: none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .1rem;
-  min-width: 1.65rem; min-height: 1.58rem; padding: .1rem .14rem; background: rgba(255, 255, 255, .06); }
-.mpop__k { position: relative; padding: 0 .16rem; font-size: calc(.3 * var(--t)); line-height: 1.2; letter-spacing: .06em; color: #d6dada; }
+  min-width: 1.65rem; min-height: 1.58rem; padding: .1rem .14rem; background: rgba(var(--ink-rgb, 255, 255, 255), .06); }
+.mpop__k { position: relative; padding: 0 .16rem; font-size: calc(.3 * var(--t)); line-height: 1.2; letter-spacing: .06em; color: var(--ink-hi, #d6dada); }
 .mpop__k::before, .mpop__k::after { content: ''; position: absolute; top: .02rem; bottom: .02rem; width: .06rem; }
 .mpop__k::before { left: 0; }
 .mpop__k::after { right: 0; transform: scaleX(-1); }
-.mpop__cell--round .mpop__k::before, .mpop__cell--round .mpop__k::after { color: #8d9494; }
+.mpop__cell--round .mpop__k::before, .mpop__cell--round .mpop__k::after { color: var(--ink-md, #8d9494); }
 .mpop__cell--gold .mpop__k { color: var(--gold); }
-.mpop__roll { display: grid; height: 1.15em; overflow: hidden; font-family: var(--font-display); font-size: calc(.56 * var(--t)); line-height: 1.15em; color: #eef1f1; }
+.mpop__roll { display: grid; height: 1.15em; overflow: hidden; font-family: var(--font-display); font-size: calc(.56 * var(--t)); line-height: 1.15em; color: var(--ink-hi, #eef1f1); }
 .mpop__roll b { grid-area: 1 / 1; font-weight: 500; }
 .mpop__old { opacity: 0; animation: mpop-drop 170ms 400ms ease-in backwards; }
 .mpop__new { animation: mpop-fall 220ms 440ms var(--ease-out) both; }
@@ -99,18 +99,18 @@
   width: 4.35rem; height: .86rem; transform: translateX(-50%); animation: mpop-wipe 280ms 140ms var(--ease-out) both; }
 .mpop__headbg { position: absolute; inset: 0; width: 4.35rem; height: .86rem; }
 .mpop__headbg--css { inset: .14rem .27rem; width: auto; height: auto; background: rgba(40, 14, 8, .92); border: 2px solid #e2541e; border-radius: .06rem; }
-.mpop__headtxt { position: relative; padding-left: .5rem; white-space: nowrap; color: #f2e6e0; font-size: calc(.26 * var(--t)); letter-spacing: .08em; }
+.mpop__headtxt { position: relative; padding-left: .5rem; white-space: nowrap; color: var(--ink-hi, #f2e6e0); font-size: calc(.26 * var(--t)); letter-spacing: .08em; }
 .mpop__headtxt b { margin: 0 .06em; font-weight: 600; color: #ff7a2a; }
 
 /* the line under the plate: 资金已到账 / 观战中 (phaseBanner's sub, GitHub #236 / #237) */
-.mpop__line { padding: .04rem .24rem; background: rgba(24, 26, 26, .78); color: #c9cfcf; font-size: calc(.19 * var(--t)); letter-spacing: .06em;
+.mpop__line { padding: .04rem .24rem; background: rgba(var(--surf-2-rgb, 24, 26, 26), .78); color: var(--ink-md, #c9cfcf); font-size: calc(.19 * var(--t)); letter-spacing: .06em;
   animation: mpop-fade 220ms 400ms both; }
 
 /* the phase words */
 .mpop__text { position: relative; z-index: 1; flex: 1; display: flex; flex-direction: column; gap: .06rem; min-width: 0; padding-right: .3rem; }
 .mpop__title { font-size: calc(.5 * var(--t)); font-weight: 900; letter-spacing: .08em; line-height: 1.15; white-space: nowrap; color: var(--mp-hi);
   text-shadow: 0 0 .16rem var(--mp-glow); animation: mpop-wipe 300ms 200ms var(--ease-out) both; }
-.mpop__sub { max-width: 3.6rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: calc(.19 * var(--t)); color: #c9cfcf;
+.mpop__sub { max-width: 3.6rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: calc(.19 * var(--t)); color: var(--ink-md, #c9cfcf);
   animation: mpop-wipe 300ms 300ms var(--ease-out) both; }
 .mpop__chevs { position: absolute; top: 0; bottom: 0; right: 0; width: 3.2rem; overflow: hidden; pointer-events: none; }
 .mpop__chevs i { position: absolute; top: 0; bottom: 0; left: calc(var(--k) * .66rem + .3rem); width: .86rem; opacity: 0;

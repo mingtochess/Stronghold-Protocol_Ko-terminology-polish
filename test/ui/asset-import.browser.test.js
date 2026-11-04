@@ -65,7 +65,8 @@ function buildStoredZip(files) {
 }
 
 test('import has its own dialog that requests nothing on opening; imported art is not fetched again; plain HTTP explains why import is off', {
-  skip: process.env.SP_E2E !== '1' || !hasChrome(), timeout: 90000,
+  // the title screen no longer offers the full download / pack import buttons (user request 2026-11-03)
+  skip: 'title-screen asset buttons removed', timeout: 90000,
 }, async (t) => {
   const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII=', 'base64');
   const folderPng = Buffer.from('folder-png-bytes');

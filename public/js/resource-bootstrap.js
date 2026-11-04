@@ -1,10 +1,10 @@
 import {RESOURCE_CONSENT_TEXT} from './i18n/resourceConsent.js';
 import {downloadLanguagePack} from './i18n/languagePack.js';
 import {LANGUAGE_PACKS} from '../../shared/languagePacks.js';
-import {readResourceSelection,selectedResources,RESOURCE_SELECTION_KEY,OFFICIAL_FX_READY_KEY,officialFxDownloaded,missingResourceBytes} from '../../shared/resourceSelection.js';
+import {validScope,readResourceSelection,selectedResources,RESOURCE_SELECTION_KEY,OFFICIAL_FX_READY_KEY,officialFxDownloaded,missingResourceBytes} from '../../shared/resourceSelection.js';
 import {reportResourceProgress} from './resourceProgress.js';
 const DOWNLOAD_SCOPE_KEY='sp.resources.downloadScope';
-function downloadSelection(){const choice=readResourceSelection();try{const scope=localStorage.getItem(DOWNLOAD_SCOPE_KEY);if(['officialFx','voice-kr','voice-jp'].includes(scope))choice.scope=scope;}catch{}return choice;}
+function downloadSelection(){const choice=readResourceSelection();try{const scope=localStorage.getItem(DOWNLOAD_SCOPE_KEY);if(validScope(scope))choice.scope=scope;}catch{}return choice;}
 // Start after the download notice; optional resources cache in the background.
 globalThis.performance?.mark?.('sp-bootstrap-start');
 async function messageOnce(type, onProgress, resume) {
@@ -160,8 +160,9 @@ function showDownloadProgress(resources, run, visible=false) {
         detail.textContent = progress.phase === 'retry' ? '실패한 파일을 다시 시도합니다. 받은 파일은 유지됩니다.' : '리소스 확인·다운로드 중 · 게임을 이용할 수 있습니다.';
       }).then(() => {
         if(!notice.isConnected)return;
-        try{localStorage.removeItem('sp.resources.downloadActive');localStorage.removeItem(DOWNLOAD_SCOPE_KEY);if(choice.scope?.startsWith('voice-'))localStorage.setItem('sp.resources.voiceReady.'+choice.scope.slice(6),'1');else {if(choice.effects==='official')localStorage.setItem(OFFICIAL_FX_READY_KEY,'1');if(!choice.scope)localStorage.setItem('sp.resources.voiceReady.'+choice.voice,'1');}}catch{}
-        if(visible&&choice.effects==='official'&&!choice.scope?.startsWith('voice-'))window.dispatchEvent(new CustomEvent('sp-official-fx-ready'));
+        try{localStorage.removeItem('sp.resources.downloadActive');localStorage.removeItem(DOWNLOAD_SCOPE_KEY);if(choice.scope?.startsWith('theme-'))localStorage.setItem('sp.resources.themeReady.'+choice.scope.slice(6),resources.sourceVersion||resources.version||'1');else if(choice.scope?.startsWith('voice-'))localStorage.setItem('sp.resources.voiceReady.'+choice.scope.slice(6),'1');else {if(choice.effects==='official')localStorage.setItem(OFFICIAL_FX_READY_KEY,'1');if(!choice.scope)localStorage.setItem('sp.resources.voiceReady.'+choice.voice,'1');}}catch{}
+        if(choice.scope?.startsWith('theme-'))window.dispatchEvent(new CustomEvent('sp-ui-theme-ready',{detail:{theme:choice.scope.slice(6)}}));
+        else if(visible&&choice.effects==='official'&&!choice.scope?.startsWith('voice-'))window.dispatchEvent(new CustomEvent('sp-official-fx-ready'));
         window.dispatchEvent(new Event('sp-resource-download-finished'));
         reportResourceProgress('resources',0,0,false);
         count.textContent = `${bar.max}/${bar.max}`; bar.value = bar.max;
@@ -239,6 +240,20 @@ async function boot() {
       // A change of choices invalidates only pending work, not downloaded files.
       await showDownloadProgress(resources,preview?.lazyResources?warmPreview:progress=>message('preparePatch',progress),true);
     })().catch(error=>console.warn('[resources]',error)).finally(()=>{requested=null;flushVoiceQueue();});
+  });
+  // a UI theme's official art (ui/uiThemePicker.js asked the player already): its own scope, then sp-ui-theme-ready
+  window.addEventListener('sp-request-theme-download',({detail})=>{
+    const theme=detail?.theme;if(typeof theme!=='string'||!validScope('theme-'+theme)||requested||voiceRequest)return;
+    requested=(async()=>{
+      const response=await fetch('/vendor/browser-resources.json',{cache:'no-store'});if(!response.ok)throw Error('리소스 목록을 불러오지 못했습니다.');
+      const resources=await response.json();
+      try{localStorage.setItem(DOWNLOAD_SCOPE_KEY,'theme-'+theme);localStorage.setItem('sp.resources.downloadActive','1');}catch{}
+      const selected=selectedResources(resources,{...readResourceSelection(),scope:'theme-'+theme});
+      if(!selected.files.length){window.dispatchEvent(new CustomEvent('sp-ui-theme-ready',{detail:{theme,missing:true}}));return;}
+      await navigator.serviceWorker.ready;
+      if(!navigator.serviceWorker.controller)await new Promise(resolve=>navigator.serviceWorker.addEventListener('controllerchange',resolve,{once:true}));
+      await showDownloadProgress(resources,preview?.lazyResources?warmPreview:progress=>message('preparePatch',progress),true);
+    })().catch(error=>{console.warn('[resources]',error);window.dispatchEvent(new CustomEvent('sp-ui-theme-ready',{detail:{theme,error:String(error)}}));}).finally(()=>{requested=null;flushVoiceQueue();});
   });
   window.addEventListener('sp-request-voice-download',({detail})=>{
     const language=detail?.language;if(!['kr','jp'].includes(language))return;
