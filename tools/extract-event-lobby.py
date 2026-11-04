@@ -21,8 +21,9 @@ from pathlib import Path
 
 try:
     import UnityPy
-except ImportError:
-    sys.exit('UnityPy is required: pip install UnityPy Pillow')
+except Exception as e:  # missing, or failed to import in this interpreter
+    sys.exit(f'UnityPy could not be imported in {sys.executable} (Python {sys.version.split()[0]}): {e!r}\n'
+             f'install it for this interpreter: "{sys.executable}" -m pip install UnityPy Pillow')
 
 NAME_HINT = re.compile(r'(bg|bkg|kv|entry|main|scene|back|illust|title)', re.I)
 
