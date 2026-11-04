@@ -25,6 +25,11 @@ export function ChatPanel({room = false, docked = false}) {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [previewVisible, setPreviewVisible] = useState(() => loadPref('chatPreview', true) !== false);
   const open = room || expanded;
+  useLayoutEffect(() => {
+    const root = document.documentElement;
+    root.classList.toggle('has-open-game-chat', !room && open);
+    return () => root.classList.remove('has-open-game-chat');
+  }, [room, open]);
   useEffect(() => {
     let lastLiveId = 0;
     const removeHistory = net.on('m.chatHistory', msg => { lastLiveId = msg.messages?.at(-1)?.id || 0; });
@@ -102,6 +107,7 @@ export function ChatPanel({room = false, docked = false}) {
   useEffect(() => {
     if (room || !open || settingsOpen) return;
     const dismissOutside = event => {
+      if (store.get().restartVote?.vote) return;
       if (event.target?.closest?.('.game-chat, .ewheel')) return;
       setOpen(false); setChoosingFaction(false);
     };

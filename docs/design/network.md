@@ -1,5 +1,8 @@
 # DESIGN §8, §14 — The network protocol and client-side combat
 
+Korean-fork room extension: [restart-vote contract](restart-vote.md), including atomic vote start, eligibility,
+anonymous per-recipient state, paused clocks, retained communication and return to the same room (v0.3.3k).
+
 Part of [DESIGN.md](../DESIGN.md) (the index; section numbers are global).
 
 ## 8. Network protocol (shared/protocol.js is normative)

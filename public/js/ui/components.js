@@ -1,3 +1,4 @@
+import { t } from '../../../shared/i18n.js';
 import {uiCssZoom} from './mobileScale.js';
 // Design-system components (Preact + htm, no build step). Styles live in css/components.css.
 //
@@ -16,7 +17,7 @@ import { h, Fragment } from '../../vendor/preact.module.js';
 import { useEffect, useLayoutEffect, useMemo, useReducer, useRef, useState } from '../../vendor/hooks.module.js';
 import htm from '../../vendor/htm.module.js';
 import { DIFFICULTY_NAMES, DIFFICULTY_COLORS } from '../../../shared/constants.js';
-import { serverNow } from '../store.js';
+import { serverNow, store } from '../store.js';
 import { data, useData, localAsset } from '../data.js';
 import { uiUrl } from './assetUrls.js';
 
@@ -364,7 +365,9 @@ export const hasDeadline = (deadline) => Number.isFinite(deadline) && deadline >
  */
 export function secondsLeft(deadline) {
   if (!hasDeadline(deadline)) return null;
-  return Math.max(0, Math.ceil((deadline - serverNow()) / 1000));
+  const pub=store.get().match.public;
+  const now=pub?.restartVotePaused&&Number.isFinite(pub.pausedAt)?pub.pausedAt:serverNow();
+  return Math.max(0, Math.ceil((deadline - now) / 1000));
 }
 
 /**
@@ -379,7 +382,9 @@ export function secondsLeft(deadline) {
 export function Countdown({ deadline, seconds, total, warnAt = 10, label = 'COUNTDOWN', size = 'md', gauge = true, elapsed = false, timeScale = 1, onExpire, class: cls }) {
   const live = seconds == null && hasDeadline(deadline);
   useTicker(live ? 200 : 0);
-  const remain = seconds != null && Number.isFinite(Number(seconds)) ? Math.max(0, Math.floor(Number(seconds))) : live ? Math.ceil(Math.max(0,(deadline-serverNow())/1000)*timeScale) : null;
+  const pub = store.get().match.public;
+  const now = pub?.restartVotePaused && Number.isFinite(pub.pausedAt) ? pub.pausedAt : serverNow();
+  const remain = seconds != null && Number.isFinite(Number(seconds)) ? Math.max(0, Math.floor(Number(seconds))) : live ? Math.ceil(Math.max(0,(deadline-now)/1000)*timeScale) : null;
   const warn = !elapsed && remain != null && remain <= warnAt;
   const text = remain == null ? '--' : elapsed?`${Math.floor(remain/60).toString().padStart(2,'0')}:${(remain%60).toString().padStart(2,'0')}`:String(Math.min(999, remain)).padStart(2, '0');
   const bars = 5;
@@ -396,7 +401,7 @@ export function Countdown({ deadline, seconds, total, warnAt = 10, label = 'COUN
 
   // untimed phase: no timer on screen (hooks above run unconditionally, so the component may toggle freely)
   if (remain == null) return null;
-  return html`<div class=${cx('countdown', `countdown--${size}`, warn && 'is-warn', cls)} role="timer" aria-label=${elapsed?`경과 시간 ${remain}초`:remain == null ? '无倒计时' : `剩余${remain}秒`}>
+  return html`<div class=${cx('countdown', `countdown--${size}`, warn && 'is-warn', cls)} data-i18n-native role="timer" aria-label=${elapsed?t('已用时 {seconds} 秒',{seconds:remain}):remain == null ? t('无倒计时') : t('距离阶段结束还有 {seconds} 秒',{seconds:remain})}>
     <div class="countdown__main">
       <${SevenSeg} text=${text} tone=${warn ? 'orange' : 'mint'} flicker=${warn && remain > 0} />
       ${label ? html`<span class="countdown__label">${label}</span>` : null}

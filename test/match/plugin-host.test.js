@@ -78,6 +78,27 @@ const frames = () => { const out = { sent: [], broadcast: [], ended: [] }; out.e
 const bots = (n) => Array.from({ length: n }, (_, i) => ({ seat: i, playerId: `ai_${i}`, name: `AI ${i}`, isBot: true, connected: true }));
 
 describe('match hosts (P1c): a content set\'s matches in a match host of its own', () => {
+  test('hosted restart voting freezes and resumes the actual match over both transports', {timeout:60000},async()=>{
+    const contents=setsOf(pluginsDir({restart:[{data:['patch.json']},{'patch.json':bondPatch(.35)}]}));
+    const resolved=contents.resolve(['restart']);assert.equal(resolved.ok,true);contents.hold(resolved.set.cs);
+    try{
+      for(const transport of ['process','worker']){
+        const hosts=createMatchHosts({contents,log:quiet,options:{transport,matchOptions:{botRehearsal:0}}});
+        try{
+          const out=frames(),seats=[0,1].map(i=>({seat:i,playerId:'p'+i,name:'P'+i,connected:true}));
+          const m=hosts.create(resolved.set.cs,matchOpts(resolved.set.cs,seats,out));m.start();
+          assert.equal((await m.handle('p0',{t:'g.infoReady'})).ok,true);assert.equal((await m.handle('p1',{t:'g.infoReady'})).ok,true);
+          for(let i=0;i<100&&(await m.diag()).phase==='INFO_CHECK';i++)await delay(20);
+          const frozen=await m.beginRestartVote(true,'p0');assert.equal(frozen.ok,true,JSON.stringify(frozen));assert.equal(frozen.players.length,2);
+          assert.equal((await m.handle('p0',{t:'g.ready',ready:true})).error,'WRONG_PHASE');
+          m.setRestartVotePaused(false);
+          const snapshot=await m.diag();assert.equal(snapshot.errorCount,0);
+          assert.ok(out.broadcast.some(f=>f.t==='m.public'&&f.restartVotePaused===true));
+          assert.ok(out.broadcast.some(f=>f.t==='m.public'&&f.restartVotePaused===false));m.dispose();
+        }finally{hosts.close();}
+      }
+    }finally{contents.release(resolved.set.cs);}
+  });
   test('the transport: a child process by default; a worker thread only with SP_MATCH_HOST=worker', { timeout: 60_000 }, async () => {
     const was = process.env.SP_MATCH_HOST;
     try {

@@ -1,4 +1,5 @@
 import './ui/compat.js';
+import { RestartVoteOverlay } from './ui/restartVote.js';
 import { lazyComponent, loadScreenStyles } from './ui/lazyComponent.js';
 import { loadoutStore } from './ui/loadoutSync.js';
 import { statsStore } from './ui/statsEntry.js';
@@ -377,6 +378,7 @@ function App() {
     <${ConnectionBanner} />
     <${ToastHost} />
     <${UiHosts} />
+    <${RestartVoteOverlay} />
     <${GuideHost} />
     ${loadoutOpen||favoritesOpen||recruitPresetsOpen?html`<${LoadoutHost} />`:null}
     ${statsOpen?html`<${StatsHost} />`:null}

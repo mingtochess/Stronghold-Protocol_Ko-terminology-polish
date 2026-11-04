@@ -4,6 +4,20 @@ import {PHASE,ERR} from '../../shared/constants.js';import {rollAugmentGrade,cre
 const data=loadData('content/production/data');
 function fixture(t,{n=1,enabled=true,host='p0',seed=1,ruleValues={},rules=[],protectedBonds=[],protectedAuxBonds=[]}={}){const sched=new VirtualScheduler();const m=new Match({data,mode:n===8?'coop8':n===1?'solo':'coop',difficulty:'NORMAL',seed,customExtensions:{rules:enabled?['augments',...rules]:[],ruleValues,protectedBonds,protectedAuxBonds},seats:Array.from({length:n},(_,i)=>({seat:i,playerId:'p'+i,name:'P'+i,connected:true})),getHostId:()=>host,scheduler:sched,send:()=>true,broadcast:()=>{},onEnd:()=>{}});t.after(()=>m.dispose());return {m,sched,ps:m.players.get('p0')};}
 function request(m,ps,idx=0,reroll=false){const s=m.augments.current,slot=s.side==='ally'?s.slots.get(ps.playerId):s.boss;return m.handle(ps.playerId,{t:reroll?'g.augmentReroll':'g.augmentPick',eventId:s.id,side:s.side,idx,cardId:slot.cards[idx].id});}
+
+test('restart vote freezes eight-player augment choice and the three-second settling window',t=>{
+ const {m,sched,ps}=fixture(t,{n:8,ruleValues:{augmentEnemyVote:1}});m.round=4;assert.equal(m.augments.enter(),true);
+ const deadline=m.deadline;m.setRestartVotePaused(true);sched.advance(90000);
+ assert.equal(m.deadline,deadline);assert.equal(m.augments.current.side,'ally');
+ assert.equal(request(m,ps).error,ERR.WRONG_PHASE);
+ m.setRestartVotePaused(false);assert.equal(m.deadline,deadline+90000);
+ for(const p of m.order)assert.equal(request(m,p).ok,true);
+ assert.equal(m.augments.current.settling,true);const settlingDeadline=m.deadline;
+ m.setRestartVotePaused(true);sched.advance(90000);assert.equal(m.augments.current.side,'ally');
+ m.setRestartVotePaused(false);assert.equal(m.deadline,settlingDeadline+90000);
+ sched.advance(2999);assert.equal(m.augments.current.side,'ally');sched.advance(1);assert.equal(m.augments.current.side,'enemy');
+ assert.equal(m.errorCount,0);
+});
 test('grade probability boundaries and three consecutive silver prevention preserve gold/prism ratio',()=>{
  assert.deepEqual([0,.199,.2,.699,.7,.999].map(x=>rollAugmentGrade(()=>x)),['silver','silver','gold','gold','prism','prism']);
  assert.equal(rollAugmentGrade(()=>.1,['silver']),'silver');assert.equal(rollAugmentGrade(()=>.1,['silver','silver']),'gold');assert.equal(rollAugmentGrade(()=>.8,['silver','silver']),'prism');

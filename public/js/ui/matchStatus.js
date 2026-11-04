@@ -72,6 +72,7 @@ export function overtimeState(pub, now, { perSec = 1, warnBefore = OVERTIME_WARN
  * @param {{ solo?: boolean, alive?: boolean, done?: boolean }} [o] done: the own battle is over
  */
 export function pauseAvailable(pub, { solo = false, alive = true, done = false } = {}) {
+  if (pub?.restartVotePaused) return false;
   if (!solo || !isObj(pub) || alive === false) return false;
   if (done && !pub.paused) return false;
   return PAUSE_PHASES.has(pub.phase);

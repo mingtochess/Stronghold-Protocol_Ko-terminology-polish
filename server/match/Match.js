@@ -431,6 +431,8 @@ export class Match {
     this.chatSequence = 0;
     /** solo pause (g.pause, DESIGN §14): the field clocks / deadlines are frozen while true (m.public.paused) */
     this.paused = false;
+    this.restartVotePaused = false;
+    this._restartReports = new Map();
     this._pausedAt = 0;
     /** real ms spent paused this match (diagnostics) */
     this.pausedMs = 0;
@@ -589,6 +591,14 @@ export class Match {
   handle(playerId, msg) {
     const ps = this.players.get(playerId) || this.spectators.get(playerId);
     if (!ps || ps.isBot || ps.left) return fail(ERR.NOT_IN_ROOM);
+    if (this.restartVotePaused) {
+      if (['b.progress','b.result','b.rehearsalResult'].includes(msg?.t)) {
+        this._restartReports.set(`${playerId}:${msg.t}`, {playerId,msg});
+        return OK;
+      }
+      if (!['g.chat','g.chatFaction','g.emote','g.watch','g.unitStats'].includes(msg?.t)) return fail(ERR.WRONG_PHASE, '리방 투표 중입니다.');
+    }
+
     // a spectator seat only watches (the platform routes nothing else of it)
     if (ps.spectator && (!msg || (msg.t !== 'g.watch' && !(this.test && msg.t === 'g.test')))) return fail(ERR.SPECTATOR);
     if (this.disposed || this.ended) {
@@ -619,6 +629,7 @@ export class Match {
    * @returns {{ ok: true } | { error: string, detail?: string }}
    */
   setLoadout(playerId, loadout, ops = undefined, strategyPresets = undefined) {
+    if (this.restartVotePaused) return fail(ERR.WRONG_PHASE, '리방 투표 중입니다.');
     const ps = this.players.get(playerId);
     if (!ps || ps.isBot || ps.left) return fail(ERR.NOT_IN_ROOM);
     const prep = this.phase === PHASE.PREP && ruleOption(this.rules, 'prepLoadout') === 'prep';
@@ -650,7 +661,7 @@ export class Match {
       this.cancelSetupVote();
       // a paused solo battle resumes (the server takes the field over; nobody is left to resume it)
       this._resume();
-      if (this.clientCombat) this._authorityLost(ps, 'disconnect');
+      if (this.clientCombat && !this.restartVotePaused) this._authorityLost(ps, 'disconnect');
       // a rehearsal this host was running falls back to the server (DESIGN §14; a no-op without tasks)
       this._rehearsalHostChanged();
       this.markPublic();
@@ -747,7 +758,7 @@ export class Match {
       this.watchers.delete(playerId);
       if (this.ended) return;
       this._resume();
-      if (this.clientCombat) this._authorityLost(ps, 'left');
+      if (this.clientCombat && !this.restartVotePaused) this._authorityLost(ps, 'left');
       // a rehearsal the departed seat was running falls back to the server (DESIGN §14; a no-op without tasks)
       this._rehearsalHostChanged();
       this.markPublic();
@@ -822,7 +833,7 @@ export class Match {
     if (this.runner) { try { this.runner.stop(); } catch { /* ignore */ } }
     this._stopClientCombat();
     this._cancelRehearsal();
-    for (const h of this._timers) { try { this.sched.clearTimeout(h); } catch { /* ignore */ } }
+    for (const h of this._timers) { try { this.sched.clearTimeout(h.native); } catch { /* ignore */ } }
     this._timers.clear();
     if (this._pubTimer) { try { this.sched.clearTimeout(this._pubTimer); } catch { /* ignore */ } this._pubTimer = null; }
     if (this.ownsScheduler) this.sched.dispose();
@@ -848,19 +859,20 @@ export class Match {
   /** Schedule a guarded callback (tracked for dispose). */
   later(ms, fn) {
     if (this.disposed) return null;
-    let h = null;
-    h = this.sched.setTimeout(() => {
+    const h = { native: null, remaining: Math.max(0, ms), due: this.sched.now() + Math.max(0, ms) };
+    h.run = () => {
       this._timers.delete(h);
       if (this.disposed) return;
       this.guard(fn);
-    }, ms);
-    if (h) this._timers.add(h);
+    };
+    if (!this.restartVotePaused) h.native = this.sched.setTimeout(h.run, h.remaining);
+    this._timers.add(h);
     return h;
   }
 
   cancel(h) {
     if (!h) return;
-    this.sched.clearTimeout(h);
+    this.sched.clearTimeout(h.native);
     this._timers.delete(h);
   }
 
@@ -1128,6 +1140,8 @@ export class Match {
       combatMode: this.clientCombat ? 'client' : 'server',
       // solo pause (g.pause, DESIGN §14): the battle, its field clock and every deadline are frozen while true
       paused: !!this.paused,
+      restartVotePaused: !!this.restartVotePaused,
+      pausedAt: this.paused ? this._pausedAt : null,
       players: this.order.map((ps) => ({
         playerId: ps.playerId,
         seat: ps.seat,
@@ -1662,6 +1676,7 @@ if (this.test === true) {
    * `{ on: false }` is always accepted. A disconnect / leave, or the battle phase ending, resumes.
    */
   setPause(ps, on) {
+    if (this.restartVotePaused) return fail(ERR.WRONG_PHASE);
     void ps;
     if (!this.isSolo) return fail(ERR.WRONG_PHASE, 'co-op battles never pause');
     if (!on) { this._resume(); return OK; }
@@ -1682,6 +1697,7 @@ if (this.test === true) {
 
   /** End a solo pause: every clock and deadline moves on by the paused time (no-op when not paused). */
   _resume() {
+    if (this.restartVotePaused) return;
     if (!this.paused) return;
     const d = Math.max(0, this.sched.now() - this._pausedAt);
     this.paused = false;
@@ -1707,6 +1723,7 @@ if (this.test === true) {
 
   /** The battle phase is over: drop the pause without shifting anything (its timers are gone). */
   _clearPause() {
+    if (this.restartVotePaused) return;
     if (!this.paused) return;
     this.pausedMs += Math.max(0, this.sched.now() - this._pausedAt);
     this.paused = false;
@@ -1716,6 +1733,65 @@ if (this.test === true) {
 
   /** The field clocks' "now": frozen at the pause instant while paused. */
   _clockNow() { return this.paused ? this._pausedAt : this.sched.now(); }
+
+  /** Freeze every gameplay timeout; the lobby owns the independent wall-clock vote deadline. */
+  setRestartVotePaused(on) {
+    if (this.disposed || on === this.restartVotePaused) return;
+    const now = this.sched.now();
+    if (on) {
+      this._restartWasPaused = this.paused;
+      this._restartPausedAt = now;
+      this.restartVotePaused = true;
+      if (!this.paused) { this.paused = true; this._pausedAt = now; }
+      for (const h of this._timers) {
+        h.remaining = Math.max(0, h.due - now);
+        this.sched.clearTimeout(h.native);
+        h.native = null;
+      }
+    } else {
+      const duration = Math.max(0, now - this._restartPausedAt);
+      this.restartVotePaused = false;
+      if (!this._restartWasPaused) {
+        this.paused = false;
+        this._pausedAt = 0;
+        this.pausedMs += duration;
+        if (this.deadline) this.deadline += duration;
+        if (this.draft?.turnDeadline) this.draft.turnDeadline += duration;
+        if (this.sp?.turnDeadline) this.sp.turnDeadline += duration;
+        for (const w of this.offerWin || []) if (!w.closed && w.deadline) w.deadline += duration;
+        if (this.overtimeAt) this.overtimeAt += duration;
+        if (this._bossStartAt != null) this._bossStartAt += duration;
+        for (const f of this.fields) {
+          if (f.startAt != null) f.startAt += duration;
+          if (f.lastProgressAt != null) f.lastProgressAt += duration;
+        }
+      }
+      // Intervals skip their pumps while paused. Reset baselines even if none fired meanwhile.
+      if (this.runner) this.runner.last = now;
+      if (this.pacer) this.pacer.last = now;
+      for (const h of this._timers) {
+        h.due = now + h.remaining;
+        h.native = this.sched.setTimeout(h.run, h.remaining);
+      }
+      const reports = [...this._restartReports.values()];
+      this._restartReports.clear();
+      for (const { playerId, msg } of reports) this.handle(playerId, msg);
+      if (this._restartWasPaused && !this.humans().some(ps => ps.connected)) this._resume();
+      if (this.clientCombat) for (const ps of this.order)
+        if (!ps.isBot && !ps.connected && !ps.left) this._authorityLost(ps, 'disconnect');
+    }
+    this.markPublic();
+    this.flush(true);
+  }
+
+  /** Atomic worker/local entry: snapshot eligible seats and freeze before acknowledging the request. */
+  beginRestartVote(includeEliminated, requester) {
+    if (this.disposed || this.ended || ['LOBBY','INFO_CHECK','ENDED'].includes(this.phase)) return fail(ERR.WRONG_PHASE);
+    const players = this.humans().filter(p => includeEliminated || p.alive).map(p => ({playerId:p.playerId,alive:p.alive}));
+    if (!players.some(p => p.playerId === requester)) return fail(ERR.ELIMINATED);
+    this.setRestartVotePaused(true);
+    return {ok:true,players};
+  }
 
   /** Let the bot act for a (newly) bot-controlled seat in the current phase. */
   kickBot(ps) {
@@ -3968,7 +4044,7 @@ if (this.test === true) {
     this._stopClientCombat();
     this.cancel(this._phaseTimer);
     this.cancel(this._turnTimer);
-    for (const h of this._timers) { try { this.sched.clearTimeout(h); } catch { /* ignore */ } }
+    for (const h of this._timers) { try { this.sched.clearTimeout(h.native); } catch { /* ignore */ } }
     this._timers.clear();
     this.phase = PHASE.RESULT;
     this.deadline = 0;

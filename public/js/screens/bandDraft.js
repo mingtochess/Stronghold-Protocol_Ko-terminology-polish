@@ -1,3 +1,4 @@
+import { tr } from '../i18n/i18n.js';
 import { RANDOM_BAND_ID } from '../../../shared/randomBand.js';
 import { ChatPanel } from '../ui/chat.js';
 // Band draft — BAND_DRAFT "2/2 选择策略" (research 06 §4.2, D1): left = draft order (avatar, name, state:
@@ -286,7 +287,7 @@ export function BandDraftScreen() {
         })}
         <${Button} variant="secondary" icon="search" block=${true} class="draft-order__info" data-testid="match-info-open"
           aria-haspopup="dialog" onClick=${() => setInfoOpen(true)}>查看禁用盟约与干员<//>
-        ${!solo ? html`<p class="draft-order__tip" data-testid="draft-tip">${draftTip({ timed, turnSeconds: turnLen, autoName: myPick ? null : autoName, selected: autoId === sel })}</p>` : null}
+        ${!solo ? html`<p class="draft-order__tip" data-i18n-native data-testid="draft-tip">${tr(draftTip({ timed, turnSeconds: turnLen, autoName: myPick ? null : autoName, selected: autoId === sel }))}</p>` : null}
       </aside>
 
       <section class="draft-grid" role="listbox" aria-label="策略">

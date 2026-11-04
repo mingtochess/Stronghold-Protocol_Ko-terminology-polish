@@ -4,6 +4,15 @@
 // integrated note (kind 'integrated', generated below from its updates and their hotfixes, never written by hand).
 const RELEASES = [
 {
+  version: '0.3.3k', date: '2026-11-05', status: 'testing', title: '리방 투표 개선',
+  sections: [{ title: '리방 투표', items: [
+    '리방 투표를 큰 패널과 시작 알림으로 표시하고, 반대·동의 카드를 선택한 뒤 같은 카드를 한 번 더 눌러 확정하도록 개선했습니다.',
+    '투표 중 게임·전투·이벤트·증강 선택과 전략 선택 완료 후 5초 대기를 정지하고, 부결·취소 시 남은 시간부터 재개합니다. 채팅과 이모티콘은 계속 사용할 수 있습니다.',
+    '방 커스텀 설정에 투표 제한 시간(15~90초, 기본 45초), 전원·과반수 동의, 탈락자 포함 여부, 재투표 대기 시간과 요청 한도를 추가했습니다. 퇴장자는 투표 대상에서 제외합니다.',
+    '투표창에 UI 테마의 배경 질감·테두리·모서리와 글꼴을 적용하고, 한국어·영어·중국어·일본어 표시를 보완했습니다.'
+  ] }]
+},
+{
   "version": "0.3.3j",
   "date": "2026-11-04",
   "status": "released",

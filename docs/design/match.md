@@ -1,5 +1,8 @@
 # DESIGN §6, §16 — The match and meta engine (server/match), operator loadouts
 
+Korean-fork extension: [restart-vote pause/resume contract](restart-vote.md). It also freezes the five-second
+strategy-complete wait; a failed/cancelled vote resumes its remaining duration (v0.3.3k).
+
 Part of [DESIGN.md](../DESIGN.md) (the index; section numbers are global).
 
 ## 6. Match & meta (server/match)

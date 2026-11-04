@@ -118,6 +118,8 @@ export class MatchProxy {
     this._post({ type: 'create', opts: wireOptions(this.opts) });
   }
 
+  beginRestartVote(includeEliminated, requester) { return this._request('beginRestartVote', [includeEliminated, requester]); }
+  setRestartVotePaused(on) { this._notify('setRestartVotePaused', [on]); }
   handle(playerId, msg) { return this._request('handle', [playerId, msg]); }
   setLoadout(playerId, loadout, ops) { return this._request('setLoadout', [playerId, loadout, ops]); }
   requestSetupReroll(playerId, revision) { return this._request('requestSetupReroll', [playerId, revision]); }
