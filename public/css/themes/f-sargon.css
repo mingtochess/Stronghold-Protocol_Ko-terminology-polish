@@ -121,6 +121,7 @@
 :root[data-ui-theme="f-sargon"] .hbond.is-full .hbond__board::before { background: #2f7fd0; border-color: #fcce46; }
 :root[data-ui-theme="f-sargon"] .hbond__icon:not(.hbond__glyph) { filter: brightness(0) invert(.15); }
 :root[data-ui-theme="f-sargon"] .hbond.is-full .hbond__icon:not(.hbond__glyph) { filter: brightness(0) invert(1); }
+
 :root[data-ui-theme="f-sargon"] .bond:not(.hbond) .bond__core::before { content: ''; position: absolute; pointer-events: none; }
 :root[data-ui-theme="f-sargon"] .bond:not(.hbond) .bond__core::before { inset: 15%; transform: rotate(-8deg); border-radius: calc(6 * var(--u)); background: #fff; border: calc(4 * var(--u)) solid #fcce46; box-shadow: calc(3 * var(--u)) calc(3 * var(--u)) 0 #f19b48; }
 :root[data-ui-theme="f-sargon"] .bond:not(.hbond).is-active .bond__core::before { background: #2f7fd0; border-color: #fcce46; }
@@ -144,5 +145,3 @@
 :root[data-ui-theme="f-sargon"] { --hb-band-bg: #2f7fd0; --hb-band-ink: #fff; --hb-band-line: #fcce46; --hb-band-clip: polygon(12% 0, 100% 0, 88% 100%, 0 100%); }
 :root[data-ui-theme="f-sargon"] .section-label :is(.section-label__idx, .micro) { color: inherit; border-color: currentColor; opacity: .85; }
 :root[data-ui-theme="f-sargon"] body::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none; background: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%2714%27%20height%3D%2714%27%20viewBox%3D%270%200%2014%2014%27%3E%3Ccircle%20cx%3D%277%27%20cy%3D%277%27%20r%3D%272%27%20fill%3D%27%23f19b48%27%20fill-opacity%3D%27.16%27%2F%3E%3C%2Fsvg%3E") 0 0 / 14px 14px repeat; }
-
-:root[data-ui-theme="f-sargon"] .mode-card__bg { background: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%27200%27%20height%3D%27200%27%20viewBox%3D%270%200%20200%20200%27%3E%3Cg%20fill%3D%27none%27%20stroke%3D%27%23f19b48%27%20stroke-width%3D%273%27%20stroke-opacity%3D%27.32%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M20%20160H180%27%2F%3E%3Cpath%20d%3D%27M40%20160L70%20110H130L160%20160%27%2F%3E%3Ccircle%20cx%3D%2765%27%20cy%3D%27160%27%20r%3D%2714%27%2F%3E%3Ccircle%20cx%3D%27135%27%20cy%3D%27160%27%20r%3D%2714%27%2F%3E%3Cpath%20d%3D%27M150%2040l8%2016%2018%202-13%2012%204%2018-17-9-16%209%204-18-13-12%2018-2z%27%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E") right -4% top -6% / 46% auto no-repeat, var(--bg-2) !important; }

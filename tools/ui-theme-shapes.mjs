@@ -404,7 +404,10 @@ export function shapeCss(id) {
   const S = `:root[data-ui-theme="${id}"]`;
   if (!f) return '';
   const body = f(S);
+  // the guide's frame (a border-image) also frames the simulation-select cards — the event's own card language
+  const cards = body.split('\n').filter((l) => /border-image/.test(l) && /:is\(\.panel, \.modal__box/.test(l)).map((l) => l.replace(/:is\(\.panel, \.modal__box, \.bpop, \.dpanel\)/, '.mode-card')).join('\n');
   return `/* ---- shape layer (tools/ui-theme-shapes.mjs) */${body}
+${cards}
 ${discRules(body)}
 ${ringRules(S, body).split('\n').filter((l) => !/::after|::after,|^\s+(background|-webkit-mask|mask|filter|-webkit-mask-composite)/.test(l)).join('\n')}
 ${markerRules(id, S)}

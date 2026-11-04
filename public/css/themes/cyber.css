@@ -121,6 +121,7 @@
   color: var(--hb-count-ink, #ffffff); text-shadow: 0 0 2px #000, 0 0 2px #000, 0 1px 2px #000, 0 0 4px rgba(0, 0, 0, .8); }
 :root[data-ui-theme="cyber"] .hbond__board::before { inset: 14%; clip-path: polygon(0 0, 75% 0, 100% 25%, 100% 100%, 25% 100%, 0 75%); background: #1d1630; box-shadow: inset 0 0 0 calc(3 * var(--u)) #ff2e88; }
 :root[data-ui-theme="cyber"] .hbond.is-full .hbond__board::before { background: linear-gradient(135deg, #ff2e88, #00f0ff); }
+
 :root[data-ui-theme="cyber"] .bond:not(.hbond) .bond__core::before { content: ''; position: absolute; pointer-events: none; }
 :root[data-ui-theme="cyber"] .bond:not(.hbond) .bond__core::before { inset: 14%; clip-path: polygon(0 0, 75% 0, 100% 25%, 100% 100%, 25% 100%, 0 75%); background: #1d1630; box-shadow: inset 0 0 0 calc(3 * var(--u)) #ff2e88; }
 :root[data-ui-theme="cyber"] .bond:not(.hbond).is-active .bond__core::before { background: linear-gradient(135deg, #ff2e88, #00f0ff); }
@@ -141,5 +142,3 @@
 :root[data-ui-theme="cyber"] { --hb-band-bg: #0e0b17; --hb-band-ink: #00f0ff; --hb-band-line: #ff2e88; }
 :root[data-ui-theme="cyber"] .section-label :is(.section-label__idx, .micro) { color: inherit; border-color: currentColor; opacity: .85; }
 :root[data-ui-theme="cyber"] body::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none; background: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%2748%27%20height%3D%2748%27%20viewBox%3D%270%200%2048%2048%27%3E%3Cpath%20d%3D%27M0%2024H18L24%2018H48M24%2048V30L30%2024%27%20fill%3D%27none%27%20stroke%3D%27%2300f0ff%27%20stroke-opacity%3D%27.18%27%2F%3E%3Ccircle%20cx%3D%2718%27%20cy%3D%2724%27%20r%3D%271.5%27%20fill%3D%27%23ff2e88%27%20fill-opacity%3D%27.4%27%2F%3E%3C%2Fsvg%3E") 0 0 / 48px 48px repeat; }
-
-:root[data-ui-theme="cyber"] .mode-card__bg { background: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%27200%27%20height%3D%27200%27%20viewBox%3D%270%200%20200%20200%27%3E%3Cg%20fill%3D%27none%27%20stroke%3D%27%2300f0ff%27%20stroke-width%3D%273%27%20stroke-opacity%3D%27.32%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M20%20160H80L100%20140H180M100%20140V60L120%2040H180M60%20160V100L80%2080%27%2F%3E%3Ccircle%20cx%3D%27120%27%20cy%3D%2740%27%20r%3D%276%27%2F%3E%3Ccircle%20cx%3D%2780%27%20cy%3D%2780%27%20r%3D%275%27%2F%3E%3Crect%20x%3D%27130%27%20y%3D%2790%27%20width%3D%2740%27%20height%3D%2730%27%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E") right -4% top -6% / 46% auto no-repeat, var(--bg-2) !important; }

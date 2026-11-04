@@ -108,6 +108,7 @@
   color: var(--hb-count-ink, #ffffff); text-shadow: 0 0 2px #000, 0 0 2px #000, 0 1px 2px #000, 0 0 4px rgba(0, 0, 0, .8); }
 :root[data-ui-theme="ss-vultures"] .hbond__board::before { inset: 12%; clip-path: polygon(25% 3%, 75% 3%, 100% 50%, 75% 97%, 25% 97%, 0 50%); background: repeating-linear-gradient(-45deg, #2c3a3f 0 calc(5 * var(--u)), #1a2427 calc(5 * var(--u)) calc(10 * var(--u))); }
 :root[data-ui-theme="ss-vultures"] .hbond.is-full .hbond__board::before { background: repeating-linear-gradient(-45deg, #d4d93a 0 calc(6 * var(--u)), #b9be22 calc(6 * var(--u)) calc(12 * var(--u))); }
+
 :root[data-ui-theme="ss-vultures"] .bond:not(.hbond) .bond__core::before { content: ''; position: absolute; pointer-events: none; }
 :root[data-ui-theme="ss-vultures"] .bond:not(.hbond) .bond__core::before { inset: 12%; clip-path: polygon(25% 3%, 75% 3%, 100% 50%, 75% 97%, 25% 97%, 0 50%); background: repeating-linear-gradient(-45deg, #2c3a3f 0 calc(5 * var(--u)), #1a2427 calc(5 * var(--u)) calc(10 * var(--u))); }
 :root[data-ui-theme="ss-vultures"] .bond:not(.hbond).is-active .bond__core::before { background: repeating-linear-gradient(-45deg, #d4d93a 0 calc(6 * var(--u)), #b9be22 calc(6 * var(--u)) calc(12 * var(--u))); }
@@ -128,5 +129,3 @@
 :root[data-ui-theme="ss-vultures"] { --hb-band-bg: #182226; --hb-band-ink: #d4d93a; --hb-band-line: #d4d93a; }
 :root[data-ui-theme="ss-vultures"] .section-label :is(.section-label__idx, .micro) { color: inherit; border-color: currentColor; opacity: .85; }
 :root[data-ui-theme="ss-vultures"] body::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none; background: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%2740%27%20height%3D%2740%27%20viewBox%3D%270%200%2040%2040%27%3E%3Cpath%20d%3D%27M0%2040L40%200M-10%2010L10%20-10M30%2050L50%2030%27%20stroke%3D%27%23d4d93a%27%20stroke-opacity%3D%27.06%27%20stroke-width%3D%276%27%2F%3E%3C%2Fsvg%3E") 0 0 / 40px 40px repeat; }
-
-:root[data-ui-theme="ss-vultures"] .mode-card__bg { background: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%27200%27%20height%3D%27200%27%20viewBox%3D%270%200%20200%20200%27%3E%3Cg%20fill%3D%27none%27%20stroke%3D%27%23d4d93a%27%20stroke-width%3D%273%27%20stroke-opacity%3D%27.32%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M40%20150L100%2050L160%20150Z%27%2F%3E%3Cpath%20d%3D%27M100%2085V120M100%20132V138%27%2F%3E%3Cpath%20d%3D%27M20%20180L60%20160M180%20180L140%20160%27%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E") right -4% top -6% / 46% auto no-repeat, var(--bg-2) !important; }

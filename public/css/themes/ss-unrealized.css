@@ -123,6 +123,7 @@
 :root[data-ui-theme="ss-unrealized"] .hbond.is-full .hbond__board::before { background: radial-gradient(60% 50% at 40% 40%, #e8585e, #c4333a); border-color: #15292d; }
 :root[data-ui-theme="ss-unrealized"] .hbond__icon:not(.hbond__glyph) { filter: brightness(0) invert(.15); }
 :root[data-ui-theme="ss-unrealized"] .hbond.is-full .hbond__icon:not(.hbond__glyph) { filter: brightness(0) invert(1); }
+
 :root[data-ui-theme="ss-unrealized"] .bond:not(.hbond) .bond__core::before { content: ''; position: absolute; pointer-events: none; }
 :root[data-ui-theme="ss-unrealized"] .bond:not(.hbond) .bond__core::before { inset: 14% 8%; border-radius: 50% 45% 48% 52% / 60% 55% 45% 40%; background: radial-gradient(60% 50% at 40% 40%, #ffffff, #dcf0f3); border: calc(3 * var(--u)) solid #2b525a; }
 :root[data-ui-theme="ss-unrealized"] .bond:not(.hbond).is-active .bond__core::before { background: radial-gradient(60% 50% at 40% 40%, #e8585e, #c4333a); border-color: #15292d; }
@@ -145,5 +146,3 @@
 :root[data-ui-theme="ss-unrealized"] { --hb-band-bg: #2b525a; --hb-band-ink: #fff; --hb-band-line: #c4333a; }
 :root[data-ui-theme="ss-unrealized"] .section-label :is(.section-label__idx, .micro) { color: inherit; border-color: currentColor; opacity: .85; }
 :root[data-ui-theme="ss-unrealized"] body::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none; background: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%27120%27%20height%3D%2760%27%20viewBox%3D%270%200%20120%2060%27%3E%3Cg%20fill%3D%27%23ffffff%27%20fill-opacity%3D%27.35%27%3E%3Ccircle%20cx%3D%2730%27%20cy%3D%2734%27%20r%3D%2710%27%2F%3E%3Ccircle%20cx%3D%2744%27%20cy%3D%2728%27%20r%3D%2713%27%2F%3E%3Ccircle%20cx%3D%2758%27%20cy%3D%2734%27%20r%3D%279%27%2F%3E%3C%2Fg%3E%3Cpath%20d%3D%27M90%2012l4%202-4%202%27%20fill%3D%27none%27%20stroke%3D%27%232b525a%27%20stroke-opacity%3D%27.3%27%2F%3E%3C%2Fsvg%3E") 0 0 / 120px 60px repeat; }
-
-:root[data-ui-theme="ss-unrealized"] .mode-card__bg { background: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%27200%27%20height%3D%27200%27%20viewBox%3D%270%200%20200%20200%27%3E%3Cg%20fill%3D%27none%27%20stroke%3D%27%232b525a%27%20stroke-width%3D%273%27%20stroke-opacity%3D%27.32%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M30%20130Q30%20105%2055%20110Q60%2085%2090%2092Q110%2070%20135%2095Q165%2092%20165%20120H30Z%27%2F%3E%3Cpath%20d%3D%27M140%2040l20%2010-20%2010M150%2050H120%27%2F%3E%3Cpath%20d%3D%27M60%2060l8%204-8%204%27%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E") right -4% top -6% / 46% auto no-repeat, var(--bg-2) !important; }
