@@ -562,3 +562,14 @@ select option, select optgroup { background-color: var(--bg-2, var(--surf-2, #11
 /* light themes keep the shop cards' and the loadout's portrait plates dark: what sits on them reads in light ink */
 :root[data-ui-theme][data-ui-light] :is(.scard, .lo-card, .lo-chip--tier) { --text-hi: #f3f6f5; --text-md: #d4dcd9; --text-lo: #aab5b1; --text-dim: #8c9893; --ink-hi: #fff; --ink-md: #d4dcd9; --ink-rgb: 255, 255, 255; --shade-rgb: 8, 11, 10; --dim-rgb: 0, 0, 0; --surf-0-rgb: 7, 9, 9; --surf-1-rgb: 13, 17, 16; --surf-2-rgb: 21, 26, 25; --bg-0-rgb: 11, 14, 13; --bg-1-rgb: 18, 22, 21; color: #f3f6f5; }
 :root[data-ui-theme][data-ui-light] :is(.scard, .lo-card) :is(img.icon, .scard__bond img, .scard__job img, .bond-tag img) { filter: none; }
+
+/* UI themes: the lobby's difficulty tabs take the theme's button colours like the 4인 / 8인 toggle (they kept the default
+   dark-glass face); the difficulty colour stays on the glyph and the selected tab's bar */
+:root[data-ui-theme] .diff-tabs .diff-tab { background: var(--surf-2, #14221f); border-color: var(--line-3); border-radius: 0; color: var(--text-md); }
+:root[data-ui-theme] .diff-tabs .diff-tab:hover { border-color: var(--mint-400); }
+:root[data-ui-theme] .diff-tabs .diff-tab.is-selected { background: var(--mint-500); border-color: var(--mint-400); color: var(--text-on-mint); box-shadow: inset 0 -3px 0 var(--d-color); }
+
+/* light UI themes: the participant list's faction badge keeps a dark plate (its bond icon is white — on the light
+   --surf-2 it vanished), and the chat preview's lines take a light halo instead of the black shadow under dark ink */
+:root[data-ui-light] .profile-faction { background: #1d2126; }
+:root[data-ui-light] .game-chat__preview { text-shadow: 0 0 3px rgba(255, 255, 255, .95), 0 0 6px rgba(255, 255, 255, .8); }

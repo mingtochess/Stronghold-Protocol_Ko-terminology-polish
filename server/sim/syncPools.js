@@ -55,7 +55,7 @@ export class SharedSyncPools {
     f.set(key, c);
     const wasAlive = p.hp > 0;
     const dealt = p.damage(c - before);
-    if (wasAlive && p.hp <= 0 && this.onDepleted) { try { this.onDepleted(key); } catch { /* reported by the caller */ } }
+    if (wasAlive && p.hp <= 0 && this.onDepleted) { try { this.onDepleted(key, fieldId); } catch { /* reported by the caller */ } }
     return dealt;
   }
   /** A field's cumulative healing on `key`: the part not credited yet goes back into the pool (never a dead one). */

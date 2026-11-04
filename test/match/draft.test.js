@@ -4,7 +4,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { ERR, PHASE } from '../../shared/constants.js';
 import { DATA, makeMatch, checkInvariants } from './harness.js';
-import { BAND_TURN_SECONDS } from '../../server/match/Match.js';
+import { BAND_TURN_SECONDS, BAND_DONE_SECONDS } from '../../server/match/Match.js';
 
 const TURN_MS = BAND_TURN_SECONDS * 1000;
 
@@ -60,7 +60,11 @@ test('band draft (co-op): random order, one pick per turn, NOT_YOUR_TURN, one sk
   assert.deepEqual(m.handle(first, { t: 'g.bandSkip' }).error, ERR.ALREADY, 'only one skip');
   assert.deepEqual(m.handle(first, { t: 'g.band', bandId: 'band_lisa' }), { ok: true });
   assert.equal(h.ps(first).lp, 20);
+  // every pick is in: a BAND_DONE_SECONDS countdown before the round
   h.sched.advance(1);
+  assert.equal(m.phase, PHASE.BAND_DRAFT);
+  assert.equal(m.publicView().draft.done, true);
+  h.sched.advance(BAND_DONE_SECONDS * 1000);
   assert.equal(m.phase, PHASE.BATTLE_CHECK);
   m.dispose();
 });
@@ -249,7 +253,7 @@ test('a single human (a 同盟 room started alone or with AI teammates only) is 
     assert.equal(m.soloUntimed, true);
     assert.equal(m.isSolo, false, 'the co-op mode rules stay');
     const seen = new Map(); // phase → deadlines published
-    const note = (pub) => { if(pub.phase===PHASE.SP_DRAFT && pub.sp?.settling){assert.ok(pub.deadline>h.sched.now());return;} if (!seen.has(pub.phase)) seen.set(pub.phase, []); seen.get(pub.phase).push(pub.deadline); };
+    const note = (pub) => { if(pub.phase===PHASE.SP_DRAFT && pub.sp?.settling){assert.ok(pub.deadline>h.sched.now());return;} if(pub.phase===PHASE.BAND_DRAFT && pub.draft?.done){assert.ok(pub.deadline>h.sched.now());return;} if (!seen.has(pub.phase)) seen.set(pub.phase, []); seen.get(pub.phase).push(pub.deadline); };
     for (const msg of h.bc) if (msg.t === 'm.public') note(msg);
     h.onBroadcast.push((msg) => { if (msg.t === 'm.public') note(msg); });
     assert.equal(m.phase, PHASE.INFO_CHECK);

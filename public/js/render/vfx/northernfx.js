@@ -20,7 +20,7 @@ export class NorthernFx{
    const absolute=Number.isFinite(e.born)&&typeof w.opts?.gameTime==='function',clock=()=>absolute?w.opts.gameTime():w.ofx.time,start=absolute?e.born:clock(),speed=Number(e.speed)||0,dur=Number(e.dur)||0,dx=Number(e.dx)||0,dy=Number(e.dy)||0;
    const heightAt=(x,y)=>(Number(w.ofx.ctx?.heightAt?.(Math.round(y),Math.round(x)))||0)+.18,height=heightAt(x,y);
    const handle=w.ofx.spawn('oxi_skill_03_trail_01',{pos:[x-10,y-9,-height],groundZ:-(height-.18),rootRot:[0,0,0,1]},{loop:true,important:true,owner,
-    track:effect=>{const time=Math.max(0,Math.min(dur,clock()-start));effect.anchor[0]=x-10+dx*speed*time;effect.anchor[1]=y-9+dy*speed*time;const ground=heightAt(x+dx*speed*time,y+dy*speed*time)-.18;effect.anchor[2]=-(ground+.18);effect.groundZ=-ground;effect.yaw=Math.atan2(dy,dx);}});
+    track:effect=>{const time=Math.max(0,Math.min(dur,clock()-start));effect.anchor[0]=x-10+dx*speed*time;effect.anchor[1]=y-9+dy*speed*time;effect.anchor[2]=-height;effect.groundZ=-(height-.18);effect.yaw=Math.atan2(dy,dx);}});
    const key=`wave:${id}:${e.wave}:${e.lane}`,kept=this._keep(key,handle,owner,dur,true);if(kept&&absolute)this.live.get(key).endsAt=start+dur;return kept;
   }
   if(kind==='talulahWaveHit'){this._stop(`wave:${id}:${e.wave}:${e.lane}`);return play('oxi_skill_03_hit_01');}

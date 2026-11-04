@@ -1,5 +1,5 @@
 // test/sync-mode.test.js — 동기화 시뮬레이션: an alliance room (coop / coop8) created with `sync`, listed as such, and its
-// match runs with shared HP, no round LP cap and no 联防.
+// match runs with shared HP, one round LP cap (the room's cap × the living players) and no 联防.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { startServer } from '../server/index.js';
@@ -24,11 +24,12 @@ test('a sync room: created on coop / coop8 only, says so in its state and in the
   } finally { host?.terminate(); viewer?.terminate(); await server.close(); }
 });
 
-test('a sync match: shared HP on, no round LP cap, no 联防 plan', () => {
+test('a sync match: shared HP on, the round LP cap is the room cap × the living players, no 联防 plan', () => {
   const { m } = makeMatch({ mode: 'coop', sync: true, humans: 2 });
   assert.equal(m.sync, true);
   assert.equal(m.gd.config.customRules?.sharedHp, true);
-  assert.ok(m.gd.lpCapPerRound >= 1e9);
+  assert.equal(m.gd.lpCapPerRound, 10);
+  assert.equal(m.syncRoundCap(), 20);
   const plain = makeMatch({ mode: 'coop', humans: 2 }).m;
   assert.equal(plain.sync, false);
   assert.equal(plain.gd.lpCapPerRound, 10);
@@ -87,7 +88,7 @@ for (const clientCombat of [false, true]) test(`a sync match of bots runs its no
   m.dispose();
 });
 
-test('sync bounty: pays only the player who picked it, once per bounty enemy, whoever killed it', async (t) => {
+test('sync bounty: pays the player who picked it and the same to the killer, once per bounty enemy', async (t) => {
   const { syncRound, syncCredit } = await import('../server/match/sync.js');
   const { buildNormalWave } = await import('../server/match/waves.js');
   const h = makeMatch({ mode: 'coop', sync: true, humans: 2, fake: true });
@@ -108,8 +109,9 @@ test('sync bounty: pays only the player who picked it, once per bounty enemy, wh
     syncCredit(m, fid, { [k]: 2e9 }, { [k]: 1000 }, []);
     syncCredit(m, 'n:other', { [k]: 1e9 }, { [k]: 1000 }, []);
   }
+  // a (the picker) is paid for both; b also gets the coins of the one its field killed; 'n:other' is no player
   assert.equal(st.paidBy.get(a.playerId), 6);
-  assert.equal(st.paidBy.get(b.playerId) || 0, 0);
+  assert.equal(st.paidBy.get(b.playerId), 3);
 });
 
 test('sync 8-player rooms: a kill takes back up to two leaks', async (t) => {

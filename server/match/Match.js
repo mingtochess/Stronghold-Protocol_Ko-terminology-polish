@@ -288,6 +288,7 @@ export const DELAYS = Object.freeze({
  * the remake's. It is also the step's only countdown (m.public.deadline = draft.turnDeadline). × timerScale.
  */
 export const BAND_TURN_SECONDS = 50;
+export const BAND_DONE_SECONDS = 5;
 
 const dsCache = new WeakMap();
 function dataSourceFor(data) {
@@ -329,10 +330,11 @@ export class Match {
     this.data = applyCustomExtensions(this.data, this.customExtensions);
     this.excludedChessIds=new Set(Object.keys(unfilteredChess).filter(id=>!this.data.chess?.[id]));
     if(this.mode==='coop8')this.data={...this.data,config:{...this.data.config,coop8:true}};
-    // 동기화 시뮬레이션 (opts.sync, an alliance room): the team's HP is shared, a round's LP loss has no cap, there is no
+    // 동기화 시뮬레이션 (opts.sync, an alliance room): the team's HP is shared, a round's LP loss is capped at the room's
+    // per-round cap × the living players (one cap for the whole round, not per player: syncRoundCap), there is no
     // 联防, and every field fights one wave whose enemies share their HP across the fields (sync.js)
     this.sync = this.mode !== 'solo' && opts.sync === true;
-    if(this.sync)this.data={...this.data,config:{...this.data.config,sync:true,lpCapPerRound:1e9,customRules:{...(this.data.config?.customRules||{}),sharedHp:true}}};
+    if(this.sync)this.data={...this.data,config:{...this.data.config,sync:true,customRules:{...(this.data.config?.customRules||{}),sharedHp:true}}};
     /** the room's content hash (opts.cs, DESIGN §32): every BattleSpec carries it */
     this.cs = isContentHash(opts.cs) ? opts.cs : null;
     /** the room's visual set (opts.vs, DESIGN §32.6): every BattleSpec names it */
@@ -1164,7 +1166,7 @@ export class Match {
     if (this.sync) {
       v.sync = true;
       if (this.phase === PHASE.COMBAT && this._sync && this._sync.round === this.round) {
-        const loss = Math.round(syncLeakLoss(this) * (this.augments?.leakHpCost() || 1));
+        const loss = Math.min(this.syncRoundCap(), Math.round(syncLeakLoss(this) * (this.augments?.leakHpCost() || 1)));
         if (loss > 0) v.syncPendingLp = loss;
       }
     }
@@ -1183,7 +1185,7 @@ export class Match {
       // turnSeconds: the length of a turn (the countdown gauge's total; 0 when untimed) — deadline = turnDeadline
       v.draft = {
         order: d.order.slice(), turn: this.draftTurn(), picks: { ...d.picks }, skipsLeft: { ...d.skipsLeft }, turnDeadline: d.turnDeadline || 0,
-        turnSeconds: d.untimed ? 0 : this.bandTurnMs() / 1000, untimed: !!d.untimed,
+        turnSeconds: d.done ? this.scaled(BAND_DONE_SECONDS * 1000) / 1000 : d.untimed ? 0 : this.bandTurnMs() / 1000, untimed: !!d.untimed && !d.done, done: !!d.done,
       };
     }
     if (this.offers.length) v.offers = this.offerViews();
@@ -1780,6 +1782,9 @@ if (this.test === true) {
     return d.order[d.idx] ?? null;
   }
 
+  /** 동기화: the most team LP one round can cost — the room's per-round cap × the living players. */
+  syncRoundCap() { return this.gd.lpCapPerRound * Math.max(1, this.alivePlayers().length); }
+
   /** Real ms of one strategy-draft turn (BAND_TURN_SECONDS × timerScale). */
   bandTurnMs() { return this.scaled(BAND_TURN_SECONDS * 1000); }
 
@@ -1790,9 +1795,13 @@ if (this.test === true) {
     if (this.test) this.setDeadline(0);
     while (d.idx < d.order.length && d.picks[d.order[d.idx]]) d.idx++; // loop-cap: draft order
     if (d.idx >= d.order.length) {
+      // every strategy is in: a short countdown (BAND_DONE_SECONDS) lets everyone see the picks before the round starts
+      const ms = this.scaled(BAND_DONE_SECONDS * 1000), token = ++this._turnToken;
       d.turnDeadline = 0;
-      this.deadline = 0;
-      this.later(0, () => this.finishBandDraft(false));
+      d.done = true;
+      this.deadline = ms > 0 ? this.sched.now() + ms : 0;
+      this.later(ms, () => { if (this.phase === PHASE.BAND_DRAFT && token === this._turnToken) this.finishBandDraft(false); });
+      this.markPublic();
       return;
     }
     const token = ++this._turnToken;
@@ -3607,8 +3616,11 @@ if (this.test === true) {
     // 동기화 (sync.js): the shared enemies' leaks cost the team once each, and only while their shared HP is left; a
     // bounty whose shared HP ran out pays every living player
     const syncSt = this.sync && this._sync && this._sync.round === this.round ? this._sync : null;
+    // 동기화: one cap on the team's loss for the whole round (syncRoundCap), shared leaks first, then the fields' own
+    let syncBudget = syncSt ? this.syncRoundCap() : Infinity;
     if (syncSt) {
-      const loss = syncLeakLoss(this) * (this.augments?.leakHpCost() || 1);
+      const loss = Math.min(syncBudget, syncLeakLoss(this) * (this.augments?.leakHpCost() || 1));
+      syncBudget -= Math.max(0, loss);
       if (loss > 0) {
         this.teamLp = Math.max(0, this.teamLp - loss);
         // the stats split it like the rows of the shared LP
@@ -3618,7 +3630,8 @@ if (this.test === true) {
     for (const ps of alive) {
       const r = this.lastResults.get(ps.playerId) || { leaked: [], perfect: true, coins: 0, layerGains: {}, killed: 0, damageDealt: 0 };
       const counted = (r.leaked || []).filter((l) => l && l.counted !== false && !(syncSt && l.syncKey)).length;
-      const loss = uniteRan && plan.leakers.includes(ps) ? Math.min(cap, (survivors.get(ps.playerId) || 0)*(this.augments?.leakHpCost()||1)) : Math.min(cap, counted*(this.augments?.leakHpCost()||1));
+      let loss = uniteRan && plan.leakers.includes(ps) ? Math.min(cap, (survivors.get(ps.playerId) || 0)*(this.augments?.leakHpCost()||1)) : Math.min(cap, counted*(this.augments?.leakHpCost()||1));
+      if (syncSt) { loss = Math.max(0, Math.min(loss, syncBudget)); syncBudget -= loss; }
       if(this.gd.config.customRules?.sharedHp)this.teamLp=Math.max(0,this.teamLp-loss);
       else ps.lp -= loss;
       ps.stats.lpLost += loss;

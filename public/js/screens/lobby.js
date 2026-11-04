@@ -98,7 +98,7 @@ const MODE_CARDS = [
   {
     id: 'sync', name: '동기화 시뮬레이션', en: 'SYNC SIMULATION', icon: 'link',
     desc: '모든 전장에 같은 적이 나오고, 적의 HP를 함께 공유합니다.',
-    points: ['박사 1–4명 · HP 공유', '연합 방어 없음 · HP 감소 상한 없음'],
+    points: ['박사 1–4명 · HP 공유', '연합 방어 없음 · HP 감소 상한 × 인원'],
   },
   { id: 'laboratory', name: '실험실', en: 'LABORATORY', icon: 'flask', desc: '맵·보스·전략을 직접 고르고 원하는 조합을 시험합니다.', points: ['솔로 플레이 · 밴 없음', '한 라운드 전투 · 결과 통계 기록'] },
   { id:'practice',name:'연습실',en:'PRACTICE',icon:'flask',desc:'원하는 라운드부터 일반 게임처럼 연습합니다.',points:['솔로 플레이 · 무제한 자금','라운드·적 특훈·맹약 밴 선택'] },
@@ -251,7 +251,7 @@ function TipsPanel() {
 
 function ModeCard({ card, selected, onSelect, coopSize=4, onCoopSize, publicOn, onPublicChange, full=false }) {
   if(card.id==='coop'&&coopSize===8)card={...card,desc:'최대 8명의 박사가 오퍼레이터 풀을 공유하며 함께 전투합니다.',points:['박사 1–8명 · 빈자리는 AI 팀원으로','협력방어 최대 4명']};
-  if(card.id==='sync'&&coopSize===8)card={...card,points:['박사 1–8명 · HP 공유','연합 방어 없음 · HP 감소 상한 없음']};
+  if(card.id==='sync'&&coopSize===8)card={...card,points:['박사 1–8명 · HP 공유','연합 방어 없음 · HP 감소 상한 × 인원']};
   const sized=card.id==='coop'||card.id==='sync';
   return html`<div class="mode-card-tip"><div role="button" tabindex="0" class=${`mode-card brackets${['laboratory','practice'].includes(card.id)&&!full?' mode-card--lab':''}${selected ? ' is-selected' : ''}`} onClick=${() => onSelect(sized&&coopSize===8?card.id+'8':card.id)} onKeyDown=${e=>{if(e.target===e.currentTarget&&['Enter',' '].includes(e.key)){e.preventDefault();onSelect(sized&&coopSize===8?card.id+'8':card.id);}}}
       aria-pressed=${selected ? 'true' : 'false'}>
@@ -421,13 +421,15 @@ export function LobbyScreen() {
 
     <div class="lobby-body screen__scroll">
       <section class="lobby-left">
-        <div class="lg-modes"><div class="section-label"><span class="section-label__idx num">01</span>模拟方式<${MicroLabel}>MODE<//></div>
+        <div class="section-label lg-label lg-label--modes"><span class="section-label__idx num">01</span>模拟方式<${MicroLabel}>MODE<//></div>
+        <div class="lg-modes">
         <div class="mode-cards mode-cards--main">
           ${MODE_CARDS.filter((c) => MAIN_MODES.includes(c.id)).map((c) => html`<${ModeCard} key=${c.id} card=${c} selected=${roomMode === c.id || roomMode===c.id+'8'} onSelect=${pickMode} coopSize=${coopSize} onCoopSize=${n=>{setCoopSize(n);pickMode((c.id==='sync'?'sync':'coop')+(n===8?'8':''));}} publicOn=${publicOn} onPublicChange=${on=>{setPublicOn(on);savePref('lobby.publicOn',on);}} />`)}
         </div>
 
         </div>
-        <div class="lg-join"><div class="section-label"><span class="section-label__idx num">02</span>加入同盟<${MicroLabel}>JOIN WITH ALLIANCE KEY<//></div>
+        <div class="section-label lg-label lg-label--join"><span class="section-label__idx num">02</span>加入同盟<${MicroLabel}>JOIN WITH ALLIANCE KEY<//></div>
+        <div class="lg-join">
         <${Panel} class="join-panel" tone="amber">
           <div class="join-row">
             <${TextField} ascii=${true} size="code" icon="key" value=${code} placeholder="输入同盟密钥 / 粘贴邀请链接"

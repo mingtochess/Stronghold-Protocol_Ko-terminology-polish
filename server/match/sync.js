@@ -6,8 +6,8 @@
 //   * A leak costs the team LP once per field it got through on; if the enemy is killed (its shared HP runs out on any
 //     field) one of those is taken back (8-player rooms: up to two): 2 fields let A through, then A is killed ⇒ the
 //     team loses A's LP once.
-//   * A bounty enemy whose shared HP runs out pays its coins once, to the player who picked that bounty (whoever's field
-//     dealt the last hit).
+//   * A bounty enemy whose shared HP runs out pays its coins to the player who picked that bounty and, the same amount,
+//     to the player whose field dealt the last hit (once, when that is the picker).
 import { withBounties } from './waves.js';
 import { SharedSyncPools } from '../sim/syncPools.js';
 
@@ -42,10 +42,16 @@ export function syncRound(m) {
     refund: m.mode === 'coop8' ? 2 : 1, // leaks a kill takes back
     pools: new SharedSyncPools({
       // a pool runs out once (SharedSyncPools.credit: only on the alive → dead step), so each bounty unit pays once
-      onDepleted: (key) => {
+      onDepleted: (key, fieldId) => {
         const root = ROOT.exec(key);
         const c = root ? coins.get(root[1]) : null;
-        if (c) st.paidBy.set(c.owner, (st.paidBy.get(c.owner) || 0) + c.coins);
+        if (!c) return;
+        // the picker, and the player whose field dealt the last hit (when someone else), each get the bounty's coins
+        const killer = typeof fieldId === 'string' && fieldId.startsWith('n:') ? fieldId.slice(2) : null;
+        for (const pid of new Set([c.owner, killer].filter((pid) => pid && alive.some((ps) => String(ps.playerId) === pid || ps.playerId === pid)))) {
+          const id = alive.find((ps) => String(ps.playerId) === String(pid)).playerId;
+          st.paidBy.set(id, (st.paidBy.get(id) || 0) + c.coins);
+        }
       },
     }),
   };

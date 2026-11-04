@@ -10,7 +10,7 @@ import assert from 'node:assert/strict';
 import { ERR, PHASE } from '../../shared/constants.js';
 import { makeMatch, DATA } from '../match/harness.js';
 import { teammateBands, timeoutBand, allowedBands, autoPickBand, draftClock, draftTip, draftSelection } from '../../public/js/screens/bandDraft.js';
-import { BAND_TURN_SECONDS } from '../../server/match/Match.js';
+import { BAND_TURN_SECONDS, BAND_DONE_SECONDS } from '../../server/match/Match.js';
 
 const TURN_MS = BAND_TURN_SECONDS * 1000;
 
@@ -78,7 +78,7 @@ describe('server: no duplicate strategies in the co-op draft', () => {
     assert.deepEqual(m.handle(third, { t: 'g.band', bandId: 'band_amiya' }), { ok: true });
     const picks = Object.values(m.publicView().draft?.picks || m.draft.picks);
     assert.equal(new Set(picks).size, picks.length, 'all different');
-    h.sched.advance(1);
+    h.sched.advance(BAND_DONE_SECONDS * 1000 + 1);
     assert.equal(m.phase, PHASE.BATTLE_CHECK);
     m.dispose();
   });
@@ -204,7 +204,7 @@ describe('server: automatic assignments never duplicate a teammate\'s strategy',
   test('every human idle: the turn timeouts assign distinct strategies (no separate step cap)', () => {
     const h = draftOf({ humans: 4, seed: 9 });
     const m = h.m;
-    h.run(() => m.phase !== PHASE.BAND_DRAFT, { maxTime: 4 * TURN_MS + 1 });
+    h.run(() => m.phase !== PHASE.BAND_DRAFT, { maxTime: 4 * TURN_MS + BAND_DONE_SECONDS * 1000 + 1 });
     assert.equal(m.phase, PHASE.BATTLE_CHECK);
     const ids = distinct(m);
     assert.ok(ids.includes('band_bldsk'), 'the first idle player still gets the official default');
@@ -234,7 +234,7 @@ describe('server: automatic assignments never duplicate a teammate\'s strategy',
     m.dispose();
     for (const seed of [1, 2, 3, 4]) {
       const h2 = draftOf({ humans: 2, bots: 2, seed });
-      h2.run(() => h2.m.phase !== PHASE.BAND_DRAFT, { maxTime: 4 * TURN_MS + 1 });
+      h2.run(() => h2.m.phase !== PHASE.BAND_DRAFT, { maxTime: 4 * TURN_MS + BAND_DONE_SECONDS * 1000 + 1 });
       distinct(h2.m);
       h2.m.dispose();
     }
