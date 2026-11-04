@@ -98,9 +98,10 @@
 :root[data-ui-theme="f-sargon"] :is(.lo-card__art, .lo-dhead__art, .extension-art:not(.extension-art--map), .lo-chip--tier) { background-color: #2b2e31; }
 :root[data-ui-theme="f-sargon"] :is(.title-bg__art, .title-bg__ridge-art, .title-bg__ridges, .title-bg__target, .title-bg__radar, .title-bg__haze) { display: none; }
 :root[data-ui-theme="f-sargon"] .app-bg, :root[data-ui-theme="f-sargon"] .app-bg::before, :root[data-ui-theme="f-sargon"] .app-bg::after { background: none; }
-:root[data-ui-theme="f-sargon"][data-ui-art] body { background-image: linear-gradient(rgba(var(--bg-0-rgb), .78), rgba(var(--bg-0-rgb), .78)); background-size: 240px auto, 100% 100%; background-repeat: repeat, no-repeat; background-color: transparent; }
+:root[data-ui-theme="f-sargon"][data-ui-art] body { background-image: linear-gradient(rgba(var(--bg-0-rgb), .6), rgba(var(--bg-0-rgb), .6)); background-size: 240px auto, 100% 100%; background-repeat: repeat, no-repeat; background-color: transparent; }
 :root[data-ui-theme="f-sargon"][data-ui-art]::before { content: ''; position: fixed; left: 50%; top: 50%; width: max(100vw, 177.73vh); height: max(100vh, 56.26vw); transform: translate(-50%, -50%); z-index: -2; pointer-events: none; background: var(--ta-left) left top / 50% 100% no-repeat, var(--ta-right) right top / 50% 100% no-repeat; }
 :root[data-ui-theme="f-sargon"][data-ui-art] { background-color: var(--bg-0); }
+:root[data-ui-theme="f-sargon"][data-ui-art] body::before { display: none; }
 :root[data-ui-theme="f-sargon"][data-ui-art] body::after { content: ''; position: fixed; right: 4vw; bottom: 6vh; width: 34vmin; height: 34vmin; background: var(--ta-logo) center / contain no-repeat; opacity: .08; pointer-events: none; z-index: -1; filter: invert(1); }
 @font-face { font-family: 'NexonCartGothic'; src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2312-1@1.1/KartriderMedium.woff2') format('woff2'); font-weight: 500; font-display: swap; }
 @font-face { font-family: 'NexonCartGothic'; src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2312-1@1.1/KartriderBold.woff2') format('woff2'); font-weight: 700; font-display: swap; }

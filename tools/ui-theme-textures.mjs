@@ -297,7 +297,7 @@ export function textureCss(id, light = false) {
   out.push(`${s} .app-bg, ${s} .app-bg::before, ${s} .app-bg::after { background: none; }`);
   // the theme's official art (tools/build-ui-theme-resources.mjs), only once it is downloaded (<html data-ui-art>)
   const a = `${s}[data-ui-art]`;
-  const veil = light ? 'rgba(var(--bg-0-rgb), .78)' : 'rgba(var(--bg-0-rgb), .62)';
+  const veil = light ? 'rgba(var(--bg-0-rgb), .6)' : 'rgba(var(--bg-0-rgb), .55)';
   const veilCard = light ? 'rgba(var(--bg-1-rgb), .82)' : 'rgba(var(--bg-1-rgb), .55)';
   const art = ART[id] || {};
   // (each home background half is 910x1024: together 1820x1024 — sized to cover the viewport at that ratio, the halves meeting at its centre)
@@ -309,7 +309,8 @@ export function textureCss(id, light = false) {
   const box = art.lobby ? 'inset: 0;' : `left: 50%; top: 50%; width: max(100vw, ${(r * 100).toFixed(2)}vh); height: max(100vh, ${(100 / r).toFixed(2)}vw); transform: translate(-50%, -50%);`;
   if (scene) out.push(`${a} body { background-image: ${MAT[id]?.noise ? noise(MAT[id].noise) + ', ' : ''}linear-gradient(${veil}, ${veil}); background-size: ${MAT[id]?.noise?.size || '240px'} auto, 100% 100%; background-repeat: repeat, no-repeat; background-color: transparent; }
 ${a}::before { content: ''; position: fixed; ${box} z-index: -2; pointer-events: none; background: ${scene}; }
-${a} { background-color: var(--bg-0); }`);
+${a} { background-color: var(--bg-0); }
+${a} body::before { display: none; }`);
   if (art.logo) out.push(`${a} body::after { content: ''; position: fixed; right: 4vw; bottom: 6vh; width: 34vmin; height: 34vmin; background: var(--ta-logo) center / contain no-repeat; opacity: ${light ? '.08' : '.07'}; pointer-events: none; z-index: -1; ${light ? 'filter: invert(1);' : ''} }`);
   // material: an SVG noise grain (paper / velvet / stone / frost) over the surfaces, the theme's face, its frame
   const m = MAT[id];
