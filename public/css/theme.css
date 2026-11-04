@@ -510,7 +510,7 @@ select option, select optgroup { background-color: var(--bg-2, var(--surf-2, #11
 :root[data-ui-theme][data-ui-light] :is(.btn--ghost .btn__label, .game-chat__send, .game-chat__panel button) { color: var(--text-md); }
 /* UI themes: the shop's 冻结 / 刷新 drawn in the theme instead of the official plates — refresh a solid accent plate,
    freeze an outlined plate in the theme's second accent that fills while frozen; icons in the button's ink */
-:root[data-ui-theme] .shopbar .obtn__plate { inset: 0; background: var(--mint-500) !important; border: 1px solid var(--mint-400); border-radius: var(--tx-radius, 0); box-shadow: inset 0 -.04rem 0 rgba(0, 0, 0, .25), 0 .03rem .1rem rgba(0, 0, 0, .35); }
+:root[data-ui-theme] .shopbar .obtn__plate { inset: 1px 3px; width: auto; height: auto; background: var(--mint-500) !important; border: 1px solid var(--mint-400); border-radius: var(--tx-radius, 0); box-shadow: inset 0 -.04rem 0 rgba(0, 0, 0, .25), 0 .03rem .1rem rgba(0, 0, 0, .35); }
 :root[data-ui-theme] .shopbar .toolbtn--ice .obtn__plate { background: rgba(var(--bg-1-rgb), .94) !important; border: 2px solid var(--ui-accent-2, var(--ice, #7fd6ff)); }
 :root[data-ui-theme] .shopbar .toolbtn--ice.is-on .obtn__plate { background: var(--ui-accent-2, var(--ice, #7fd6ff)) !important; }
 :root[data-ui-theme] .shopbar .obtn:disabled .obtn__plate { background: rgba(var(--bg-1-rgb), .7) !important; border-color: var(--line-2); box-shadow: none; }
