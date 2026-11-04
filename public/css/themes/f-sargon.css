@@ -97,7 +97,7 @@
 :root[data-ui-theme="f-sargon"] :is(.lo-card__art, .lo-dhead__art, .extension-art:not(.extension-art--map), .lo-chip--tier) { background-color: #2b2e31; }
 :root[data-ui-theme="f-sargon"] :is(.title-bg__art, .title-bg__ridge-art, .title-bg__ridges, .title-bg__target, .title-bg__radar, .title-bg__haze) { display: none; }
 :root[data-ui-theme="f-sargon"] .app-bg, :root[data-ui-theme="f-sargon"] .app-bg::before, :root[data-ui-theme="f-sargon"] .app-bg::after { background: none; }
-:root[data-ui-theme="f-sargon"][data-ui-art] body { background-image: linear-gradient(rgba(var(--bg-0-rgb), .78), rgba(var(--bg-0-rgb), .78)), var(--ta-left), var(--ta-right); background-size: 240px auto, 100% 100%, 50.1% 100%, 50.1% 100%; background-position: 0 0, 0 0, left center, right center; background-repeat: repeat, no-repeat, no-repeat, no-repeat; }
+:root[data-ui-theme="f-sargon"][data-ui-art] body { background-image: linear-gradient(rgba(var(--bg-0-rgb), .78), rgba(var(--bg-0-rgb), .78)), var(--ta-left), var(--ta-right); background-size: 240px auto, 100% 100%, auto max(100vh, 56.27vw), auto max(100vh, 56.27vw); background-position: 0 0, 0 0, right 50% center, left 50% center; background-attachment: scroll, scroll, fixed, fixed; background-repeat: repeat, no-repeat, no-repeat, no-repeat; }
 :root[data-ui-theme="f-sargon"][data-ui-art] body::after { content: ''; position: fixed; right: 4vw; bottom: 6vh; width: 34vmin; height: 34vmin; background: var(--ta-logo) center / contain no-repeat; opacity: .08; pointer-events: none; z-index: -1; filter: invert(1); }
 :root[data-ui-theme="f-sargon"] { --font-micro: 'Fredoka', var(--font-display); }
 :root[data-ui-theme="f-sargon"] :is(.micro, .micro--mint) { font-family: var(--font-micro); }
