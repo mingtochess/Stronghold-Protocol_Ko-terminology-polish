@@ -421,13 +421,15 @@ export function LobbyScreen() {
 
     <div class="lobby-body screen__scroll">
       <section class="lobby-left">
-        <div class="lg-modes"><div class="section-label"><span class="section-label__idx num">01</span>模拟方式<${MicroLabel}>MODE<//></div>
+        <div class="section-label lg-label lg-label--modes"><span class="section-label__idx num">01</span>模拟方式<${MicroLabel}>MODE<//></div>
+        <div class="lg-modes">
         <div class="mode-cards mode-cards--main">
           ${MODE_CARDS.filter((c) => MAIN_MODES.includes(c.id)).map((c) => html`<${ModeCard} key=${c.id} card=${c} selected=${roomMode === c.id || roomMode===c.id+'8'} onSelect=${pickMode} coopSize=${coopSize} onCoopSize=${n=>{setCoopSize(n);pickMode((c.id==='sync'?'sync':'coop')+(n===8?'8':''));}} publicOn=${publicOn} onPublicChange=${on=>{setPublicOn(on);savePref('lobby.publicOn',on);}} />`)}
         </div>
 
         </div>
-        <div class="lg-join"><div class="section-label"><span class="section-label__idx num">02</span>加入同盟<${MicroLabel}>JOIN WITH ALLIANCE KEY<//></div>
+        <div class="section-label lg-label lg-label--join"><span class="section-label__idx num">02</span>加入同盟<${MicroLabel}>JOIN WITH ALLIANCE KEY<//></div>
+        <div class="lg-join">
         <${Panel} class="join-panel" tone="amber">
           <div class="join-row">
             <${TextField} ascii=${true} size="code" icon="key" value=${code} placeholder="输入同盟密钥 / 粘贴邀请链接"
