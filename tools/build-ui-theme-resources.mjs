@@ -16,6 +16,7 @@ const COMMIT = '44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48';
 const IS = 'assets/torappu/arts/ui/rogueliketopic/topics/[pack]';
 const HOME = 'dyn/arts/ui/homebackground/wrapper';
 const LOGO = 'dyn/arts/camplogo';
+const ACT = (n, f) => `dyn/activity/[uc]act${n}side/prefabs/act${n}side_activity_stage/${f}`;
 const home = (bg) => ({ left: `${HOME}/${bg}/${bg}_left.png`, right: `${HOME}/${bg}/${bg}_right.png` });
 export const THEME_ART = {
   'is-phantom': { ...home('bg_rogue_1') },
@@ -26,14 +27,16 @@ export const THEME_ART = {
   rhine: { ...home('bg_rhine_1'), logo: `${LOGO}/logo_rhine.png` },
   'f-yan': { ...home('bg_yan_1'), logo: `${LOGO}/logo_yan.png` },
   'f-victoria': { ...home('bg_main_victoria_1'), logo: `${LOGO}/logo_victoria.png` },
-  'f-laterano': { ...home('bg_laterano_1'), logo: `${LOGO}/logo_laterano.png` },
+  'f-laterano': { lobby: ACT(42, 'bg.png'), logo: `${LOGO}/logo_laterano.png` },
   'f-kazimierz': { ...home('bg_kazimierz_1'), logo: `${LOGO}/logo_kazimierz.png` },
   'f-ursus': { ...home('bg_ursus_1'), logo: `${LOGO}/logo_ursus.png` },
   'f-aegir': { ...home('bg_iberia_1'), logo: `${LOGO}/logo_egir.png` },
   'f-sargon': { ...home('bg_sandboxv2_1'), logo: `${LOGO}/logo_sargon.png` },
   'ss-lonetrail': { ...home('bg_lonetrail_1') },
   'ss-adele': { ...home('bg_volcano_1') },
-  'ss-mendacium': { ...home('bg_dungeon_1') },
+  'ss-mendacium': { lobby: ACT(48, 'act48side_entry_img_bkg.png') },
+  'ss-elegies': { lobby: ACT(41, 'entry_bg[#1].png') },
+  'ss-unrealized': { lobby: ACT(47, 'bg_1.png') },
   'f-kjerag': { logo: `${LOGO}/logo_kjerag.png` },
   'f-siracusa': { logo: `${LOGO}/logo_siracusa.png` },
   'f-leithanien': { logo: `${LOGO}/logo_leithanien.png` },

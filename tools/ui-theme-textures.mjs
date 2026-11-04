@@ -301,7 +301,13 @@ export function textureCss(id, light = false) {
   const veilCard = light ? 'rgba(var(--bg-1-rgb), .82)' : 'rgba(var(--bg-1-rgb), .55)';
   const art = ART[id] || {};
   // (each home background half is 910x1024: together 1820x1024 — sized to cover the viewport at that ratio, the halves meeting at its centre)
-  if (art.left) out.push(`${a} body { background-image: ${MAT[id]?.noise ? noise(MAT[id].noise) + ', ' : ''}linear-gradient(${veil}, ${veil}), var(--ta-left), var(--ta-right); background-size: ${MAT[id]?.noise?.size || '240px'} auto, 100% 100%, auto max(100vh, 56.27vw), auto max(100vh, 56.27vw); background-position: 0 0, 0 0, calc(50vw - max(100vh, 56.27vw) * .8887) center, 50vw center; background-attachment: scroll, scroll, fixed, fixed; background-repeat: repeat, no-repeat, no-repeat, no-repeat; }`);
+  // the art on one fixed layer behind the page, its own ratio kept and covering the viewport: an event lobby scene
+  // (one image) or the home background (two 910x1024 halves side by side, 1820:1024); the veil and grain stay on body
+  const scene = art.lobby ? 'var(--ta-lobby) center / cover no-repeat' : art.left ? 'var(--ta-left) left top / 50% 100% no-repeat, var(--ta-right) right top / 50% 100% no-repeat' : '';
+  const box = art.lobby ? 'inset: 0;' : 'left: 50%; top: 50%; width: max(100vw, 177.74vh); height: max(100vh, 56.26vw); transform: translate(-50%, -50%);';
+  if (scene) out.push(`${a} body { background-image: ${MAT[id]?.noise ? noise(MAT[id].noise) + ', ' : ''}linear-gradient(${veil}, ${veil}); background-size: ${MAT[id]?.noise?.size || '240px'} auto, 100% 100%; background-repeat: repeat, no-repeat; background-color: transparent; }
+${a}::before { content: ''; position: fixed; ${box} z-index: -2; pointer-events: none; background: ${scene}; }
+${a} { background-color: var(--bg-0); }`);
   if (art.logo) out.push(`${a} body::after { content: ''; position: fixed; right: 4vw; bottom: 6vh; width: 34vmin; height: 34vmin; background: var(--ta-logo) center / contain no-repeat; opacity: ${light ? '.08' : '.07'}; pointer-events: none; z-index: -1; ${light ? 'filter: invert(1);' : ''} }`);
   // material: an SVG noise grain (paper / velvet / stone / frost) over the surfaces, the theme's face, its frame
   const m = MAT[id];

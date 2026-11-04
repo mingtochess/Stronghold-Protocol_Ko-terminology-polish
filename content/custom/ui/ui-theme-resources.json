@@ -154,20 +154,12 @@
    "bytes": 77037
   },
   {
-   "path": "/assets/ui-themes/f-laterano/left.png",
+   "path": "/assets/ui-themes/f-laterano/lobby.png",
    "sources": [
-    "https://cdn.jsdelivr.net/gh/ArknightsAssets/ArknightsAssets2@44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/ui/homebackground/wrapper/bg_laterano_1/bg_laterano_1_left.png",
-    "https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets2/44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/ui/homebackground/wrapper/bg_laterano_1/bg_laterano_1_left.png"
+    "https://cdn.jsdelivr.net/gh/ArknightsAssets/ArknightsAssets2@44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/activity/%5Buc%5Dact42side/prefabs/act42side_activity_stage/bg.png",
+    "https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets2/44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/activity/%5Buc%5Dact42side/prefabs/act42side_activity_stage/bg.png"
    ],
-   "bytes": 1411013
-  },
-  {
-   "path": "/assets/ui-themes/f-laterano/right.png",
-   "sources": [
-    "https://cdn.jsdelivr.net/gh/ArknightsAssets/ArknightsAssets2@44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/ui/homebackground/wrapper/bg_laterano_1/bg_laterano_1_right.png",
-    "https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets2/44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/ui/homebackground/wrapper/bg_laterano_1/bg_laterano_1_right.png"
-   ],
-   "bytes": 1487217
+   "bytes": 2039962
   },
   {
    "path": "/assets/ui-themes/f-laterano/logo.png",
@@ -306,20 +298,28 @@
    "bytes": 1279545
   },
   {
-   "path": "/assets/ui-themes/ss-mendacium/left.png",
+   "path": "/assets/ui-themes/ss-mendacium/lobby.png",
    "sources": [
-    "https://cdn.jsdelivr.net/gh/ArknightsAssets/ArknightsAssets2@44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/ui/homebackground/wrapper/bg_dungeon_1/bg_dungeon_1_left.png",
-    "https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets2/44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/ui/homebackground/wrapper/bg_dungeon_1/bg_dungeon_1_left.png"
+    "https://cdn.jsdelivr.net/gh/ArknightsAssets/ArknightsAssets2@44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/activity/%5Buc%5Dact48side/prefabs/act48side_activity_stage/act48side_entry_img_bkg.png",
+    "https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets2/44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/activity/%5Buc%5Dact48side/prefabs/act48side_activity_stage/act48side_entry_img_bkg.png"
    ],
-   "bytes": 1793469
+   "bytes": 1318997
   },
   {
-   "path": "/assets/ui-themes/ss-mendacium/right.png",
+   "path": "/assets/ui-themes/ss-elegies/lobby.png",
    "sources": [
-    "https://cdn.jsdelivr.net/gh/ArknightsAssets/ArknightsAssets2@44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/ui/homebackground/wrapper/bg_dungeon_1/bg_dungeon_1_right.png",
-    "https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets2/44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/ui/homebackground/wrapper/bg_dungeon_1/bg_dungeon_1_right.png"
+    "https://cdn.jsdelivr.net/gh/ArknightsAssets/ArknightsAssets2@44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/activity/%5Buc%5Dact41side/prefabs/act41side_activity_stage/entry_bg%5B%231%5D.png",
+    "https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets2/44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/activity/%5Buc%5Dact41side/prefabs/act41side_activity_stage/entry_bg%5B%231%5D.png"
    ],
-   "bytes": 1873933
+   "bytes": 2311910
+  },
+  {
+   "path": "/assets/ui-themes/ss-unrealized/lobby.png",
+   "sources": [
+    "https://cdn.jsdelivr.net/gh/ArknightsAssets/ArknightsAssets2@44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/activity/%5Buc%5Dact47side/prefabs/act47side_activity_stage/bg_1.png",
+    "https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets2/44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/activity/%5Buc%5Dact47side/prefabs/act47side_activity_stage/bg_1.png"
+   ],
+   "bytes": 2137722
   },
   {
    "path": "/assets/ui-themes/f-kjerag/logo.png",

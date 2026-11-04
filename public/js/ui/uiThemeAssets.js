@@ -94,13 +94,9 @@ export const UI_THEME_ASSETS = Object.freeze({
   }
  },
  "f-laterano": {
-  "left": {
-   "path": "/assets/ui-themes/f-laterano/left.png",
-   "bytes": 1411013
-  },
-  "right": {
-   "path": "/assets/ui-themes/f-laterano/right.png",
-   "bytes": 1487217
+  "lobby": {
+   "path": "/assets/ui-themes/f-laterano/lobby.png",
+   "bytes": 2039962
   },
   "logo": {
    "path": "/assets/ui-themes/f-laterano/logo.png",
@@ -184,13 +180,21 @@ export const UI_THEME_ASSETS = Object.freeze({
   }
  },
  "ss-mendacium": {
-  "left": {
-   "path": "/assets/ui-themes/ss-mendacium/left.png",
-   "bytes": 1793469
-  },
-  "right": {
-   "path": "/assets/ui-themes/ss-mendacium/right.png",
-   "bytes": 1873933
+  "lobby": {
+   "path": "/assets/ui-themes/ss-mendacium/lobby.png",
+   "bytes": 1318997
+  }
+ },
+ "ss-elegies": {
+  "lobby": {
+   "path": "/assets/ui-themes/ss-elegies/lobby.png",
+   "bytes": 2311910
+  }
+ },
+ "ss-unrealized": {
+  "lobby": {
+   "path": "/assets/ui-themes/ss-unrealized/lobby.png",
+   "bytes": 2137722
   }
  },
  "f-kjerag": {
