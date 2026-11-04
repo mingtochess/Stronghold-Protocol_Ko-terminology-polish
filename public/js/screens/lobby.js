@@ -98,7 +98,7 @@ const MODE_CARDS = [
   {
     id: 'sync', name: '동기화 시뮬레이션', en: 'SYNC SIMULATION', icon: 'link',
     desc: '모든 전장에 같은 적이 나오고, 적의 HP를 함께 공유합니다.',
-    points: ['박사 1–4명 · HP 공유', '연합 방어 없음 · HP 감소 상한 없음'],
+    points: ['박사 1–4명 · HP 공유', '연합 방어 없음 · HP 감소 상한 × 인원'],
   },
   { id: 'laboratory', name: '실험실', en: 'LABORATORY', icon: 'flask', desc: '맵·보스·전략을 직접 고르고 원하는 조합을 시험합니다.', points: ['솔로 플레이 · 밴 없음', '한 라운드 전투 · 결과 통계 기록'] },
   { id:'practice',name:'연습실',en:'PRACTICE',icon:'flask',desc:'원하는 라운드부터 일반 게임처럼 연습합니다.',points:['솔로 플레이 · 무제한 자금','라운드·적 특훈·맹약 밴 선택'] },
@@ -251,7 +251,7 @@ function TipsPanel() {
 
 function ModeCard({ card, selected, onSelect, coopSize=4, onCoopSize, publicOn, onPublicChange, full=false }) {
   if(card.id==='coop'&&coopSize===8)card={...card,desc:'최대 8명의 박사가 오퍼레이터 풀을 공유하며 함께 전투합니다.',points:['박사 1–8명 · 빈자리는 AI 팀원으로','협력방어 최대 4명']};
-  if(card.id==='sync'&&coopSize===8)card={...card,points:['박사 1–8명 · HP 공유','연합 방어 없음 · HP 감소 상한 없음']};
+  if(card.id==='sync'&&coopSize===8)card={...card,points:['박사 1–8명 · HP 공유','연합 방어 없음 · HP 감소 상한 × 인원']};
   const sized=card.id==='coop'||card.id==='sync';
   return html`<div class="mode-card-tip"><div role="button" tabindex="0" class=${`mode-card brackets${['laboratory','practice'].includes(card.id)&&!full?' mode-card--lab':''}${selected ? ' is-selected' : ''}`} onClick=${() => onSelect(sized&&coopSize===8?card.id+'8':card.id)} onKeyDown=${e=>{if(e.target===e.currentTarget&&['Enter',' '].includes(e.key)){e.preventDefault();onSelect(sized&&coopSize===8?card.id+'8':card.id);}}}
       aria-pressed=${selected ? 'true' : 'false'}>

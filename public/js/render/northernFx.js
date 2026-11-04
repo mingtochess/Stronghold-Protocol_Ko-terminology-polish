@@ -4,7 +4,7 @@ const known=kind=>/^(talulah|territoriya|toska)/.test(kind);
 const waveKey=(id,e)=>`${id}:${e.wave}:${e.lane}`;
 function dropWave(fx,key){const wave=fx._northernWaves?.get(key);if(wave?.visual)fx._releaseProj(wave.visual);fx._northernWaves?.delete(key);}
 function drawWave(fx,w){
- const cam=fx.ctx.cam(),height=.18,z=fx._groundZ(w.x,w.y)+height,p=cam.project(w.x,w.y,z),q=cam.project(w.x-w.dx*.4,w.y-w.dy*.4,z);
+ const cam=fx.ctx.cam(),height=.18,z=fx._groundZ(w.x0,w.y0)+height,p=cam.project(w.x,w.y,z),q=cam.project(w.x-w.dx*.4,w.y-w.dy*.4,z);
  const pr=w.visual,s=p.s/128;
  for(const sp of [pr.halo,pr.core,pr.trail]){sp.visible=true;sp.position.set(p.x,p.y);}
  pr.halo.scale.set(s*.8);pr.halo.alpha=.8;pr.core.scale.set(s*.28);pr.core.alpha=1;
