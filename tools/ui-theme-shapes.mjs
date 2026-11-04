@@ -366,9 +366,18 @@ function markerRules(id, S) {
   const at = (k, o) => (p) => [f1(o + p[0] * k), f1(o + p[1] * k)];
   // the ring path starts at the top of the outline (its first point / 12 o'clock) and runs clockwise
   // (the default board: ring centred 15.5 % in, 5.6 % thick, hugging the disc that starts 18 % in)
-  const ring = g === 'circle' ? 'M50 14.7A35.3 35.3 0 1 1 49.99 14.7Z' : 'M' + g.map(at(.62, 19)).map((p) => p.join(' ')).join('L') + 'Z';
+  // a polygon is drawn at 55 % of the board (22.5 % in) — unless its inner radius would cut into the icon disc
+  // (radius 22.5 % + a 2 % margin): then just large enough to hold the whole icon
+  let half = 27.5;
+  if (g !== 'circle') {
+    const inr = Math.min(...g.map((a, i) => { const b = g[(i + 1) % g.length]; const dx = b[0] - a[0], dy = b[1] - a[1];
+      return Math.abs(dx * (a[1] - 50) - dy * (a[0] - 50)) / Math.hypot(dx, dy); })) / 50;
+    half = Math.min(34, Math.max(27.5, 24.5 / inr));
+  }
+  const pin = 50 - half, k = half / 50, rk = k + .14, rin = 50 - 50 * rk;
+  const ring = g === 'circle' ? 'M50 14.7A35.3 35.3 0 1 1 49.99 14.7Z' : 'M' + g.map(at(rk, rin)).map((p) => p.join(' ')).join('L') + 'Z';
   const mk = g === 'circle' ? 'inset: 18.5%; border-radius: 50%; clip-path: none; transform: none;'
-    : `inset: 22.5%; border-radius: 0; transform: none; clip-path: polygon(${g.map((p) => `${f1(p[0])}% ${f1(p[1])}%`).join(', ')});`;
+    : `inset: ${f1(pin)}%; border-radius: 0; transform: none; clip-path: polygon(${g.map((p) => `${f1(p[0])}% ${f1(p[1])}%`).join(', ')});`;
   // (the ring is the only outline: the marker's own inset borders made a doubled, thick edge)
   return `${S} .hbond__board::before, ${S} .bond:not(.hbond) .bond__core::before { ${mk} border: 0 !important; outline: 0 !important; box-shadow: inset 0 0 calc(6 * var(--u)) rgba(0, 0, 0, .45), inset 0 calc(-3 * var(--u)) calc(5 * var(--u)) rgba(0, 0, 0, .35) !important; }
 ${S} .bond-ring { display: block; position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; z-index: 1; }
