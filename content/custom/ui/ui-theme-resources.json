@@ -250,12 +250,76 @@
    "bytes": 49693
   },
   {
+   "path": "/assets/ui-themes/f-sargon/left.png",
+   "sources": [
+    "https://cdn.jsdelivr.net/gh/ArknightsAssets/ArknightsAssets2@44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/ui/homebackground/wrapper/bg_sandboxv2_1/bg_sandboxv2_1_left.png",
+    "https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets2/44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/ui/homebackground/wrapper/bg_sandboxv2_1/bg_sandboxv2_1_left.png"
+   ],
+   "bytes": 960957
+  },
+  {
+   "path": "/assets/ui-themes/f-sargon/right.png",
+   "sources": [
+    "https://cdn.jsdelivr.net/gh/ArknightsAssets/ArknightsAssets2@44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/ui/homebackground/wrapper/bg_sandboxv2_1/bg_sandboxv2_1_right.png",
+    "https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets2/44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/ui/homebackground/wrapper/bg_sandboxv2_1/bg_sandboxv2_1_right.png"
+   ],
+   "bytes": 862861
+  },
+  {
    "path": "/assets/ui-themes/f-sargon/logo.png",
    "sources": [
     "https://cdn.jsdelivr.net/gh/ArknightsAssets/ArknightsAssets2@44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/camplogo/logo_sargon.png",
     "https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets2/44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/camplogo/logo_sargon.png"
    ],
    "bytes": 32641
+  },
+  {
+   "path": "/assets/ui-themes/ss-lonetrail/left.png",
+   "sources": [
+    "https://cdn.jsdelivr.net/gh/ArknightsAssets/ArknightsAssets2@44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/ui/homebackground/wrapper/bg_lonetrail_1/bg_lonetrail_1_left.png",
+    "https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets2/44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/ui/homebackground/wrapper/bg_lonetrail_1/bg_lonetrail_1_left.png"
+   ],
+   "bytes": 933940
+  },
+  {
+   "path": "/assets/ui-themes/ss-lonetrail/right.png",
+   "sources": [
+    "https://cdn.jsdelivr.net/gh/ArknightsAssets/ArknightsAssets2@44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/ui/homebackground/wrapper/bg_lonetrail_1/bg_lonetrail_1_right.png",
+    "https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets2/44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/ui/homebackground/wrapper/bg_lonetrail_1/bg_lonetrail_1_right.png"
+   ],
+   "bytes": 725078
+  },
+  {
+   "path": "/assets/ui-themes/ss-adele/left.png",
+   "sources": [
+    "https://cdn.jsdelivr.net/gh/ArknightsAssets/ArknightsAssets2@44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/ui/homebackground/wrapper/bg_volcano_1/bg_volcano_1_left.png",
+    "https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets2/44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/ui/homebackground/wrapper/bg_volcano_1/bg_volcano_1_left.png"
+   ],
+   "bytes": 1332115
+  },
+  {
+   "path": "/assets/ui-themes/ss-adele/right.png",
+   "sources": [
+    "https://cdn.jsdelivr.net/gh/ArknightsAssets/ArknightsAssets2@44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/ui/homebackground/wrapper/bg_volcano_1/bg_volcano_1_right.png",
+    "https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets2/44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/ui/homebackground/wrapper/bg_volcano_1/bg_volcano_1_right.png"
+   ],
+   "bytes": 1279545
+  },
+  {
+   "path": "/assets/ui-themes/ss-mendacium/left.png",
+   "sources": [
+    "https://cdn.jsdelivr.net/gh/ArknightsAssets/ArknightsAssets2@44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/ui/homebackground/wrapper/bg_dungeon_1/bg_dungeon_1_left.png",
+    "https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets2/44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/ui/homebackground/wrapper/bg_dungeon_1/bg_dungeon_1_left.png"
+   ],
+   "bytes": 1793469
+  },
+  {
+   "path": "/assets/ui-themes/ss-mendacium/right.png",
+   "sources": [
+    "https://cdn.jsdelivr.net/gh/ArknightsAssets/ArknightsAssets2@44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/ui/homebackground/wrapper/bg_dungeon_1/bg_dungeon_1_right.png",
+    "https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets2/44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/ui/homebackground/wrapper/bg_dungeon_1/bg_dungeon_1_right.png"
+   ],
+   "bytes": 1873933
   },
   {
    "path": "/assets/ui-themes/f-kjerag/logo.png",

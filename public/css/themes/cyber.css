@@ -58,13 +58,13 @@
 :root[data-ui-theme="cyber"] .modal__box,
 :root[data-ui-theme="cyber"] .bpop,
 :root[data-ui-theme="cyber"] .dpanel {
-  background: rgba(29, 22, 48, .92);
+  background: linear-gradient(160deg, rgba(29, 22, 48, .92), rgba(10, 8, 18, .94));
   border: 1px solid rgba(255, 46, 136, .55);
   clip-path: polygon(0 0, calc(100% - .16rem) 0, 100% .16rem, 100% 100%, .16rem 100%, 0 calc(100% - .16rem));
   box-shadow: inset 0 0 0 1px rgba(0, 240, 255, .12), 0 0 .2rem rgba(255, 46, 136, .25);
 }
 :root[data-ui-theme="cyber"] .btn { clip-path: polygon(0 0, calc(100% - .1rem) 0, 100% .1rem, 100% 100%, .1rem 100%, 0 calc(100% - .1rem)); text-transform: uppercase; }
-:root[data-ui-theme="cyber"] .btn--primary { --ui-primary-face: linear-gradient(#ff2e88, #ff2e88); background-color: #ff2e88; color: #fff; border-color: transparent; text-shadow: 0 0 6px rgba(255, 255, 255, .5); }
+:root[data-ui-theme="cyber"] .btn--primary { --ui-primary-face: linear-gradient(90deg, #ff2e88, #b02cff); background-color: var(--mint-500); color: #fff; border-color: transparent; text-shadow: 0 0 6px rgba(255, 255, 255, .5); }
 :root[data-ui-theme="cyber"] .modal { background: rgba(0, 0, 0, .6); }
 @keyframes ui-cyber-glitch { 0%, 100% { transform: none; text-shadow: none; } 20% { transform: translate(1px, -1px); text-shadow: -2px 0 #00f0ff, 2px 0 #ff2e88; } 40% { transform: translate(-1px, 1px); } 60% { transform: none; text-shadow: 2px 0 #00f0ff, -2px 0 #ff2e88; } }
 @media (prefers-reduced-motion: no-preference) { :root[data-ui-theme="cyber"] .btn:hover .btn__label { animation: ui-cyber-glitch .35s steps(2) 1; } }
@@ -140,3 +140,4 @@
 :root[data-ui-theme="cyber"] .section-label :is(.section-label__idx, .micro) { color: inherit; border-color: currentColor; opacity: .85; }
 :root[data-ui-theme="cyber"] body::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none; background: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%2748%27%20height%3D%2748%27%20viewBox%3D%270%200%2048%2048%27%3E%3Cpath%20d%3D%27M0%2024H18L24%2018H48M24%2048V30L30%2024%27%20fill%3D%27none%27%20stroke%3D%27%2300f0ff%27%20stroke-opacity%3D%27.18%27%2F%3E%3Ccircle%20cx%3D%2718%27%20cy%3D%2724%27%20r%3D%271.5%27%20fill%3D%27%23ff2e88%27%20fill-opacity%3D%27.4%27%2F%3E%3C%2Fsvg%3E") 0 0 / 48px 48px repeat; }
 :root[data-ui-theme="cyber"] :is(.panel, .modal__box, .bpop, .dpanel)::before { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%2748%27%20height%3D%2748%27%20viewBox%3D%270%200%2048%2048%27%3E%3Cpath%20d%3D%27M0%2024H18L24%2018H48M24%2048V30L30%2024%27%20fill%3D%27none%27%20stroke%3D%27%2300f0ff%27%20stroke-opacity%3D%27.18%27%2F%3E%3Ccircle%20cx%3D%2718%27%20cy%3D%2724%27%20r%3D%271.5%27%20fill%3D%27%23ff2e88%27%20fill-opacity%3D%27.4%27%2F%3E%3C%2Fsvg%3E"); background-size: 48px 48px; background-repeat: repeat; opacity: .8; }
+:root[data-ui-theme="cyber"] .mode-card__bg { background: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%2748%27%20height%3D%2748%27%20viewBox%3D%270%200%2048%2048%27%3E%3Cpath%20d%3D%27M0%2024H18L24%2018H48M24%2048V30L30%2024%27%20fill%3D%27none%27%20stroke%3D%27%2300f0ff%27%20stroke-opacity%3D%27.18%27%2F%3E%3Ccircle%20cx%3D%2718%27%20cy%3D%2724%27%20r%3D%271.5%27%20fill%3D%27%23ff2e88%27%20fill-opacity%3D%27.4%27%2F%3E%3C%2Fsvg%3E") 0 0 / 48px 48px repeat, var(--bg-2) !important; }

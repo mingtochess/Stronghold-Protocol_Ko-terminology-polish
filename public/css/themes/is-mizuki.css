@@ -57,11 +57,11 @@
 :root[data-ui-theme="is-mizuki"] .modal__box,
 :root[data-ui-theme="is-mizuki"] .bpop,
 :root[data-ui-theme="is-mizuki"] .dpanel {
-  background: rgba(12, 20, 38, .86); border: 1px solid rgba(95, 212, 255, .22); border-radius: 0;
+  background: linear-gradient(180deg, rgba(12, 20, 38, .86), rgba(3, 6, 15, .92)); border: 1px solid rgba(95, 212, 255, .22); border-radius: 0;
   box-shadow: 0 0 .3rem rgba(40, 90, 220, .18);
 }
 :root[data-ui-theme="is-mizuki"] .btn { border-radius: 0; letter-spacing: .12em; }
-:root[data-ui-theme="is-mizuki"] .btn--primary { --ui-primary-face: linear-gradient(rgba(95, 212, 255, .9), rgba(95, 212, 255, .9)); background-color: rgba(95, 212, 255, .9); color: #02101a; border-color: #bff3ff; }
+:root[data-ui-theme="is-mizuki"] .btn--primary { --ui-primary-face: linear-gradient(90deg, rgba(95, 212, 255, .9), rgba(60, 120, 255, .9)); background-color: var(--mint-500); color: #02101a; border-color: #bff3ff; }
 :root[data-ui-theme="is-mizuki"] .modal { background: rgba(0, 0, 0, .6); }
 :root[data-ui-theme="is-mizuki"] .micro::before { content: '◆ '; color: #4b8cff; }
 :root[data-ui-theme="is-mizuki"] .btn:hover { box-shadow: 0 0 .16rem rgba(127, 247, 255, .5); }
@@ -134,3 +134,4 @@
 :root[data-ui-theme="is-mizuki"] .section-label :is(.section-label__idx, .micro) { color: inherit; border-color: currentColor; opacity: .85; }
 :root[data-ui-theme="is-mizuki"] body::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none; background: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%2780%27%20height%3D%2780%27%20viewBox%3D%270%200%2080%2080%27%3E%3Cg%20fill%3D%27none%27%20stroke%3D%27%237ff7ff%27%20stroke-opacity%3D%27.14%27%3E%3Ccircle%20cx%3D%2720%27%20cy%3D%2722%27%20r%3D%276%27%2F%3E%3Ccircle%20cx%3D%2760%27%20cy%3D%2752%27%20r%3D%279%27%2F%3E%3Ccircle%20cx%3D%2736%27%20cy%3D%2766%27%20r%3D%273%27%2F%3E%3Cpath%20d%3D%27M0%2040Q20%2030%2040%2040T80%2040%27%20stroke-opacity%3D%27.08%27%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E") 0 0 / 80px 80px repeat; }
 :root[data-ui-theme="is-mizuki"] :is(.panel, .modal__box, .bpop, .dpanel)::before { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%2780%27%20height%3D%2780%27%20viewBox%3D%270%200%2080%2080%27%3E%3Cg%20fill%3D%27none%27%20stroke%3D%27%237ff7ff%27%20stroke-opacity%3D%27.14%27%3E%3Ccircle%20cx%3D%2720%27%20cy%3D%2722%27%20r%3D%276%27%2F%3E%3Ccircle%20cx%3D%2760%27%20cy%3D%2752%27%20r%3D%279%27%2F%3E%3Ccircle%20cx%3D%2736%27%20cy%3D%2766%27%20r%3D%273%27%2F%3E%3Cpath%20d%3D%27M0%2040Q20%2030%2040%2040T80%2040%27%20stroke-opacity%3D%27.08%27%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E"); background-size: 80px 80px; background-repeat: repeat; opacity: .8; }
+:root[data-ui-theme="is-mizuki"] .mode-card__bg { background: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%2780%27%20height%3D%2780%27%20viewBox%3D%270%200%2080%2080%27%3E%3Cg%20fill%3D%27none%27%20stroke%3D%27%237ff7ff%27%20stroke-opacity%3D%27.14%27%3E%3Ccircle%20cx%3D%2720%27%20cy%3D%2722%27%20r%3D%276%27%2F%3E%3Ccircle%20cx%3D%2760%27%20cy%3D%2752%27%20r%3D%279%27%2F%3E%3Ccircle%20cx%3D%2736%27%20cy%3D%2766%27%20r%3D%273%27%2F%3E%3Cpath%20d%3D%27M0%2040Q20%2030%2040%2040T80%2040%27%20stroke-opacity%3D%27.08%27%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E") 0 0 / 80px 80px repeat, var(--bg-2) !important; }

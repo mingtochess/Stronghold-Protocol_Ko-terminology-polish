@@ -342,21 +342,21 @@ ${S} .bond:not(.hbond).is-disabled .bond__core { filter: grayscale(1) brightness
 const SQ = (d) => { const r = d * Math.PI / 180, c = Math.cos(r), sn = Math.sin(r); return [[0, 0], [100, 0], [100, 100], [0, 100]].map(([x, y]) => [50 + (x - 50) * c * .86 - (y - 50) * sn * .86, 50 + (x - 50) * sn * .86 + (y - 50) * c * .86]); };
 const GEOM = {
   cyber: [[0, 0], [75, 0], [100, 25], [100, 100], [25, 100], [0, 75]],
-  'is-fungi': 'circle',
+  'is-fungi': [[50.0, 0.0], [56.3, 1.9], [61.6, 6.5], [65.9, 11.7], [70.0, 15.4], [75.2, 17.1], [81.8, 18.2], [88.5, 20.5], [93.3, 25.0], [94.8, 31.4], [93.5, 38.4], [91.1, 44.6], [90.0, 50.0], [91.1, 55.4], [93.5, 61.6], [94.8, 68.6], [93.3, 75.0], [88.5, 79.5], [81.8, 81.8], [75.2, 82.9], [70.0, 84.6], [65.9, 88.3], [61.6, 93.5], [56.3, 98.1], [50.0, 100.0], [43.7, 98.1], [38.4, 93.5], [34.1, 88.3], [30.0, 84.6], [24.8, 82.9], [18.2, 81.8], [11.5, 79.5], [6.7, 75.0], [5.2, 68.6], [6.5, 61.6], [8.9, 55.4], [10.0, 50.0], [8.9, 44.6], [6.5, 38.4], [5.2, 31.4], [6.7, 25.0], [11.5, 20.5], [18.2, 18.2], [24.8, 17.1], [30.0, 15.4], [34.1, 11.7], [38.4, 6.5], [43.7, 1.9]],
   'is-phantom': [[50, 0], [100, 50], [50, 100], [0, 50]],
   'is-mizuki': 'circle', 'is-sui': 'circle', 'is-blackflow': 'circle',
   'is-frost': [[25, 3], [75, 3], [100, 50], [75, 97], [25, 97], [0, 50]],
   'is-sarkaz': [[50, 0], [100, 28], [88, 100], [12, 100], [0, 28]],
   'f-yan': 'circle', 'f-aegir': 'circle', 'f-siracusa': 'circle',
-  'f-sargon': [[10, 0], [90, 0], [100, 10], [100, 90], [90, 100], [10, 100], [0, 90], [0, 10]],
-  'f-victoria': [[0, 0], [100, 0], [100, 46], [93, 70], [76, 88], [50, 100], [24, 88], [7, 70], [0, 46]],
+  'f-sargon': [[50.0, 0.0], [66.5, 10.3], [85.4, 14.6], [89.7, 33.5], [100.0, 50.0], [89.7, 66.5], [85.4, 85.4], [66.5, 89.7], [50.0, 100.0], [33.5, 89.7], [14.6, 85.4], [10.3, 66.5], [0.0, 50.0], [10.3, 33.5], [14.6, 14.6], [33.5, 10.3]],
+  'f-victoria': [[26, 0], [74, 0], [66, 34], [100, 26], [100, 74], [66, 66], [74, 100], [26, 100], [34, 66], [0, 74], [0, 26], [34, 34]],
   'f-kjerag': [[50, 0], [93, 25], [93, 75], [50, 100], [7, 75], [7, 25]],
   'f-laterano': [[30, 0], [70, 0], [100, 30], [100, 70], [70, 100], [30, 100], [0, 70], [0, 30]],
   'f-kazimierz': [[12, 0], [88, 0], [100, 12], [100, 88], [88, 100], [12, 100], [0, 88], [0, 12]],
-  'f-ursus': [[0, 0], [100, 0], [100, 100], [0, 100]],
-  'f-leithanien': 'circle',
+  'f-ursus': [[0, 0], [42, 0], [50, 6], [58, 0], [100, 0], [100, 42], [94, 50], [100, 58], [100, 100], [58, 100], [50, 94], [42, 100], [0, 100], [0, 58], [6, 50], [0, 42]],
+  'f-leithanien': [[50.0, 0.0], [75.0, 6.7], [93.3, 25.0], [100.0, 50.0], [93.3, 75.0], [75.0, 93.3], [50.0, 100.0], [25.0, 93.3], [6.7, 75.0], [0.0, 50.0], [6.7, 25.0], [25.0, 6.7]],
   'ss-lonetrail': 'circle', 'ss-mendacium': 'circle', 'ss-unrealized': 'circle', 'ss-elegies': 'circle',
-  'ss-adele': 'circle',
+  'ss-adele': [[50.0, 0.0], [56.5, 0.6], [62.7, 2.5], [68.5, 5.4], [73.5, 9.3], [77.7, 13.9], [81.1, 18.9], [86.1, 22.3], [90.7, 26.5], [94.6, 31.5], [97.5, 37.3], [99.4, 43.5], [100.0, 50.0], [99.4, 56.5], [97.5, 62.7], [94.6, 68.5], [90.7, 73.5], [86.1, 77.7], [81.1, 81.1], [77.7, 86.1], [73.5, 90.7], [68.5, 94.6], [62.7, 97.5], [56.5, 99.4], [50.0, 100.0], [43.5, 99.4], [37.3, 97.5], [31.5, 94.6], [26.5, 90.7], [22.3, 86.1], [18.9, 81.1], [13.9, 77.7], [9.3, 73.5], [5.4, 68.5], [2.5, 62.7], [0.6, 56.5], [0.0, 50.0], [0.6, 43.5], [2.5, 37.3], [5.4, 31.5], [9.3, 26.5], [13.9, 22.3], [18.9, 18.9], [22.3, 13.9], [26.5, 9.3], [31.5, 5.4], [37.3, 2.5], [43.5, 0.6]],
   'ss-vultures': [[25, 3], [75, 3], [100, 50], [75, 97], [25, 97], [0, 50]],
 };
 const f1 = (v) => +v.toFixed(2);
@@ -430,13 +430,13 @@ const MOTIFS = {
   'f-kjerag': T(60, 60, `<g stroke='%23ffffff' stroke-opacity='.16' stroke-width='1'><path d='M30 18V42M20 24L40 36M40 24L20 36M30 18l-3 3M30 18l3 3M30 42l-3-3M30 42l3-3'/></g><circle cx='8' cy='50' r='1' fill='%23fff' fill-opacity='.3'/>`),
   'f-laterano': T(80, 80, `<g fill='none' stroke='%233ec6e0' stroke-opacity='.12'><circle cx='40' cy='40' r='22'/><circle cx='40' cy='40' r='14'/><path d='M40 18V62M18 40H62M24 24L56 56M56 24L24 56'/></g>`),
   'f-aegir': T(90, 60, `<g fill='none' stroke='%238ff0ec' stroke-opacity='.1'><path d='M0 20Q22 8 45 20T90 20'/><path d='M0 42Q22 30 45 42T90 42'/></g>`),
-  'f-siracusa': T(1, 1, ``),
+  'f-siracusa': T(40, 20, `<path d='M0 0.5H40M0 10.5H40M20 0V10M0 10V20M40 10V20' stroke='%23c8a25a' stroke-opacity='.1'/>`),
   'f-kazimierz': T(4, 4, `<rect width='4' height='1' fill='%23ffffff' fill-opacity='.04'/>`),
   'f-ursus': T(120, 60, `<path d='M0 30H120' stroke='%23847b78' stroke-opacity='.18'/><g stroke='%23847b78' stroke-opacity='.25'><path d='M20 26l6 8M26 26l-6 8M70 26l6 8M76 26l-6 8'/></g>`),
-  'f-leithanien': T(1, 1, ``),
+  'f-leithanien': T(40, 60, `<path d='M6 60V28Q6 8 20 2Q34 8 34 28V60' fill='none' stroke='%23c9a35a' stroke-opacity='.12'/><circle cx='20' cy='20' r='4' fill='none' stroke='%23c9a35a' stroke-opacity='.12'/>`),
   'ss-adele': T(60, 40, `<g fill='%23ffffff' fill-opacity='.55'><circle cx='14' cy='22' r='8'/><circle cx='24' cy='16' r='10'/><circle cx='36' cy='22' r='8'/><rect x='14' y='22' width='22' height='8' rx='4'/></g>`),
   'ss-vultures': T(40, 40, `<path d='M0 40L40 0M-10 10L10 -10M30 50L50 30' stroke='%23d4d93a' stroke-opacity='.06' stroke-width='6'/>`),
-  'ss-lonetrail': T(1, 1, ``),
+  'ss-lonetrail': T(8, 8, `<circle cx='4' cy='4' r='1.3' fill='%231d1b19' fill-opacity='.12'/>`),
   'ss-mendacium': T(40, 40, `<path d='M0 36H8V28H16V32H12V30H10V36H24V28H32V32H28V30H26V36H40' fill='none' stroke='%2342372e' stroke-opacity='.1'/>`),
   'ss-unrealized': T(120, 60, `<g fill='%23ffffff' fill-opacity='.35'><circle cx='30' cy='34' r='10'/><circle cx='44' cy='28' r='13'/><circle cx='58' cy='34' r='9'/></g><path d='M90 12l4 2-4 2' fill='none' stroke='%232b525a' stroke-opacity='.3'/>`),
   'ss-elegies': T(80, 80, `<g fill='none' stroke='%23c9ae72' stroke-opacity='.1'><path d='M0 60Q20 40 40 50T80 30'/><path d='M30 46q4-8 10-6M54 42q4 6 0 10'/></g><circle cx='66' cy='14' r='1.2' fill='%23e8cf92' fill-opacity='.4'/>`),
@@ -446,5 +446,6 @@ export function motifCss(id) {
   if (!m || /width='1'/.test(m[0])) return '';
   const S = `:root[data-ui-theme="${id}"]`;
   return `${S} body::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none; background: ${m[0]} 0 0 / ${m[1]} repeat; }
-${S} :is(.panel, .modal__box, .bpop, .dpanel)::before { background-image: ${m[0]}; background-size: ${m[1]}; background-repeat: repeat; opacity: .8; }\n`;
+${S} :is(.panel, .modal__box, .bpop, .dpanel)::before { background-image: ${m[0]}; background-size: ${m[1]}; background-repeat: repeat; opacity: .8; }
+${S} .mode-card__bg { background: ${m[0]} 0 0 / ${m[1]} repeat, var(--bg-2) !important; }\n`;
 }

@@ -47,14 +47,14 @@
 }
 :root[data-ui-theme="f-kazimierz"] body {
   background-color: var(--bg-0);
-  background-image: linear-gradient(160deg, rgba(220, 220, 226, .14), transparent 40%), linear-gradient(115deg, transparent 0 74%, rgba(50, 87, 167, .32) 74% 77%, rgba(255, 255, 255, .14) 77% 78%, rgba(208, 43, 58, .32) 78% 81%, transparent 81%);
+  background-image: linear-gradient(160deg, rgba(220, 220, 226, .14), transparent 40%), linear-gradient(115deg, transparent 0 74%, rgba(50, 87, 167, .32) 74% 77%, rgba(255, 255, 255, .14) 77% 78%, rgba(208, 43, 58, .32) 78% 81%, transparent 81%), linear-gradient(180deg, #2a2d36, #15171d);
 }
 :root[data-ui-theme="f-kazimierz"] .screen:not(.gm) { background: transparent; }
 :root[data-ui-theme="f-kazimierz"] .panel,
 :root[data-ui-theme="f-kazimierz"] .modal__box,
 :root[data-ui-theme="f-kazimierz"] .bpop,
 :root[data-ui-theme="f-kazimierz"] .dpanel {
-  background: rgba(20, 26, 48, .94); border: 1px solid #3257a7; border-radius: 0; box-shadow: inset 0 0 0 1px rgba(208, 43, 58, .35), 0 .06rem .26rem rgba(0, 0, 0, .5);
+  background: linear-gradient(180deg, rgba(20, 26, 48, .94), rgba(12, 15, 28, .96)); border: 1px solid #3257a7; border-radius: 0; box-shadow: inset 0 0 0 1px rgba(208, 43, 58, .35), 0 .06rem .26rem rgba(0, 0, 0, .5);
 }
 :root[data-ui-theme="f-kazimierz"] .btn { border-radius: 0; font-weight: 800; }
 :root[data-ui-theme="f-kazimierz"] .btn--primary { --ui-primary-face: linear-gradient(115deg, #1b2f6e 0 60%, #d02b3a 60%); background-color: var(--mint-500); color: #ffffff; border-color: #0f1d48; }
@@ -130,3 +130,4 @@
 :root[data-ui-theme="f-kazimierz"] .section-label :is(.section-label__idx, .micro) { color: inherit; border-color: currentColor; opacity: .85; }
 :root[data-ui-theme="f-kazimierz"] body::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none; background: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%274%27%20height%3D%274%27%20viewBox%3D%270%200%204%204%27%3E%3Crect%20width%3D%274%27%20height%3D%271%27%20fill%3D%27%23ffffff%27%20fill-opacity%3D%27.04%27%2F%3E%3C%2Fsvg%3E") 0 0 / 4px 4px repeat; }
 :root[data-ui-theme="f-kazimierz"] :is(.panel, .modal__box, .bpop, .dpanel)::before { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%274%27%20height%3D%274%27%20viewBox%3D%270%200%204%204%27%3E%3Crect%20width%3D%274%27%20height%3D%271%27%20fill%3D%27%23ffffff%27%20fill-opacity%3D%27.04%27%2F%3E%3C%2Fsvg%3E"); background-size: 4px 4px; background-repeat: repeat; opacity: .8; }
+:root[data-ui-theme="f-kazimierz"] .mode-card__bg { background: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%274%27%20height%3D%274%27%20viewBox%3D%270%200%204%204%27%3E%3Crect%20width%3D%274%27%20height%3D%271%27%20fill%3D%27%23ffffff%27%20fill-opacity%3D%27.04%27%2F%3E%3C%2Fsvg%3E") 0 0 / 4px 4px repeat, var(--bg-2) !important; }

@@ -60,7 +60,7 @@
 }
 :root[data-ui-theme="f-sargon"] body {
   background-color: var(--bg-0);
-  background-image: linear-gradient(115deg, transparent 0 70%, rgba(252, 206, 70, .3) 70% 76%, transparent 76%), radial-gradient(60% 40% at 10% 0%, rgba(252, 206, 70, .18), transparent 70%);
+  background-image: linear-gradient(115deg, transparent 0 70%, rgba(252, 206, 70, .3) 70% 76%, transparent 76%), radial-gradient(60% 40% at 10% 0%, rgba(252, 206, 70, .18), transparent 70%), linear-gradient(180deg, #fbfbfc, #eeeef1);
 }
 :root[data-ui-theme="f-sargon"] .screen:not(.gm) { background: transparent; }
 :root[data-ui-theme="f-sargon"] .panel,
@@ -70,7 +70,7 @@
   background: rgba(255, 255, 255, .97); border: 2px solid #fcce46; border-radius: .06rem; box-shadow: 0 .05rem 0 #e6b52a, 0 .06rem .2rem rgba(60, 50, 20, .12);
 }
 :root[data-ui-theme="f-sargon"] .btn { border-radius: .04rem; font-weight: 800; }
-:root[data-ui-theme="f-sargon"] .btn--primary { --ui-primary-face: linear-gradient(#fcd650, #fcd650); background-color: #fcd650; color: #24241f; border-color: #c9a417; }
+:root[data-ui-theme="f-sargon"] .btn--primary { --ui-primary-face: linear-gradient(180deg, #fcd650, #f5b818); background-color: var(--mint-500); color: #24241f; border-color: #c9a417; }
 :root[data-ui-theme="f-sargon"] .modal { background: rgba(40, 40, 40, .35); }
 :root[data-ui-theme="f-sargon"] :is(.btn--secondary, .btn--ghost) { --btn-bg: #ffffff; --btn-bg-hover: #fcfcfd; }
 :root[data-ui-theme="f-sargon"] .section-label { color: #24241f; padding: .02rem .16rem; background: #fcce46; box-shadow: .03rem .03rem 0 #2f7fd0; transform: skewX(-8deg); letter-spacing: .04em; }
@@ -96,6 +96,7 @@
 :root[data-ui-theme="f-sargon"] :is(.lo-card__art, .lo-dhead__art, .extension-art:not(.extension-art--map), .lo-chip--tier) { background-color: #2b2e31; }
 :root[data-ui-theme="f-sargon"] :is(.title-bg__art, .title-bg__ridge-art, .title-bg__ridges, .title-bg__target, .title-bg__radar, .title-bg__haze) { display: none; }
 :root[data-ui-theme="f-sargon"] .app-bg, :root[data-ui-theme="f-sargon"] .app-bg::before, :root[data-ui-theme="f-sargon"] .app-bg::after { background: none; }
+:root[data-ui-theme="f-sargon"][data-ui-art] body { background-image: linear-gradient(rgba(var(--bg-0-rgb), .78), rgba(var(--bg-0-rgb), .78)), var(--ta-left), var(--ta-right); background-size: 240px auto, 100% 100%, 50.1% 100%, 50.1% 100%; background-position: 0 0, 0 0, left center, right center; background-repeat: repeat, no-repeat, no-repeat, no-repeat; }
 :root[data-ui-theme="f-sargon"][data-ui-art] body::after { content: ''; position: fixed; right: 4vw; bottom: 6vh; width: 34vmin; height: 34vmin; background: var(--ta-logo) center / contain no-repeat; opacity: .08; pointer-events: none; z-index: -1; filter: invert(1); }
 :root[data-ui-theme="f-sargon"] { --font-micro: 'Bungee', var(--font-display); }
 :root[data-ui-theme="f-sargon"] :is(.micro, .micro--mint) { font-family: var(--font-micro); }
@@ -128,10 +129,10 @@
 :root[data-ui-theme="f-sargon"] .bond:not(.hbond) .bond__core { position: relative; isolation: isolate; background: none; box-shadow: none; border-radius: 0; overflow: visible; }
 :root[data-ui-theme="f-sargon"] .bond:not(.hbond) .bond__core::before { content: ''; position: absolute; z-index: -1; pointer-events: none; }
 :root[data-ui-theme="f-sargon"] .bond:not(.hbond).is-disabled .bond__core { filter: grayscale(1) brightness(.6); }
-:root[data-ui-theme="f-sargon"] .hbond__board::before, :root[data-ui-theme="f-sargon"] .bond:not(.hbond) .bond__core::before { inset: 12%; border-radius: 0; transform: none; clip-path: polygon(10% 0%, 90% 0%, 100% 10%, 100% 90%, 90% 100%, 10% 100%, 0% 90%, 0% 10%); }
+:root[data-ui-theme="f-sargon"] .hbond__board::before, :root[data-ui-theme="f-sargon"] .bond:not(.hbond) .bond__core::before { inset: 12%; border-radius: 0; transform: none; clip-path: polygon(50% 0%, 66.5% 10.3%, 85.4% 14.6%, 89.7% 33.5%, 100% 50%, 89.7% 66.5%, 85.4% 85.4%, 66.5% 89.7%, 50% 100%, 33.5% 89.7%, 14.6% 85.4%, 10.3% 66.5%, 0% 50%, 10.3% 33.5%, 14.6% 14.6%, 33.5% 10.3%); }
 :root[data-ui-theme="f-sargon"] .bond-ring { display: block; position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; z-index: 1; }
 :root[data-ui-theme="f-sargon"] .bond:not(.hbond) .bond-ring { inset: calc(var(--disc) * -.04); width: calc(100% + var(--disc) * .08); height: calc(100% + var(--disc) * .08); }
-:root[data-ui-theme="f-sargon"] .bond-ring path { d: path("M13.2 4L86.8 4L96 13.2L96 86.8L86.8 96L13.2 96L4 86.8L4 13.2Z"); fill: none; stroke-width: 6.5; stroke-linejoin: round; stroke: var(--hb-ring-off, rgba(140, 140, 140, .6)); filter: drop-shadow(0 0 1px rgba(0, 0, 0, .85)); }
+:root[data-ui-theme="f-sargon"] .bond-ring path { d: path("M50 4L65.18 13.48L82.57 17.43L86.52 34.82L96 50L86.52 65.18L82.57 82.57L65.18 86.52L50 96L34.82 86.52L17.43 82.57L13.48 65.18L4 50L13.48 34.82L17.43 17.43L34.82 13.48Z"); fill: none; stroke-width: 6.5; stroke-linejoin: round; stroke: var(--hb-ring-off, rgba(140, 140, 140, .6)); filter: drop-shadow(0 0 1px rgba(0, 0, 0, .85)); }
 :root[data-ui-theme="f-sargon"] .bond-ring path.on { stroke: var(--hb-ring-on, var(--mint-400)); }
 :root[data-ui-theme="f-sargon"] .hbond.is-full .bond-ring path.on, :root[data-ui-theme="f-sargon"] .bond:not(.hbond).is-active .bond-ring path.on { stroke: var(--hb-ring-full, var(--hb-ring-on, var(--mint-400))); }
 :root[data-ui-theme="f-sargon"] .hbond__icon { left: 26%; top: 26%; width: 48%; height: 48%; }
@@ -142,3 +143,4 @@
 :root[data-ui-theme="f-sargon"] .section-label :is(.section-label__idx, .micro) { color: inherit; border-color: currentColor; opacity: .85; }
 :root[data-ui-theme="f-sargon"] body::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none; background: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%2714%27%20height%3D%2714%27%20viewBox%3D%270%200%2014%2014%27%3E%3Ccircle%20cx%3D%277%27%20cy%3D%277%27%20r%3D%272%27%20fill%3D%27%23f19b48%27%20fill-opacity%3D%27.16%27%2F%3E%3C%2Fsvg%3E") 0 0 / 14px 14px repeat; }
 :root[data-ui-theme="f-sargon"] :is(.panel, .modal__box, .bpop, .dpanel)::before { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%2714%27%20height%3D%2714%27%20viewBox%3D%270%200%2014%2014%27%3E%3Ccircle%20cx%3D%277%27%20cy%3D%277%27%20r%3D%272%27%20fill%3D%27%23f19b48%27%20fill-opacity%3D%27.16%27%2F%3E%3C%2Fsvg%3E"); background-size: 14px 14px; background-repeat: repeat; opacity: .8; }
+:root[data-ui-theme="f-sargon"] .mode-card__bg { background: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%2714%27%20height%3D%2714%27%20viewBox%3D%270%200%2014%2014%27%3E%3Ccircle%20cx%3D%277%27%20cy%3D%277%27%20r%3D%272%27%20fill%3D%27%23f19b48%27%20fill-opacity%3D%27.16%27%2F%3E%3C%2Fsvg%3E") 0 0 / 14px 14px repeat, var(--bg-2) !important; }

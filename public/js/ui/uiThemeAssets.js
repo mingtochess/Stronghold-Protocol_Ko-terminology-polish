@@ -150,9 +150,47 @@ export const UI_THEME_ASSETS = Object.freeze({
   }
  },
  "f-sargon": {
+  "left": {
+   "path": "/assets/ui-themes/f-sargon/left.png",
+   "bytes": 960957
+  },
+  "right": {
+   "path": "/assets/ui-themes/f-sargon/right.png",
+   "bytes": 862861
+  },
   "logo": {
    "path": "/assets/ui-themes/f-sargon/logo.png",
    "bytes": 32641
+  }
+ },
+ "ss-lonetrail": {
+  "left": {
+   "path": "/assets/ui-themes/ss-lonetrail/left.png",
+   "bytes": 933940
+  },
+  "right": {
+   "path": "/assets/ui-themes/ss-lonetrail/right.png",
+   "bytes": 725078
+  }
+ },
+ "ss-adele": {
+  "left": {
+   "path": "/assets/ui-themes/ss-adele/left.png",
+   "bytes": 1332115
+  },
+  "right": {
+   "path": "/assets/ui-themes/ss-adele/right.png",
+   "bytes": 1279545
+  }
+ },
+ "ss-mendacium": {
+  "left": {
+   "path": "/assets/ui-themes/ss-mendacium/left.png",
+   "bytes": 1793469
+  },
+  "right": {
+   "path": "/assets/ui-themes/ss-mendacium/right.png",
+   "bytes": 1873933
   }
  },
  "f-kjerag": {

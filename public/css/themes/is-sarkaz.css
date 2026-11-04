@@ -56,7 +56,7 @@
 :root[data-ui-theme="is-sarkaz"] .modal__box,
 :root[data-ui-theme="is-sarkaz"] .bpop,
 :root[data-ui-theme="is-sarkaz"] .dpanel {
-  background: rgba(37, 37, 39, .93); border: 0; border-radius: 0;
+  background: linear-gradient(180deg, rgba(37, 37, 39, .93), rgba(14, 14, 15, .96)); border: 0; border-radius: 0;
   box-shadow: 0 .08rem .3rem rgba(0, 0, 0, .6);
 }
 :root[data-ui-theme="is-sarkaz"] .btn { border-radius: 0; }
@@ -127,3 +127,4 @@
 :root[data-ui-theme="is-sarkaz"] .section-label :is(.section-label__idx, .micro) { color: inherit; border-color: currentColor; opacity: .85; }
 :root[data-ui-theme="is-sarkaz"] body::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none; background: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%2780%27%20height%3D%2780%27%20viewBox%3D%270%200%2080%2080%27%3E%3Cg%20fill%3D%27%23d9a63a%27%20fill-opacity%3D%27.12%27%3E%3Cpath%20d%3D%27M40%2030q-5%208%200%2014q5-6%200-14z%27%2F%3E%3Crect%20x%3D%2738%27%20y%3D%2744%27%20width%3D%274%27%20height%3D%2716%27%2F%3E%3C%2Fg%3E%3Ccircle%20cx%3D%2712%27%20cy%3D%2712%27%20r%3D%271%27%20fill%3D%27%23fff%27%20fill-opacity%3D%27.2%27%2F%3E%3C%2Fsvg%3E") 0 0 / 80px 80px repeat; }
 :root[data-ui-theme="is-sarkaz"] :is(.panel, .modal__box, .bpop, .dpanel)::before { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%2780%27%20height%3D%2780%27%20viewBox%3D%270%200%2080%2080%27%3E%3Cg%20fill%3D%27%23d9a63a%27%20fill-opacity%3D%27.12%27%3E%3Cpath%20d%3D%27M40%2030q-5%208%200%2014q5-6%200-14z%27%2F%3E%3Crect%20x%3D%2738%27%20y%3D%2744%27%20width%3D%274%27%20height%3D%2716%27%2F%3E%3C%2Fg%3E%3Ccircle%20cx%3D%2712%27%20cy%3D%2712%27%20r%3D%271%27%20fill%3D%27%23fff%27%20fill-opacity%3D%27.2%27%2F%3E%3C%2Fsvg%3E"); background-size: 80px 80px; background-repeat: repeat; opacity: .8; }
+:root[data-ui-theme="is-sarkaz"] .mode-card__bg { background: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%2780%27%20height%3D%2780%27%20viewBox%3D%270%200%2080%2080%27%3E%3Cg%20fill%3D%27%23d9a63a%27%20fill-opacity%3D%27.12%27%3E%3Cpath%20d%3D%27M40%2030q-5%208%200%2014q5-6%200-14z%27%2F%3E%3Crect%20x%3D%2738%27%20y%3D%2744%27%20width%3D%274%27%20height%3D%2716%27%2F%3E%3C%2Fg%3E%3Ccircle%20cx%3D%2712%27%20cy%3D%2712%27%20r%3D%271%27%20fill%3D%27%23fff%27%20fill-opacity%3D%27.2%27%2F%3E%3C%2Fsvg%3E") 0 0 / 80px 80px repeat, var(--bg-2) !important; }

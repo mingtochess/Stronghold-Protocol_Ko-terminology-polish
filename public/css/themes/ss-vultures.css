@@ -47,14 +47,14 @@
 }
 :root[data-ui-theme="ss-vultures"] body {
   background-color: var(--bg-0);
-  background-image: repeating-linear-gradient(135deg, rgba(212, 217, 58, .025) 0 .06rem, transparent .06rem .2rem), radial-gradient(60% 45% at 85% 0%, rgba(46, 210, 197, .1), transparent 70%);
+  background-image: repeating-linear-gradient(135deg, rgba(212, 217, 58, .025) 0 .06rem, transparent .06rem .2rem), radial-gradient(60% 45% at 85% 0%, rgba(46, 210, 197, .1), transparent 70%), linear-gradient(180deg, #131b1e, #0a0e10);
 }
 :root[data-ui-theme="ss-vultures"] .screen:not(.gm) { background: transparent; }
 :root[data-ui-theme="ss-vultures"] .panel,
 :root[data-ui-theme="ss-vultures"] .modal__box,
 :root[data-ui-theme="ss-vultures"] .bpop,
 :root[data-ui-theme="ss-vultures"] .dpanel {
-  background: rgba(26, 40, 45, .94); border: 1px solid #3c4d53; border-radius: 0; box-shadow: inset 0 -2px 0 rgba(212, 217, 58, .5), 0 .06rem .26rem rgba(0, 0, 0, .5);
+  background: linear-gradient(180deg, rgba(26, 40, 45, .94), rgba(15, 20, 23, .96)); border: 1px solid #3c4d53; border-radius: 0; box-shadow: inset 0 -2px 0 rgba(212, 217, 58, .5), 0 .06rem .26rem rgba(0, 0, 0, .5);
 }
 :root[data-ui-theme="ss-vultures"] .btn { border-radius: 0; }
 :root[data-ui-theme="ss-vultures"] .btn--primary { --ui-primary-face: linear-gradient(#d4d93a, #d4d93a); background-color: #d4d93a; color: #141605; border-color: #eef05a; }
@@ -127,3 +127,4 @@
 :root[data-ui-theme="ss-vultures"] .section-label :is(.section-label__idx, .micro) { color: inherit; border-color: currentColor; opacity: .85; }
 :root[data-ui-theme="ss-vultures"] body::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none; background: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%2740%27%20height%3D%2740%27%20viewBox%3D%270%200%2040%2040%27%3E%3Cpath%20d%3D%27M0%2040L40%200M-10%2010L10%20-10M30%2050L50%2030%27%20stroke%3D%27%23d4d93a%27%20stroke-opacity%3D%27.06%27%20stroke-width%3D%276%27%2F%3E%3C%2Fsvg%3E") 0 0 / 40px 40px repeat; }
 :root[data-ui-theme="ss-vultures"] :is(.panel, .modal__box, .bpop, .dpanel)::before { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%2740%27%20height%3D%2740%27%20viewBox%3D%270%200%2040%2040%27%3E%3Cpath%20d%3D%27M0%2040L40%200M-10%2010L10%20-10M30%2050L50%2030%27%20stroke%3D%27%23d4d93a%27%20stroke-opacity%3D%27.06%27%20stroke-width%3D%276%27%2F%3E%3C%2Fsvg%3E"); background-size: 40px 40px; background-repeat: repeat; opacity: .8; }
+:root[data-ui-theme="ss-vultures"] .mode-card__bg { background: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%2740%27%20height%3D%2740%27%20viewBox%3D%270%200%2040%2040%27%3E%3Cpath%20d%3D%27M0%2040L40%200M-10%2010L10%20-10M30%2050L50%2030%27%20stroke%3D%27%23d4d93a%27%20stroke-opacity%3D%27.06%27%20stroke-width%3D%276%27%2F%3E%3C%2Fsvg%3E") 0 0 / 40px 40px repeat, var(--bg-2) !important; }

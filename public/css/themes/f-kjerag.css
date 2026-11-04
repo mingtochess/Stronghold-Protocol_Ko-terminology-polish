@@ -60,7 +60,7 @@
 }
 :root[data-ui-theme="f-kjerag"] body {
   background-color: var(--bg-0);
-  background-image: linear-gradient(120deg, rgba(31, 63, 191, .16), transparent 45%), radial-gradient(40% 30% at 90% 90%, rgba(60, 98, 230, .14), transparent 70%);
+  background-image: linear-gradient(120deg, rgba(31, 63, 191, .16), transparent 45%), radial-gradient(40% 30% at 90% 90%, rgba(60, 98, 230, .14), transparent 70%), linear-gradient(180deg, #f7f9fe, #e3eaf8);
 }
 :root[data-ui-theme="f-kjerag"] .screen:not(.gm) { background: transparent; }
 :root[data-ui-theme="f-kjerag"] .panel,
@@ -70,7 +70,7 @@
   background: rgba(255, 255, 255, .96); border: 1px solid #b6c5e8; border-radius: 0; box-shadow: 0 .04rem .16rem rgba(20, 40, 110, .12);
 }
 :root[data-ui-theme="f-kjerag"] .btn { border-radius: 0; letter-spacing: .08em; }
-:root[data-ui-theme="f-kjerag"] .btn--primary { --ui-primary-face: linear-gradient(#1f3fbf, #1f3fbf); background-color: #1f3fbf; color: #ffffff; border-color: #16308f; }
+:root[data-ui-theme="f-kjerag"] .btn--primary { --ui-primary-face: linear-gradient(90deg, #1f3fbf, #3c62e6); background-color: var(--mint-500); color: #ffffff; border-color: #16308f; }
 :root[data-ui-theme="f-kjerag"] .modal { background: rgba(40, 40, 40, .35); }
 :root[data-ui-theme="f-kjerag"] :is(.btn--secondary, .btn--ghost) { --btn-bg: #ffffff; --btn-bg-hover: #f6f8fd; }
 :root[data-ui-theme="f-kjerag"] .micro::before { content: '◆ '; color: #d22c3c; }
@@ -146,3 +146,4 @@
 :root[data-ui-theme="f-kjerag"] .section-label :is(.section-label__idx, .micro) { color: inherit; border-color: currentColor; opacity: .85; }
 :root[data-ui-theme="f-kjerag"] body::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none; background: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%2760%27%20height%3D%2760%27%20viewBox%3D%270%200%2060%2060%27%3E%3Cg%20stroke%3D%27%23ffffff%27%20stroke-opacity%3D%27.16%27%20stroke-width%3D%271%27%3E%3Cpath%20d%3D%27M30%2018V42M20%2024L40%2036M40%2024L20%2036M30%2018l-3%203M30%2018l3%203M30%2042l-3-3M30%2042l3-3%27%2F%3E%3C%2Fg%3E%3Ccircle%20cx%3D%278%27%20cy%3D%2750%27%20r%3D%271%27%20fill%3D%27%23fff%27%20fill-opacity%3D%27.3%27%2F%3E%3C%2Fsvg%3E") 0 0 / 60px 60px repeat; }
 :root[data-ui-theme="f-kjerag"] :is(.panel, .modal__box, .bpop, .dpanel)::before { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%2760%27%20height%3D%2760%27%20viewBox%3D%270%200%2060%2060%27%3E%3Cg%20stroke%3D%27%23ffffff%27%20stroke-opacity%3D%27.16%27%20stroke-width%3D%271%27%3E%3Cpath%20d%3D%27M30%2018V42M20%2024L40%2036M40%2024L20%2036M30%2018l-3%203M30%2018l3%203M30%2042l-3-3M30%2042l3-3%27%2F%3E%3C%2Fg%3E%3Ccircle%20cx%3D%278%27%20cy%3D%2750%27%20r%3D%271%27%20fill%3D%27%23fff%27%20fill-opacity%3D%27.3%27%2F%3E%3C%2Fsvg%3E"); background-size: 60px 60px; background-repeat: repeat; opacity: .8; }
+:root[data-ui-theme="f-kjerag"] .mode-card__bg { background: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%2760%27%20height%3D%2760%27%20viewBox%3D%270%200%2060%2060%27%3E%3Cg%20stroke%3D%27%23ffffff%27%20stroke-opacity%3D%27.16%27%20stroke-width%3D%271%27%3E%3Cpath%20d%3D%27M30%2018V42M20%2024L40%2036M40%2024L20%2036M30%2018l-3%203M30%2018l3%203M30%2042l-3-3M30%2042l3-3%27%2F%3E%3C%2Fg%3E%3Ccircle%20cx%3D%278%27%20cy%3D%2750%27%20r%3D%271%27%20fill%3D%27%23fff%27%20fill-opacity%3D%27.3%27%2F%3E%3C%2Fsvg%3E") 0 0 / 60px 60px repeat, var(--bg-2) !important; }

@@ -56,11 +56,11 @@
 :root[data-ui-theme="is-blackflow"] .modal__box,
 :root[data-ui-theme="is-blackflow"] .bpop,
 :root[data-ui-theme="is-blackflow"] .dpanel {
-  background: rgba(30, 30, 26, .92); border: 0; border-radius: .06rem;
+  background: linear-gradient(180deg, rgba(30, 30, 26, .92), rgba(10, 10, 9, .96)); border: 0; border-radius: .06rem;
   box-shadow: 0 .1rem .35rem rgba(0, 0, 0, .7);
 }
 :root[data-ui-theme="is-blackflow"] .btn { border-radius: .04rem; }
-:root[data-ui-theme="is-blackflow"] .btn--primary { --ui-primary-face: linear-gradient(#2f8f83, #2f8f83); background-color: #2f8f83; color: #031210; border-color: transparent; }
+:root[data-ui-theme="is-blackflow"] .btn--primary { --ui-primary-face: linear-gradient(90deg, #2f8f83, #3fb0a0); background-color: var(--mint-500); color: #031210; border-color: transparent; }
 :root[data-ui-theme="is-blackflow"] .modal { background: rgba(0, 0, 0, .6); }
 :root[data-ui-theme="is-blackflow"] .mode-card.is-selected { box-shadow: inset 0 2px 0 #e6d48a, inset 0 -2px 0 #e6d48a, 0 0 .2rem rgba(230, 212, 138, .3); }
 
@@ -125,3 +125,4 @@
 :root[data-ui-theme="is-blackflow"] .section-label :is(.section-label__idx, .micro) { color: inherit; border-color: currentColor; opacity: .85; }
 :root[data-ui-theme="is-blackflow"] body::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none; background: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%2780%27%20height%3D%2730%27%20viewBox%3D%270%200%2080%2030%27%3E%3Cpath%20d%3D%27M0%2015Q10%205%2020%2015T40%2015T60%2015T80%2015%27%20fill%3D%27none%27%20stroke%3D%27%23e6d48a%27%20stroke-opacity%3D%27.1%27%2F%3E%3C%2Fsvg%3E") 0 0 / 80px 30px repeat; }
 :root[data-ui-theme="is-blackflow"] :is(.panel, .modal__box, .bpop, .dpanel)::before { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%2780%27%20height%3D%2730%27%20viewBox%3D%270%200%2080%2030%27%3E%3Cpath%20d%3D%27M0%2015Q10%205%2020%2015T40%2015T60%2015T80%2015%27%20fill%3D%27none%27%20stroke%3D%27%23e6d48a%27%20stroke-opacity%3D%27.1%27%2F%3E%3C%2Fsvg%3E"); background-size: 80px 30px; background-repeat: repeat; opacity: .8; }
+:root[data-ui-theme="is-blackflow"] .mode-card__bg { background: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%2780%27%20height%3D%2730%27%20viewBox%3D%270%200%2080%2030%27%3E%3Cpath%20d%3D%27M0%2015Q10%205%2020%2015T40%2015T60%2015T80%2015%27%20fill%3D%27none%27%20stroke%3D%27%23e6d48a%27%20stroke-opacity%3D%27.1%27%2F%3E%3C%2Fsvg%3E") 0 0 / 80px 30px repeat, var(--bg-2) !important; }

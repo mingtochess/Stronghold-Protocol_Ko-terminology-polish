@@ -506,3 +506,5 @@ select option, select optgroup { background-color: var(--bg-2, var(--surf-2, #11
 :root[data-ui-theme][data-ui-light] :is(.ping__value, .ping__icon, .me-chip__stats .icon, .t-mint, .title-en__b, .chip .icon) { color: var(--mint-700) !important; }
 :root[data-ui-theme] .lo-title-tabs__separator { color: var(--text-lo); }
 :root[data-ui-theme] .hbond .hbond__num { -webkit-text-stroke: 3px #000; paint-order: stroke fill; }
+/* light themes: faint ghost-button labels and the chat send button read in the body ink */
+:root[data-ui-theme][data-ui-light] :is(.btn--ghost .btn__label, .game-chat__send, .game-chat__panel button) { color: var(--text-md); }

@@ -371,17 +371,17 @@ ${sel} {
 ${Object.entries(v).map(([k, x]) => `  ${k}: ${x};`).join('\n')}
 }
 ${sel} body {
-  ${flatBody(t.body)}
+  ${t.body}
 }
 ${sel} .screen:not(.gm) { background: transparent; }
 ${sel} .panel,
 ${sel} .modal__box,
 ${sel} .bpop,
 ${sel} .dpanel {
-  ${flatFill(t.panel)}
+  ${t.panel}
 }
 ${sel} .btn { ${t.btn} }
-${sel} .btn--primary { ${flatFill(t.primary).replace(/background:\s*([^;]+);/, (m, v) => /gradient|url\(/.test(v) ? `--ui-primary-face: ${v}; background-color: var(--mint-500);` : `--ui-primary-face: linear-gradient(${v}, ${v}); background-color: ${v};`)} }
+${sel} .btn--primary { ${t.primary.replace(/background:\s*([^;]+);/, (m, v) => /gradient|url\(/.test(v) ? `--ui-primary-face: ${v}; background-color: var(--mint-500);` : `--ui-primary-face: linear-gradient(${v}, ${v}); background-color: ${v};`)} }
 ${sel} .modal { background: ${t.light ? 'rgba(40, 40, 40, .35)' : 'rgba(0, 0, 0, .6)'}; }
 ${t.light ? `${sel} :is(.btn--secondary, .btn--ghost) { --btn-bg: #ffffff; --btn-bg-hover: ${t.p.bg[1]}; }\n` : ''}${t.extra ? t.extra + '\n' : ''}${textureCss(t.id, !!t.light)}${shapeCss(t.id)}${motifCss(t.id)}`;
 }
