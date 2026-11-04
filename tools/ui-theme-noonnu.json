@@ -386,5 +386,185 @@
     "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2310@1.0/JeonjuCraftMjB.woff2"
    ]
   ]
+ },
+ "1626": {
+  "name": "Kopub 바탕 2.0",
+  "family": "NN1626",
+  "faces": [
+   [
+    "400",
+    "https://cdn.jsdelivr.net/gh/projectnoonnu/2507-1@1.0/KoPubBatangBold.woff2"
+   ],
+   [
+    "500",
+    "https://cdn.jsdelivr.net/gh/projectnoonnu/2507-1@1.0/KoPubBatangMedium.woff2"
+   ]
+  ]
+ },
+ "289": {
+  "name": "순바탕",
+  "family": "NN289",
+  "faces": [
+   [
+    "400",
+    "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_eight@1.0/SunBatang-Light.woff"
+   ],
+   [
+    "500",
+    "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_eight@1.0/SunBatang-Medium.woff"
+   ],
+   [
+    "700",
+    "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_eight@1.0/SunBatang-Bold.woff"
+   ]
+  ]
+ },
+ "1525": {
+  "name": "북엔드 바탕",
+  "family": "NN1525",
+  "faces": [
+   [
+    "400",
+    "https://cdn.jsdelivr.net/gh/projectnoonnu/2410-2@1.0/TTBookendBatangR.woff2"
+   ],
+   [
+    "700",
+    "https://cdn.jsdelivr.net/gh/projectnoonnu/2410-2@1.0/TTBookendBatangSB.woff2"
+   ]
+  ]
+ },
+ "13": {
+  "name": "경기천년바탕",
+  "family": "NN13",
+  "faces": [
+   [
+    "400",
+    "https://cdn.jsdelivr.net/gh/projectnoonnu/2410-3@1.0/Batang_Regular.woff"
+   ],
+   [
+    "700",
+    "https://cdn.jsdelivr.net/gh/projectnoonnu/2410-3@1.0/Batang_Bold.woff"
+   ]
+  ]
+ },
+ "1629": {
+  "name": "Kopub 돋움 2.0",
+  "family": "NN1629",
+  "faces": [
+   [
+    "400",
+    "https://cdn.jsdelivr.net/gh/projectnoonnu/2507-1@1.0/KoPubDotumBold.woff2"
+   ],
+   [
+    "500",
+    "https://cdn.jsdelivr.net/gh/projectnoonnu/2507-1@1.0/KoPubDotumMedium.woff2"
+   ]
+  ]
+ },
+ "1423": {
+  "name": "한컴 산스",
+  "family": "NN1423",
+  "faces": [
+   [
+    "400",
+    "https://cdn.jsdelivr.net/gh/projectnoonnu/2406-1@1.0/HancomSans-Light.woff2"
+   ]
+  ]
+ },
+ "1053": {
+  "name": "나눔스퀘어 네오",
+  "family": "NN1053",
+  "faces": [
+   [
+    "400",
+    "https://hangeul.pstatic.net/hangeul_static/webfont/NanumSquareNeo/NanumSquareNeoTTF-aLt.woff2"
+   ],
+   [
+    "700",
+    "https://hangeul.pstatic.net/hangeul_static/webfont/NanumSquareNeo/NanumSquareNeoTTF-cBd.woff2"
+   ]
+  ]
+ },
+ "1446": {
+  "name": "구름 산스",
+  "family": "NN1446",
+  "faces": [
+   [
+    "400",
+    "https://cdn.jsdelivr.net/gh/projectnoonnu/2408@1.0/goorm-sans-regular.woff2"
+   ],
+   [
+    "500",
+    "https://cdn.jsdelivr.net/gh/projectnoonnu/2408@1.0/goorm-sans-medium.woff2"
+   ],
+   [
+    "700",
+    "https://cdn.jsdelivr.net/gh/projectnoonnu/2408@1.0/goorm-sans-bold.woff2"
+   ]
+  ]
+ },
+ "1391": {
+  "name": "MOVE Sans",
+  "family": "NN1391",
+  "faces": [
+   [
+    "400",
+    "https://cdn.jsdelivr.net/gh/projectnoonnu/2405-2@1.0/MoveSans-Bold.woff2"
+   ],
+   [
+    "500",
+    "https://cdn.jsdelivr.net/gh/projectnoonnu/2405-2@1.0/MoveSans-Medium.woff2"
+   ],
+   [
+    "700",
+    "https://cdn.jsdelivr.net/gh/projectnoonnu/2405-2@1.0/MoveSans-Bold.woff2"
+   ]
+  ]
+ },
+ "1595": {
+  "name": "아스타산스",
+  "family": "NN1595",
+  "faces": [
+   [
+    "400",
+    "https://cdn.jsdelivr.net/gh/projectnoonnu/2505-1@1.0/AstaSans-Regular.woff2"
+   ],
+   [
+    "500",
+    "https://cdn.jsdelivr.net/gh/projectnoonnu/2505-1@1.0/AstaSans-Medium.woff2"
+   ],
+   [
+    "700",
+    "https://cdn.jsdelivr.net/gh/projectnoonnu/2505-1@1.0/AstaSans-Bold.woff2"
+   ]
+  ]
+ },
+ "1586": {
+  "name": "펴진고딕",
+  "family": "NN1586",
+  "faces": [
+   [
+    "400",
+    "https://cdn.jsdelivr.net/gh/projectnoonnu/2504-1@1.0/PyeojinGothic-Regular.woff2"
+   ],
+   [
+    "700",
+    "https://cdn.jsdelivr.net/gh/projectnoonnu/2504-1@1.0/PyeojinGothic-Bold.woff2"
+   ]
+  ]
+ },
+ "1050": {
+  "name": "LINE Seed",
+  "family": "NN1050",
+  "faces": [
+   [
+    "400",
+    "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_11-01@1.0/LINESeedKR-Rg.woff2"
+   ],
+   [
+    "700",
+    "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_11-01@1.0/LINESeedKR-Bd.woff2"
+   ]
+  ]
  }
 }

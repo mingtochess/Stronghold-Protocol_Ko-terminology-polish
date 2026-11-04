@@ -466,20 +466,20 @@ const N = (display, body, serif, latin) => ({ display, body, serif, latin });
 export const GUIDE_TYPE = {
   'f-yan': N(1279, 733, true, M('family=Noto+Serif:wght@600', "'Noto Serif'")),           // 화중인: brush title, batang text
   'f-sargon': N(1284, 694, false, M('family=Archivo+Black', "'Archivo Black'")),            // 이상적인 도시: heavy slanted gothic
-  'f-victoria': N(487, 487, true, M('family=Cinzel:wght@700', "'Cinzel'")),                // 위대한 서곡: bold myeongjo, wide serif
-  'f-kjerag': N(223, 694, false, M('family=Rajdhani:wght@700', "'Rajdhani'")),             // RETRACING
+  'f-victoria': N(487, 1626, true, M('family=Cinzel:wght@700', "'Cinzel'")),                // 위대한 서곡: bold myeongjo, wide serif
+  'f-kjerag': N(223, 1629, false, M('family=Rajdhani:wght@700', "'Rajdhani'")),             // RETRACING
   'f-laterano': N(1117, 487, true, M('family=Cinzel:wght@600', "'Cinzel'")),               // 공상의 정원: light myeongjo, Trajan caps
   'f-aegir': N(38, 845, false, M('family=Exo+2:wght@500', "'Exo 2'")),                    // 삶의 길: thin rounded gothic
-  'f-siracusa': N(63, 694, false, M('family=Limelight', "'Limelight'")),                  // 시라쿠사인: solid gothic
-  'f-kazimierz': N(1292, 845, false, M('family=Michroma', "'Michroma'")),                  // 니어 라이트: sharp angular title
-  'f-ursus': N(366, 694, false, M('family=Bebas+Neue', "'Bebas Neue'")),                   // 사람들, 우리들: clean geometric gothic
-  'f-leithanien': N(418, 487, true, M('family=Cinzel:wght@600', "'Cinzel'")),              // 츠빌링슈튀르메: light myeongjo
-  'ss-adele': N(670, 694, false, M('family=Fredoka:wght@600', "'Fredoka'")),               // 화산의 꿈 여행: soft rounded heavy
-  'ss-vultures': N(678, 845, false, M('family=Archivo+Black', "'Archivo Black'")),         // 부정축재: black gothic
-  'ss-lonetrail': N(1504, 694, false, M('family=Jost:wght@700', "'Jost'")),                 // 론 트레일: heavy geometric
-  'ss-mendacium': N(1323, 487, false, M('family=Marcellus+SC', "'Marcellus SC'")),         // 아테누스 복수록: bold gothic
-  'ss-unrealized': N(1269, 845, false, M('family=Playfair+Display:ital,wght@1,700', "'Playfair Display'")), // 허락받지 못한 땅
-  'ss-elegies': N(324, 487, true, M('family=Cinzel+Decorative:wght@700', "'Cinzel Decorative'")), // 불타버린 엘레지여: myeongjo
+  'f-siracusa': N(63, 1423, false, M('family=Limelight', "'Limelight'")),                  // 시라쿠사인: solid gothic
+  'f-kazimierz': N(1292, 1595, false, M('family=Michroma', "'Michroma'")),                  // 니어 라이트: sharp angular title
+  'f-ursus': N(366, 1053, false, M('family=Bebas+Neue', "'Bebas Neue'")),                   // 사람들, 우리들: clean geometric gothic
+  'f-leithanien': N(418, 289, true, M('family=Cinzel:wght@600', "'Cinzel'")),              // 츠빌링슈튀르메: light myeongjo
+  'ss-adele': N(670, 1446, false, M('family=Fredoka:wght@600', "'Fredoka'")),               // 화산의 꿈 여행: soft rounded heavy
+  'ss-vultures': N(678, 1586, false, M('family=Archivo+Black', "'Archivo Black'")),         // 부정축재: black gothic
+  'ss-lonetrail': N(1504, 1391, false, M('family=Jost:wght@700', "'Jost'")),                 // 론 트레일: heavy geometric
+  'ss-mendacium': N(1323, 1525, false, M('family=Marcellus+SC', "'Marcellus SC'")),         // 아테누스 복수록: bold gothic
+  'ss-unrealized': N(1269, 1050, false, M('family=Playfair+Display:ital,wght@1,700', "'Playfair Display'")), // 허락받지 못한 땅
+  'ss-elegies': N(324, 13, true, M('family=Cinzel+Decorative:wght@700', "'Cinzel Decorative'")), // 불타버린 엘레지여: myeongjo
 };
 
 // heavy faces kept for the title screen only (unreadable as headings): theme → 눈누 face id
