@@ -92,7 +92,7 @@ export const UI_THEME_ASSETS = Object.freeze({
  "f-laterano": {
   "lobby": {
    "path": "/assets/ui-themes/f-laterano/lobby.png",
-   "bytes": 660641
+   "bytes": 2039962
   },
   "logo": {
    "path": "/assets/ui-themes/f-laterano/logo.png",
@@ -110,13 +110,13 @@ export const UI_THEME_ASSETS = Object.freeze({
   }
  },
  "f-ursus": {
-  "left": {
-   "path": "/assets/ui-themes/f-ursus/left.png",
-   "bytes": 1176997
+  "top": {
+   "path": "/assets/ui-themes/f-ursus/top.png",
+   "bytes": 673969
   },
-  "right": {
-   "path": "/assets/ui-themes/f-ursus/right.png",
-   "bytes": 1170896
+  "down": {
+   "path": "/assets/ui-themes/f-ursus/down.png",
+   "bytes": 1016863
   },
   "logo": {
    "path": "/assets/ui-themes/f-ursus/logo.png",
@@ -136,11 +136,29 @@ export const UI_THEME_ASSETS = Object.freeze({
  "f-sargon": {
   "lobby": {
    "path": "/assets/ui-themes/f-sargon/lobby.png",
-   "bytes": 606049
+   "bytes": 415591
   },
   "logo": {
    "path": "/assets/ui-themes/f-sargon/logo.png",
    "bytes": 32641
+  }
+ },
+ "ss-vultures": {
+  "lobby": {
+   "path": "/assets/ui-themes/ss-vultures/lobby.png",
+   "bytes": 198945
+  }
+ },
+ "cyber": {
+  "lobby": {
+   "path": "/assets/ui-themes/cyber/lobby.png",
+   "bytes": 283260
+  }
+ },
+ "space": {
+  "lobby": {
+   "path": "/assets/ui-themes/space/lobby.png",
+   "bytes": 164172
   }
  },
  "ss-lonetrail": {
@@ -184,7 +202,7 @@ export const UI_THEME_ASSETS = Object.freeze({
  "f-kjerag": {
   "lobby": {
    "path": "/assets/ui-themes/f-kjerag/lobby.png",
-   "bytes": 651592
+   "bytes": 2281358
   },
   "logo": {
    "path": "/assets/ui-themes/f-kjerag/logo.png",
@@ -202,6 +220,10 @@ export const UI_THEME_ASSETS = Object.freeze({
   }
  },
  "f-leithanien": {
+  "lobby": {
+   "path": "/assets/ui-themes/f-leithanien/lobby.png",
+   "bytes": 439310
+  },
   "logo": {
    "path": "/assets/ui-themes/f-leithanien/logo.png",
    "bytes": 73831

@@ -2,6 +2,7 @@
  "commit": "44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48",
  "commitAA1": "c0be4e4428f79c7e87c6889067a6906361ae979b",
  "commitA9": "5782da41a49efbd51a962d01ad6a88d1306ab63b",
+ "commitAC": "0b28f9562fcadbd644c6225f8f8aefbb500b4d22",
  "files": [
   {
    "path": "/assets/ui-themes/is-phantom/left.png",
@@ -150,10 +151,10 @@
   {
    "path": "/assets/ui-themes/f-laterano/lobby.png",
    "sources": [
-    "https://cdn.jsdelivr.net/gh/ArknightsAssets/ArknightsAssets@c0be4e4428f79c7e87c6889067a6906361ae979b/assets/torappu/dynamicassets/activity/%5Buc%5Dact26sre/prefabs/act26sre_activity_stage/bg_full.png",
-    "https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets/c0be4e4428f79c7e87c6889067a6906361ae979b/assets/torappu/dynamicassets/activity/%5Buc%5Dact26sre/prefabs/act26sre_activity_stage/bg_full.png"
+    "https://cdn.jsdelivr.net/gh/ArknightsAssets/ArknightsAssets2@44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/activity/%5Buc%5Dact42side/prefabs/act42side_activity_stage/bg.png",
+    "https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets2/44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/activity/%5Buc%5Dact42side/prefabs/act42side_activity_stage/bg.png"
    ],
-   "bytes": 660641
+   "bytes": 2039962
   },
   {
    "path": "/assets/ui-themes/f-laterano/logo.png",
@@ -180,20 +181,20 @@
    "bytes": 39239
   },
   {
-   "path": "/assets/ui-themes/f-ursus/left.png",
+   "path": "/assets/ui-themes/f-ursus/top.png",
    "sources": [
-    "https://cdn.jsdelivr.net/gh/ArknightsAssets/ArknightsAssets2@44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/ui/homebackground/wrapper/bg_ursus_1/bg_ursus_1_left.png",
-    "https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets2/44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/ui/homebackground/wrapper/bg_ursus_1/bg_ursus_1_left.png"
+    "https://cdn.jsdelivr.net/gh/ArknightsAssets/ArknightsAssets2@44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/activity/%5Buc%5Dact51side/prefabs/act51side_activity_stage/bg_scene_top.png",
+    "https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets2/44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/activity/%5Buc%5Dact51side/prefabs/act51side_activity_stage/bg_scene_top.png"
    ],
-   "bytes": 1176997
+   "bytes": 673969
   },
   {
-   "path": "/assets/ui-themes/f-ursus/right.png",
+   "path": "/assets/ui-themes/f-ursus/down.png",
    "sources": [
-    "https://cdn.jsdelivr.net/gh/ArknightsAssets/ArknightsAssets2@44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/ui/homebackground/wrapper/bg_ursus_1/bg_ursus_1_right.png",
-    "https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets2/44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/ui/homebackground/wrapper/bg_ursus_1/bg_ursus_1_right.png"
+    "https://cdn.jsdelivr.net/gh/ArknightsAssets/ArknightsAssets2@44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/activity/%5Buc%5Dact51side/prefabs/act51side_activity_stage/bg_scene_down.png",
+    "https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets2/44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/activity/%5Buc%5Dact51side/prefabs/act51side_activity_stage/bg_scene_down.png"
    ],
-   "bytes": 1170896
+   "bytes": 1016863
   },
   {
    "path": "/assets/ui-themes/f-ursus/logo.png",
@@ -222,10 +223,10 @@
   {
    "path": "/assets/ui-themes/f-sargon/lobby.png",
    "sources": [
-    "https://cdn.jsdelivr.net/gh/agutyauno/a9sr-data@5782da41a49efbd51a962d01ad6a88d1306ab63b/images/backgrounds/bg_desert_3.png",
-    "https://raw.githubusercontent.com/agutyauno/a9sr-data/5782da41a49efbd51a962d01ad6a88d1306ab63b/images/backgrounds/bg_desert_3.png"
+    "https://cdn.jsdelivr.net/gh/Aceship/Arknight-Images@0b28f9562fcadbd644c6225f8f8aefbb500b4d22/avg/backgrounds/bg_20_G03.png",
+    "https://raw.githubusercontent.com/Aceship/Arknight-Images/0b28f9562fcadbd644c6225f8f8aefbb500b4d22/avg/backgrounds/bg_20_G03.png"
    ],
-   "bytes": 606049
+   "bytes": 415591
   },
   {
    "path": "/assets/ui-themes/f-sargon/logo.png",
@@ -234,6 +235,30 @@
     "https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets2/44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/camplogo/logo_sargon.png"
    ],
    "bytes": 32641
+  },
+  {
+   "path": "/assets/ui-themes/ss-vultures/lobby.png",
+   "sources": [
+    "https://cdn.jsdelivr.net/gh/Aceship/Arknight-Images@0b28f9562fcadbd644c6225f8f8aefbb500b4d22/avg/backgrounds/bg_indoor_1.png",
+    "https://raw.githubusercontent.com/Aceship/Arknight-Images/0b28f9562fcadbd644c6225f8f8aefbb500b4d22/avg/backgrounds/bg_indoor_1.png"
+   ],
+   "bytes": 198945
+  },
+  {
+   "path": "/assets/ui-themes/cyber/lobby.png",
+   "sources": [
+    "https://cdn.jsdelivr.net/gh/Aceship/Arknight-Images@0b28f9562fcadbd644c6225f8f8aefbb500b4d22/avg/backgrounds/bg_lungmen_n.png",
+    "https://raw.githubusercontent.com/Aceship/Arknight-Images/0b28f9562fcadbd644c6225f8f8aefbb500b4d22/avg/backgrounds/bg_lungmen_n.png"
+   ],
+   "bytes": 283260
+  },
+  {
+   "path": "/assets/ui-themes/space/lobby.png",
+   "sources": [
+    "https://cdn.jsdelivr.net/gh/Aceship/Arknight-Images@0b28f9562fcadbd644c6225f8f8aefbb500b4d22/avg/backgrounds/38_g21_skystarry_L1.png",
+    "https://raw.githubusercontent.com/Aceship/Arknight-Images/0b28f9562fcadbd644c6225f8f8aefbb500b4d22/avg/backgrounds/38_g21_skystarry_L1.png"
+   ],
+   "bytes": 164172
   },
   {
    "path": "/assets/ui-themes/ss-lonetrail/left.png",
@@ -294,10 +319,10 @@
   {
    "path": "/assets/ui-themes/f-kjerag/lobby.png",
    "sources": [
-    "https://cdn.jsdelivr.net/gh/agutyauno/a9sr-data@5782da41a49efbd51a962d01ad6a88d1306ab63b/images/backgrounds/30_ex1_snowmount.png",
-    "https://raw.githubusercontent.com/agutyauno/a9sr-data/5782da41a49efbd51a962d01ad6a88d1306ab63b/images/backgrounds/30_ex1_snowmount.png"
+    "https://cdn.jsdelivr.net/gh/ArknightsAssets/ArknightsAssets2@44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/activity/%5Buc%5Dact46side/prefabs/act46side_activity_stage/img_bkg.png",
+    "https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets2/44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/activity/%5Buc%5Dact46side/prefabs/act46side_activity_stage/img_bkg.png"
    ],
-   "bytes": 651592
+   "bytes": 2281358
   },
   {
    "path": "/assets/ui-themes/f-kjerag/logo.png",
@@ -322,6 +347,14 @@
     "https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets2/44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/camplogo/logo_siracusa.png"
    ],
    "bytes": 88131
+  },
+  {
+   "path": "/assets/ui-themes/f-leithanien/lobby.png",
+   "sources": [
+    "https://cdn.jsdelivr.net/gh/Aceship/Arknight-Images@0b28f9562fcadbd644c6225f8f8aefbb500b4d22/avg/backgrounds/28_g7_concerthall_outside.png",
+    "https://raw.githubusercontent.com/Aceship/Arknight-Images/0b28f9562fcadbd644c6225f8f8aefbb500b4d22/avg/backgrounds/28_g7_concerthall_outside.png"
+   ],
+   "bytes": 439310
   },
   {
    "path": "/assets/ui-themes/f-leithanien/logo.png",
