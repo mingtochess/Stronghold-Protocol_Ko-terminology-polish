@@ -271,7 +271,9 @@ export function textureCss(id, light = false) {
   out.push(`${s} :is(.mode-card__bg, .seat__stripes) { background: ${x.card}; }`);
   out.push(`${s} .seat { background-image: ${topLayers(x.card)[0].replace(/\s+\d[^)]*\/[^,]*$/, '').replace(/ 0 0 \/.*$/, '')}; }`);
   // (a shop card holds an operator portrait: its plate stays dark under a light theme)
-  out.push(`${s} .scard__bg { background: ${x.card}, linear-gradient(180deg, ${light ? '#3a3e42, #1d2023' : 'var(--bg-3), var(--bg-1)'}); }`);
+  // (the card pattern on its own layer at a third of its strength: its white glows washed over the portrait)
+  out.push(`${s} .scard__bg { background: linear-gradient(180deg, ${light ? '#3a3e42, #1d2023' : 'var(--bg-3), var(--bg-1)'}); }`);
+  out.push(`${s} .scard__bg::before { content: ''; position: absolute; inset: 0; pointer-events: none; background: ${x.card}; opacity: .35; }`);
   // (no card silhouettes: a clipped card cut its own text and icons)
   // stripes and bands
   out.push(`${s} .modal__stripe { background: ${x.stripe}; }`);
@@ -333,7 +335,7 @@ ${s} :is(.topbar__title, .modal__title, .panel__title, .mode-card__name, .sectio
       out.push(`${s} :is(.panel, .modal__box, .bpop, .dpanel)::before { background: ${n}, ${x.grain}; background-size: ${m.noise.size || '240px'} auto, auto; }`);
       out.push(`${s} body { background-image: ${n}, var(--ui-body-art, none); }`);
       out.push(`${s} .mode-card__bg { background: ${n}, ${x.card}; }`);
-      out.push(`${s} .scard__bg { background: ${n}, ${x.card}, linear-gradient(180deg, ${light ? '#3a3e42, #1d2023' : 'var(--bg-3), var(--bg-1)'}); }`);
+      out.push(`${s} .scard__bg::before { background: ${n}, ${x.card}; }`);
     }
     if (m.frame) out.push(`${s} :is(.panel, .modal__box, .mode-card, .seat, .gtop__center) { box-shadow: ${m.frame}; }`);
     if (m.edge) out.push(`${s} :is(.panel, .modal__box, .mode-card, .seat) { border: ${m.edge}; }`);
