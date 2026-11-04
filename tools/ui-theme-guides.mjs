@@ -484,3 +484,39 @@ export const GUIDE_TYPE = {
 
 // heavy faces kept for the title screen only (unreadable as headings): theme → 눈누 face id
 export const GUIDE_TITLE = { 'f-sargon': 738, 'f-victoria': 411, 'f-siracusa': 414, 'ss-adele': 669, 'ss-unrealized': 1254, 'ss-elegies': 1234, 'ss-mendacium': 1127 };
+
+// ---- ja / zh lettering (2026-11): each theme's Japanese and Chinese faces (Google Fonts), picked to match its Korean
+// pair — display: titles / buttons / labels, body: running text (readable). The Japanese display faces are all distinct;
+// Google offers few Simplified / Traditional Chinese families, so those repeat between themes of the same kind.
+//   ja: [display, body]   sc: zh-CN [display, body]   tc: zh-TW [display, body]
+const C = (ja, sc, tc) => ({ ja, sc, tc });
+const SC_SANS = 'Noto Sans SC', SC_SERIF = 'Noto Serif SC', TC_SANS = 'Noto Sans TC', TC_SERIF = 'Noto Serif TC';
+export const CJK_TYPE = {
+  white: C(['Zen Kaku Gothic New', 'Zen Kaku Gothic New'], [SC_SANS, SC_SANS], [TC_SANS, TC_SANS]),
+  space: C(['Murecho', 'M PLUS 1p'], [SC_SANS, SC_SANS], ['Chiron Hei HK', TC_SANS]),                   // Orbit: modern sans
+  rhine: C(['IBM Plex Sans JP', 'IBM Plex Sans JP'], [SC_SANS, SC_SANS], ['Chiron Hei HK', TC_SANS]),     // IBM Plex
+  cyber: C(['DotGothic16', 'M PLUS 1 Code'], ['ZCOOL QingKe HuangYou', SC_SANS], ['Chiron Hei HK', TC_SANS]), // terminal type
+  'is-fungi': C(['Yusei Magic', 'Kiwi Maru'], ['ZCOOL KuaiLe', SC_SANS], ['Huninn', TC_SANS]),           // marker hand
+  'is-phantom': C(['Zen Antique', 'Shippori Mincho'], ['ZCOOL XiaoWei', SC_SERIF], ['Chiron Sung HK', TC_SERIF]), // theatre serif
+  'is-mizuki': C(['Zen Maru Gothic', 'M PLUS Rounded 1c'], ['ZCOOL KuaiLe', SC_SANS], ['Huninn', TC_SANS]),   // soft rounded
+  'is-frost': C(['Zen Kaku Gothic Antique', 'BIZ UDPGothic'], [SC_SANS, SC_SANS], [TC_SANS, TC_SANS]),       // plain frost sans
+  'is-sarkaz': C(['Shippori Mincho B1', 'Noto Serif JP'], [SC_SERIF, SC_SERIF], ['Chiron Sung HK', TC_SERIF]),  // heavy serif
+  'is-sui': C(['Yuji Syuku', 'Klee One'], ['Ma Shan Zheng', SC_SERIF], ['LXGW WenKai TC', TC_SERIF]),          // ink brush
+  'is-blackflow': C(['Hina Mincho', 'Sawarabi Mincho'], ['ZCOOL XiaoWei', SC_SERIF], ['Cactus Classical Serif', TC_SERIF]),
+  'f-yan': C(['Yuji Boku', 'Zen Old Mincho'], ['Ma Shan Zheng', SC_SERIF], ['LXGW WenKai TC', TC_SERIF]),       // brush title
+  'f-sargon': C(['RocknRoll One', 'Sawarabi Gothic'], ['ZCOOL QingKe HuangYou', SC_SANS], [TC_SANS, TC_SANS]),  // heavy gothic
+  'f-victoria': C(['Kaisei Tokumin', 'BIZ UDPMincho'], [SC_SERIF, SC_SERIF], ['Chiron Sung HK', TC_SERIF]),     // bold myeongjo
+  'f-kjerag': C(['M PLUS 1p', 'Noto Sans JP'], [SC_SANS, SC_SANS], ['Chiron Hei HK', TC_SANS]),                // RETRACING sans
+  'f-laterano': C(['Shippori Mincho', 'Noto Serif JP'], ['ZCOOL XiaoWei', SC_SERIF], [TC_SERIF, TC_SERIF]),      // light myeongjo
+  'f-aegir': C(['Kosugi Maru', 'M PLUS Rounded 1c'], [SC_SANS, SC_SANS], ['Huninn', TC_SANS]),                  // thin rounded
+  'f-siracusa': C(['Zen Old Mincho', 'Noto Serif JP'], [SC_SERIF, SC_SERIF], ['Cactus Classical Serif', TC_SERIF]), // noir serif
+  'f-kazimierz': C(['Stick', 'Noto Sans JP'], ['ZCOOL QingKe HuangYou', SC_SANS], ['Chiron Hei HK', TC_SANS]),   // sharp angular
+  'f-ursus': C(['BIZ UDPGothic', 'Noto Sans JP'], [SC_SANS, SC_SANS], [TC_SANS, TC_SANS]),                       // clean gothic
+  'f-leithanien': C(['Kaisei HarunoUmi', 'Noto Serif JP'], ['ZCOOL XiaoWei', SC_SERIF], ['Chiron Sung HK', TC_SERIF]), // concert serif
+  'ss-adele': C(['Mochiy Pop P One', 'M PLUS Rounded 1c'], ['ZCOOL KuaiLe', SC_SANS], ['Huninn', TC_SANS]),       // soft heavy
+  'ss-vultures': C(['Kosugi', 'Noto Sans JP'], ['ZCOOL QingKe HuangYou', SC_SANS], [TC_SANS, TC_SANS]),           // black gothic
+  'ss-lonetrail': C(['Sawarabi Gothic', 'Noto Sans JP'], [SC_SANS, SC_SANS], ['Chiron Hei HK', TC_SANS]),         // geometric
+  'ss-mendacium': C(['Shippori Antique B1', 'Noto Serif JP'], [SC_SERIF, SC_SERIF], ['Cactus Classical Serif', TC_SERIF]),
+  'ss-unrealized': C(['Kaisei Decol', 'Noto Serif JP'], ['ZCOOL XiaoWei', SC_SERIF], ['LXGW WenKai TC', TC_SERIF]), // decorative serif
+  'ss-elegies': C(['Noto Serif JP', 'Noto Serif JP'], [SC_SERIF, SC_SERIF], ['Chiron Sung HK', TC_SERIF]),         // myeongjo
+};

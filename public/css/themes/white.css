@@ -1,5 +1,6 @@
 @import url("https://fonts.googleapis.com/css2?family=Rajdhani:wght@600&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;700&family=Noto+Sans+SC:wght@400;700&family=Noto+Sans+TC:wght@400;700&display=swap");
 /* themes/white.css — 화이트: a light theme for every menu and HUD panel (ui/uiThemes.js). The battlefield, the units,
    the effects and the official HP bars are drawn by the renderer and keep their colours. */
 :root[data-ui-theme="white"] {
@@ -52,6 +53,9 @@
 :root[data-ui-theme="white"] :is(.lo-card__art, .lo-dhead__art, .extension-art:not(.extension-art--map), .lo-chip--tier) { background-color: #2b2e31; }
 :root[data-ui-theme="white"] :is(.title-bg__art, .title-bg__ridge-art, .title-bg__ridges, .title-bg__target, .title-bg__radar, .title-bg__haze) { display: none; }
 :root[data-ui-theme="white"] .app-bg, :root[data-ui-theme="white"] .app-bg::before, :root[data-ui-theme="white"] .app-bg::after { background: none; }
+:root[data-ui-theme="white"]:lang(ja) { --font-cjk: 'Zen Kaku Gothic New', 'Noto Sans KR', sans-serif; --font-display: 'Zen Kaku Gothic New', 'Zen Kaku Gothic New', 'Noto Sans KR', sans-serif; }
+:root[data-ui-theme="white"]:lang(zh-CN) { --font-cjk: 'Noto Sans SC', 'Noto Sans KR', sans-serif; --font-display: 'Noto Sans SC', 'Noto Sans SC', 'Noto Sans KR', sans-serif; }
+:root[data-ui-theme="white"]:lang(zh-TW) { --font-cjk: 'Noto Sans TC', 'Noto Sans KR', sans-serif; --font-display: 'Noto Sans TC', 'Noto Sans TC', 'Noto Sans KR', sans-serif; }
 :root[data-ui-theme="white"] { --font-micro: 'Rajdhani', var(--font-display); }
 :root[data-ui-theme="white"] :is(.micro, .micro--mint) { font-family: var(--font-micro); }
 :root[data-ui-theme="white"] { --font-cjk: 'Noto Sans KR', 'Noto Sans KR', 'Noto Sans SC', sans-serif; --font-display: 'Noto Sans KR', 'Noto Sans KR', 'Noto Sans KR', sans-serif; --font-ui: var(--font-display); }

@@ -9,7 +9,7 @@
 //   sprite  a filter for the official shop sprites (refresh / freeze plates, cost mattes, their icons)
 // All CSS gradients: no official artwork. Colours are literal so each theme reads on its own.
 import { THEME_ART as ART } from './build-ui-theme-resources.mjs';
-import { GUIDE_TEXTURES, GUIDE_MAT, THEME_FONTS, THEME_MICRO, GUIDE_TYPE, GUIDE_TITLE } from './ui-theme-guides.mjs';
+import { GUIDE_TEXTURES, GUIDE_MAT, THEME_FONTS, THEME_MICRO, GUIDE_TYPE, GUIDE_TITLE, CJK_TYPE } from './ui-theme-guides.mjs';
 import { readFileSync } from 'node:fs';
 const NN = JSON.parse(readFileSync(new URL('./ui-theme-noonnu.json', import.meta.url), 'utf8'));
 const L = (c, w = 'var(--bk-w)', l = 'var(--bk-l)') => [
@@ -321,15 +321,22 @@ ${a} body::before { display: none; }`);
     // Noto CJK face of the same kind
     const used = [...new Set([gt.display, gt.body, GUIDE_TITLE[id]].filter(Boolean))].map((k) => NN[k]);
     for (const f of used) for (const [w, u] of f.faces) out.push(`@font-face { font-family: '${f.family}'; src: url('${u}') format('${u.endsWith('2') ? 'woff2' : 'woff'}'); font-weight: ${w}; font-display: swap; }`);
-    const cjk = gt.serif ? ['Noto Serif JP', 'Noto Serif SC', 'Noto Serif TC'] : ['Noto Sans JP', 'Noto Sans SC', 'Noto Sans TC'];
-    out.unshift(`@import url("https://fonts.googleapis.com/css2?${gt.latin.q}&family=${cjk.map((c) => c.replace(/ /g, '+') + ':wght@400;700').join('&family=')}&display=swap");`);
+    out.unshift(`@import url("https://fonts.googleapis.com/css2?${gt.latin.q}&display=swap");`);
     const B = `'${NN[gt.body].family}'`, D = `'${NN[gt.display].family}'`;
     m && (m.font = { q: '', body: B, display: `${D}, ${B}` });
     THEME_MICRO_OVERRIDE[id] = gt.latin;
     if (GUIDE_TITLE[id]) out.push(`${s} .title-screen :is(.title-cn, .title-en, .title-main h1) { font-family: '${NN[GUIDE_TITLE[id]].family}', var(--font-display); }`);
-    out.push(`${s}:lang(ja) { --font-cjk: ${B}, '${cjk[0]}', sans-serif; --font-display: ${D}, '${cjk[0]}', sans-serif; }`);
-    out.push(`${s}:lang(zh-CN) { --font-cjk: ${B}, '${cjk[1]}', sans-serif; --font-display: ${D}, '${cjk[1]}', sans-serif; }`);
-    out.push(`${s}:lang(zh-TW) { --font-cjk: ${B}, '${cjk[2]}', sans-serif; --font-display: ${D}, '${cjk[2]}', sans-serif; }`);
+  }
+  // ja / zh text: the theme's own Japanese / Chinese pair (CJK_TYPE) first — a Korean face's hanja would otherwise set
+  // the kanji / hanzi — with the Korean face after it for any Hangul (names)
+  const ct = CJK_TYPE[id];
+  if (ct) {
+    const fams = [...new Set([...ct.ja, ...ct.sc, ...ct.tc])];
+    out.unshift(`@import url("https://fonts.googleapis.com/css2?${fams.map((f) => 'family=' + f.replace(/ /g, '+') + ':wght@400;700').join('&')}&display=swap");`);
+    const ko = gt ? `'${NN[gt.body].family}'` : (m?.font?.body || "'Noto Sans KR'");
+    for (const [lang, [d, b]] of [['ja', ct.ja], ['zh-CN', ct.sc], ['zh-TW', ct.tc]]) {
+      out.push(`${s}:lang(${lang}) { --font-cjk: '${b}', ${ko}, sans-serif; --font-display: '${d}', '${b}', ${ko}, sans-serif; }`);
+    }
   }
   if (m) {
     if (m.font && m.font.q) out.unshift(`@import url("https://fonts.googleapis.com/css2?${m.font.q}&display=swap");`);
