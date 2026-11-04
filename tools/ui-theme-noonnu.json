@@ -1,0 +1,280 @@
+{
+ "1279": {
+  "name": "가평 한석봉 큰붓",
+  "family": "GapyeongHanseokbongBigBrush",
+  "faces": [
+   [
+    "300",
+    "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2312-1@1.1/GapyeongHanseokbong-Light.woff2"
+   ],
+   [
+    "400",
+    "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2312-1@1.1/GapyeongHanseokbong-Regular.woff2"
+   ],
+   [
+    "700",
+    "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2312-1@1.1/GapyeongHanseokbong-Bold.woff2"
+   ]
+  ]
+ },
+ "733": {
+  "name": "고운바탕",
+  "family": "GounBatang",
+  "faces": [
+   [
+    "400",
+    "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2108@1.1/GowunBatang-Regular.woff"
+   ],
+   [
+    "700",
+    "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2108@1.1/GowunBatang-Bold.woff"
+   ]
+  ]
+ },
+ "738": {
+  "name": "어그로체",
+  "family": "Aggravo",
+  "faces": [
+   [
+    "300",
+    "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2108@1.1/SBAggroL.woff"
+   ],
+   [
+    "500",
+    "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2108@1.1/SBAggroM.woff"
+   ],
+   [
+    "700",
+    "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2108@1.1/SBAggroB.woff"
+   ]
+  ]
+ },
+ "694": {
+  "name": "프리텐다드",
+  "family": "PretendardNN",
+  "faces": [
+   [
+    "400",
+    "https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-Regular.woff2"
+   ],
+   [
+    "500",
+    "https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-Medium.woff2"
+   ],
+   [
+    "600",
+    "https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-SemiBold.woff2"
+   ],
+   [
+    "700",
+    "https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-Bold.woff2"
+   ],
+   [
+    "800",
+    "https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-ExtraBold.woff2"
+   ]
+  ]
+ },
+ "411": {
+  "name": "조선굵은명조",
+  "family": "JoseonBoldMyongjo",
+  "faces": [
+   [
+    "400",
+    "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_20-04@1.0/ChosunKm.woff"
+   ]
+  ]
+ },
+ "487": {
+  "name": "마루 부리",
+  "family": "MaruBuriNN",
+  "faces": [
+   [
+    "400",
+    "https://hangeul.pstatic.net/hangeul_static/webfont/MaruBuri/MaruBuri-Regular.woff2"
+   ],
+   [
+    "600",
+    "https://hangeul.pstatic.net/hangeul_static/webfont/MaruBuri/MaruBuri-SemiBold.woff2"
+   ],
+   [
+    "700",
+    "https://hangeul.pstatic.net/hangeul_static/webfont/MaruBuri/MaruBuri-Bold.woff2"
+   ]
+  ]
+ },
+ "223": {
+  "name": "에스코어드림",
+  "family": "SCoreDreamNN",
+  "faces": [
+   [
+    "400",
+    "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_six@1.2/S-CoreDream-4Regular.woff"
+   ],
+   [
+    "500",
+    "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_six@1.2/S-CoreDream-5Medium.woff"
+   ],
+   [
+    "600",
+    "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_six@1.2/S-CoreDream-6Bold.woff"
+   ],
+   [
+    "700",
+    "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_six@1.2/S-CoreDream-7ExtraBold.woff"
+   ],
+   [
+    "900",
+    "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_six@1.2/S-CoreDream-9Black.woff"
+   ]
+  ]
+ },
+ "1117": {
+  "name": "김정철명조",
+  "family": "KimJeongcheolMyoungjo",
+  "faces": [
+   [
+    "300",
+    "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2302_01@1.0/KimjungchulMyungjo-Light.woff2"
+   ],
+   [
+    "400",
+    "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2302_01@1.0/KimjungchulMyungjo-Regular.woff2"
+   ],
+   [
+    "700",
+    "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2302_01@1.0/KimjungchulMyungjo-Bold.woff2"
+   ]
+  ]
+ },
+ "38": {
+  "name": "나눔스퀘어라운드",
+  "family": "NanumSquareRound",
+  "faces": [
+   [
+    "400",
+    "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_two@1.0/NanumSquareRound.woff"
+   ]
+  ]
+ },
+ "845": {
+  "name": "수트",
+  "family": "SUITNN",
+  "faces": [
+   [
+    "400",
+    "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_suit@1.0/SUIT-Regular.woff2"
+   ],
+   [
+    "500",
+    "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_suit@1.0/SUIT-Medium.woff2"
+   ],
+   [
+    "600",
+    "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_suit@1.0/SUIT-SemiBold.woff2"
+   ],
+   [
+    "700",
+    "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_suit@1.0/SUIT-Bold.woff2"
+   ],
+   [
+    "800",
+    "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_suit@1.0/SUIT-ExtraBold.woff2"
+   ]
+  ]
+ },
+ "414": {
+  "name": "조선견고딕",
+  "family": "JoseonSolidGothic",
+  "faces": [
+   [
+    "400",
+    "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_20-04@1.0/ChosunBg.woff"
+   ]
+  ]
+ },
+ "1292": {
+  "name": "넥슨 워헤이븐",
+  "family": "NexonWarhaven",
+  "faces": [
+   [
+    "400",
+    "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2312-1@1.1/WarhavenR.woff2"
+   ],
+   [
+    "700",
+    "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2312-1@1.1/WarhavenB.woff2"
+   ]
+  ]
+ },
+ "366": {
+  "name": "G마켓 산스",
+  "family": "GMarketSans",
+  "faces": [
+   [
+    "300",
+    "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansLight.woff"
+   ],
+   [
+    "500",
+    "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansMedium.woff"
+   ],
+   [
+    "700",
+    "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansBold.woff"
+   ]
+  ]
+ },
+ "418": {
+  "name": "조선신명조",
+  "family": "JoseonShinmyeongjo",
+  "faces": [
+   [
+    "400",
+    "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_20-04@1.1/ChosunSm.woff"
+   ]
+  ]
+ },
+ "669": {
+  "name": "카페24 써라운드",
+  "family": "Cafe24Surround",
+  "faces": [
+   [
+    "400",
+    "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2105_2@1.0/Cafe24Ssurround.woff"
+   ]
+  ]
+ },
+ "1254": {
+  "name": "여기어때 잘난체 고딕",
+  "family": "YeogiOttaeJalnanGothic",
+  "faces": [
+   [
+    "400",
+    "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_231029@1.1/JalnanGothic.woff"
+   ]
+  ]
+ },
+ "1127": {
+  "name": "더잠실체",
+  "family": "TheJamsilNN",
+  "faces": [
+   [
+    "400",
+    "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2302_01@1.0/TheJamsil3Regular.woff2"
+   ],
+   [
+    "500",
+    "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2302_01@1.0/TheJamsil4Medium.woff2"
+   ],
+   [
+    "700",
+    "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2302_01@1.0/TheJamsil5Bold.woff2"
+   ],
+   [
+    "800",
+    "https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2302_01@1.0/TheJamsil6ExtraBold.woff2"
+   ]
+  ]
+ }
+}

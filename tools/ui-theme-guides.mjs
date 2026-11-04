@@ -457,3 +457,27 @@ export const THEME_MICRO = {
   'ss-lonetrail': M('family=Lexend:wght@500', "'Lexend'"), 'ss-mendacium': M('family=Marcellus+SC', "'Marcellus SC'"),
   'ss-unrealized': M('family=Comfortaa:wght@700', "'Comfortaa'"), 'ss-elegies': M('family=Cinzel:wght@600', "'Cinzel'"),
 };
+
+// ---- the event guides' own lettering (2026-11): Korean faces from 눈누 (noonnu.cc, free for commercial and web use,
+// pinned jsDelivr builds — tools/ui-theme-noonnu.json), chosen to match each guide's Korean title / heading type; the
+// Latin face matches its Latin logotype; ja / zh text falls to the Noto CJK face of the same kind (serif or sans).
+// display: title / heading face id, body: text face id (readable), latin: Google family for the small English labels.
+const N = (display, body, serif, latin) => ({ display, body, serif, latin });
+export const GUIDE_TYPE = {
+  'f-yan': N(1279, 733, true, M('family=Noto+Serif:wght@600', "'Noto Serif'")),           // 화중인: brush title, batang text
+  'f-sargon': N(738, 694, false, M('family=Archivo+Black', "'Archivo Black'")),            // 이상적인 도시: heavy slanted gothic
+  'f-victoria': N(411, 487, true, M('family=Cinzel:wght@700', "'Cinzel'")),                // 위대한 서곡: bold myeongjo, wide serif
+  'f-kjerag': N(223, 694, false, M('family=Rajdhani:wght@700', "'Rajdhani'")),             // RETRACING
+  'f-laterano': N(1117, 487, true, M('family=Cinzel:wght@600', "'Cinzel'")),               // 공상의 정원: light myeongjo, Trajan caps
+  'f-aegir': N(38, 845, false, M('family=Exo+2:wght@500', "'Exo 2'")),                    // 삶의 길: thin rounded gothic
+  'f-siracusa': N(414, 694, false, M('family=Limelight', "'Limelight'")),                  // 시라쿠사인: solid gothic
+  'f-kazimierz': N(1292, 845, false, M('family=Michroma', "'Michroma'")),                  // 니어 라이트: sharp angular title
+  'f-ursus': N(366, 694, false, M('family=Bebas+Neue', "'Bebas Neue'")),                   // 사람들, 우리들: clean geometric gothic
+  'f-leithanien': N(418, 487, true, M('family=Cinzel:wght@600', "'Cinzel'")),              // 츠빌링슈튀르메: light myeongjo
+  'ss-adele': N(669, 694, false, M('family=Fredoka:wght@600', "'Fredoka'")),               // 화산의 꿈 여행: soft rounded heavy
+  'ss-vultures': N(223, 845, false, M('family=Archivo+Black', "'Archivo Black'")),         // 부정축재: black gothic
+  'ss-lonetrail': N(366, 694, false, M('family=Jost:wght@700', "'Jost'")),                 // 론 트레일: heavy geometric
+  'ss-mendacium': N(1127, 487, false, M('family=Marcellus+SC', "'Marcellus SC'")),         // 아테누스 복수록: bold gothic
+  'ss-unrealized': N(1254, 845, false, M('family=Playfair+Display:ital,wght@1,700', "'Playfair Display'")), // 허락받지 못한 땅
+  'ss-elegies': N(411, 487, true, M('family=Cinzel+Decorative:wght@700', "'Cinzel Decorative'")), // 불타버린 엘레지여: myeongjo
+};

@@ -9,7 +9,9 @@
 //   sprite  a filter for the official shop sprites (refresh / freeze plates, cost mattes, their icons)
 // All CSS gradients: no official artwork. Colours are literal so each theme reads on its own.
 import { THEME_ART as ART } from './build-ui-theme-resources.mjs';
-import { GUIDE_TEXTURES, GUIDE_MAT, THEME_FONTS, THEME_MICRO } from './ui-theme-guides.mjs';
+import { GUIDE_TEXTURES, GUIDE_MAT, THEME_FONTS, THEME_MICRO, GUIDE_TYPE } from './ui-theme-guides.mjs';
+import { readFileSync } from 'node:fs';
+const NN = JSON.parse(readFileSync(new URL('./ui-theme-noonnu.json', import.meta.url), 'utf8'));
 const L = (c, w = 'var(--bk-w)', l = 'var(--bk-l)') => [
   `linear-gradient(${c}, ${c}) top left / ${l} ${w} no-repeat`, `linear-gradient(${c}, ${c}) top left / ${w} ${l} no-repeat`,
   `linear-gradient(${c}, ${c}) top right / ${l} ${w} no-repeat`, `linear-gradient(${c}, ${c}) top right / ${w} ${l} no-repeat`,
@@ -235,6 +237,8 @@ Object.assign(TEXTURES, GUIDE_TEXTURES);
 Object.assign(MAT, GUIDE_MAT);
 for (const [id, font] of Object.entries(THEME_FONTS)) MAT[id] = { ...MAT[id], font };
 
+const THEME_MICRO_OVERRIDE = {};
+
 /** A background stack's top-level layers (commas inside parentheses are not separators). */
 function topLayers(v) {
   const out = []; let depth = 0, cur = '';
@@ -299,9 +303,24 @@ export function textureCss(id, light = false) {
   if (art.logo) out.push(`${a} body::after { content: ''; position: fixed; right: 4vw; bottom: 6vh; width: 34vmin; height: 34vmin; background: var(--ta-logo) center / contain no-repeat; opacity: ${light ? '.08' : '.07'}; pointer-events: none; z-index: -1; ${light ? 'filter: invert(1);' : ''} }`);
   // material: an SVG noise grain (paper / velvet / stone / frost) over the surfaces, the theme's face, its frame
   const m = MAT[id];
+  const gt = GUIDE_TYPE[id];
+  if (gt) {
+    // the guide's own lettering: 눈누 faces declared here, the theme's font vars pointed at them; ja / zh text falls to the
+    // Noto CJK face of the same kind
+    const used = [...new Set([gt.display, gt.body])].map((k) => NN[k]);
+    for (const f of used) for (const [w, u] of f.faces) out.push(`@font-face { font-family: '${f.family}'; src: url('${u}') format('${u.endsWith('2') ? 'woff2' : 'woff'}'); font-weight: ${w}; font-display: swap; }`);
+    const cjk = gt.serif ? ['Noto Serif JP', 'Noto Serif SC', 'Noto Serif TC'] : ['Noto Sans JP', 'Noto Sans SC', 'Noto Sans TC'];
+    out.unshift(`@import url("https://fonts.googleapis.com/css2?${gt.latin.q}&family=${cjk.map((c) => c.replace(/ /g, '+') + ':wght@400;700').join('&family=')}&display=swap");`);
+    const B = `'${NN[gt.body].family}'`, D = `'${NN[gt.display].family}'`;
+    m && (m.font = { q: '', body: B, display: `${D}, ${B}` });
+    THEME_MICRO_OVERRIDE[id] = gt.latin;
+    out.push(`${s}:lang(ja) { --font-cjk: ${B}, '${cjk[0]}', sans-serif; --font-display: ${D}, '${cjk[0]}', sans-serif; }`);
+    out.push(`${s}:lang(zh-CN) { --font-cjk: ${B}, '${cjk[1]}', sans-serif; --font-display: ${D}, '${cjk[1]}', sans-serif; }`);
+    out.push(`${s}:lang(zh-TW) { --font-cjk: ${B}, '${cjk[2]}', sans-serif; --font-display: ${D}, '${cjk[2]}', sans-serif; }`);
+  }
   if (m) {
-    if (m.font) out.unshift(`@import url("https://fonts.googleapis.com/css2?${m.font.q}&display=swap");`);
-    const mi = THEME_MICRO[id];
+    if (m.font && m.font.q) out.unshift(`@import url("https://fonts.googleapis.com/css2?${m.font.q}&display=swap");`);
+    const mi = THEME_MICRO_OVERRIDE[id] || THEME_MICRO[id];
     if (mi) out.unshift(`@import url("https://fonts.googleapis.com/css2?${mi.q}&display=swap");`);
     if (mi) out.push(`${s} { --font-micro: ${mi.family}, var(--font-display); }\n${s} :is(.micro, .micro--mint) { font-family: var(--font-micro); }`);
     // the body face for all text (--font-cjk), the display face for titles / buttons / labels (--font-display); numbers
