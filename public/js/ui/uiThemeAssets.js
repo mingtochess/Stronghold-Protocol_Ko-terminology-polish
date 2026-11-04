@@ -100,13 +100,9 @@ export const UI_THEME_ASSETS = Object.freeze({
   }
  },
  "f-kazimierz": {
-  "left": {
-   "path": "/assets/ui-themes/f-kazimierz/left.png",
-   "bytes": 1325241
-  },
-  "right": {
-   "path": "/assets/ui-themes/f-kazimierz/right.png",
-   "bytes": 1307741
+  "lobby": {
+   "path": "/assets/ui-themes/f-kazimierz/lobby.png",
+   "bytes": 881291
   },
   "logo": {
    "path": "/assets/ui-themes/f-kazimierz/logo.png",
@@ -138,17 +134,19 @@ export const UI_THEME_ASSETS = Object.freeze({
   }
  },
  "f-sargon": {
-  "left": {
-   "path": "/assets/ui-themes/f-sargon/left.png",
-   "bytes": 960957
-  },
-  "right": {
-   "path": "/assets/ui-themes/f-sargon/right.png",
-   "bytes": 862861
+  "lobby": {
+   "path": "/assets/ui-themes/f-sargon/lobby.png",
+   "bytes": 606049
   },
   "logo": {
    "path": "/assets/ui-themes/f-sargon/logo.png",
    "bytes": 32641
+  }
+ },
+ "ss-vultures": {
+  "lobby": {
+   "path": "/assets/ui-themes/ss-vultures/lobby.png",
+   "bytes": 883832
   }
  },
  "ss-lonetrail": {
@@ -190,12 +188,20 @@ export const UI_THEME_ASSETS = Object.freeze({
   }
  },
  "f-kjerag": {
+  "lobby": {
+   "path": "/assets/ui-themes/f-kjerag/lobby.png",
+   "bytes": 651592
+  },
   "logo": {
    "path": "/assets/ui-themes/f-kjerag/logo.png",
    "bytes": 76998
   }
  },
  "f-siracusa": {
+  "lobby": {
+   "path": "/assets/ui-themes/f-siracusa/lobby.png",
+   "bytes": 680350
+  },
   "logo": {
    "path": "/assets/ui-themes/f-siracusa/logo.png",
    "bytes": 88131
