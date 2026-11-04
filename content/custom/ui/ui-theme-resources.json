@@ -3,6 +3,7 @@
  "commitAA1": "c0be4e4428f79c7e87c6889067a6906361ae979b",
  "commitA9": "5782da41a49efbd51a962d01ad6a88d1306ab63b",
  "commitAC": "0b28f9562fcadbd644c6225f8f8aefbb500b4d22",
+ "commitSP": "e8c1bd63f867480833b5ffc043726317dbf3da1d",
  "files": [
   {
    "path": "/assets/ui-themes/is-phantom/left.png",
@@ -53,20 +54,12 @@
    "bytes": 1054200
   },
   {
-   "path": "/assets/ui-themes/is-sarkaz/left.png",
+   "path": "/assets/ui-themes/is-sarkaz/lobby.png",
    "sources": [
-    "https://cdn.jsdelivr.net/gh/ArknightsAssets/ArknightsAssets2@44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/ui/homebackground/wrapper/bg_rogue_4/bg_rogue_4_left.png",
-    "https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets2/44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/ui/homebackground/wrapper/bg_rogue_4/bg_rogue_4_left.png"
+    "https://cdn.jsdelivr.net/gh/moring-m/Stronghold-Protocol_Ko_Arca_assets@e8c1bd63f867480833b5ffc043726317dbf3da1d/public/ui-theme-art/is-sarkaz-lobby.png",
+    "https://raw.githubusercontent.com/moring-m/Stronghold-Protocol_Ko_Arca_assets/e8c1bd63f867480833b5ffc043726317dbf3da1d/public/ui-theme-art/is-sarkaz-lobby.png"
    ],
-   "bytes": 793068
-  },
-  {
-   "path": "/assets/ui-themes/is-sarkaz/right.png",
-   "sources": [
-    "https://cdn.jsdelivr.net/gh/ArknightsAssets/ArknightsAssets2@44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/ui/homebackground/wrapper/bg_rogue_4/bg_rogue_4_right.png",
-    "https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets2/44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/ui/homebackground/wrapper/bg_rogue_4/bg_rogue_4_right.png"
-   ],
-   "bytes": 824455
+   "bytes": 1741353
   },
   {
    "path": "/assets/ui-themes/is-sui/left.png",
@@ -83,6 +76,22 @@
     "https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets2/44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/arts/ui/homebackground/wrapper/bg_rogue_5/bg_rogue_5_right.png"
    ],
    "bytes": 1413860
+  },
+  {
+   "path": "/assets/ui-themes/is-blackflow/lobby.png",
+   "sources": [
+    "https://cdn.jsdelivr.net/gh/moring-m/Stronghold-Protocol_Ko_Arca_assets@e8c1bd63f867480833b5ffc043726317dbf3da1d/public/ui-theme-art/is-blackflow-lobby.png",
+    "https://raw.githubusercontent.com/moring-m/Stronghold-Protocol_Ko_Arca_assets/e8c1bd63f867480833b5ffc043726317dbf3da1d/public/ui-theme-art/is-blackflow-lobby.png"
+   ],
+   "bytes": 1332549
+  },
+  {
+   "path": "/assets/ui-themes/is-fungi/lobby.png",
+   "sources": [
+    "https://cdn.jsdelivr.net/gh/Aceship/Arknight-Images@0b28f9562fcadbd644c6225f8f8aefbb500b4d22/avg/backgrounds/38_g16_hugebone.png",
+    "https://raw.githubusercontent.com/Aceship/Arknight-Images/0b28f9562fcadbd644c6225f8f8aefbb500b4d22/avg/backgrounds/38_g16_hugebone.png"
+   ],
+   "bytes": 415715
   },
   {
    "path": "/assets/ui-themes/rhine/left.png",
@@ -295,10 +304,10 @@
   {
    "path": "/assets/ui-themes/ss-mendacium/lobby.png",
    "sources": [
-    "https://cdn.jsdelivr.net/gh/ArknightsAssets/ArknightsAssets2@44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/activity/%5Buc%5Dact48side/prefabs/act48side_activity_stage/act48side_entry_img_bkg.png",
-    "https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets2/44b3d7b3fad6f50ca505bc41414a2fea8eaa0c48/assets/dyn/activity/%5Buc%5Dact48side/prefabs/act48side_activity_stage/act48side_entry_img_bkg.png"
+    "https://cdn.jsdelivr.net/gh/Aceship/Arknight-Images@0b28f9562fcadbd644c6225f8f8aefbb500b4d22/avg/backgrounds/35_mini01_villagevacancy.png",
+    "https://raw.githubusercontent.com/Aceship/Arknight-Images/0b28f9562fcadbd644c6225f8f8aefbb500b4d22/avg/backgrounds/35_mini01_villagevacancy.png"
    ],
-   "bytes": 1318997
+   "bytes": 383753
   },
   {
    "path": "/assets/ui-themes/ss-elegies/lobby.png",
@@ -351,10 +360,10 @@
   {
    "path": "/assets/ui-themes/f-leithanien/lobby.png",
    "sources": [
-    "https://cdn.jsdelivr.net/gh/Aceship/Arknight-Images@0b28f9562fcadbd644c6225f8f8aefbb500b4d22/avg/backgrounds/28_g7_concerthall_outside.png",
-    "https://raw.githubusercontent.com/Aceship/Arknight-Images/0b28f9562fcadbd644c6225f8f8aefbb500b4d22/avg/backgrounds/28_g7_concerthall_outside.png"
+    "https://cdn.jsdelivr.net/gh/Aceship/Arknight-Images@0b28f9562fcadbd644c6225f8f8aefbb500b4d22/avg/backgrounds/33_g4_srctheater.png",
+    "https://raw.githubusercontent.com/Aceship/Arknight-Images/0b28f9562fcadbd644c6225f8f8aefbb500b4d22/avg/backgrounds/33_g4_srctheater.png"
    ],
-   "bytes": 439310
+   "bytes": 524878
   },
   {
    "path": "/assets/ui-themes/f-leithanien/logo.png",

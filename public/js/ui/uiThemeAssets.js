@@ -32,13 +32,9 @@ export const UI_THEME_ASSETS = Object.freeze({
   }
  },
  "is-sarkaz": {
-  "left": {
-   "path": "/assets/ui-themes/is-sarkaz/left.png",
-   "bytes": 793068
-  },
-  "right": {
-   "path": "/assets/ui-themes/is-sarkaz/right.png",
-   "bytes": 824455
+  "lobby": {
+   "path": "/assets/ui-themes/is-sarkaz/lobby.png",
+   "bytes": 1741353
   }
  },
  "is-sui": {
@@ -49,6 +45,18 @@ export const UI_THEME_ASSETS = Object.freeze({
   "right": {
    "path": "/assets/ui-themes/is-sui/right.png",
    "bytes": 1413860
+  }
+ },
+ "is-blackflow": {
+  "lobby": {
+   "path": "/assets/ui-themes/is-blackflow/lobby.png",
+   "bytes": 1332549
+  }
+ },
+ "is-fungi": {
+  "lobby": {
+   "path": "/assets/ui-themes/is-fungi/lobby.png",
+   "bytes": 415715
   }
  },
  "rhine": {
@@ -184,7 +192,7 @@ export const UI_THEME_ASSETS = Object.freeze({
  "ss-mendacium": {
   "lobby": {
    "path": "/assets/ui-themes/ss-mendacium/lobby.png",
-   "bytes": 1318997
+   "bytes": 383753
   }
  },
  "ss-elegies": {
@@ -222,7 +230,7 @@ export const UI_THEME_ASSETS = Object.freeze({
  "f-leithanien": {
   "lobby": {
    "path": "/assets/ui-themes/f-leithanien/lobby.png",
-   "bytes": 439310
+   "bytes": 524878
   },
   "logo": {
    "path": "/assets/ui-themes/f-leithanien/logo.png",
