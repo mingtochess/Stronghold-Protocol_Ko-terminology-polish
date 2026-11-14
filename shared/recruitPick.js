@@ -39,3 +39,17 @@ export function checkRecruitPicks(picks, candidates, getChess) {
   }
   return { ok: true, picks: [...ids] };
 }
+
+/**
+ * 규정 선택자편 default (shared/diyBring.js defaultDiyBring): the first legal candidates of each tier, in candidate
+ * order, up to RECRUIT_PICKS — what a player who does not confirm takes into the match.
+ * @param {string[]} candidates @param {(id: string) => any} getChess @param {Iterable<string>} [banned]
+ */
+export function defaultRecruitPicks(candidates, getChess, banned = []) {
+  const off = new Set(banned), out = [];
+  for (const id of candidates || []) {
+    if (off.has(id)) continue;
+    if (checkRecruitPicks([...out, id], candidates, getChess).ok) out.push(id);
+  }
+  return out;
+}

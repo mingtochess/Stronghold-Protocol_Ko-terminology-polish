@@ -56,3 +56,26 @@ test('nobody with candidates: no RECRUIT_PICK phase', (t) => {
   h.drive(() => { seen.add(h.m.phase); return h.m.phase === PHASE.BATTLE_CHECK || h.m.phase === 'PREP'; });
   assert.ok(!seen.has(PHASE.RECRUIT_PICK));
 });
+
+test('RECRUIT_PICK as 선택자편: the timeout takes the first legal candidates per tier; a bot gets picks', (t) => {
+  const h = makeMatch({ mode: 'coop', humans: 1, bots: 1, seed: 5 }).start();
+  t.after(() => h.m.dispose());
+  const m = h.m;
+  h.run(() => m.phase === PHASE.BAND_DRAFT || m.phase === PHASE.INFO_CHECK);
+  if (m.phase === PHASE.INFO_CHECK) m.handle('p_0', { t: 'g.infoReady' });
+  h.run(() => m.phase === PHASE.BAND_DRAFT);
+  const five = recruits(5).filter((id) => !m.bannedChess.includes(id)).slice(0, 3);
+  assert.ok(m.setLoadout('p_0', Object.fromEntries(five.map((id) => [id, { selected: true }]))).ok);
+  h.run(() => {
+    if (m.phase === PHASE.BAND_DRAFT && m.draftTurn() === 'p_0') m.handle('p_0', { t: 'g.band', bandId: 'band_bldsk' });
+    return m.phase === PHASE.RECRUIT_PICK || m.phase === PHASE.BATTLE_CHECK;
+  });
+  assert.equal(m.phase, PHASE.RECRUIT_PICK);
+  const bot = m.order.find((p) => p.isBot);
+  assert.equal(bot.recruitReady, true);
+  assert.ok(bot.recruitPicks.size > 0 && bot.recruitPicks.size <= 4);
+  m.finishRecruitPick();
+  const p0 = h.ps('p_0');
+  assert.equal(p0.recruitPicks.size, 2);
+  assert.equal(p0.canRecruit(five[0]), true);
+});

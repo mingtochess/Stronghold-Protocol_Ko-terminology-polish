@@ -18,9 +18,11 @@ test('recruit picks (not candidates) set personal eligibility before the first s
   assert.equal(h.m.setLoadout('p_0',{[base.chessId]:{selected:true}}).ok,true);
   assert.equal(ps.canRecruit(base.chessId),false);
   h.m.phase=PHASE.RECRUIT_PICK;
+  // as 규정 선택자편: an unconfirmed list changes nothing, the one confirmation fixes the picks
   assert.equal(h.m.recruitPick(ps,{picks:[base.chessId],ready:false}).ok,true);
-  assert.equal(ps.canRecruit(base.chessId),true);
-  assert.equal(h.m.recruitPick(ps,{picks:[],ready:false}).ok,true);
   assert.equal(ps.canRecruit(base.chessId),false);
+  assert.equal(h.m.recruitPick(ps,{picks:[base.chessId],ready:true}).ok,true);
+  assert.equal(ps.canRecruit(base.chessId),true);
+  assert.ok(h.m.recruitPick(ps,{picks:[],ready:true}).error,'confirmed once');
  }finally{h.m.dispose();}
 });
