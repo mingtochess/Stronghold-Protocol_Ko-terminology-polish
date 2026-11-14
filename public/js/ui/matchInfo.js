@@ -20,6 +20,7 @@ import { html, Button, Icon, MicroLabel, BondDisc, Tooltip, Modal } from './comp
 import { UnitThumb } from './gameComponents.js';
 import { bannedPerBond, disabledBondSets, briefingBondTip } from './gameLogic.js';
 import { bondIconUrl } from './assetUrls.js';
+import { HudBond } from './bondStrip.js';
 import { matchData as data } from '../data.js';
 
 const cx = (...p) => p.flat().filter(Boolean).join(' ');
@@ -106,8 +107,9 @@ export function MatchBondRow({ title, micro, bonds, model }) {
         return html`<${Tooltip} key=${b.bondId} text=${briefingBondTip(b.name, state, bannedN)}
           aside=${bannedN > 0 ? BondBannedAside(b, model, banned) : null}>
           <div class=${cx('brief-bond', off && 'is-off', state === 'drawn' && 'is-incomplete', !off && bannedN > 0 && 'is-partial')} data-bond=${b.bondId}>
-            <${BondDisc} name=${b.name} icon=${bondIconUrl(m, b.bondId)} active=${!off} disabled=${off} tier=${off ? 0 : (b.thresholds?.length || 1)}
-              maxTier=${Math.max(1, b.thresholds?.length || 1)} size="md" />
+            ${/* the official autochess HUD bond item (board ring + icon + name, bondStrip.js HudBond), as in battle */ ''}
+            <${HudBond} name=${b.name} icon=${bondIconUrl(m, b.bondId)} thresholds=${Number(b.thresholds?.[0]) || 1} tier=${off ? 0 : Number(b.thresholds?.[0]) || 1}
+              active=${!off} disabled=${off} />
             ${bannedN > 0 ? html`<span class="brief-bond__ban num"><${Icon} name="user" />${bannedN}</span>` : null}
           </div>
         <//>`;
