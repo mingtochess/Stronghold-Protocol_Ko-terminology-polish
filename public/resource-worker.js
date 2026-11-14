@@ -244,6 +244,24 @@ self.addEventListener('fetch', event => {
     if(cached && !mutableFxIndex(path))return cached;
     const file = resources.files.find(f => f.path === path || encodeURI(f.path) === path);
     if (file) { await download(file, cache, resources); return await cache.match(file.path) || caches.match(file.path); }
+    // Not in the catalogue: an asset comes from the resource repository at the pinned commit (resources.origin, from
+    // tools/resource-origin.mjs), never from this server; a miss there is a 404, not a server fallback.
+    const origin=resources.origin;
+    if(origin?.bases?.length&&(origin.prefixes||[]).some(p=>assetPath.startsWith(p))){
+      const rel=assetPath.split('/').filter(Boolean).map(seg=>encodeURIComponent(decodeURIComponent(seg))).join('/');
+      for(const base of origin.bases){
+        try{
+          const response=await fetch(base+'/'+rel,{mode:'cors',credentials:'omit'});
+          if(!response.ok||response.type==='opaque'||(response.headers.get('content-type')||'').includes('text/html'))continue;
+          const body=await response.arrayBuffer();
+          const type=assetPath.endsWith('.json')?'application/json':assetPath.endsWith('.png')?'image/png':assetPath.endsWith('.jpg')?'image/jpeg':assetPath.endsWith('.gz')?'application/gzip':(response.headers.get('content-type')||'application/octet-stream');
+          const out=new Response(body,{status:200,headers:{'Content-Type':type}});
+          await cache.put(path,out.clone());
+          return out;
+        }catch{}
+      }
+      return new Response('',{status:404,statusText:'Not in the resource repository'});
+    }
     const response=await fetch(event.request);
     if(response.ok)await cache.put(path,response.clone());
     return response;

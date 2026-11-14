@@ -14,7 +14,10 @@ export function applyOrigin(catalog,config){
  const bases=(config.baseUrls||[]).map(value=>{const u=new URL(value);if(u.protocol!=='https:'||!['raw.githubusercontent.com','cdn.jsdelivr.net'].includes(u.hostname)||u.search||u.hash)throw Error('Use an immutable HTTPS GitHub raw/jsDelivr base URL');return u.href.replace(/\/$/,'');});
  const pinned=new Map((config.resolvedPacks||[]).flatMap(pack=>pack.files.map(f=>[f.path,pack])));
  const files=catalog.files.map(f=>pinned.has(f.path)?{...f,sources:packedSources(pinned.get(f.path),f.path)}:local(f)&&bases.length?{...f,sources:[...bases.map(b=>b+'/'+f.path.split('/').filter(Boolean).map(encodeURIComponent).join('/')),...(config.fallbackToServer?[f.path]:[])]}:f);
- return {...catalog,files,version:sha(JSON.stringify(files)).slice(0,20)};
+ // `origin`: where the browser takes an /assets/ file the catalogue does not list (an effect prefab named by the FX
+ // index, a native map texture): the resource repository at the pinned commit, never this server (resource-worker.js)
+ const origin=bases.length?{bases,prefixes:['/assets/']}:undefined;
+ return {...catalog,files,...(origin?{origin}:{}),version:sha(JSON.stringify(files)).slice(0,20)};
 }
 export async function exportResources(catalogPath,out,roots){
  const catalog=await read(catalogPath), inventory=[],missing=[];
