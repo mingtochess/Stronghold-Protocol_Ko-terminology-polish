@@ -338,7 +338,9 @@ export function LobbyScreen() {
   const versions = useStore((s) => s.versions);
   const season = useStore((s) => lobbyVersion(s));
   const seasonModes = ['solo', 'coop'];
-  const seasonFor = (mode) => (seasonModes.includes(mode) ? season : DEFAULT_VERSION);
+  // 8인 협동 is a 규정 co-op room too (server/lobby.js create)
+  const seasonBase = (mode) => (mode === 'coop8' ? 'coop' : mode);
+  const seasonFor = (mode) => (seasonModes.includes(seasonBase(mode)) ? season : DEFAULT_VERSION);
   // a 규정 season (chosen on the title screen) plays solo and 4-seat co-op rooms only
   const regSeason = season !== DEFAULT_VERSION;
   // 규정 is a beta: say so once per page session when the lobby opens on it
@@ -347,9 +349,9 @@ export function LobbyScreen() {
   const [betaOpen, setBetaOpen] = useState(() => { const on = regSeason && betaNoticePending(); if (on) clearBetaNotice(); return on; });
   useEffect(() => { if (regSeason && betaNoticePending()) { clearBetaNotice(); setBetaOpen(true); } }, [regSeason]);
   const closeBeta = () => { setBetaOpen(false); clearBetaNotice(); };
-  useEffect(() => { if (regSeason && !seasonModes.includes(roomMode)) pickMode('coop'); }, [regSeason, roomMode]);
+  useEffect(() => { if (regSeason && !seasonModes.includes(seasonBase(roomMode))) pickMode('coop'); }, [regSeason, roomMode]);
   // a laddered season picks its difficulty by 규정 등급 only
-  const ladder = regSeason && seasonModes.includes(roomMode) ? ladderModes(getConfig(), roomMode) : null;
+  const ladder = regSeason && seasonModes.includes(seasonBase(roomMode)) ? ladderModes(getConfig(), seasonBase(roomMode)) : null;
   const [ladderPick, setLadderPick] = useState(() => loadPref('lobby.ladder', null));
   const ladderMode = ladder ? (ladder.find((m) => m.id === ladderPick) || ladder[0]) : null;
   const pickLadder = (id) => { setLadderPick(id); savePref('lobby.ladder', id); };
