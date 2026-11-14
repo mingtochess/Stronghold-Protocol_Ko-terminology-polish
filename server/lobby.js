@@ -730,6 +730,8 @@ export class Lobby {
       case 'room.cancelReroll': return this.rerollSetup(session, msg, true);
       case 'room.skins': return this.skins(session, msg);
       case 'room.loadout': return this.loadout(session, msg);
+      case 'room.ownership': return this.ownership(session, msg);
+      case 'room.diy': return this.diy(session, msg);
       case 'room.spectate': return this.spectate(session, msg);
       case 'room.removeSpectator': return this.removeSpectator(session, msg);
       case 'room.setPlugins': return this.setPlugins(session, msg);
