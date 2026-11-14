@@ -32,3 +32,11 @@ test('six candidates per tier at most', () => {
   for (const id of pool.slice(0, 6)) picks = diySelect(picks, data, id, 6).picks;
   assert.equal(diySelect(picks, data, pool[6], 6).ok, false);
 });
+
+test('diyDrop: the 후보 X removes the operator from that tier only', async () => {
+  const { diyDrop, slotOf } = await import('../../public/js/ui/diyRecruit.js');
+  const r = diySelect({}, data, 'char_003_kalts', 5);
+  assert.ok(r.ok && slotOf(r.picks, data, 'char_003_kalts', 5));
+  assert.equal(slotOf(diyDrop(r.picks, data, 'char_003_kalts', 5), data, 'char_003_kalts', 5), null);
+  assert.deepEqual(diyDrop(r.picks, data, 'char_003_kalts', 6), r.picks, 'another tier: unchanged');
+});

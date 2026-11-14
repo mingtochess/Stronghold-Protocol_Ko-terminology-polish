@@ -74,6 +74,12 @@ export function diySelect(picks, data, charId, tier) {
   return { ok: true, picks: setPick(next, free.slotId, defaultPick(charId, free.slotId, data)) };
 }
 
+/** Drop an operator from one tier only (a prototype picked at both tiers keeps the other). */
+export function diyDrop(picks, data, charId, tier) {
+  const roster = cleanPicks(picks), held = slotOf(roster, data, charId, tier);
+  return held ? setPick(roster, held, null) : roster;
+}
+
 /** Change the skill / module of a picked operator (the 맹약 detail's `{ skill, module }` patch). */
 export function diyChoice(picks, data, charId, tier, patch) {
   const roster = cleanPicks(picks), held = slotOf(roster, data, charId, tier);
