@@ -3,6 +3,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { getVersionData } from '../../server/data.js';
 import { makeMatch } from './harness.js';
+import { drawDisabledBonds } from '../../server/match-upstream/pool.js';
 import { generateDraft } from '../../server/match-upstream/choices.js';
 import { GameData } from '../../server/match-upstream/gamedata.js';
 import { createRng } from '../../server/sim-upstream/rng.js';
@@ -18,7 +19,9 @@ test('regulation coop8: 8 seats play through the first rounds, boss share up to 
   assert.equal(m.gd.bossPoolShare(8), 8);
   assert.equal(m.gd.bossPoolShare(5), 5);
   assert.equal(m.publicView().mode, 'coop8');
-  assert.deepEqual(m.disabledBonds, [], '8인: no random bans');
+  // 9 − 8 seats = 1 core bond banned
+  assert.equal(m.disabledBonds.length, 1);
+  assert.ok(m.gd.bond(m.disabledBonds[0]).isCore);
   const unite = [];
   const opts = m._uniteOpts.bind(m);
   m._uniteOpts = (plan, limit) => { const o = opts(plan, limit); unite.push({ o, limit, base: m.wave.timeLimit }); return o; };
@@ -42,4 +45,15 @@ test('regulation coop8: 9 reward cards, communication items 1 cheaper', () => {
   const d = generateDraft(gd8, createRng(1), r);
   assert.equal(d.cards.length, 9);
   for (const id of ['chess_item_2_06_e_a', 'chess_item_4_01_e_a', 'chess_item_5_04_e_a']) if (gd4.item(id)) assert.equal(gd8.itemPrice(id), Math.max(0, gd4.itemPrice(id) - 1));
+});
+
+test('regulation coop8: 9 − players core bans, at least 5 core bonds left', () => {
+  const data = withCoopEight(getVersionData('act3autochess@V3_1'));
+  const gd = new GameData(data, 'mode_multi_normal');
+  const core = gd.bondIds.filter((b) => gd.bond(b).isCore && Number(gd.bond(b).weight) > 0 && !gd.modeInactiveBonds.has(b));
+  for (const players of [8, 6, 5, 3]) {
+    const { drawn } = drawDisabledBonds(gd, createRng(players), { players });
+    assert.equal(drawn.length, Math.min(9 - players, Math.max(0, core.length - 5)), `${players} players`);
+    assert.ok(core.length - drawn.length >= Math.min(5, core.length));
+  }
 });

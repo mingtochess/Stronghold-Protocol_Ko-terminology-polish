@@ -487,7 +487,7 @@ export class Match {
     this.factions = setup.factions;
     this.bossId = setup.bossId;
     this.hiddenBossId = setup.hiddenBossId;
-    const bans = drawDisabledBonds(this.gd, this.rngSetup);
+    const bans = drawDisabledBonds(this.gd, this.rngSetup, { players: this.order.length });
     this.bondChoice = bans.choice ?? null;
     this.disabledBonds = bans.drawn;
     this.staticInactiveBonds = bans.staticOff;

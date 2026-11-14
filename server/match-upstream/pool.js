@@ -30,7 +30,7 @@
  * @param {Function} rng seeded rng (createRng)
  * @returns {{ drawn: string[], staticOff: string[], banned: string[], choice?: { groups: string[][], picked: number|null } }}
  */
-export function drawDisabledBonds(gd, rng) {
+export function drawDisabledBonds(gd, rng, { players = null } = {}) {
   const { core: nCore, addon: nAddon } = gd.bans(gd.difficulty);
   const staticOff = [...gd.modeInactiveBonds].filter((b) => gd.bond(b)).sort();
   const eligible = gd.bondIds.filter((b) => {
@@ -40,9 +40,12 @@ export function drawDisabledBonds(gd, rng) {
   const core = eligible.filter((b) => gd.bond(b).isCore);
   const addon = eligible.filter((b) => !gd.bond(b).isCore);
   if (gd.config?.coop8) {
-    // 8인 협동 (맹약 rule, server/match/pool.js): no random bans; only the custom 항상 밴 bonds stay off
+    // 8인 협동: 9 − players core bonds are banned at random (8 seats: 1), at least 5 core bonds staying active; the
+    // custom 항상 밴 / 밴 제외 apply to that draw, the 항상 밴 add-ons stay off
     const policy = gd.config?.bondPolicy || null;
-    const drawn = [...new Set([...(policy?.forcedBonds || []), ...(policy?.forcedAuxBonds || [])])].filter((b) => eligible.includes(b)).sort();
+    const n = Math.max(0, 9 - (Number.isInteger(players) && players > 0 ? players : 8));
+    const coreOff = policyDraw(sample(core, core.length, rng), n, policy?.forcedBonds || [], policy?.protectedBonds || [], 5);
+    const drawn = [...new Set([...coreOff, ...(policy?.forcedAuxBonds || []).filter((b) => addon.includes(b))])].sort();
     return { drawn, staticOff, banned: bannedChessForBonds(gd, drawn, staticOff) };
   }
   if (gd.regulationBondDraw) {
