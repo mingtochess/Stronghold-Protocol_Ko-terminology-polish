@@ -51,6 +51,11 @@ export async function loadBrowserSim({ base = '/sim/', dataBase = '/data/', fetc
   if (missing.length) throw new Error(`simulation data unavailable: ${missing.join(', ')}`);
   const raw = {};
   SIM_DATA_FILES.forEach((n, i) => { raw[n] = files[i]; });
+  // the season tag (config.version): createBattleFromSpec refuses a spec whose `version` is not the loaded data's, so a
+  // 규정 content set without it failed every battle start and the server took each field over ("plugin not responding")
+  // (the content set's whole config when it carries one — the sim reads its season / modes / rules as the server does)
+  if (data?.config && typeof data.config === 'object') raw.config = structuredClone(data.config);
+  else if (version && versionById(version)) raw.config = { version: { id: version, family: versionById(version).family } };
   // A prior simulation may have frozen these records. Clone only their outer timing targets;
   // preserve the shared authored trees and the local authoritative animation timing extension.
   const timingCopy = records => records && Object.isFrozen(records)
