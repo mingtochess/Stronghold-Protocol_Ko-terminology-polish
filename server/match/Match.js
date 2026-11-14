@@ -320,7 +320,13 @@ export class Match {
       // (the room's selection: custom, or 증강 모드's preset — the lobby keeps it in season form)
       const gm = normalizeGameplayMode(opts?.gameplayMode);
       const sel = gm === 'custom' || gm === 'augment' ? seasonExtensionSelection(opts?.customExtensions, opts?.data) : null;
-      return new UpstreamMatch(sel ? { ...opts, data: applySeasonExtensions(opts.data, sel), seasonExtensions: sel } : opts);
+      let up = sel ? { ...opts, data: applySeasonExtensions(opts.data, sel), seasonExtensions: sel } : opts;
+      // 8인 협동: the upstream match seats any number in co-op; the shared boss pool counts up to 8 alive players
+      if (up.mode === 'coop8') {
+        const cfg = up.data.config;
+        up = { ...up, mode: 'coop', data: { ...up.data, config: { ...cfg, coop8: true, bossHpScale: { ...(cfg.bossHpScale || {}), aliveFull: 8 } } } };
+      }
+      return new UpstreamMatch(up);
     }
     if (!opts || !Array.isArray(opts.seats) || opts.seats.length === 0) throw new TypeError('Match: seats required');
     if (typeof opts.send !== 'function' || typeof opts.broadcast !== 'function' || typeof opts.onEnd !== 'function') {

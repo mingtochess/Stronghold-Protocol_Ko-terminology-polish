@@ -456,7 +456,7 @@ export function LobbyScreen() {
         <div class="section-label lg-label lg-label--modes"><span class="section-label__idx num">01</span>模拟方式<${MicroLabel}>MODE<//></div>
         <div class="lg-modes">
         <div class="mode-cards mode-cards--main">
-          ${MODE_CARDS.filter((c) => MAIN_MODES.includes(c.id)).map((c) => html`<${ModeCard} key=${c.id} card=${c} disabled=${regSeason && !seasonModes.includes(c.id)} no8=${regSeason} selected=${roomMode === c.id || roomMode===c.id+'8'} onSelect=${pickMode} coopSize=${coopSize} onCoopSize=${n=>{setCoopSize(n);pickMode((c.id==='sync'?'sync':'coop')+(n===8?'8':''));}} publicOn=${publicOn} onPublicChange=${on=>{setPublicOn(on);savePref('lobby.publicOn',on);}} />`)}
+          ${MODE_CARDS.filter((c) => MAIN_MODES.includes(c.id)).map((c) => html`<${ModeCard} key=${c.id} card=${c} disabled=${regSeason && !seasonModes.includes(c.id)} selected=${roomMode === c.id || roomMode===c.id+'8'} onSelect=${pickMode} coopSize=${coopSize} onCoopSize=${n=>{setCoopSize(n);pickMode((c.id==='sync'?'sync':'coop')+(n===8?'8':''));}} publicOn=${publicOn} onPublicChange=${on=>{setPublicOn(on);savePref('lobby.publicOn',on);}} />`)}
         </div>
 
         </div>

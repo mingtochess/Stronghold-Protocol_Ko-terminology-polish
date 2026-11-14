@@ -183,7 +183,7 @@ import { Match as DefaultMatch } from './match/Match.js';
 
 const VANILLA_KITTED = new Set(KITTED_CHARS);
 import { isContentHash } from '../shared/plugins/identity.js';
-import { DEFAULT_VERSION } from '../shared/versions.js';
+import { DEFAULT_VERSION, versionById } from '../shared/versions.js';
 import { seasonExtensionCatalog, seasonExtensionSelection, validateSeasonExtensions } from '../shared/seasonExtensions.js';
 import { ruleOption } from '../shared/plugins/rules.js';
 import { msg, wireMessage } from '../shared/i18n.js';
@@ -811,7 +811,7 @@ export class Lobby {
     const version = askedVersion ?? this.defaultVersion();
     if (!this.versionEnabled(version)) return fail(ERR.VERSION_UNKNOWN);
     const seasonMode = mode === 'coop8' ? 'coop' : mode;
-    if (version !== DEFAULT_VERSION && mode === 'coop8') return fail(ERR.VERSION_UNSUPPORTED, `${version} has no coop8 rooms`);
+    if (version !== DEFAULT_VERSION && mode === 'coop8' && versionById(version)?.family !== 'regulation') return fail(ERR.VERSION_UNSUPPORTED, `${version} has no coop8 rooms`);
     if (!this.offered(version, seasonMode).length) return fail(ERR.VERSION_UNSUPPORTED, `${version} has no ${mode} rooms`);
     if (!this.versionAvailable(version)) return fail(ERR.VERSION_UNSUPPORTED, 'the data of this version is not available');
     let difficulty = askedDifficulty === undefined ? askedDifficulty : this.fallbackDifficulty(version, seasonMode, askedDifficulty);
@@ -1314,7 +1314,7 @@ export class Lobby {
     if (room.match) return fail(ERR.ROOM_STARTED);
     if (!this.versionEnabled(version)) return fail(ERR.VERSION_UNKNOWN);
     if (room.version === version) return OK;
-    if (version !== DEFAULT_VERSION && room.mode === 'coop8') return fail(ERR.VERSION_UNSUPPORTED, `${version} has no coop8 rooms`);
+    if (version !== DEFAULT_VERSION && room.mode === 'coop8' && versionById(version)?.family !== 'regulation') return fail(ERR.VERSION_UNSUPPORTED, `${version} has no coop8 rooms`);
     if (!this.offered(version, this.seasonMode(room)).length) return fail(ERR.VERSION_UNSUPPORTED, `${version} has no ${room.mode} rooms`);
     if (!this.versionAvailable(version)) return fail(ERR.VERSION_UNSUPPORTED, 'the data of this version is not available');
     return this.applyVersion(room, version);
