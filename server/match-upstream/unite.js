@@ -38,6 +38,7 @@
 // while the field runs (a split child, a summon) never crossed the leaker's own goal, so the field tags it `uniteRuntime`
 // at birth (sim/battle/spawns.js) and neither uniteSurvivors nor the HUD's ×N reads it.
 
+import { eightUniteRoutes } from '../../shared/cooperativeEight.js';
 import { buildUniteWave } from './waves.js';
 import { layerGainRoom } from '../../shared/constants.js';
 
@@ -119,6 +120,9 @@ export function helperStats(m, ps, results) {
  * The ≤ maxHelpers helpers, first = the one that meets the enemies first (right-hand field): selection by units >
  * active bond > standing units > seat, then the pair ordered by units > active bond > layers > standing > seat.
  */
+/** The 8인 연합 방어 field: an 8-seat co-op, or more than two helpers. */
+export const isEightUnite = (m, plan) => m.mode === 'coop8' || plan.helpers.length > 2;
+
 export function helperOrder(m, perfects, results) {
   const st = new Map(perfects.map((ps) => [ps.playerId, helperStats(m, ps, results)]));
   const S = (ps) => st.get(ps.playerId);
@@ -129,7 +133,11 @@ export function helperOrder(m, perfects, results) {
 
 /** Battle options for the unite field (without data/logger, added by the match). */
 export function uniteBattleOpts(m, plan, timeLimit) {
-  const wave = buildUniteWave(m.gd, plan.leaked, plan.helpers.length, timeLimit);
+  // 8인 협동 (맹약 rule, shared/cooperativeEight.js): up to 4 helpers on four joined fields, the enemies entering the
+  // rightmost and walking through every field
+  const eight = isEightUnite(m, plan);
+  const wave = buildUniteWave(m.gd, plan.leaked, eight ? 2 : plan.helpers.length, timeLimit);
+  if (eight) wave.routes = eightUniteRoutes(wave.routes);
   const players = plan.helpers.map((ps, i) => {
     const carry = new Map();
     const r = m.lastResults.get(ps.playerId);
@@ -147,7 +155,7 @@ export function uniteBattleOpts(m, plan, timeLimit) {
       carry.set(u.uid, { hpPct: Number.isFinite(u.hpPct) ? Math.max(0, Math.min(1, u.hpPct)) : 1, sp });
     }
     // 2 helpers: the first one meets the enemies first on the right-hand field (escaped_multi enters at col 18)
-    const colOffset = plan.helpers.length > 1 && i === 0 ? 8 : 0;
+    const colOffset = eight ? (3 - i) * 8 : plan.helpers.length > 1 && i === 0 ? 8 : 0;
     // the layers its own combat reached (bondsView, the round's pending gains; PRTS "以其阵地当前的状态") — see header
     const input = ps.battleInput({ side: 'L', colOffset, carry, reached: true });
     const ev = { input, kind: 'unite', round: m.round, spawns: wave.spawns };

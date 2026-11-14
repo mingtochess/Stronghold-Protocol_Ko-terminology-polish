@@ -309,7 +309,7 @@ export class Match {
     }
     this.opts = opts;
     this.roomCode = opts.roomCode ?? '----';
-    this.mode = opts.mode === 'solo' ? 'solo' : 'coop';
+    this.mode = opts.mode === 'solo' ? 'solo' : opts.mode === 'coop8' ? 'coop8' : 'coop';
     this.difficulty = opts.difficulty;
     this.modeId = opts.modeId || modeIdFor(this.mode, opts.difficulty);
     this.seed = (Number(opts.seed) >>> 0) || 1;

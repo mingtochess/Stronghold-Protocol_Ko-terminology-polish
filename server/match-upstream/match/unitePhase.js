@@ -3,9 +3,10 @@
 // counts (_uniteLeft, user playtest #6 item 7; _uniteTick in the server-run mode).
 // Installed on Match.prototype by server/match/Match.js (a method container: never instantiated; `this` is the match).
 
+import { EIGHT_UNITE_RECT, eightUniteStageId } from '../../../shared/cooperativeEight.js';
 import { PHASE, GEO } from '../../../shared/constants.js';
 import { deriveSeed } from '../../sim-upstream/rng.js';
-import { uniteBattleOpts, uniteSurvivors } from '../unite.js';
+import { uniteBattleOpts, uniteSurvivors, isEightUnite } from '../unite.js';
 import { FieldRunner, timelineAt, uniteBillBounds } from '../fields.js';
 import { uniteLeft } from '../../sim-upstream/spec.js';
 import { FLOW_TICKER_PRIORITY, DELAYS } from './common.js';
@@ -13,11 +14,17 @@ import { msg } from '../../../shared/i18n.js';
 import { onStartUnite } from '../botEmotes.js';
 
 export class MatchUnite {
+  /** The 联防 time limit: the round's combat limit, ×4 on the 8인 field (맹약 rule; 커스텀 normalBattleTime keeps ×1). */
+  _uniteLimit() {
+    const base = this.wave ? this.wave.timeLimit : 60;
+    return base * (this.mode === 'coop8' && !this.gd.config.customRules?.normalBattleTime ? 4 : 1);
+  }
+
   startUnite(plan) {
     if (this.clientCombat) { this._startUniteClient(plan); return; }
     this.phase = PHASE.UNITE;
     this.unitePlan = plan;
-    const limit = this.wave ? this.wave.timeLimit : 60;
+    const limit = this._uniteLimit();
     const battle = this.newBattle(this._uniteOpts(plan, limit));
     this.fields = [{ fieldId: 'u', kind: 'unite', players: plan.helpers.map((p) => p.playerId), battle, live: true }];
     this.deadline = this.sched.instant ? 0 : this.sched.now() + Math.round((limit / this.gameSpeed) * 1000);
@@ -54,8 +61,8 @@ export class MatchUnite {
       kind: 'unite',
       modeId: this.modeId,
       round: this.round,
-      stageId: this.stageId,
-      rect: { ...GEO.UNITE_RECT },
+      stageId: isEightUnite(this, plan) ? eightUniteStageId(this.stageId) : this.stageId,
+      rect: { ...(isEightUnite(this, plan) ? EIGHT_UNITE_RECT : GEO.UNITE_RECT) },
       timeLimit: limit,
       players,
       spawns: this._sanitizeSpawns(wave.spawns),
@@ -72,7 +79,7 @@ export class MatchUnite {
   _startUniteClient(plan) {
     this.phase = PHASE.UNITE;
     this.unitePlan = plan;
-    const limit = this.wave ? this.wave.timeLimit : 60;
+    const limit = this._uniteLimit();
     const f = this._ccField({ fieldId: 'u', kind: 'unite', players: plan.helpers.map((p) => p.playerId), opts: this._uniteOpts(plan, limit) });
     this.deadline = this.sched.instant ? 0 : this.sched.now() + Math.round((limit / this.gameSpeed) * 1000);
     this.watchers.clear();

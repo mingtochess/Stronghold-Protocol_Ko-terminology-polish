@@ -81,6 +81,8 @@ export class MatchViews {
       deadline: this.deadline,
       serverNow: this.sched.now(),
       modeId: this.modeId,
+      // 8인 협동 only (the 맹약 field and rules read it, public/js/data.js): other rooms keep upstream's view
+      ...(this.mode === 'coop8' ? { mode: 'coop8' } : {}),
       difficulty: this.difficulty,
       stageId: this.stageId,
       // a non-default official version's match (DESIGN §35.23): its registry id, so a page that never saw the room (a

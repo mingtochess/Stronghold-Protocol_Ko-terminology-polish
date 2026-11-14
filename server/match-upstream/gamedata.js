@@ -89,6 +89,8 @@ export function bossPoolShareOf(modeScale, cfgScale, isSolo, aliveCount) {
 /** Strip the _a/_b suffix of an item id (the registry key of an item family). */
 export const itemKey = (id) => (typeof id === 'string' ? id.replace(/_[ab]$/, '') : '');
 
+const COOP8_COMMUNICATION_ITEMS = new Set(['chess_item_2_06_e_a', 'chess_item_4_01_e_a', 'chess_item_5_04_e_a']);
+
 export class GameData {
   /**
    * @param {Readonly<Record<string, any>>} data server/data.js getData() (may be partial)
@@ -284,7 +286,9 @@ export class GameData {
 
   itemPrice(id) {
     const it = this.item(id);
-    return it && Number.isFinite(it.price) && it.price >= 0 ? it.price : 2;
+    const price = it && Number.isFinite(it.price) && it.price >= 0 ? it.price : 2;
+    // 8인 협동 (맹약 rule): the communication items cost 1 less
+    return this.config.coop8 && COOP8_COMMUNICATION_ITEMS.has(this.baseIdOf(id)) ? Math.max(0, price - 1) : price;
   }
 
   get refreshPrice() { return Math.max(0, numOr(this.economy.refreshPrice, DEFAULTS.refreshPrice)); }

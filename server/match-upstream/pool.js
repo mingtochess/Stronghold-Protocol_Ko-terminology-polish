@@ -39,6 +39,12 @@ export function drawDisabledBonds(gd, rng) {
   });
   const core = eligible.filter((b) => gd.bond(b).isCore);
   const addon = eligible.filter((b) => !gd.bond(b).isCore);
+  if (gd.config?.coop8) {
+    // 8인 협동 (맹약 rule, server/match/pool.js): no random bans; only the custom 항상 밴 bonds stay off
+    const policy = gd.config?.bondPolicy || null;
+    const drawn = [...new Set([...(policy?.forcedBonds || []), ...(policy?.forcedAuxBonds || [])])].filter((b) => eligible.includes(b)).sort();
+    return { drawn, staticOff, banned: bannedChessForBonds(gd, drawn, staticOff) };
+  }
   if (gd.regulationBondDraw) {
     // Solo: two groups of half the core bonds (owner's level 1: 4 + 4; recordings: 规程等级1 / 极速 4 + 4, 规程等级20 5 + 5);
     // an odd leftover stays active. Co-op greys the profile's `bans.core` (recordings 2026-11-12: 标准 0 of 8 in two

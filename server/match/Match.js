@@ -1,6 +1,7 @@
 import { Match as UpstreamMatch } from '../match-upstream/Match.js';
 import { applySeasonExtensions, seasonExtensionSelection } from '../../shared/seasonExtensions.js';
 import { versionById } from '../../shared/versions.js';
+import { withCoopEight } from '../../shared/cooperativeEight.js';
 import { recruitCandidates, checkRecruitPicks, defaultRecruitPicks, RECRUIT_PICKS } from '../../shared/recruitPick.js';
 /** 선발 선택 time when config.timers.recruitPick is not set (seconds). */
 const RECRUIT_PICK_SECONDS = 30;
@@ -322,10 +323,7 @@ export class Match {
       const sel = gm === 'custom' || gm === 'augment' ? seasonExtensionSelection(opts?.customExtensions, opts?.data) : null;
       let up = sel ? { ...opts, data: applySeasonExtensions(opts.data, sel), seasonExtensions: sel } : opts;
       // 8인 협동: the upstream match seats any number in co-op; the shared boss pool counts up to 8 alive players
-      if (up.mode === 'coop8') {
-        const cfg = up.data.config;
-        up = { ...up, mode: 'coop', data: { ...up.data, config: { ...cfg, coop8: true, bossHpScale: { ...(cfg.bossHpScale || {}), aliveFull: 8 } } } };
-      }
+      if (up.mode === 'coop8') up = { ...up, data: withCoopEight(up.data) };
       return new UpstreamMatch(up);
     }
     if (!opts || !Array.isArray(opts.seats) || opts.seats.length === 0) throw new TypeError('Match: seats required');
