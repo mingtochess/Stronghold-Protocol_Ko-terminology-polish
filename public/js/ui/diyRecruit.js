@@ -32,7 +32,8 @@ export function diyCandidates(data, kitted, picks) {
   const roster = cleanPicks(picks);
   const records = new Map(), entries = {}, bases = [];
   const tiersOf = new Map();
-  for (const tier of TIERS) for (const charId of diyPool(tier, { data, kitted: kit })) (tiersOf.get(charId) || tiersOf.set(charId, []).get(charId)).push(tier);
+  // no prototype (예비 오퍼레이터 / 앰버 그룹 …) is offered as a 선발 pick: the owned pool only
+  for (const tier of TIERS) for (const charId of diyPool(tier, { data, kitted: kit })) if (!isPrototypePick(data, tier, charId)) (tiersOf.get(charId) || tiersOf.set(charId, []).get(charId)).push(tier);
   for (const [charId, tiers] of tiersOf) {
     let shown = null;
     for (const tier of tiers) {

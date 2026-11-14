@@ -16,7 +16,8 @@ export function recruitCandidates(loadout, getChess) {
   for (const [id, e] of Object.entries(loadout || {})) {
     if (!e || e.selected !== true) continue;
     const c = getChess(id);
-    if (c && c.optionalRecruit && RECRUIT_TIERS.includes(c.tier)) out.push(id);
+    // no prototype (예비 오퍼레이터 / 앰버 그룹 …) is a 선발 candidate
+    if (c && c.optionalRecruit && !c.recruitPrototype && RECRUIT_TIERS.includes(c.tier)) out.push(id);
   }
   return out.sort((a, b) => (getChess(a).tier - getChess(b).tier) || (a < b ? -1 : a > b ? 1 : 0));
 }

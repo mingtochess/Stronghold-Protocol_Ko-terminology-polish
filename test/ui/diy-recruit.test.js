@@ -40,3 +40,11 @@ test('diyDrop: the 후보 X removes the operator from that tier only', async () 
   assert.equal(slotOf(diyDrop(r.picks, data, 'char_003_kalts', 5), data, 'char_003_kalts', 5), null);
   assert.deepEqual(diyDrop(r.picks, data, 'char_003_kalts', 6), r.picks, 'another tier: unchanged');
 });
+
+test('no prototype is offered as a 선발 candidate', async () => {
+  const { isPrototypePick } = await import('../../shared/diy.js');
+  const { bases } = diyCandidates(data, null, {});
+  assert.ok(bases.length > 0);
+  for (const b of bases) assert.ok(!isPrototypePick(data, b.tier, b.charId), b.charId);
+  assert.ok(!bases.some((b) => b.charId === 'char_617_sharp2' || b.charId === 'char_601_cguard'));
+});

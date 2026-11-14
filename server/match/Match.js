@@ -2022,7 +2022,7 @@ if (this.test === true) {
     const out = [];
     for (const tier of [5, 6]) {
       const list = [...this.gd.visibleChess].map((id) => this.gd.chess(id))
-        .filter((c) => c && c.optionalRecruit && !c.isGolden && c.tier === tier && !banned.has(c.chessId))
+        .filter((c) => c && c.optionalRecruit && !c.recruitPrototype && !c.isGolden && c.tier === tier && !banned.has(c.chessId))
         .map((c) => ({ id: c.chessId, n: (c.bonds || []).filter((b) => b !== 'emptyShip' && !off.has(b)).length }))
         .sort((a, b) => b.n - a.n || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
       const picked = [];

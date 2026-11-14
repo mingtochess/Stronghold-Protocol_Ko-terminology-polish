@@ -517,7 +517,7 @@ function LoadoutScreen({ st }) {
   const [recruitQuery,setRecruitQuery]=useState('');
   const [listView,setListView]=useState(()=>loadPref('loadout.listView',false)===true);
   const leithanienChars = new Set(roster.filter(c=>c.chessId?.startsWith('chess_custom_leithanien_')).map(c=>c.charId));
-  const candidates = diyc ? diyc.bases : roster.filter(c => c.optionalRecruit && c.tier === 5 && !leithanienChars.has(c.charId));
+  const candidates = diyc ? diyc.bases : roster.filter(c => c.optionalRecruit && !c.recruitPrototype && c.tier === 5 && !leithanienChars.has(c.charId));
   const selectedAt = (c,t) => !!E[c.chessId.replace(/_[56]_a$/, `_${t}_a`)]?.selected;
   const displayTier = c => c.recruitPrototype && [5,6].find(t=>st.sel===c.chessId.replace(/_[56]_a$/, `_${t}_a`)) || selectedTier(c) || 5;
   const selectedTier = c => [5, 6].find(t => E[c.chessId.replace(/_[56]_a$/, `_${t}_a`)]?.selected) || 0;
