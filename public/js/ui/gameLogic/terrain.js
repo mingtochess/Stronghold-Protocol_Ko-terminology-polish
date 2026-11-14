@@ -151,7 +151,10 @@ export function terrainInfo(stage, row, col) {
 // ---- stage device tips (GitHub #228, PR #229 by @rickylxw: the stage DEVICES, not only the tiles) ---------------------
 
 /** The device roles a tap explains; the rest is invisible (盟约寒风, the 沼泽 / 涨潮 controllers) or not fielded this season. */
-const DEVICE_TIP_ROLES = Object.freeze(['crate', 'turret', 'platform', 'blower']);
+const DEVICE_TIP_ROLES = Object.freeze(['crate', 'turret', 'platform', 'blower', 'cannon']);
+/** The tip role of a stage device: its data `role`, or by key for a device the data leaves without one (규정 m10 盐坨子炮). */
+const ROLE_BY_KEY = Object.freeze({ trap_196_cnnon: 'cannon' });
+const roleOf = (d) => d?.role || ROLE_BY_KEY[d?.key] || null;
 /** Roles the battle spawns as device UNITS (Battle._spawnStageDevices, devices.js spawnTurret): in a battle a tap finds them by unit. */
 const DEVICE_UNIT_ROLES = Object.freeze(['crate', 'turret']);
 const TIP_TAG = N_('场地装置');
@@ -209,6 +212,15 @@ const DEVICE_TIPS = Object.freeze({
       t('远程位干员可以部署在其上；站上去的干员在高位，不阻挡敌人'),
     ],
     facts: () => [t(BUILDABILITY.RANGED)],          // board.js: an active platform makes its tile a 'ranged' deploy tile
+  },
+  // 盐坨子炮 (server/sim-upstream/content/devices.js): not a unit — PRTS 不死, 不容易受到我方单位的攻击
+  cannon: {
+    lines: (st, d) => [
+      t('{s}초마다 앞쪽 4번째 칸에 포탄을 쏴, 떨어진 곳 1.5칸 안의 아군(공중 포함)에게 {atk}의 물리 대미지를 줍니다', { s: param(d.stats?.bat, 6), atk: param(d.stats?.atk, 1200) }),
+      t('포탑 옆의 무게 3 이하 지상 적 1명을 포탄과 함께 떨어진 곳으로 보냅니다'),
+      t('쓰러지지 않으며 아군의 공격 대상이 되지 않습니다. 기절·한기·빙결·침묵·수면에 걸리지 않습니다'),
+    ],
+    facts: () => [t(BUILDABILITY.NONE)],
   },
   blower: {
     lines: (st, d) => {
@@ -269,8 +281,9 @@ export function deviceInfo(stage, row, col, { roles = DEVICE_TIP_ROLES } = {}) {
   if (!list || !Number.isInteger(row) || !Number.isInteger(col)) return null;
   for (const d of list) {
     if (!isObj(d) || !Array.isArray(d.pos) || d.pos[0] !== row || d.pos[1] !== col) continue;
-    if (!roles.includes(d.role) || !DEVICE_TIPS[d.role] || !deviceDrawn(d)) continue;
-    return deviceCard(stage, d, row, col);
+    const role = roleOf(d);
+    if (!roles.includes(role) || !DEVICE_TIPS[role] || !deviceDrawn(d)) continue;
+    return deviceCard(stage, { ...d, role }, row, col);
   }
   return null;
 }
