@@ -54,6 +54,16 @@ export const EXTENSION_CATEGORIES = Object.freeze([
   {id:'bannedOperators',name:'오퍼레이터 밴'}, {id:'disabledBonds',name:'맹약 비활성화'}, {id:'disabledStages',name:'맵 비활성화'},
   {id:'disabledBosses',name:'보스 비활성화'}, {id:'disabledBands',name:'전략 비활성화'},
 ]);
+/** 결집 (docShip, tools/build-doc-bond.mjs): the operators the 커스텀 '맹약 추가 → 결집' gives the bond to. */
+export const DOC_CHARS = Object.freeze(['char_4134_cetsyr', 'char_1012_skadi2', 'char_181_flower', 'char_108_silent', 'char_4139_papyrs', 'char_171_bldsk', 'char_4042_lumen', 'char_1016_agoat2']);
+/** 결집 on (the bond and the DOC_CHARS' membership) or off (no bond in the match's tables). */
+export function withDocBond(data, on) {
+  if (!data?.bonds?.docShip) return data;
+  if (!on) { const { docShip, ...bonds } = data.bonds; return { ...data, bonds }; }
+  const chess = Object.fromEntries(Object.entries(data.chess || {}).map(([id, c]) => [id, DOC_CHARS.includes(c?.charId) && !(c.bonds || []).includes('docShip') ? { ...c, bonds: [...(c.bonds || []), 'docShip'] } : c]));
+  const members = Object.values(chess).filter((c) => (c.bonds || []).includes('docShip') && !c.isGolden).map((c) => c.chessId);
+  return { ...data, chess, bonds: { ...data.bonds, docShip: { ...data.bonds.docShip, weight: data.bonds.docShip.enabledWeight ?? data.bonds.docShip.weight, members, visibleMembers: members } } };
+}
 export function isCustomStage(id, stage) {
   if (stage?.active === false) return false;
   return id.startsWith('custom_') || stage?.customExtension === true || stage?.customExtension?.category === 'stages';
@@ -76,7 +86,7 @@ export function customExtensionCatalog(raw = {}) {
     disabledStages:[...new Set([...Object.values(raw.config?.modes||{}).flatMap(m=>m.stages||[]),...Object.keys(raw.stages||{}).filter(id=>isCustomStage(id,raw.stages[id]))])].filter(id=>raw.stages?.[id]&&raw.stages[id].active!==false).map(id=>({id,name:raw.stages[id].name||id,description:'게임의 전장 추첨에서 제외합니다.'})),
     disabledBosses:Object.entries(raw.bosses||{}).map(([id,b])=>({id,name:b.name||id,description:b.hidden?'히든 보스':'일반 보스'})),
     disabledBands:Object.entries(raw.bands||{}).filter(([id])=>id!==RANDOM_BAND_ID).map(([id,b])=>({id,name:b.name||id,description:'전략 선택에서 제외합니다.'})),
-    bonds: [...(raw.bonds?.leithanienShip?[{id:'leithanien',name:'라이타니엔',description:'속세의 음 맹약과 오퍼레이터, 전용 장비, 체르니 전략을 추가합니다.'}]:[]), { id: 'ursus', name: '우르수스', description: '우르수스 맹약과 오퍼레이터, 전용 장비, 지마 더 레이징 타이드 전략을 추가합니다.' }],
+    bonds: [...(raw.bonds?.leithanienShip?[{id:'leithanien',name:'라이타니엔',description:'속세의 음 맹약과 오퍼레이터, 전용 장비, 체르니 전략을 추가합니다.'}]:[]), ...(raw.bonds?.docShip?[{id:'doc',name:'결집',description:'결집 맹약을 추가하고 시빌라이트 에테르나, 스카디 더 커럽팅 하트, 퍼퓨머, 사일런스, 파피루스, 와파린, 루멘, 에이야퍄들라 더 크비트 아스카에게 부여합니다.'}]:[]), { id: 'ursus', name: '우르수스', description: '우르수스 맹약과 오퍼레이터, 전용 장비, 지마 더 레이징 타이드 전략을 추가합니다.' }],
     stages: Object.entries(raw.stages || {}).filter(([id,s]) => id===OPTIONAL_FIRST_STAGE||isCustomStage(id,s)).map(([id,s]) => ({
       id, name: s.name || id, description: s.customExtension?.description || '선택하면 이번 게임의 전장 추첨 목록에 추가됩니다.',
     })),
@@ -104,6 +114,7 @@ export function applyCustomExtensions(raw, selection) {
   const enabled = selection.bonds.includes('ursus') && !(selection.disabledBonds||[]).includes('ursusShip');
   let data = customFactionData(raw, enabled);
   data=filterCustomFaction(data,'leithanien','leithanienShip',selection.bonds.includes('leithanien')&&!(selection.disabledBonds||[]).includes('leithanienShip'));
+  data=withDocBond(data,selection.bonds.includes('doc')&&!(selection.disabledBonds||[]).includes('docShip'));
   const commonBandRecords=Object.fromEntries((selection.commonBands||[]).filter(id=>data.bands[id]&&id!==RANDOM_BAND_ID).map(id=>[id,data.bands[id]]));
   const denied=new Set((selection.disabledBonds||[]).filter(id=>raw.bonds?.[id]?.isCore));
   const chess=Object.fromEntries(Object.entries(data.chess||{}).filter(([,c])=>{const core=(c.bonds||[]).filter(b=>data.bonds?.[b]?.isCore);return !core.some(b=>denied.has(b))||core.some(b=>!denied.has(b));}).map(([id,c])=>[id,{...c,bonds:(c.bonds||[]).filter(b=>!denied.has(b))}]));

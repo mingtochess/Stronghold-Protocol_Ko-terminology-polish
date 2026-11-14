@@ -22,7 +22,7 @@ export function stageDifficultyLabels(stage) {
 const CATEGORY_ICONS={defaultAllyAugments:'star',defaultEnemyAugments:'star',bannedOperators:'user',enemyStats:'sword',bossStats:'sword',allies:'user',commonBands:'crown',augmentSettings:'star',rules:'edit',bonds:'shield',stages:'map',disabledBonds:'shield',disabledStages:'map',disabledBosses:'sword',disabledBands:'crown',forcedBonds:'shield',protectedBonds:'shield',forcedAuxBonds:'shield',protectedAuxBonds:'shield'};
 function ExtensionArt({tab,entry,tables}) {
   const manifest=tables?.assets;
-  const url=tab==='bannedOperators'?chessAvatarUrl(manifest,tables?.chess?.[entry.id]):['augmentSettings','defaultAllyAugments','defaultEnemyAugments'].includes(tab)?(entry.iconBond?bondIconUrl(manifest,entry.iconBond):entry.icon):['bonds','disabledBonds','forcedBonds','protectedBonds','forcedAuxBonds','protectedAuxBonds'].includes(tab)?bondIconUrl(manifest,entry.id==='ursus'?'ursusShip':entry.id==='leithanien'?'leithanienShip':entry.id):['commonBands','disabledBands'].includes(tab)?bandIconUrl(manifest,entry.id):tab==='disabledBosses'?enemyIconUrl(manifest,tables?.bosses?.[entry.id]?.enemyKey):null;
+  const url=tab==='bannedOperators'?chessAvatarUrl(manifest,tables?.chess?.[entry.id]):['augmentSettings','defaultAllyAugments','defaultEnemyAugments'].includes(tab)?(entry.iconBond?bondIconUrl(manifest,entry.iconBond):entry.icon):['bonds','disabledBonds','forcedBonds','protectedBonds','forcedAuxBonds','protectedAuxBonds'].includes(tab)?bondIconUrl(manifest,entry.id==='ursus'?'ursusShip':entry.id==='leithanien'?'leithanienShip':entry.id==='doc'?'docShip':entry.id):['commonBands','disabledBands'].includes(tab)?bandIconUrl(manifest,entry.id):tab==='disabledBosses'?enemyIconUrl(manifest,tables?.bosses?.[entry.id]?.enemyKey):null;
   if(tab==='stages'||tab==='disabledStages')return html`<span class="extension-art extension-art--map" aria-hidden="true">${MAP_PREVIEWS[entry.id]?html`<img src=${MAP_PREVIEWS[entry.id]} alt="" loading="lazy" onError=${e=>{e.currentTarget.hidden=true;}}/>`:html`<${Icon} name="map" />`}</span>`;
   return html`<span class=${`extension-art extension-art--${tab}`} aria-hidden="true">${url?html`<img src=${url} alt="" onError=${e=>{e.currentTarget.hidden=true;}}/>`:html`<${Icon} name=${CATEGORY_ICONS[tab]} />`}</span>`;
 }
@@ -84,7 +84,7 @@ export function ruleDescription(rule,category,draft) {
  return '';
 }
 function optionDescription(entry,tab) {
- if(tab==='bonds')return entry.id==='leithanien'?'속세의 음 · 체르니 포함':'우르수스 · 지마 더 레이징 타이드 포함';
+ if(tab==='bonds')return entry.id==='leithanien'?'속세의 음 · 체르니 포함':entry.id==='doc'?'오퍼레이터 8명에게 부여':'우르수스 · 지마 더 레이징 타이드 포함';
  if(tab!=='rules')return entry.description||'';
  return {augments:'기본 4·7·10라운드에 선택',unlimitedHpLoss:'라운드당 HP 감소 상한 10 해제',sharedHp:'참가자 HP·손실 합산',scarecrow:'일반·히든 보스 → 비공격 제셀톤',unlimitedLayers:'999중첩 상한 해제',defaultHarmony:'조화 오퍼레이터 없이도 활성화',duplicateBands:'',unlimitedAspd:'공격속도 600 상한 해제 · 간격 최소 0.1초',skillMotionAspd:'고정 시전 스킬에 공격속도 적용'}[entry.id]||'';
 }
@@ -114,7 +114,7 @@ export function CustomExtensionsDialog({ open, room, isHost, disabled, onClose, 
   const baseCatalog = season ? seasonExtensionCatalog(tables||{}) : customExtensionCatalog(tables||{});
   const catalog = room.customExtensionCatalog ? {...baseCatalog,...room.customExtensionCatalog} : baseCatalog;
   catalog.stages=additionalStagesForDifficulty(catalog.stages||[],room.difficulty);
-  const customEntry=e=>tab.includes('Stages')||tab==='stages' ? isCustomStage(e.id,tables?.stages?.[e.id]) : (!season&&['ursus','ursusShip','leithanien','leithanienShip'].includes(e.id))||e.id.includes('custom_')||!!tables?.bonds?.[e.id]?.customExtension;
+  const customEntry=e=>tab.includes('Stages')||tab==='stages' ? isCustomStage(e.id,tables?.stages?.[e.id]) : (!season&&['ursus','ursusShip','leithanien','leithanienShip','doc','docShip'].includes(e.id))||e.id.includes('custom_')||!!tables?.bonds?.[e.id]?.customExtension;
   const grouped=['bonds','stages','disabledBonds','disabledStages','forcedBonds','forcedAuxBonds'].includes(tab);
   const entries=(catalog[tab]||[]).filter(e=>typeof e.id==='string'&&typeof e.name==='string').filter(e=>tab!=='bannedOperators'||isBannableOperator(tables?.chess?.[e.id])).filter(e=>!query||matchesKoreanSearch(tr(e.name),query)||matchesKoreanSearch(e.name,query)||matchesKoreanSearch(e.id,query)).filter(e=>tab!=='bannedOperators'||((!tierFilter||tables?.chess?.[e.id]?.tier===tierFilter)&&(!bondFilter||(tables?.chess?.[e.id]?.bonds||[]).includes(bondFilter)))).sort((a,b)=>tab==='bannedOperators'?(tables.chess[a.id].tier-tables.chess[b.id].tier)||(tables.chess[a.id].shopSortId||0)-(tables.chess[b.id].shopSortId||0)||a.id.localeCompare(b.id):Number(customEntry(a))-Number(customEntry(b)));
   const heading=(e,i)=>grouped&&(i===0||customEntry(entries[i-1])!==customEntry(e))?html`<h3 class="extension-group-heading">${customEntry(e)?'커스텀':'기존'} ${tab.includes('Stages')||tab==='stages'?'맵':'맹약'}</h3>`:null;
