@@ -92,6 +92,9 @@ export const STANDIN_KIT_FILES = Object.freeze(['standin-acguad.js', 'standin-sh
  */
 export const OPERATOR_KIT_FILES = Object.freeze([
   'op-siege.js',
+  // the fork's additions: collab picks 규정 leaves out (tools/add-diy-picks.mjs)
+  'op-oblvns.js',
+  'op-makoto.js',
   'op-chen.js',
   'op-irene.js',
   'op-helage.js',

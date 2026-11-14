@@ -1326,7 +1326,9 @@ function buildBackups(ctx, chess) {
       && !ch.isNotObtainable && !roster.has(id);
   }).sort(naturalCmp);
   const collabNumber = (ch) => DIY_EXCLUDED_NUMBER_PREFIXES.some((p) => new RegExp(`^${p}\\d`).test(ch.displayNumber || ''));
-  const excluded = legal6.filter((id) => teamsOf(charTable[id]).some((t) => excludedTeams.has(t)) || collabNumber(charTable[id]));
+  // the fork adds some collab picks back (SP_DIY_INCLUDE=charId,…: 规程 오블리비온스 / 유키 마코토 — tools/add-diy-picks.mjs)
+  const forcedIn = new Set(String(process.env.SP_DIY_INCLUDE || '').split(',').filter(Boolean));
+  const excluded = legal6.filter((id) => !forcedIn.has(id) && (teamsOf(charTable[id]).some((t) => excludedTeams.has(t)) || collabNumber(charTable[id])));
   for (const t of DIY_EXCLUDED_TEAMS) if (!excluded.some((id) => teamsOf(charTable[id]).includes(t))) warn(`DIY_EXCLUDED_TEAMS: no owned-6★ pick of team ${t}`);
   const ownedPool = legal6.filter((id) => !excluded.includes(id));
   for (const id of ownedPool) for (const st of diyStatuses.values()) addNeed(id, st);
