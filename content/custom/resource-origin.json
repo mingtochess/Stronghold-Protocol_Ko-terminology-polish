@@ -18,6 +18,12 @@
       "repository": "moring-m/Stronghold-Protocol_Ko_Arca_assets",
       "commit": "9a6fec0349b4a0c160c89c869a1a0092e028d94d",
       "manifest": "content/custom/skins-20261115/assets.json"
+    },
+    {
+      "name": "served-assets",
+      "repository": "moring-m/Stronghold-Protocol_Ko_Arca_assets",
+      "commit": "cc3752961fee8fb6d60cfd5bdddb7f2f52a0342c",
+      "manifest": "content/custom/served-assets/assets.json"
     }
   ]
 }

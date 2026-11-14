@@ -193,6 +193,18 @@ function installPrefSync({ net, timers, target, notify, key, stateKey, msgType, 
   let lastSent = null;    // JSON of the last payload the server accepted (on this session)
   let edited = false;     // an edit is waiting to be sent (a lock refusal is then worth telling the player)
   let disposed = false;
+  // chess ids the room's data refused ("unknown chess X": an operator another season shows, hidden in this one): left
+  // out of the payload, the stored choice kept for the season that has it
+  const refused = new Set();
+  const unknownChess = (err) => /^unknown chess (\S+)$/.exec(String(err?.detail || ''))?.[1] || null;
+  const dropRefused = (p) => {
+    if (!refused.size || !p || typeof p !== 'object') return p;
+    const strip = (e) => (e && typeof e === 'object' ? Object.fromEntries(Object.entries(e).filter(([id]) => !refused.has(id))) : e);
+    const out = { ...p };
+    if (out.entries) out.entries = strip(out.entries);
+    if (out.strategyPresets) out.strategyPresets = Object.fromEntries(Object.entries(out.strategyPresets).map(([k, v]) => [k, strip(v)]));
+    return out;
+  };
 
   const setState = (sync) => { if (target.get()[stateKey] !== sync) target.set({ [stateKey]: sync }); };
 
@@ -211,7 +223,7 @@ function installPrefSync({ net, timers, target, notify, key, stateKey, msgType, 
     if (net.status !== 'online') { setState('idle'); return; } // the next welcome resends
     const preparing = revision;
     try {
-      const payload = await prepare();
+      const payload = dropRefused(await prepare());
       // a newer edit or welcome happened while prepare awaited chess/backups: do not send, and do not touch the
       // sync state that newer flush owns (an older skill must not overwrite a restore-defaults)
       if (disposed || preparing !== revision) return;
@@ -241,6 +253,7 @@ function installPrefSync({ net, timers, target, notify, key, stateKey, msgType, 
           setState('locked');
           if (wasEdit) tell(lockedText);
         } else if (code === 'RATE' || code === 'TIMEOUT' || code === 'OFFLINE') { edited = edited || wasEdit; schedule(RETRY_MS); }
+        else if (code === 'BAD_TARGET' && unknownChess(err) && !refused.has(unknownChess(err))) { refused.add(unknownChess(err)); schedule(0); }
         else { console.warn(`[${tag}] ${msgType} refused`, code, err && err.detail); setState('error'); }
       }
     } catch (e) {

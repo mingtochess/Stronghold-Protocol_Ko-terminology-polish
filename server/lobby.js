@@ -1,6 +1,10 @@
 import {isRoomTitle,defaultRoomTitle} from '../shared/roomTitle.js';
 import {isGameplayMode,normalizeGameplayMode,gameplayExtensions,canSwitchPublicMode,AUGMENT_MODE_VALUES} from '../shared/gameplayModes.js';
-import {KITTED_CHARS} from './sim/content/kits/index.js';
+import {KITTED_CHARS as FORK_KITTED} from './sim/content/kits/index.js';
+import {KITTED_CHARS as REGULATION_KITTED} from './sim-upstream/content/kits/index.js';
+// 자선 operators with a kit in either engine: the 맹약 sim's and the 규정 (upstream) sim's, whose ported collab kits
+// (오블리비온스 / 마코토 …) exist only there
+const KITTED_CHARS = Object.freeze([...new Set([...FORK_KITTED, ...REGULATION_KITTED])]);
 
 // server/lobby.js — rooms, seats, host, AI seats, ready/start, reconnect, and room → Match wiring
 import { modeExtensionSelection, customExtensionCatalog, extensionSelectionShape, normalizeCustomExtensions, validateExtensionMinimums } from '../shared/customExtensions.js';

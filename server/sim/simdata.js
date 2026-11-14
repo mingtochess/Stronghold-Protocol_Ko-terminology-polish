@@ -39,6 +39,7 @@
 //                     server/data.js getData() used by sim/content/support serves it).
 //   getSimData()      the injected data (browser) or the generated data (Node), or null.
 
+import { eightUniteStage } from '../../shared/cooperativeEight.js';
 import { resolveRecordLoadout, composeStats, composeTalents, loadoutRecord } from '../../shared/loadoutRecord.js';
 import { atPotential, isPotential, POTENTIAL_DEFAULT, cultivateMul } from '../../shared/potential.js';
 import { standInRecord } from '../../shared/standIn.js';
@@ -600,7 +601,14 @@ export class DataSource {
   }
   /** A token record: data/tokens.json, else the 自选 picks' summons (data/backups.json `tokens`). */
   rawToken(id) { return this.raw.tokens[id] ?? this.fallback?.rawToken(id) ?? this.rawBackups()?.tokens?.[id] ?? null; }
-  rawStage(id) { return this.raw.stages[id] ?? this.fallback?.rawStage(id) ?? null; }
+  rawStage(id) {
+    const own = this.raw.stages[id] ?? this.fallback?.rawStage(id) ?? null;
+    if (own) return own;
+    // the 8인 연합 방어 field (shared/cooperativeEight.js) of a season whose data does not list it (규정's checked set):
+    // built from its battlefield, the same record withCoopEight adds on the server
+    const base = typeof id === 'string' && id.startsWith('coop8_unite_') ? this.rawStage(id.slice('coop8_unite_'.length)) : null;
+    return base ? eightUniteStage(base) : null;
+  }
   rawWave(id) { return this.raw.waves[id] ?? this.fallback?.rawWave(id) ?? null; }
   /** data/backups.json (`{ units, diy }`) of this source or its fallback, or null. */
   rawBackups() { return this.raw.backups ?? (typeof this.fallback?.rawBackups === 'function' ? this.fallback.rawBackups() : null); }
