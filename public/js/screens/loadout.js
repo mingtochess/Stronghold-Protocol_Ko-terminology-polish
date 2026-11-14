@@ -549,10 +549,11 @@ function LoadoutScreen({ st }) {
     return true;
   };
   const recruitControls=c=>html`<div class="lo-seg lo-recruit-choice" aria-label=${c.name+' 선발 단계'}>${[0,5,6].map(t=>html`<button type="button" disabled=${locked||(t===6&&c.recruitReserve)} aria-pressed=${t?selectedAt(c,t):!selectedTier(c)} class=${cx((t?selectedAt(c,t):!selectedTier(c))&&'is-on')} title=${t?`${t}단계로 선발`:'선발 안 함'} aria-label=${c.name+' '+(t?`${t}단계로 선발`:'선발 안 함')} onClick=${()=>recruit(c,t)}>${t?html`<${TierChip} tier=${t} size="sm"/>`:html`<span class="lo-recruit-choice__none">안 함</span>`}</button>`)}</div>`;
-  const change = (patch) => { if (base && diyc) { const d = diycOf(base); setDiyPicks(diyChoice(st.diy, diyData(), d.charId, d.tier, patch)); return; } if (base) setEntries(setRecruitChoice(loadoutStore.get().entries, base, patch, G)); };
+  const change = (patch) => { const d = base && diyc ? diycOf(base) : null; if (d) { setDiyPicks(diyChoice(st.diy, diyData(), d.charId, d.tier, patch)); return; } if (base) setEntries(setRecruitChoice(loadoutStore.get().entries, base, patch, G)); };
   const resetOne = () => {
     if (!base) return;
-    if (diyc) { const d = diycOf(base); setDiyPicks(diyResetChoice(st.diy, diyData(), d.charId, d.tier)); return; }
+    const d = diyc ? diycOf(base) : null;
+    if (d) { setDiyPicks(diyResetChoice(st.diy, diyData(), d.charId, d.tier)); return; }
     if (!base.optionalRecruit) { setEntries(resetChoice(loadoutStore.get().entries, base.chessId)); return; }
     let next = {...loadoutStore.get().entries};
     for (const tier of [5,6]) {

@@ -1079,7 +1079,10 @@
 .cmdx__ghost { position: fixed; z-index: 60; width: .56rem; height: .56rem; margin: -.28rem 0 0 -.28rem; pointer-events: none; display: grid; place-items: center;
   background: rgba(var(--shade-rgb),.9); border: 1px solid #f0c35a; box-shadow: 0 0 .16rem rgba(240,195,90,.7); }
 .cmdx__ghost img { width: 86%; height: 86%; object-fit: contain; }
-.cmdx__hint { max-width: 2.6rem; padding: .04rem .08rem; font-size: .13rem; color: #1d1400; background: #f0c35a; }
+/* 명령 대상 선택 안내: 아이콘 옆이 아니라 화면 위쪽 가운데 (상점 바·효과 목록 어느 쪽에서 눌러도 같은 자리) */
+.cmdx__hint { position: fixed; top: .9rem; left: 50%; transform: translateX(-50%); z-index: 60; max-width: min(6rem, calc(100vw - .32rem));
+  padding: .08rem .2rem; font-size: .16rem; font-weight: 700; text-align: center; white-space: normal; pointer-events: none;
+  color: #1d1400; background: #f0c35a; box-shadow: 0 .04rem .14rem rgba(0,0,0,.45); }
 .scard.is-cmd-target { outline: 3px solid #f0c35a; outline-offset: -3px; box-shadow: 0 0 .18rem rgba(240,195,90,.7); }
 .cmdx-dlg__how { margin-top: .08rem; font-size: .14rem; }
 @keyframes cmdx-glow { 0%, 100% { box-shadow: 0 0 .05rem rgba(240,195,90,.8), 0 0 .12rem rgba(240,195,90,.4); } 50% { box-shadow: 0 0 .09rem rgba(240,195,90,1), 0 0 .24rem rgba(240,195,90,.7); } }

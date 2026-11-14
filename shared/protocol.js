@@ -190,9 +190,11 @@ export function checkLoadout(entries, getChess) {
     const module = golden ? (e.module ?? opt.defaultModule) : null;
     if (base.recruitPrototype && module !== opt.defaultModule) return {error:'BAD_TARGET',detail:'원형 오퍼레이터의 모듈은 고정됩니다'};
     if (golden && !opt.modules.includes(module)) return { error: 'BAD_TARGET', detail: `module ${e.module} not available for ${id}` };
-    if (e.skin && !base.skins?.some(s=>s.id===e.skin)) return {error:'BAD_TARGET',detail:'unknown skin'};
-    if (!e.skin && skill === opt.defaultSkill && module === opt.defaultModule && !e.selected) continue;
-    out[id] = { skill, module, ...(e.skin ? {skin:e.skin} : {}), ...(e.selected ? {selected:true} : {}) };
+    // a skin this data does not list (another season's, a skin pack not on this room) is dropped, not refused: it
+    // cannot change a battle (the operator's own model is drawn) and must not void the rest of the loadout
+    const skin = e.skin && base.skins?.some(s=>s.id===e.skin) ? e.skin : null;
+    if (!skin && skill === opt.defaultSkill && module === opt.defaultModule && !e.selected) continue;
+    out[id] = { skill, module, ...(skin ? {skin} : {}), ...(e.selected ? {selected:true} : {}) };
   }
   return { ok: true, loadout: out };
 }
