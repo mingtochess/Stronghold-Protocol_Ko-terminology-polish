@@ -1,15 +1,18 @@
-// 팀 전체 보기: one row per player — name, the active bonds (glyph + layers + name) and the operators on the board
+// 팀 전체 보기: one row per player — name, the active bonds (the battle bond list's item: bondStrip.js HudBond + count) and the operators on the board
 // (m.public players[].bonds / lineup). Opened from the search button above the team panel in multiplayer.
 
 import { html, Icon, Modal } from './components.js';
-import { useGameData, UnitThumb, BondGlyph, PlayerAvatar } from './gameComponents.js';
-import { sortedPlayers } from './gameLogic.js';
+import { useGameData, UnitThumb, PlayerAvatar } from './gameComponents.js';
+import { sortedPlayers, nextThreshold } from './gameLogic.js';
+import { HudBond, bondBoardProgress } from './bondStrip.js';
+import { bondIconUrl } from './assetUrls.js';
+import { matchData as data } from '../data.js';
 
 const cx = (...p) => p.flat().filter(Boolean).join(' ');
 
-/** The bonds a row shows: active ones first (then by layers), the inactive ones with layers after them. */
+/** The bonds a row shows: the active ones only, most layers first. */
 export function overviewBonds(bonds) {
-  return (Array.isArray(bonds) ? bonds : []).filter((b) => b && !b.off && (b.active || b.layers > 0))
+  return (Array.isArray(bonds) ? bonds : []).filter((b) => b && !b.off && b.active)
     .sort((a, b) => (b.active ? 1 : 0) - (a.active ? 1 : 0) || (b.layers || 0) - (a.layers || 0));
 }
 
@@ -32,8 +35,17 @@ export function TeamOverview({ open, onClose, pub, myId }) {
             <span class="tov__name">${p.name || '박사'}</span>
           </div>
           <div class="tov__bonds">
-            ${bonds.length ? bonds.map((b) => html`<span key=${b.bondId} class=${cx('tov__bond', b.active && 'is-on')} title=${gd.bond(b.bondId)?.name || b.bondId}>
-              <${BondGlyph} bondId=${b.bondId} /><b class="num">${b.layers ?? 0}</b><small>${gd.bond(b.bondId)?.name || ''}</small></span>`)
+            ${bonds.length ? bonds.map((b) => {
+              const rec = gd.bond(b.bondId);
+              const th = Array.isArray(b.thresholds) && b.thresholds.length ? b.thresholds : rec?.thresholds || [];
+              const prog = bondBoardProgress(th, b.count ?? 0, true);
+              const next = nextThreshold(b.count ?? 0, th);
+              return html`<div key=${b.bondId} class="bslot is-active tov__bond" data-bond=${b.bondId}>
+                <${HudBond} name=${rec?.name || b.bondId} icon=${bondIconUrl(data.get('assets'), b.bondId)} layers=${rec?.noStack ? undefined : b.layers ?? 0}
+                  thresholds=${prog.n} tier=${prog.t} active=${true} title=${`${rec?.name || b.bondId} ${b.count ?? 0}/${next ?? th[th.length - 1] ?? '-'}`} />
+                <span class=${cx('bslot__count', 'num', next == null && 'is-max')}>${b.count ?? 0}<small>/${next ?? th[th.length - 1] ?? '-'}</small></span>
+              </div>`;
+            })
               : html`<span class="tov__none">—</span>`}
           </div>
           <div class="tov__lineup">

@@ -1013,13 +1013,9 @@
 .tov__row.is-dead { opacity: .5; }
 .tov__who { display: flex; align-items: center; gap: .08rem; min-width: 0; }
 .tov__name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-hi); font-size: calc(.15 * var(--t)); }
-.tov__bonds { display: flex; flex-wrap: wrap; gap: .06rem; }
-.tov__bond { display: inline-flex; flex-direction: column; align-items: center; min-width: .5rem; color: var(--text-lo); font-size: calc(.12 * var(--t)); }
-.tov__bond .bglyph { width: .34rem; height: .34rem; }
-.tov__bond b { color: var(--text-hi); font-size: calc(.14 * var(--t)); line-height: 1; }
-.tov__bond small { font-size: calc(.11 * var(--t)); white-space: nowrap; }
-.tov__bond.is-on b { color: var(--mint-400); }
-.tov__bond:not(.is-on) { opacity: .6; }
+.tov__bonds { display: flex; flex-wrap: wrap; gap: .04rem .02rem; align-items: flex-start; }
+/* the battle bond list's item (bondStrip.js HudBond + count, .bslot): only the active bonds */
+.tov__bond.bslot { width: .7rem; }
 .tov__lineup { display: flex; flex-wrap: wrap; gap: .04rem; }
 .tov__items { position: absolute; right: 1px; bottom: 1px; min-width: .14rem; padding: 0 .02rem; background: rgba(0,0,0,.75); color: #fff; font-size: .1rem; text-align: center; }
 .tov__none { color: var(--text-dim); font-size: calc(.13 * var(--t)); }
