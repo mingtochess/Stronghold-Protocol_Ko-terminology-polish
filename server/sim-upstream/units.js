@@ -151,6 +151,12 @@ export class Unit {
   _recalc() {
     const prevMax = this._s ? this._s.maxHp : this.base.maxHp;
     const { add, mul, flags, shield, permRangeExtend } = aggregateMods(this.buffs);
+    // 증강 재생 (augments.js regen) skips a 频次 enemy, but some kits switch to hit-count HP after the augment's deploy
+    // hook ran (假想敌：再生's puppet, the 余烬 husks, a boss token): exclude it whenever that form is active (the 맹약
+    // engine's server/sim/units.js does the same)
+    const augmentRegen = this.side === 'enemy' && (flags.hitCount || flags.hitCountArts)
+      ? this.buffs.reduce((sum, buff) => sum + (buff.key?.startsWith('augment:') && buff.key.endsWith(':regen') ? (buff.mods?.hpRegen || 0) : 0), 0)
+      : 0;
     const a = (k) => add[k] ?? 0;
     const m = (k) => mul[k] ?? 1;
     const b = this.base;
@@ -203,7 +209,7 @@ export class Unit {
       spCostFlat: a('spCostFlat'),
       redeployMul: m('redeployMul'),
       costMul: m('costMul'),
-      hpRegen: fin(b.hpRecoveryPerSec + a('hpRegen') + a('hpRegenRatio') * maxHp, 0),
+      hpRegen: fin(b.hpRecoveryPerSec + a('hpRegen') - augmentRegen + a('hpRegenRatio') * maxHp, 0),
       shield,
       flags: flags || EMPTY,
     };

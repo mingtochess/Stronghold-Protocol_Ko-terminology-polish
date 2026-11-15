@@ -74,7 +74,7 @@ export default {
           mods: mods({ atkPct: num(bb.atk), batPct: batPct(bb.base_attack_time, chess) }),
           targeting: skillRange(chess, def, { maxTargets: Math.max(1, num(bb['attack@max_target'], 3)) }),
           attack: {
-            onEachHit({ unit, target }) {
+            onEachHit({ battle, unit, target }) {
               if (target && target.side === 'enemy') unit.mem.blazeTiles?.add(Math.round(target.y) * (battle.grid?.cols ?? COLS) + Math.round(target.x));
             },
           },
