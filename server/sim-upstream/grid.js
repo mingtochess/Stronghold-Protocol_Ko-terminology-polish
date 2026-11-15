@@ -90,10 +90,10 @@ export const DEFAULT_LEGEND = Object.freeze({
   i: { height: 'LOW', build: 'ALL', pass: 'ALL', key: 'tile_infection', terrain: 'infection' },
   // 덤불 (the fork's 설원 battlefield): 隐匿 for the operators and the enemies on it (content/devices.js thicket)
   k: { height: 'LOW', build: 'ALL', pass: 'ALL', key: 'tile_custom_thicket', terrain: 'thicket' },
-  // 규정 m12 加速 (a 규정 map added in the 맹약 season's custom settings): content/devices.js speedup
+  // 规程 m12 tile_speedup: operators ASPD +attack_speed, enemies move ×move_speed, lasting after leaving (devices.js)
+  // m09 tile_duel_grassland: both sides' ground units gain stealth (official tile/buff prefabs, not the blackboard).
   z: { height: 'LOW', build: 'ALL', pass: 'ALL', key: 'tile_speedup', terrain: 'speedup' },
-  // 규정 m09 隐匿模块 (tile_duel_grassland): the thicket's 隐匿 for operators and enemies
-  w: { height: 'LOW', build: 'ALL', pass: 'ALL', key: 'tile_duel_grassland', terrain: 'stealth' }, // 규정: content/devices.js stealth
+  w: { height: 'LOW', build: 'ALL', pass: 'ALL', key: 'tile_duel_grassland', terrain: 'duelGrass' },
 });
 
 /**
@@ -105,7 +105,7 @@ export const DEFAULT_LEGEND = Object.freeze({
  */
 export const DEPLOY_REFUSED_TILES = Object.freeze(new Set(['tile_deepsea']));
 
-const TERRAIN_BY_KEY = { tile_mire: 'mire', tile_smog: 'smog', tile_deepsea: 'deepsea', tile_infection: 'infection', tile_deepwater: 'deepsea', tile_custom_thicket: 'thicket', tile_speedup: 'speedup', tile_duel_grassland: 'stealth' };
+const TERRAIN_BY_KEY = { tile_mire: 'mire', tile_smog: 'smog', tile_deepsea: 'deepsea', tile_infection: 'infection', tile_deepwater: 'deepsea', tile_custom_thicket: 'thicket', tile_speedup: 'speedup', tile_duel_grassland: 'duelGrass' };
 const SPECIAL_BY_KEY = { tile_start: 'start', tile_end: 'end', tile_telin: 'telin', tile_telout: 'telout' };
 
 function normPass(v) {
