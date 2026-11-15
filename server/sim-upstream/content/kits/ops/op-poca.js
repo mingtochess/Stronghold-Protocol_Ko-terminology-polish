@@ -36,7 +36,6 @@
 
 import { num, talentBb, moduleBb, moduleOn, traitBb, skillRec, statBuff, onHitBy, enemiesInGrid, up } from '../shared/tier1.js';
 import { hasHp } from '../../../attack.js';
-import { skillMotionSpeed } from '../../../motionSpeed.js';
 import { hypot } from '../../../detmath.js';
 
 const S1 = 'skcom_atk_up[3]';
@@ -93,9 +92,7 @@ export default {
           attack: { noAttack: true, projectile: 'beam' },
           onStart({ battle, unit, skill }) {
             const links = enemiesInGrid(battle, unit, null, { n: count(b3.max_target, 3), priority: 'heaviest', canHitFly: true });
-            // (custom rule skillMotionAspd: the harpoon interval follows her attack speed — more hits in the same duration)
-            const hitIv = Math.max(0.1, num(b3.hit_interval, 1)) / skillMotionSpeed(battle, unit);
-            const st = { links: new Set(links), left: count(num(b3.hit_duration, skill.duration) / hitIv, 6), timer: null };
+            const st = { links: new Set(links), left: count(num(b3.hit_duration, skill.duration) / Math.max(0.1, num(b3.hit_interval, 1)), 6), timer: null };
             unit.mem.pocaS3 = st;
             for (const e of links) {
               battle.applyStatus(e, 'bind', { duration: skill.timeLeft, source: unit });
@@ -106,7 +103,7 @@ export default {
             st.timer = battle.after(0, () => {
               if (unit.mem.pocaS3 !== st) return;
               strike(battle, unit, st);
-              st.timer = battle.every(hitIv, (b, sc) => {
+              st.timer = battle.every(Math.max(0.1, num(b3.hit_interval, 1)), (b, sc) => {
                 if (unit.mem.pocaS3 !== st || st.left <= 0) { sc.cancel(); return; }
                 strike(battle, unit, st);
               }, { owner: unit });

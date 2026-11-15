@@ -166,7 +166,7 @@ export default {
             },
           },
           onStart({ battle, skill, unit }) {
-            if (battle.forceAttack(unit, null, {castImpact:true})) return;
+            if (battle.forceAttack(unit)) return;
             // nobody to shoot after all: no cast
             skill.pending = false;
             skill.addCharge(1);

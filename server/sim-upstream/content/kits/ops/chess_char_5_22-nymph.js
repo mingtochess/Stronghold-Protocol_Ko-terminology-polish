@@ -2,7 +2,10 @@
 // Conventions of the tier-5 kits: ../shared/tier5.js; kit contract and rules: ../README.md.
 
 import { hasHp } from '../../../attack.js';
-import { num, on, inRange, talent, traitBb, maxCharges, mods, selectedId, lazySkills, skillRange, burstSpUp, elementHit, burstDamageUp } from '../shared/tier5.js';
+import {
+  num, on, inRange, talent, traitBb, maxCharges, mods, selectedId, lazySkills, skillRange, burstSpUp, elementHit,
+  burstDamageUp,
+} from '../shared/tier5.js';
 
 export default {
   // ---------------------------------------------------------------------------------------------------------------

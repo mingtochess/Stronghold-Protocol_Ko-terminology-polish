@@ -4,7 +4,10 @@
 import { COLS } from '../../../constants.js';
 import { frontOf } from '../../../dir.js';
 import { isHpLoss } from '../../../attack.js';
-import { RING1, num, on, inRange, talent, traitBb, skillGrid, mods, dist, isAbyssal, isOp, selectedId, lazySkills, instantKind, permBuff, enemiesInGrid } from '../shared/tier5.js';
+import {
+  RING1, num, on, inRange, talent, traitBb, skillGrid, mods, dist, isAbyssal, isOp, selectedId, lazySkills, instantKind,
+  permBuff, enemiesInGrid,
+} from '../shared/tier5.js';
 
 export default {
   // ---------------------------------------------------------------------------------------------------------------

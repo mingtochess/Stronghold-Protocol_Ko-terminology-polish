@@ -2,7 +2,9 @@
 // Conventions of the tier-5 kits: ../shared/tier5.js; kit contract and rules: ../README.md.
 
 import { bodyInRadius } from '../../../body.js';
-import { AURA_IV, AURA_DUR, num, talent, traitBb, batPct, mods, isOp, selectedId, lazySkills, instantKind, whileOn } from '../shared/tier5.js';
+import {
+  AURA_IV, AURA_DUR, num, talent, traitBb, batPct, mods, isOp, selectedId, lazySkills, instantKind, whileOn,
+} from '../shared/tier5.js';
 
 /** 号角 S2 过载: the second half of the ammo (PRTS 备注 of S3 "技能进行到一半时"; S2 counts shots). [ASSUMED] */
 const HORN_S2_OVERLOAD_AT = 0.5;
@@ -70,8 +72,6 @@ export default {
             const delta = ovAtk - num(bb.atk);
             battle.addBuff(unit, { key: 'horn:overload', visible: true, mods: mods({ atkPct: delta }) });
             battle.fx('overload', { x: unit.x, y: unit.y, id: unit.id });
-            // the overload's loop for the rest of the skill, its back view for a unit facing up (display only)
-            battle.fx(unit.dir === 'UP' ? 'overloadBack' : 'overloadFront', { x: unit.x, y: unit.y, id: unit.id, dur: unit.skill?.timeLeft });
           }
           if (!unit.mem.overload || !(ovPeak > 0)) return;
           unit.mem.hornAcc += dt;
@@ -131,7 +131,7 @@ export default {
             if (c.attacker !== unit || !unit.skill?.active || !c.profile) return;
             const shot = s2Ammo - num(unit.skill.ammoLeft) + 1;
             const over = shot > s2Ammo * HORN_S2_OVERLOAD_AT + 1e-9;
-            if (over && !unit.mem.hornS2Over) { battle.fx('overload', { x: unit.x, y: unit.y, id: unit.id }); battle.fx(unit.dir === 'UP' ? 'overloadBack' : 'overloadFront', { x: unit.x, y: unit.y, id: unit.id, dur: 60 }); }
+            if (over && !unit.mem.hornS2Over) battle.fx('overload', { x: unit.x, y: unit.y, id: unit.id });
             unit.mem.hornS2Over = over;
             if (!over || !(magic > 0)) return;
             // decided at the shot (a shell still in flight when the skill ends keeps it): the effective profile of this

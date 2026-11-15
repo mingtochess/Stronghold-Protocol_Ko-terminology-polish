@@ -31,7 +31,7 @@
 //   it fires at one target only it lifts it (浮空) `levitate` s — counted at the shot (PRTS 备注).
 // - S2 群星逶迤 (MANUAL, 16 s, data DEFAULT): each attack becomes SHOTS (9, the text's "9连发"; no blackboard key) shots of
 //   attack@atk_scale × ATK, each at a random enemy of her range (independent draws), each with attack@prob to lift it
-//   attack@levitate s; the nine go out 0.05 s apart (mode S2 MultiRangedAttack `_triggerDelta`).
+//   attack@levitate s [ASSUMED: the nine leave with the attack; the burst's spacing is not modelled].
 // - S3 博览者的狂语 (MANUAL, 45 s, data ACTIVE_RANGE on 3-10): attack range 3-10 while it runs, attack interval +1.4 s
 //   (base_attack_time, flat); each attack (an enemy in that range, her attack timer) releases three whirlwinds from the
 //   centre of her tile and the tiles left and right of it, each after its own random 0–0.3 s delay. A whirlwind flies
@@ -104,8 +104,6 @@ export default {
     /** S3: release one attack's three whirlwinds. */
     function releaseWinds(battle, unit, winds) {
       const seq = unit.deploySeq;
-      // display only: her S3 mode's cast (AnimatedActionToOwnerAbility Skill_3_Loop: heyak_skill_03_start_01 / _02)
-      battle.fx('windCast', { x: unit.x, y: unit.y, id: unit.id });
       const [fr, fc] = dirVec(unit.dir);
       const x0 = unit.tileC, y0 = unit.tileR;
       for (const lane of WIND_LANES) {
@@ -114,9 +112,9 @@ export default {
         battle.after(delay, () => {
           // a whirlwind not yet out when she left is never released [ASSUMED: "已存在的旋风" only fly on]
           if (!(unit.alive && unit.deployed && unit.deploySeq === seq)) return;
-          const w = { x: x0 + dc, y: y0 + dr, dx: fc, dy: fr, left: WIND_RANGE, age: 0, fxAge: 0, seq, visualId: unit.mem.heyakWindSeq = (unit.mem.heyakWindSeq || 0) + 1 };
-          battle.fx('tornado', { x: w.x, y: w.y, id: unit.id, r: WIND_HALF, dur: WIND_FX_EVERY + 0.1, windId:w.visualId, dc:w.dx, dr:w.dy, skill:'heyak:wind' });
-          if (!windHit(battle, unit, w)) winds.push(w);else battle.fx('tornado',{x:w.x,y:w.y,id:unit.id,windId:w.visualId,phase:'end',skill:'heyak:wind'});
+          const w = { x: x0 + dc, y: y0 + dr, dx: fc, dy: fr, left: WIND_RANGE, age: 0, fxAge: 0, seq };
+          battle.fx('tornado', { x: w.x, y: w.y, id: unit.id, r: WIND_HALF, dur: WIND_FX_EVERY + 0.1 });
+          if (!windHit(battle, unit, w)) winds.push(w);
         }, { owner: unit });
       }
     }
@@ -140,7 +138,7 @@ export default {
           ...(away ? { resIgnoreFlat: -pen, tags: [AWAY_TAG] } : null),
         });
       }
-      battle.fx('tornadoPulse', { x: w.x, y: w.y, id: unit.id, r: WIND_HALF, target:best.id, windId:w.visualId, skill:'heyak:wind' });
+      battle.fx('tornadoPulse', { x: w.x, y: w.y, id: unit.id, r: WIND_HALF });
       return true;
     }
 
@@ -153,7 +151,7 @@ export default {
         },
         [S2]: {
           kind: 'duration',
-          attack: { atkScale: num(b2['attack@atk_scale'], 1), staggerTargets: true, strikeGap: 0.05 }, // mode S2 MultiRangedAttack `_triggerDelta`
+          attack: { atkScale: num(b2['attack@atk_scale'], 1) },
         },
         [S3]: {
           kind: 'duration',
@@ -263,11 +261,11 @@ export default {
               w.y += w.dy * step;
               w.left -= step;
               w.age += dt;
-              if (windHit(battle, unit, w) || w.left <= 1e-9) { battle.fx('tornado',{x:w.x,y:w.y,id:unit.id,windId:w.visualId,phase:'end',skill:'heyak:wind'});winds.splice(i, 1); continue; }
+              if (windHit(battle, unit, w) || w.left <= 1e-9) { winds.splice(i, 1); continue; }
               w.fxAge += dt;
               if (w.fxAge + 1e-9 >= WIND_FX_EVERY) {
                 w.fxAge = 0;
-                battle.fx('tornado', { x: w.x, y: w.y, id: unit.id, r: WIND_HALF, dur: WIND_FX_EVERY + 0.1, windId:w.visualId, dc:w.dx, dr:w.dy, skill:'heyak:wind' });
+                battle.fx('tornado', { x: w.x, y: w.y, id: unit.id, r: WIND_HALF, dur: WIND_FX_EVERY + 0.1 });
               }
             }
           }, { owner: unit });

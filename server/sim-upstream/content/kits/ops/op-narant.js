@@ -44,7 +44,7 @@ import { bbCap } from '../../../../../shared/plugins/officialBounds.js';
 import { textCount } from '../../../../../shared/plugins/textNumber.js';
 import { num, talentBb, moduleBb, traitBb, skillRec, statBuff, toggleBuff, onHitBy, enemiesInGrid, cheb, up, giveSp } from '../shared/tier1.js';
 import { canTargetEnemy } from '../../../targeting.js';
-import { isHpLoss } from '../../../attack.js';
+import { isHpLoss, cancelDamage } from '../../../attack.js';
 import { hypot } from '../../../detmath.js';
 
 const S1 = 'skchr_narant_1';
@@ -109,8 +109,8 @@ function missHit(battle, st, ctx) {
     if (d.attackId) st.last.set(e, { id: d.attackId, miss });
   }
   if (!miss) return;
-  d.cancel = true;
-  ctx.stopPropagation = true;
+  const cancelled = cancelDamage(d, 'miss');
+  if (cancelled) ctx.stopPropagation = true;
   if (ctx.target) battle.fx('dodge', { x: ctx.target.x, y: ctx.target.y, id: ctx.target.id });
 }
 function installMiss(battle, unit, phys, arts) {
@@ -211,16 +211,15 @@ export default {
           const sa = num(t0['attack@steal_atk']), sd = num(t0['attack@steal_def']);
           if (!(sa > 0) && !(sd > 0)) return;
           const capA = num(t0['attack@steal_atk_max'], Infinity), capD = num(t0['attack@steal_def_max'], Infinity);
-          const m = /周围8格的敌人时偷取触发(\d+)次/.exec(String(talentRec(chess, 0)?.desc ?? ''));
-          const nearTimes = m ? Math.max(1, +m[1]) : chess.module?.active && chess.module.id==='uniequip_002_narant' && chess.module.level>=3 ? 2 : 1;
+          const nearTimes = Math.max(1, Math.floor(textCount(String(talentRec(chess, 0)?.desc ?? ''), /偷取触发(\d+)次/, 1, 'steal')));
           const losses = stolenOf(battle);
           const victims = new Set();
           const reset = () => { unit.mem.narantLoot = { a: 0, d: 0 }; };
           reset();
           battle.on('deploy', (c) => { if (c.unit === unit) reset(); }, { owner: unit });
-          battle.on('damaged', (c) => {
+          battle.on('damageBeforeApply', (c) => {
             const e = c.target;
-            if (c.source !== unit || !c.dmg?.isAttack || !e || e.side !== 'enemy' || !up(unit)) return;
+            if (c.source !== unit || !c.dmg?.isAttack || !e || !e.alive || e.side !== 'enemy' || !up(unit)) return;
             const times = nearTimes > 1 && cheb(unit, e) <= 1 ? nearTimes : 1;
             const me = unit.mem.narantLoot;
             let per = losses.get(e);

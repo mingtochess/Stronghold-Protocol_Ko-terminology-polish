@@ -2,11 +2,7 @@
 // Conventions of the tier-6 kits: ../shared/tier6.js; kit contract and rules: ../README.md.
 
 import { sortEnemyTargets, canTargetEnemy } from '../../../targeting.js';
-import { skillMotionSpeed } from '../../../motionSpeed.js';
 import { num, tbb, textCount, live, ANY, enemiesIn, instantKind, pullToward } from '../shared/tier6.js';
-
-// S3's finisher clip (Skill_3_End 1.567 s) after its OnAttack (0.333 s): no normal attack until it ends
-const END_RECOVERY_S = 1.567 - 0.333;
 
 // ------------------------------------------------------------------------------------------------------------------
 // 锏 chess_char_6_19 (剑豪) — S3 归于宁静; “天生的武者”; 活着的传奇; module “过往的注脚”
@@ -60,7 +56,7 @@ function blkkgt(bb, chess, def) {
         if (v.length) battle.fx('slash', { x: unit.x, y: unit.y, id: unit.id, n: v.length });
         for (const e of v) {
           const n = e.blockedBy ? nBlocked : nFree;
-          for (let i = 0; i < n && e.alive; i++) { battle.dealDamage(unit, e, { amount: unit.s.atk * num(bb.dot_scale, 1), type: 'phys', isSkill: true, tags: ['skill', 'slash'] }); battle.fx('slashHit', { x: e.x, y: e.y, id: unit.id, target: e.id }); }
+          for (let i = 0; i < n && e.alive; i++) battle.dealDamage(unit, e, { amount: unit.s.atk * num(bb.dot_scale, 1), type: 'phys', isSkill: true, tags: ['skill', 'slash'] });
         }
       },
     },
@@ -92,15 +88,11 @@ function blkkgt(bb, chess, def) {
       duration: slashes * iv,
       ...(skillGrid ? { targeting: { rangeGrid: skillGrid } } : {}),
       attack: { noAttack: true },
-      // Protection covers the repeated slashes, not the recovery before the finisher.
-      // Ending it only in onEnd lets immediate recasts join into uninterrupted invulnerability.
+      // PRTS 备注 "※多段斩击期间，自身获得无敌，晕眩免疫，冻结免疫": invulnerable while the slashes run (removed in onEnd,
+      // before the finisher); stun / freeze refused by her `beforeStatus` hook (install) while `mem.dgb` is set
       onStart({ battle, unit }) {
-        // (custom rule skillMotionAspd: the slashes follow her attack speed — the same count, sooner; the skill and its
-        // protection shorten with them)
-        const siv = iv / skillMotionSpeed(battle, unit);
-        unit.mem.dgb = { n: 1, acc: 0, pacc: 0, iv: siv };
-        if (siv !== iv && unit.skill?.active) unit.skill.timeLeft = slashes * siv;
-        battle.addBuff(unit, { key: 'blkkgt:slashes', duration: (slashes - 1) * siv + .05, flags: { invulnerable: true }, visible: true, source: unit });
+        unit.mem.dgb = { n: 1, acc: 0, pacc: 0 };
+        battle.addBuff(unit, { key: 'blkkgt:slashes', duration: slashes * iv + 1, flags: { invulnerable: true }, visible: true, source: unit });
         slash(battle, unit, num(bb.d_atk_scale, 1));
       },
       onTick({ battle, unit, dt }) {
@@ -108,8 +100,7 @@ function blkkgt(bb, chess, def) {
         if (!m) return;
         m.acc += dt;
         m.pacc += dt;
-        while (m.acc + 1e-9 >= m.iv && m.n < slashes) { m.acc -= m.iv; m.n++; slash(battle, unit, num(bb.d_atk_scale, 1)); } // loop-cap: interval floored and textCount total-times
-        if (m.n >= slashes) battle.removeBuff(unit, 'blkkgt:slashes');
+        while (m.acc + 1e-9 >= iv && m.n < slashes) { m.acc -= iv; m.n++; slash(battle, unit, num(bb.d_atk_scale, 1)); } // loop-cap: interval floored and textCount total-times
         if (m.pacc + 1e-9 >= pullIv) { m.pacc -= pullIv; pull(battle, unit, num(bb.p_force)); }
       },
       onEnd({ battle, unit, reason }) {
@@ -120,8 +111,6 @@ function blkkgt(bb, chess, def) {
         unit.mem.dgbFinale = true; // the finisher is part of the skill (talent at 100 %, module +10 %)
         try { slash(battle, unit, num(bb.e_atk_scale_end, 1)); } finally { unit.mem.dgbFinale = false; }
         pull(battle, unit, num(bb.e_force), true);
-        // the finisher is EndAttack (animKey Skill_3_End, 1.567 s, OnAttack at 0.333 s): she attacks again only once it ends
-        battle.addBuff(unit, { key: 'blkkgt:finale', duration: END_RECOVERY_S, flags: { disarm: true }, source: unit });
       },
     },
     talents: [

@@ -3,7 +3,6 @@
 
 import { sortEnemyTargets, canTargetEnemy } from '../../../targeting.js';
 import { rotateOffset } from '../../../dir.js';
-import { skillMotionSpeed } from '../../../motionSpeed.js';
 import { bodyDist, bodyKeys, bodyInRange } from '../../../body.js';
 import { num, tbb, live, isElite, hasBond, ANY, bstate } from '../shared/tier6.js';
 
@@ -178,7 +177,7 @@ function lemuen(bb, chess, def) {
       onEnd({ battle, unit }) { endAim(battle, unit); },
     },
   };
-  const kit = {
+  return {
     skills,
     // S3 礼炮·强制追思, the lock phase: one lock every aim_interval s on an enemy in her range (the least locked first,
     // then the lowest DEF), one bullet each; the skill ends when the bullets are spent, then bombard. With nothing in
@@ -193,19 +192,17 @@ function lemuen(bb, chess, def) {
       ammo: Math.max(1, Math.floor(num(bb['attack@trigger_time'], 5))),
       attack: { noAttack: true },
       allyTargets: true,   // its locks take 白铁's 铁钳号 too (pickLock) — skills.js allyTargetsOk
-      // (custom rule skillMotionAspd: one lock — one bullet — every aim / (ASPD / 100) s; the first lock stays immediate)
-      onStart({ battle, unit }) { unit.mem.lemLocks = []; unit.mem.lemAcc = aim / skillMotionSpeed(battle, unit); },
+      onStart({ unit }) { unit.mem.lemLocks = []; unit.mem.lemAcc = aim; },
       onTick({ battle, unit, skill, dt }) {
         const m = unit.mem;
         if (!m.lemLocks) return;
         for (const L of m.lemLocks) markOf(L);
         if (!unit.canAct) return;
         m.lemAcc += dt;
-        const iv = aim / skillMotionSpeed(battle, unit);
-        if (m.lemAcc + 1e-9 < iv) return;
+        if (m.lemAcc + 1e-9 < aim) return;
         const e = pickLock(battle, unit, m.lemLocks);
-        if (!e) { m.lemAcc = iv; return; }   // nothing to lock: wait, the next lock ready the moment an enemy comes
-        m.lemAcc = Math.min(m.lemAcc - iv, dt); // (a carried 'ready' never fires a second lock at once when the interval shrinks)
+        if (!e) { m.lemAcc = aim; return; }   // nothing to lock: wait, the next lock ready the moment an enemy comes
+        m.lemAcc -= aim;
         m.lemLocks.push({ e, x: e.x, y: e.y });
         battle.fx('lock', { x: e.x, y: e.y, id: e.id, src: unit.id, hold: 1 });
         skill.ammoLeft--;
@@ -268,12 +265,8 @@ function lemuen(bb, chess, def) {
       } },
     ],
   };
-  // Explicit loadouts and alternate bodies must resolve S3 to the authored lock/bombardment kit.
-  kit.skills.skchr_lemuen_3 = kit.skill;
-  return kit;
 }
 
 export default {
   chess_char_6_01_a: lemuen,
-  char_4193_lemuen: lemuen,
 };
