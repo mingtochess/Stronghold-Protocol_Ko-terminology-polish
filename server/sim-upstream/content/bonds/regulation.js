@@ -605,6 +605,9 @@ function installLethania(battle, pid, effectId, members) {
       ...lethaniaSummon(id, raw), lethaniaPursuit: true, position: { x: col, y: row },
     });
     if (!u) return;
+    // the note and the chorus are neutral enemy-record units that cannot be healed (禁疗: no heal from others, no
+    // self-heal); their 流血 HP loss is no heal and still runs
+    battle.addBuff(u, { key: 'bond:lethania:healFree', flags: { noHeal: true, healFree: true }, persist: true, allowDead: true });
     if (id === NOTE) captureLethaniaBirthMode(battle, u);
     const tb = talentBb(raw);
     const aspd = num(tb['Aura.base_attack_speed']);
