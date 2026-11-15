@@ -106,7 +106,7 @@ function mlyss(bb, chess, def) {
   const pulseIv = Math.max(0.2, bv(bb, 'interval', 2)), bindDur = isDef ? bv(bb, 'duration', 1.5) : 0;
   // "自身与流形攻击力+N%（攻击速度+N）" — every skill of hers buffs the 流形 too while it runs
   const manifoldMods = { atkPct: num(bb.atk), ...(num(bb.attack_speed) ? { aspd: num(bb.attack_speed) } : {}) };
-  const buffManifold = (battle, t, dur) => { battle.fx('manifold', { x: t.x, y: t.y, id: t.id, dur }); return battle.addBuff(t, { key: 'mlyss:s3', mods: manifoldMods, duration: dur }); };
+  const buffManifold = (battle, t, dur) => battle.addBuff(t, { key: 'mlyss:s3', mods: manifoldMods, duration: dur });
   // module 落叶四季 (开源节流): copying a 莱茵生命 operator ⇒ she gains `sp`; deploying the copied one ⇒ it gains `sp_other`
   const rhineSp = num(mod.sp), rhineSpOther = num(mod.sp_other);
   const tokTal = (t, key) => { for (const x of t.def?.talents || []) if (x?.bb && typeof x.bb[key] === 'number') return x.bb; return {}; };
@@ -122,7 +122,7 @@ function mlyss(bb, chess, def) {
     }
     copyInto(battle, t, src, num(tokTal(t, 'scale').scale, 1), isRanged(src));
     battle.fx('copy', { x: t.x, y: t.y, id: t.id, src: src.id });
-    if (rhineSp > 0 && RHINE.has(src.def?.charId) && unit.skill) unit.skill.gainSp(rhineSp, 'talent');
+    if (rhineSp > 0 && isRhine(src) && unit.skill) unit.skill.gainSp(rhineSp, 'talent');
   };
   const mineLive = (battle, unit) => battle.allyUnits.filter((x) => isTok(x, tokId, unit) && live(x));
 
@@ -191,7 +191,7 @@ function mlyss(bb, chess, def) {
         }, { owner: unit });
       }
       if (rhineSpOther > 0) battle.on('deploy', ({ unit: u, initial }) => { // the copied 莱茵生命 operator is deployed
-        if (initial || !u || u.kind !== 'op' || u.ownerId !== unit.ownerId || !RHINE.has(u.def?.charId) || !u.skill) return;
+        if (initial || !u || u.kind !== 'op' || u.ownerId !== unit.ownerId || !isRhine(u) || !u.skill) return;
         if (battle.allyUnits.some((t) => isTok(t, tokId, unit) && live(t) && t.mem.mlyss?.from === u.id)) u.skill.gainSp(rhineSpOther, 'talent');
       }, { owner: unit });
       // module TAC-D (see the header): the erosion rider of her and her 援军, and 净水即生命's burst follow-up
@@ -358,7 +358,7 @@ function mlyss(bb, chess, def) {
         S.rhine.add(unit.ownerId);
         const cut = num(t1.cost), first = num(t1.runtime_cost);
         battle.on('battleStart', () => {
-          const rh = battle.allyUnits.filter((a) => a.kind === 'op' && a.ownerId === unit.ownerId && RHINE.has(a.def?.charId)).sort((a, b) => a.deploySeq - b.deploySeq);
+          const rh = battle.allyUnits.filter((a) => a.kind === 'op' && a.ownerId === unit.ownerId && isRhine(a)).sort((a, b) => a.deploySeq - b.deploySeq);
           rh.forEach((a, i) => { a.base.cost = Math.max(0, a.base.cost + cut + (i === 0 ? first : 0)); });
         });
       } },
