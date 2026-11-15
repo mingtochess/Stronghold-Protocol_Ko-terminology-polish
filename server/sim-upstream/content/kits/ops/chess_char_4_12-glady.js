@@ -2,15 +2,11 @@
 // Conventions of the tier-4 kits: ../shared/tier4.js; kit contract and rules: ../README.md.
 
 import { bodyDist } from '../../../body.js';
-import {
-  AURA, num, tbb, moduleBb, grid, batFlat, enemyHasTag, targetsInRange, whileDeployed, pulse, alt, instantKind,
-  pullToFront, withDefaults,
-} from '../shared/tier4.js';
+import { AURA, num, tbb, moduleBb, grid, batFlat, enemyHasTag, targetsInRange, whileDeployed, pulse, alt, instantKind, pullToFront, withDefaults } from '../shared/tier4.js';
 import { hypot } from '../../../detmath.js';
-import { abyssalOf } from '../shared/tier5.js';
 
-/** 深海猎人 (character_table groupId "abyssal"): the list of the loaded data (../shared/tier5.js abyssalOf). */
-export const isAbyssal = (u) => u?.def?.raw?.groupId === 'abyssal' || abyssalOf().has(u?.def?.charId ?? u?.def?.raw?.charId);
+const ABYSSAL = new Set(['char_143_ghost', 'char_263_skadi', 'char_474_glady', 'char_4145_ulpia', 'char_1023_ghost2']);
+const isAbyssal = (u) => u?.def?.raw?.groupId === 'abyssal' || ABYSSAL.has(u?.def?.charId ?? u?.def?.raw?.charId);
 
 export default withDefaults({
   // ===== 歌蕾蒂娅 (hookmaster) S3 缺水的碎漩狂舞 — bind a far target, tornado (r 1.5): slow, 85 % arts pulses + pull,
@@ -52,6 +48,9 @@ export default withDefaults({
       }),
       skill: {
         kind: 'duration',
+        // no attacks while it runs: the client's S3 mode (skchr_glady_3 → mode 2) has no attack ability, the tornado
+        // is her whole damage (official fx index units.char_474_glady.modes[2].attack: none)
+        attack: { noAttack: true },
         onStart({ battle, unit, skill }) {
           const foes = targetsInRange(battle, unit).sort((a, b) => bodyDist(b, unit.x, unit.y) - bodyDist(a, unit.x, unit.y) || a.id - b.id);
           const t = foes[0];

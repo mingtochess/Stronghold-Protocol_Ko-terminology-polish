@@ -48,7 +48,7 @@
 import { num, talentBb, moduleBb, traitBb, skillRec, up, batMod } from '../shared/tier1.js';
 import { canTargetEnemy } from '../../../targeting.js';
 import { bodyInRange } from '../../../body.js';
-import { hasHp, cancelDamage } from '../../../attack.js';
+import { hasHp } from '../../../attack.js';
 
 const S1 = 'skchr_ascln_1';
 const S2 = 'skchr_ascln_2';
@@ -66,7 +66,7 @@ const ADJ4 = Object.freeze([[1, 0], [-1, 0], [0, 1], [0, -1]]);
 
 const bbOf = (chess, id) => skillRec(chess, id)?.bb ?? {};
 /** Buff key of her 死亡拘审 on an enemy (one per 阿斯卡纶). */
-export const dreadKey = (src) => `ascln:dread#${src.id}`;
+export const dreadKey = (src) => `ascln:poison:${src.id}`;
 
 /**
  * One layer of 死亡拘审 from `src` on enemy `e` (talent blackboard `tb`): ≤ max_stack_cnt layers, the duration reset,
@@ -80,9 +80,10 @@ export function addDread(battle, src, e, tb) {
   if (!(dur > 0)) return null;
   const old = e.findBuff(key);
   const n = Math.min(max, (old?.data?.n ?? 0) + 1);
-  const mods = { moveMul: Math.max(0, 1 - ms * n) };
+  const mods = { moveMul: Math.max(0, 1 - ms * n) ** (1/n) };
   if (old) {
     old.data.n = n;
+    old.stacks=n;
     old.mods = mods;
     old.timeLeft = dur;
     old.duration = dur;
@@ -90,12 +91,13 @@ export function addDread(battle, src, e, tb) {
     return old;
   }
   return battle.addBuff(e, {
-    key, duration: dur, mods, source: src, interval: iv > 0 ? iv : 1, data: { n }, tags: ['talent', 'dot'],
+    key, duration: dur, mods, stacks:n,maxStacks:max,source: src, interval: iv > 0 ? iv : 1, data: { n }, tags: ['talent', 'dot'],
     onTick: ({ battle: b, unit: t, buff }) => {
       if (!up(src)) { b.removeBuff(t, buff); return; }
-      if (!(ratio > 0)) return;
-      b.dealDamage({ source: src, target: t, amount: src.s.atk * ratio * buff.data.n, type: 'arts',
-        attackType: 'BUFF', applyWay: 'MELEE', dodgeMode: 'ignore', tags: ['talent', 'dot', DREAD_TAG] });
+      if (ratio > 0) {
+        b.emit('attack',{attacker:src,targets:[t],isSkill:false,periodic:true,profile:{dmgType:'arts',tags:['ascln-poison']}});
+        b.dealDamage(src,t,{amount:src.s.atk*ratio*buff.data.n,type:'arts',canDodge:false,isAttack:true,isSkill:false,tags:['talent','dot',DREAD_TAG,'ascln-poison']});
+      }
     },
   });
 }
@@ -128,8 +130,8 @@ function missHit(battle, st, ctx) {
     if (d.attackId) st.last.set(e, { id: d.attackId, miss });
   }
   if (!miss) return;
-  const cancelled = cancelDamage(d, 'miss');
-  if (cancelled) ctx.stopPropagation = true;
+  d.cancel = true;
+  ctx.stopPropagation = true;
   const t = ctx.target;
   if (t) battle.fx('dodge', { x: t.x, y: t.y, id: t.id });
   // 敌人未命中自身: the 阿斯卡纶 it aimed at heals (once per missed attack)
@@ -183,10 +185,11 @@ export default {
         { install(battle, unit) { // 死亡拘审 (+ AMB-Y stage 3: a heal when an enemy carrying it is knocked out)
           battle.on('damaged', (ctx) => {
             const d = ctx.dmg, e = ctx.target;
-            if (ctx.source !== unit || !up(unit) || !d || !d.isAttack || !e || e.side !== 'enemy' || d.type === 'element') return;
+            if (ctx.source !== unit || !up(unit) || !d || !d.isAttack || !e || e.side !== 'enemy' || d.type === 'element' || d.tags?.includes(DREAD_TAG)) return;
             addDread(battle, unit, e, t0);
           }, { owner: unit });
           const key = dreadKey(unit);
+          battle.on('tick',()=>{if(!up(unit))for(const e of battle.enemies)if(e.findBuff(key))battle.removeBuff(e,key);},{owner:unit});
           battle.on('death', (ctx) => {
             const u = ctx.unit;
             if (u === unit) { // 自身退场后，所有已施加的本天赋效果将立刻结束
@@ -225,11 +228,18 @@ export default {
         }
         if (picked === S2) {
           const ms = Math.abs(num(b2.move_speed)), radius = num(b2.range_radius, 1.3);
+          // the enemies in her aura (display only: 'auraIn' / 'auraOut' as one enters or leaves it, ascln_s_2[enemy]'s loop)
+          const inAura = new Map();
+          const auraOut = (keep) => { for (const [id, e] of inAura) if (!keep?.has(id)) { inAura.delete(id); battle.fx('auraOut', { x: e.x, y: e.y, id: e.id, src: unit.id }); } };
           const slow = () => {
-            if (!up(unit) || !unit.skill?.active) return;
+            if (!up(unit) || !unit.skill?.active) { if (inAura.size) auraOut(null); return; }
+            const now = new Set();
             for (const e of battle.enemiesInKeys(unit.rangeKeys, unit, ANY)) {
               battle.applyStrongest(e, 'ascln:s2slow', { duration: AURA_DUR, value: ms, mods: (v) => ({ moveMul: Math.max(0, 1 - v) }), source: unit });
+              now.add(e.id);
+              if (!inAura.has(e.id)) { inAura.set(e.id, e); battle.fx('auraIn', { x: e.x, y: e.y, id: e.id, src: unit.id }); }
             }
+            auraOut(now);
           };
           if (ms > 0) {
             battle.on('skillStart', (ctx) => { if (ctx.unit === unit) slow(); }, { owner: unit });

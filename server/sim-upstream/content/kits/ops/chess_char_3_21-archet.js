@@ -3,9 +3,7 @@
 
 import { canTargetEnemy } from '../../../targeting.js';
 import { bodyDist } from '../../../body.js';
-import {
-  num, defOf, talentBb, moduleTalentBb, altSkills, instantKindOf, groundAspd, alive, fx, enemiesOn, isLeader, giveSp,
-} from '../shared/tier3.js';
+import { num, defOf, talentBb, moduleTalentBb, altSkills, instantKindOf, groundAspd, alive, fx, enemiesOn, isLeader, giveSp } from '../shared/tier3.js';
 
 /** The unit's own profile damage multiplier on `target` (fastshot fly bonus …) for damage a kit deals itself. */
 function profileMul(battle, unit, target) {
@@ -36,7 +34,8 @@ export default {
     const skill = {
       kind: 'duration',
       mods: { atkPct: num(bb.atk) },
-      attack: { hits: Math.max(1, Math.floor(num(bb['attack@times'], 1))) },
+      // the arrows go out one after another (skchr_archet_3 mode S3 MultiRangedAttack `_triggerDelta` 0.18 s)
+      attack: { hits: Math.max(1, Math.floor(num(bb['attack@times'], 1))), strikeGap: 0.18 },
     };
     const tg = {};
     if (num(bb.ability_range_forward_extend) > 0) tg.rangeExtend = Math.round(bb.ability_range_forward_extend);

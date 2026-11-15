@@ -2,9 +2,7 @@
 // Conventions of the tier-4 kits: ../shared/tier4.js; kit contract and rules: ../README.md.
 
 import { sortEnemyTargets } from '../../../targeting.js';
-import {
-  AURA, num, tbb, grid, targetsInGrid, whileDeployed, toggleBuff, resCut, isSel, alt, lonely, withDefaults,
-} from '../shared/tier4.js';
+import { AURA, num, tbb, grid, targetsInGrid, whileDeployed, toggleBuff, resCut, isSel, alt, lonely, withDefaults } from '../shared/tier4.js';
 
 export default withDefaults({
   // ===== 缄默德克萨斯 (executor) S3 剑雨滂沱 (passive) — deploy burst 2×115 % + 1.5 s stun, sword rain 1/s; talents
@@ -78,7 +76,7 @@ export default withDefaults({
         skchr_texas2_2: () => skill,
       }),
       // S2: 攻击变为二连击 while the passive lasts
-      trait: S2 ? { hitsFn: (b, u) => (u.skill?.active ? 2 : 1) } : undefined,
+      trait: S2 ? { hitsFn: (b, u) => (u.skill?.active ? 2 : 1), strikeGap: 0.1 } : undefined, // mode S2 MultiMeleeAttack `_triggerDelta` 0.1 s
       talents: [
         { install(battle, unit) { // 德克萨斯传统 (2nd half): first kill of each deployment ⇒ full heal + recast
           // (the passive's deploy burst runs inside skill.reset, BEFORE the `deploy` hook: the per-deployment state is

@@ -105,7 +105,7 @@ function grantBarrier(battle, mcn, holder, key, ratio) {
   const buff = battle.addBuff(holder, {
     key, shield: holder.s.maxHp * ratio, shieldType: BARRIER_TYPES, visible: true, source: mcn, tags: ['barrier'],
     data: { mcnist: mcn },
-    // spent by a hit (attack/effects.js injuryEffects removes it at 0): S2's break effect waits for the hit to resolve (`damaged`)
+    // spent by a hit (damage.js absorbShields removes it at 0): S2's break effect waits for the hit to resolve (`damaged`)
     onRemove: ({ buff: b }) => { if (key === S2_KEY && !(b.shield > 1e-9)) holder.mem.mcnistBroken = true; },
   });
   battle.fx('shield', { x: holder.x, y: holder.y, id: holder.id });
@@ -264,7 +264,8 @@ export default {
           onAttack(ctx) { ctx.noAmmo = true; },   // her bullets go on 屏障 only (CharSkillManualTriggerCountEvent)
           onStart({ battle, unit }) {
             grantBarrier(battle, unit, unit, S2_KEY, num(b2.hp_ratio));
-            for (const t of grafsOf(battle, unit)) if (up(t)) grantBarrier(battle, unit, t, S2_KEY, num(b2.hp_ratio));
+            battle.fx('modeLoop', { x: unit.x, y: unit.y, id: unit.id, src: unit.id, dur: 600 });
+            for (const t of grafsOf(battle, unit)) if (up(t)) { grantBarrier(battle, unit, t, S2_KEY, num(b2.hp_ratio)); battle.fx('modeLoop', { x: t.x, y: t.y, id: t.id, src: unit.id, dur: 600 }); }
           },
         },
         [S3]: {

@@ -19,9 +19,9 @@
 //   data's 'phys' too since 0.2.0 WE2 — build-data classifyAttack) and arts while one runs (every skill's attack override); block 3, ground-only
 //   melee on her 1-1. Module AST-X 无迹 adds "且攻击和受到攻击时对目标额外造成10％攻击力的法术伤害" (trait bb atk_scale): every
 //   damage instance of her normal attacks (skill attacks included; not the shield, a counter or the module's own damage)
-//   is followed by precomputed atk_scale × ATK arts ADDITION damage on that enemy (ordinary dodge), and every enemy damage instance she takes
-//   returns atk_scale × ATK arts (普通伤害) to its source (tier1 byEnemyDamage). Both module branches require an active skill or 临死模式, as the native
-//   hsgma2_e_003_tr_output/take templates explicitly check.
+//   is followed by atk_scale × ATK arts on that enemy (附加伤害: no dodge), and every enemy damage instance she takes
+//   returns atk_scale × ATK arts (普通伤害) to its source (tier1 byEnemyAttack) — whether a skill runs or not [ASSUMED: PRTS's list of the checked
+//   conditions names no skill period].
 // - T1 业火 "生命降至0时进入“我执”…": a lethal damage instance leaves her on the field in 我执 instead (the damage past her
 //   HP opens the negative pool — the engine keeps her at its 1-HP floor for the official 0); in 我执 every later damage
 //   instance goes to the pool (no HP loss; it still counts as damage taken: 受击回复 SP, counters) until the pool would
@@ -52,10 +52,10 @@
 //   refund of a withdrawal is not modelled — no retreat in the sim refunds DP). No strategy of this mode closes it: PRTS
 //   帮助 lists the 上半 row that did as removed in 下半, so in a fight the skill simply runs its `duration`.
 
-import { num, talentBb, traitBb, skillRec, up, byEnemyDamage } from '../shared/tier1.js';
+import { num, talentBb, traitBb, skillRec, up, byEnemyAttack } from '../shared/tier1.js';
 import { absoluteRangeKeys, canTargetEnemy } from '../../../targeting.js';
 import { bodyInRadius } from '../../../body.js';
-import { hasHp, damageAttackType } from '../../../attack.js';
+import { hasHp } from '../../../attack.js';
 import { COLS } from '../../../constants.js';
 import { sin, cos, atan2 } from '../../../detmath.js';
 
@@ -93,7 +93,7 @@ export default {
     // this unit's attack overrides (the kit is built per unit): S2's throw turns into plain arts attacks after it lands,
     // S3's two hits become four in the 临死模式
     const s2Attack = { dmgType: 'arts' };
-    const s3Attack = { dmgType: 'arts', hits: 2 };
+    const s3Attack = { dmgType: 'arts', hits: 2, strikeGap: 0.1 }; // mode S3 / BeforeDead MultiMeleeAttack `_triggerDelta`
     const plainS2 = () => { delete s2Attack.hits; delete s2Attack.atkScale; delete s2Attack.hitAllBlocked; };
 
     /** S2: the shield's centre after `turned` degrees (row 0 is the bottom row: counter-clockwise = a growing angle). */
@@ -109,7 +109,7 @@ export default {
         if (!e.alive) continue;
         const dealt = battle.dealDamage(unit, e, { amount: unit.s.atk * num(b2.shield_atk_scale), type: 'arts', isSkill: true, tags: ['skill', 'hsgma2:shield'] });
         if (dealt > 0 && unit.alive) battle.heal(unit, unit, dealt * num(b2.heal_ratio), { self: true, ignoreHealFree: true });
-        battle.fx('strike', { x: p.x, y: p.y, id: unit.id, skill: 'hsgma2:shield' });
+        battle.fx('strike', { x: p.x, y: p.y, id: unit.id, target: e.id, skill: 'hsgma2:shield' });
       }
     };
 
@@ -120,17 +120,6 @@ export default {
           kind: 'toggle', trigger: { rule: 'SP_FULL' },
           mods: nz({ atkPct: num(b1.atk), defPct: num(b1.def) }),
           attack: { dmgType: 'arts' },
-          onStart({ battle, unit }) {
-            battle.addBuff(unit, { key: 'hsgma2:karma', tags: ['skill'], observeInjury(c) {
-              const src = c.source;
-              if (!unit.alive || !byEnemyDamage(c) || !src.alive) return;
-              battle.dealDamage({ source: unit, target: src, amount: unit.s.atk * num(b1.atk_scale), type: 'arts',
-                attackType: 'NORMAL', applyWay: 'NONE', calculation: 'precomputed',
-                isSkill: true, ignoreSelect: true, tags: ['skill', 'counter'] });
-              battle.fx('counter', { x: src.x, y: src.y, id: unit.id });
-            } });
-          },
-          onEnd({ battle, unit }) { battle.removeBuff(unit, 'hsgma2:karma'); },
         },
         [S2]: {
           kind: 'duration', duration: S2_CAP,
@@ -153,9 +142,11 @@ export default {
             if (unit.mem.hsShield !== sh) return;
             const slowed = touching(battle, unit, shieldAt(unit, sh)).length > 0;
             sh.turned += SHIELD_SPEED * (slowed ? 1 - SHIELD_SLOW : 1) * dt;
+            sh.fxAcc=(sh.fxAcc||0)+dt;
+            if(sh.fxAcc>=.1){sh.fxAcc=0;battle.fx('orbitProjectile',{x:unit.x,y:unit.y,id:unit.id,src:unit.id,projectile:'projectile_chr_hsgma2_s2',slots:[true],radius:SHIELD_START,phase:sh.a0+sh.turned*Math.PI/180,speed:SHIELD_SPEED*(slowed?1-SHIELD_SLOW:1),ttl:.2});}
             if (sh.turned >= SHIELD_TURN - 1e-9) skill.end('shield');
           },
-          onEnd({ unit }) { unit.mem.hsShield = null; plainS2(); },
+          onEnd({ battle, unit }) { unit.mem.hsShield = null; plainS2();battle.fx('orbitProjectile',{x:unit.x,y:unit.y,id:unit.id,src:unit.id,projectile:'projectile_chr_hsgma2_s2',slots:[]}); },
         },
         [S3]: {
           kind: 'duration',
@@ -272,24 +263,29 @@ export default {
           keys: absoluteRangeKeys(skillRec(chess, S3)?.rangeGrid ?? X2, unit.tileR, unit.tileC, unit.dir, unit.s.baseRangeExtend || 0, battle.grid),
           profile: { canHitFly: true },
         }]);
+        // S1 恶业苦果: every enemy damage instance she takes (the official hsgma2_s_1 on ON_TAKE_DAMAGE, not its attacks only:
+        // tier1 byEnemyAttack) ⇒ atk_scale × ATK arts back to its source
+        battle.on('damaged', (c) => {
+          const s = c.source;
+          if (c.target !== unit || !unit.alive || unit.skill?.id !== S1 || !unit.skill.active) return;
+          if (!byEnemyAttack(c) || !s.alive) return;
+          battle.dealDamage(unit, s, { amount: unit.s.atk * num(b1.atk_scale), type: 'arts', canDodge: false, isSkill: true, ignoreSelect: true, tags: ['skill', 'counter'] });
+          battle.fx('counter', { x: s.x, y: s.y, id: unit.id });
+        }, { owner: unit });
         // AST-X 无迹: her attack damage ⇒ +atk_scale × ATK arts (附加伤害); an enemy damage instance she takes (the official
         // hsgma2_e_003_tr_take: ON_TAKE_DAMAGE from the other side) ⇒ atk_scale × ATK arts back
         const astx = num(tb.atk_scale);
-        const moduleAffecting = () => !!unit.skill?.active || !!unit.mem.hsDying;
         if (astx > 0) {
-          battle.on('damageOutput', (c) => {
+          battle.on('damaged', (c) => {
             const t = c.target;
-            if (!moduleAffecting() || c.source !== unit || !c.dmg?.isAttack || damageAttackType(c.dmg) !== 'NORMAL'
-            || c.dmg.tags?.includes(ASTX) || c.dmg.type === 'element' || !t || t.side !== 'enemy' || !hasHp(t)) return;
-            battle.dealDamage({ source: unit, target: t, amount: unit.s.atk * astx, type: 'arts',
-            attackType: 'ADDITION', applyWay: 'NONE', calculation: 'precomputed', origin: c.dmg, tags: ['module', ASTX] });
+            if (c.source !== unit || !c.dmg?.isAttack || c.type === 'element' || !t || t.side !== 'enemy' || !hasHp(t)) return;
+            battle.dealDamage(unit, t, { amount: unit.s.atk * astx, type: 'arts', canDodge: false, tags: ['module', ASTX] });
           }, { owner: unit, priority: -20 });
-          battle.addBuff(unit, { key: 'hsgma2:moduleCounter', persist: true, allowDead: true, observeInjury(c) {
+          battle.on('damaged', (c) => {
             const s = c.source;
-            if (!moduleAffecting() || !unit.alive || !byEnemyDamage(c) || !s.alive) return;
-            battle.dealDamage({ source: unit, target: s, amount: unit.s.atk * astx, type: 'arts',
-            attackType: 'NORMAL', applyWay: 'NONE', calculation: 'precomputed', ignoreSelect: true, tags: ['module', ASTX, 'counter'] });
-          } });
+            if (c.target !== unit || !unit.alive || !byEnemyAttack(c) || !s.alive) return;
+            battle.dealDamage(unit, s, { amount: unit.s.atk * astx, type: 'arts', ignoreSelect: true, tags: ['module', ASTX, 'counter'] });
+          }, { owner: unit });
         }
         // S3 临死模式: every other allied operator on her range holds 不死; the part of a damage instance past its HP is her 流失
         const shelters = (t) => !!unit.mem.hsDying && up(unit) && !!t && t !== unit && t.side === 'ally' && t.kind === 'op' && t.alive
