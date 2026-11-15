@@ -71,6 +71,9 @@ export function unitInfo(u) {
     motion: u.motion === 'FLY' ? 'FLY' : undefined,
     boss: u.isBoss ? true : undefined,
     fixed: u.isBoss && u.stationary ? true : undefined,   // a boss whose route only waits (render/units.js fixedBoss)
+    // the loadout's costume (chess record `skins`: the record's assets already name its model) and the operator, for the
+    // client's costume effects (render/vfx/costumes.js) — as server/sim/snapshot.js
+    skinId: d.loadout?.skinId, charId: d.raw?.charId,
     // the unit's current model form (an enemy's content/enemies/helpers.js setForm, a 傀儡师's 替身 — render/units.js FORMS): a
     // view built mid-battle (fieldMeta — a watched teammate's field, 联防 observers, a reconnect) starts on that clip set
     form: typeof u.form === 'string' ? u.form : undefined,

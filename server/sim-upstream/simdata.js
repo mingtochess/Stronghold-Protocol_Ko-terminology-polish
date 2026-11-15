@@ -238,7 +238,7 @@ export { composeStats, composeTalents, loadoutRecord };
 
 /** Cache key suffix of a resolved non-default loadout ('' for the default). */
 export function loadoutKey(lo) {
-  return lo && !lo.isDefault ? `|s${lo.skillIndex}|m${lo.moduleId ?? ''}${lo.potentialIsDefault === false ? `|p${lo.potential}` : ''}` : '';
+  return lo && !lo.isDefault ? `|s${lo.skillIndex}|m${lo.moduleId ?? ''}|skin${lo.skinId ?? ''}${lo.potentialIsDefault === false ? `|p${lo.potential}` : ''}` : '';
 }
 
 /** Build an immunity Set from an object `{stun:true,…}` or an array `['stun', 'feared']`. */
@@ -881,14 +881,14 @@ export function withUnitLoadouts(ds, players) {
       if (!u || u.kind === 'token' || typeof u.chessId !== 'string') continue;
       const diy = u.diy && typeof u.diy === 'object' ? u.diy : null;
       const pot = u.standIn !== true && isPotential(u.potential) ? u.potential : null;
-      if (u.skillIndex != null || u.moduleId != null || u.standIn === true || diy || pot != null) any = true;
-      const lo = { skillIndex: u.skillIndex ?? null, moduleId: u.moduleId ?? null };
+      if (u.skinId != null || u.skillIndex != null || u.moduleId != null || u.standIn === true || diy || pot != null) any = true;
+      const lo = { skillIndex: u.skillIndex ?? null, moduleId: u.moduleId ?? null, ...(u.skinId ? { skinId: u.skinId } : {}) };
       if (u.standIn === true) lo.standIn = true;
       if (diy) lo.diy = diy;
       if (pot != null) lo.potential = pot;
       const prev = map.get(u.chessId);
       if (!prev) map.set(u.chessId, lo);
-      else if (prev.skillIndex !== lo.skillIndex || prev.moduleId !== lo.moduleId || !!prev.standIn !== !!lo.standIn
+      else if (prev.skillIndex !== lo.skillIndex || prev.moduleId !== lo.moduleId || !!prev.standIn !== !!lo.standIn || prev.skinId !== lo.skinId
         || (prev.potential ?? null) !== (lo.potential ?? null)
         || JSON.stringify(prev.diy ?? null) !== JSON.stringify(lo.diy ?? null)) conflicts.add(u.chessId);
     }

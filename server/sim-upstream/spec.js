@@ -128,12 +128,13 @@ function cleanDiyPick(d) {
 export function sanitizeUnitLoadout(u) {
   if ('skillIndex' in u && !(Number.isInteger(u.skillIndex) && u.skillIndex >= 0 && u.skillIndex <= 9)) delete u.skillIndex;
   if ('moduleId' in u && !(typeof u.moduleId === 'string' && LOADOUT_ID.test(u.moduleId))) delete u.moduleId;
+  if ('skinId' in u && !(typeof u.skinId === 'string' && LOADOUT_ID.test(u.skinId))) delete u.skinId;
   if ('standIn' in u && u.standIn !== true) delete u.standIn;
   if ('diy' in u) { const d = cleanDiyPick(u.diy); if (d) u.diy = d; else delete u.diy; }
   if ('potential' in u && !isPotential(u.potential)) delete u.potential;
   if ('cultivate' in u && !isCultivate(u.cultivate)) delete u.cultivate;
   if (u.standIn === true) { delete u.potential; delete u.cultivate; }
-  if (u.kind === 'token') { delete u.skillIndex; delete u.moduleId; delete u.standIn; delete u.diy; delete u.potential; delete u.cultivate; }
+  if (u.kind === 'token') { delete u.skinId; delete u.skillIndex; delete u.moduleId; delete u.standIn; delete u.diy; delete u.potential; delete u.cultivate; }
   return u;
 }
 

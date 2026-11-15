@@ -148,3 +148,33 @@ test('a fixed boss (route only waits) refuses 诱导 / 恐惧 and every carry / 
   assert.equal(covFixed({ side: 'enemy', isBoss: true, stationary: false, base: { moveSpeed: 1 } }), false);
   assert.equal(covFixed({ side: 'enemy', isBoss: false, stationary: true, base: { moveSpeed: 0 } }), false);
 });
+
+// 제보 2026-11-15: a 규정 player's operator skin (the loadout's costume: chess record `skins`) never reached the game —
+// match-upstream dropped `skin` from the loadout, and the engine's pre-battle sync swapped the skinned def back
+test('규정: the loadout costume reaches the battle input, the unit model and the prep board', async () => {
+  const { LaboratoryMatch } = await import('../server/match-upstream/LaboratoryMatch.js');
+  const { LAB_DUMMY_BOSS } = await import('../shared/laboratoryDummy.js');
+  const rec = raw.chess.chess_char_1_01_a, skin = rec.skins[0];
+  const m = new LaboratoryMatch({ send() { return true; }, broadcast() {}, onEnd() {}, seed: 1, data: raw,
+    seats: [{ seat: 0, playerId: 'p', name: 'P', isBot: false, connected: true, loadout: { [rec.chessId]: { skill: 0, skin: skin.id } } }],
+    laboratory: { stageId: 'act3autochess_m01', bossId: LAB_DUMMY_BOSS, bandId: Object.keys(raw.bands).find((b) => b !== 'band_random'), kind: 'boss', players: 1 } });
+  try {
+    m.start(); m.phase = 'PREP';
+    const ps = m.players.get('p');
+    assert.deepEqual(m.handle('p', { t: 'g.labGain', kind: 'chess', id: rec.chessId }), { ok: true });
+    const piece = ps.hand.find((x) => x?.id === rec.chessId);
+    ps.hand = ps.hand.filter((x) => x !== piece); ps.board.set('10,4', piece);
+    assert.equal(ps.loadoutFor(rec).skinId, skin.id);
+    const unit = ps.battleInput().units.find((u) => u.chessId === rec.chessId);
+    assert.equal(unit.skinId, skin.id);
+    const view = m._prepBoardUnits(ps).find((u) => u.defId === rec.chessId);
+    assert.equal(view.spine, skin.assets.spine);
+    setGameData(raw);
+    const h = makeBattle({ data: new DataSource(raw, null), content: 'full', autoFinish: false, timeLimit: 10, stageId: 'act3autochess_m01',
+      players: [{ playerId: 'p', seat: 0, side: 'L', units: [{ ...unit, row: 10, col: 4 }], bonds: {} }] });
+    h.step();
+    const info = unitInfo(h.b.allies()[0]);
+    assert.equal(info.spine, skin.assets.spine);
+    assert.equal(info.skinId, skin.id);
+  } finally { m.dispose?.(); }
+});
