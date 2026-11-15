@@ -10,7 +10,7 @@ import { COLS } from '../constants.js';
 import { DIR_VEC } from '../dir.js';
 import { hypot } from '../detmath.js';
 import {
-  hurt, elem, areaAllies, remainingRoute, lpLoss, canCast, castSlot, watchDeaths,
+  hurt, elem, areaAllies, remainingRoute, lpLoss, canCast, castSlot, watchDeaths, setForm,
 } from './enemies/helpers.js';
 import { skill, blinkForward } from './enemies/archetypes.js';
 
@@ -271,6 +271,9 @@ function kitMech(ab) {
   return [
     {
       tick(b, e, a) {
+        // display only: the model's WithArmor mode (B_ clip set, shared/animationForms.js) while its armor pair lives
+        const armored = livingOf(b, ARMOR, e.id).length > 0;
+        if (armored !== (e.form === 'armor')) setForm(b, e, armored ? 'armor' : null);
         if (!halfRatio || a.armed || !(e.hpRatio < halfRatio)) return;
         a.armed = true;
         spawnArmorPair(b, e);

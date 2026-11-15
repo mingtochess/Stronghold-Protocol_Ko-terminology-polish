@@ -5026,15 +5026,23 @@
         "attackDown": null,
         "skill": {
           "begin": null,
-          "loop": "A_Attack",
+          "loop": "A_Skill_1",
           "end": null,
-          "via": "attack",
           "index": 0,
           "idle": null
         },
         "die": "A_Die",
         "move": null,
-        "stun": null
+        "stun": null,
+        "skills": {
+          "0": {
+            "begin": null,
+            "loop": "A_Skill_1",
+            "end": null,
+            "index": 0,
+            "idle": null
+          }
+        }
       },
       "animations": {
         "A_Attack": 3.333,
@@ -5092,15 +5100,23 @@
         "attackDown": null,
         "skill": {
           "begin": null,
-          "loop": "A_Attack",
+          "loop": "A_Skill_1",
           "end": null,
-          "via": "attack",
           "index": 0,
           "idle": null
         },
         "die": "A_Die",
         "move": null,
-        "stun": null
+        "stun": null,
+        "skills": {
+          "0": {
+            "begin": null,
+            "loop": "A_Skill_1",
+            "end": null,
+            "index": 0,
+            "idle": null
+          }
+        }
       },
       "animations": {
         "A_Attack": 3.333,
