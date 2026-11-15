@@ -55,17 +55,18 @@ export function bondBoardProgress(th, count, active) {
  */
 export function HudBond({ name, icon, thresholds, tier, layers, active, disabled = false, open = false, onClick, title, steps = true }) {
   const m = data.get('assets');
-  // steps false (the briefing, 시뮬레이션 정보): the icon alone — no board ring, no member segments
+  // steps false (the briefing, 시뮬레이션 정보): one unbroken ring, no member segments — lit when active
+  if (!steps) { thresholds = 1; tier = active && !disabled ? 1 : 0; }
   const n = Math.max(1, Math.min(4, thresholds | 0 || 1));
   const full = !disabled && (tier | 0) >= n;
   const ring = uiUrl(m, `bondBoardIcon/${bondBoardKey(n, disabled ? 0 : tier)}`);
   const matte = uiUrl(m, 'hudBondItem/matte_num');
-  return html`<button type="button" class=${cx('bond', 'hbond', !steps && 'hbond--plain', active && 'is-active', full && 'is-full', disabled && 'is-disabled', open && 'is-open')}
+  return html`<button type="button" class=${cx('bond', 'hbond', active && 'is-active', full && 'is-full', disabled && 'is-disabled', open && 'is-open')}
       onClick=${onClick} title=${title || name}>
     <span class="hbond__board" aria-hidden="true">
-      ${!steps ? null : ring ? html`<img class="hbond__ring" src=${ring} alt="" draggable=${false} />` : html`<span class="hbond__ring hbond__ring--css"></span>`}
+      ${ring ? html`<img class="hbond__ring" src=${ring} alt="" draggable=${false} />` : html`<span class="hbond__ring hbond__ring--css"></span>`}
       ${icon ? html`<img class="hbond__icon" src=${icon} alt="" draggable=${false} />` : html`<span class="hbond__icon hbond__glyph">${(name || '?').trim().charAt(0)}</span>`}
-      ${steps ? BondRing(n, disabled ? 0 : Math.min(n, tier | 0)) : null}
+      ${BondRing(n, disabled ? 0 : Math.min(n, tier | 0))}
     </span>
     ${layers != null ? html`<span class=${cx('bond__count', 'hbond__num', 'num', matte && 'has-matte')} style=${matte ? `background-image:url("${matte}")` : undefined}>${layers}</span>` : null}
     ${disabled ? html`<span class="bond__ban" aria-label="禁用"><${Icon} name="close" /></span>` : null}
