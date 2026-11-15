@@ -207,12 +207,12 @@ export default {
     }
 
     return {
-      trait: { blockFly: false, projectileHit: SHOT_SPEED },   // the profession's permanent air block: only while airborne here
+      trait: { blockFly: false, visualProjectile: 'arrow', projectileHit: SHOT_SPEED },   // the profession's permanent air block: only while airborne here
       skills: {
         [S1]: {
           kind: 'duration', activateOnDeploy: true, spCost: 0, spType: 'none', trigger: 'NEVER',
           mods: { atkPct: num(b1.atk) }, flags: LIFTOFF,
-          attack: { projectileHit: SHOT_SPEED },
+          attack: { visualProjectile: 'arrow', projectileHit: SHOT_SPEED },
           targeting: { rangeGrid: r1?.rangeGrid ?? null, maxTargets: Math.max(1, Math.floor(num(b1['attack@max_target'], 1))) },
           onStart({ battle, unit }) { takeOff(battle, unit); },
           onEnd({ battle, unit }) { land(battle, unit); },
@@ -221,7 +221,7 @@ export default {
           kind: 'duration',
           mods: { atkPct: num(b2.atk), batPct: batMod(b2.base_attack_time, chess) }, flags: LIFTOFF,
           targeting: { rangeGrid: r2?.rangeGrid ?? null, maxTargets: Math.max(1, Math.floor(num(b2['attack@max_target'], 1))) },
-          attack: { dmgType: 'arts', projectileHit: SHOT_SPEED },
+          attack: { dmgType: 'arts', visualProjectile: 'bolt', projectileHit: SHOT_SPEED },
           onStart({ battle, unit }) {
             takeOff(battle, unit);
             const chant = num(b2.chant_duration);
@@ -237,7 +237,7 @@ export default {
           ammo: Math.max(1, Math.floor(num(b3['attack@trigger_time'], 1))),
           mods: { atkPct: num(b3.atk) }, flags: LIFTOFF,
           targeting: s3Targeting,
-          attack: { atkScale: num(b3['attack@atk_scale'], 1), projectileHit: SHOT_SPEED },
+          attack: { atkScale: num(b3['attack@atk_scale'], 1), visualProjectile: 'arrow', projectileHit: SHOT_SPEED },
           onStart({ battle, unit, skill }) {
             takeOff(battle, unit);
             st = { r0: unit.tileR, c0: unit.tileC, dir0: unit.dir, act: skill.activations, flight: null, marker: null };
