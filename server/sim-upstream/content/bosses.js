@@ -648,11 +648,17 @@ function kitGun(ab, e, b) {
   const list = [
     {
       spawn(b2, e2) { b2.addBuff(e2, { key: 'boss:unblockable', persist: true, flags: { unblockable: true } }); setAspd(b2); },
-      before(c, b2, e2) { const l = targetsNear(b2, e2, range()); if (l.length) c.targets = [l.sort((p, q) => q.s.def - p.s.def || aggroCmp(p, q))[0]]; }, // 优先攻击防御力最高的单位
-      attack(c, b2) {
+      before(c, b2, e2) {
+        const l = targetsNear(b2, e2, range());
+        if (l.length) c.targets = [l.sort((p, q) => q.s.def - p.s.def || aggroCmp(p, q))[0]]; // 优先攻击防御力最高的单位
         const t = c.targets[0];
-        if (t === P.last) P.n = Math.min(maxN, P.n + 1); else { P.last = t; P.n = 0; }
+        if (!t) return;
+        // 맹약 (server/sim/content/bosses.js) — PRTS: evaluated before each successful attack; switching targets starts at
+        // one stack (the ASPD it gives applies to this swing, the cooldown keeping the time already run)
+        const elapsed = Math.max(0, e2.s.interval - e2.atkCd);
+        if (t === P.last) P.n = Math.min(maxN, P.n + 1); else { P.last = t; P.n = Math.min(maxN, 1); }
         setAspd(b2);
+        e2.atkCd = Math.max(0, e2.s.interval - elapsed);
       },
       dealt(c, b2, e2) { elem(b2, e2, c.target, 'erosion', e2.s.atk * (T(ab, '1.ep_damage_ratio') ?? 0)); }, // 攻击时附带侵蚀损伤
       tick(b2, e2, a, dt) {
@@ -701,7 +707,10 @@ function kitGun(ab, e, b) {
         for (const sp of b2.enemies) {
           if (!sp.alive || !isSpring(sp)) continue;
           b2.fx('link', { x: e2.x, y: e2.y, from: e2.id, to: sp.id, kind: 'faithLink', dur: s3.bb.interval ?? 1 });
-          for (const u of b2.allies()) if (segDist(u.x, u.y, e2.x, e2.y, sp.x, sp.y) <= LINK_WIDTH) hurt(b2, e2, u, s3.bb.value ?? 0, 'phys', { ignoreSelect: true, tags: ['faithLink'] });
+          for (const u of b2.allies()) if (segDist(u.x, u.y, e2.x, e2.y, sp.x, sp.y) <= LINK_WIDTH && u.mem.faithLinkAt !== b2.time) {
+            u.mem.faithLinkAt = b2.time; // 맹약: a unit crossed by several links in one moment is hit once
+            hurt(b2, e2, u, s3.bb.value ?? 0, 'phys', { ignoreSelect: true, tags: ['faithLink'] });
+          }
         }
       },
     });

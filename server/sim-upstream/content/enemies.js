@@ -281,7 +281,16 @@ function castNow(b, e, a) {
   a.casts = (a.casts ?? 0) + 1;
   e.skillAnimUntil = b.time + 0.5;
   // display only: the skill slot it uses (render/app.js 'cast'); an attack-class one with its clip (DESIGN §35.57)
-  if (a.sk) castSlot(b, e, a.sk, a.atk ? (a.clip > 0 ? a.clip : 0) : null);
+  // 맹약 (server/sim/content/enemies.js): a non-attack ability with its own official clip (data abilityAnimations) holds the
+  // enemy — no attack, no walk — for the clip (ai.js updateEnemy abilityAnimUntil), the client playing that clip
+  const anim = !a.atk && a.sk ? e.def.raw?.abilityAnimations?.[a.sk.prefabKey] : null;
+  if (anim && anim.duration > 0) {
+    e.mem.abilityAnimUntil = Math.max(e.mem.abilityAnimUntil || 0, b.time + anim.duration);
+    e.skillAnimUntil = e.mem.abilityAnimUntil;
+    b.fx('enemySkill', { id: e.id, x: e.x, y: e.y, clip: anim.clip, dur: anim.duration });
+  } else if (a.sk) castSlot(b, e, a.sk, a.atk ? (a.clip > 0 ? a.clip : 0) : null);
+  // 맹약: an attack-class skill's own clip holds the enemy too (no walk inside it)
+  if (a.atk && a.clip > 0) { e.mem.abilityAnimUntil = Math.max(e.mem.abilityAnimUntil || 0, b.time + a.clip); e.skillAnimUntil = b.time + a.clip; }
   safe(b, e, () => a.fire(b, e, a));
 }
 

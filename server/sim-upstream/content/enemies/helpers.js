@@ -3,6 +3,7 @@
 // attach / dispatch, T, canCast …) and the selection and damage helpers (elem, hurt, areaAllies & friends, zone,
 // spawnChildren, setForm, lpLoss, expose …).
 
+import { FORMS } from '../../../../shared/animationForms.js';
 import { ELEMENT } from '../../constants.js';
 import { canTargetAlly, sortAllyTargets, areaSelectable, auraSelectable } from '../../targeting.js';
 import { hypot } from '../../detmath.js';
@@ -94,7 +95,7 @@ export function abOf(b, e) {
   list.forEach((s, i) => {
     if (!s || s.prefabKey == null) return;
     const at = base.findIndex((x) => x && x.prefabKey === s.prefabKey);
-    sk[s.prefabKey] = { cd: num(s.cooldown, 0), icd: num(s.initCooldown, 0), sp: num(s.spCost, 0), pr: num(s.priority, 0), bb: s.bb || {}, bs: s.bbStr || {}, slot: at >= 0 ? at : i };
+    sk[s.prefabKey] = { prefabKey: s.prefabKey, cd: num(s.cooldown, 0), icd: num(s.initCooldown, 0), sp: num(s.spCost, 0), pr: num(s.priority, 0), bb: s.bb || {}, bs: s.bbStr || {}, slot: at >= 0 ? at : i };
   });
   e.mem.ab = { key, t, tS, sk, list: [], times: null, atkType: null, immune: null, origMaxHp: e.base.maxHp };
   return e.mem.ab;
@@ -314,7 +315,8 @@ export function zone(b, { x, y, r, life, iv = 1, kind = 'zone', tick, pick = nul
   b.fx('zone', { x, y, r, dur: life, kind, ...(id != null ? { id } : {}) });
   let left = life;
   const h = b.every(iv, () => {
-    tick(pick ? pick(x, y, r) : b.alliesInRadius(x, y, r));
+    // 맹약 (server/sim/content/enemies/helpers.js): a ground zone never touches an airborne ally (flyer / 起飞)
+    tick((pick ? pick(x, y, r) : b.alliesInRadius(x, y, r)).filter((u) => !u.isFlying && !u.s.flags.liftoff));
     left -= iv;
     if (left <= 1e-6) h.cancel();
   });
@@ -420,6 +422,9 @@ export const isHitCount = (e) => !!e.findBuff(HIT_COUNT_KEY);
  */
 export function setForm(b, e, form, fxKind = 'phase', params = null) {
   e.form = form;
+  // 맹약 (server/sim/content/enemies/helpers.js): the form-change clip holds the enemy (ai.js updateEnemy abilityAnimUntil)
+  const spec = FORMS[e.def?.spine || e.defId]?.[form], duration = e.def?.raw?.animationDurations?.[spec?.change];
+  if (duration > 0 && e.alive) e.mem.abilityAnimUntil = Math.max(e.mem.abilityAnimUntil || 0, b.time + duration);
   b.fx(fxKind, fxKind === 'phase' ? { ...params, x: e.x, y: e.y, id: e.id, kind: form, form } : { ...params, x: e.x, y: e.y, id: e.id, form });
 }
 
