@@ -1,5 +1,6 @@
 // ui/gameLogic/placement.js — deploy maps and the canPlace mirror of the server rules. Re-exported from ../gameLogic.js.
 
+import { equipmentCapacity } from '../../../../shared/itemRules.js';
 import { GEO } from '../../../../shared/constants.js';
 import { attackRangeGrid } from '../../../../shared/loadoutRecord.js';
 import { meleeOnHighGround } from '../../../../shared/highGround.js';
@@ -420,14 +421,16 @@ const PROMOTE_KEYS = new Set(['use_equip_upgrade_char', 'equip_round_start_upgra
  */
 export function equipReplaces(ctx, uid, targetPiece) {
   const items = targetPiece?.items;
+  // per-form equipment capacity (data equipSlotNum, e.g. 规程 “暴躁铁皮” 4 / 6), the default 2 otherwise
+  const cap = equipmentCapacity(ctx?.getChess?.(targetPiece?.id));
   if (ctx?.morphMode === 'plus') {
     if (!Array.isArray(items)) return false;
     const policy = morphSlotPolicy('plus', (it) => !!ctx.getItem?.(typeof it === 'string' ? it : it?.id)?.canGiveBond);
     const incoming = ctx.getItem?.(ctx.pieces?.get(uid)?.piece?.id);
     // a morph does not occupy a slot, so it never opens the replace dialog
     if (!policy.occupies(incoming)) return false;
-    if (policy.slotsUsed(items) < policy.slotCap(2)) return false;
-  } else if (!Array.isArray(items) || items.length < 2) return false;
+    if (policy.slotsUsed(items) < policy.slotCap(cap)) return false;
+  } else if (!Array.isArray(items) || items.length < cap) return false;
   const rec = ctx.getItem(ctx.pieces.get(uid)?.piece?.id);
   if (!consumedOnEquip(rec)) return !equipMerges(ctx, uid);
   const promotes = Array.isArray(rec.buffs) && rec.buffs.some((b) => PROMOTE_KEYS.has(b?.key));

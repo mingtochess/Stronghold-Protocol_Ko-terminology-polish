@@ -1,4 +1,5 @@
 import {mobileUiScale} from './mobileScale.js';
+import { equipmentCapacity } from '../../../shared/itemRules.js';
 import { grantedBondsByMorph } from '../../../shared/plugins/rules.js';
 import { t } from '../../../shared/i18n.js';
 import {chessLoadout} from './gameLogic/loadout.js';
@@ -1292,7 +1293,7 @@ export function dropIntent(ctx, uid, target) {
     const occ = target.area === 'hand' ? ctx.handAt.get(target.idx) : ctx.boardAt.get(tileKey(target.row, target.col));
     // both slots used: the replace dialog picks the equipped item to destroy (g.equip replaceUid) — unless the item is
     // it completes an item merge (the server merges it instead of equipping: nothing replaced)
-    const full = Array.isArray(occ?.piece?.items) && occ.piece.items.length >= 2
+    const full = Array.isArray(occ?.piece?.items) && occ.piece.items.length >= equipmentCapacity(ctx.getChess?.(occ.piece.id))
       && !equipMerges(ctx, uid);
     return { t: 'g.equip', fields: { itemUid: uid, targetUid: occ.piece.uid }, confirmReplace: full };
   }

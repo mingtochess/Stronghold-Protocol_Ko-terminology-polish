@@ -1,6 +1,7 @@
 
 
 
+import { equipmentCapacity } from '../../../shared/itemRules.js';
 import { t } from '../../../shared/i18n.js';
 
 import { tokenVariantFor } from './gameLogic/loadout.js';
@@ -452,11 +453,12 @@ export function ChessDetail({ chess, piece, unit, snapHp, editable, onSell, bond
       </div>
     <//>` : null;
   // (a 变形同构体 / bond item row shows its pairing against what this operator carries: ItemRow `carried`)
-  blocks.equip = piece?.kind === 'chess' ? html`<${Section} key="equip" title="装备" micro=${`EQUIP ${items.length}/2`} class="dsec--equip">
-      ${items.length ? items.map((it) => html`<${ItemRow} key=${it.uid} itemId=${it.id} carried=${items} off=${offBonds} />`) : html`<p class="t-dim dempty">拖拽装备至该干员以配发（最多 2 件）</p>`}
+  const equipCap = equipmentCapacity(c); // per-form equipSlotNum (规程 “暴躁铁皮” 4 / 6), else 2
+  blocks.equip = piece?.kind === 'chess' ? html`<${Section} key="equip" title="装备" micro=${`EQUIP ${items.length}/${equipCap}`} class="dsec--equip">
+      ${items.length ? items.map((it) => html`<${ItemRow} key=${it.uid} itemId=${it.id} carried=${items} off=${offBonds} />`) : html`<p class="t-dim dempty">${`拖拽装备至该干员以配发（最多 ${equipCap} 件）`}</p>`}
     <//>`
     // no own piece (a teammate's unit, a bond popup's 变形同构体 row): what it carries, read-only
-    : !piece && carried.length ? html`<${Section} key="equip" title="装备" micro=${`EQUIP ${carried.length}/2`} class="dsec--equip">
+    : !piece && carried.length ? html`<${Section} key="equip" title="装备" micro=${`EQUIP ${carried.length}/${equipCap}`} class="dsec--equip">
       ${carried.map((id, i) => html`<${ItemRow} key=${`${i}:${id}`} itemId=${id} carried=${carried} off=${offBonds} />`)}
     <//>` : null;
   const talents = chessTalents(fr);
