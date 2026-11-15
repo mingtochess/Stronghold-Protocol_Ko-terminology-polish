@@ -368,6 +368,11 @@
 .public-rooms__filters input { accent-color:var(--mint-400); }
 .public-rooms { display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px; }
 .public-room { --bk-c:var(--line-3);display:flex;flex-direction:column;gap:12px;min-width:0;padding:14px;box-sizing:border-box; }
+/* the room's season (the join switches the page to it), on the top edge of the card */
+.public-room { position:relative;margin-top:10px; }
+.public-room__season { position:absolute;top:0;left:50%;transform:translate(-50%,-50%);padding:2px 14px;border:1px solid var(--line-3);background:var(--bg-1, #15181a);
+  color:var(--mint, #4ed8af);font-size:12px;font-weight:700;letter-spacing:.08em;white-space:nowrap;z-index:1; }
+.public-room[data-season="regulation"] .public-room__season { color:#f0c050;border-color:rgba(240,192,80,.6); }
 .public-room:hover { border-color:var(--line-3); }
 .public-room__host { display:flex;align-items:baseline;justify-content:space-between;gap:10px;width:100%;min-width:0; }
 .public-room__host strong { overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:16px; }

@@ -1012,7 +1012,7 @@ export class Lobby {
       hostName:r.seats.find(s=>s?.playerId===r.hostId)?.name||'방장',
       players:r.seats.filter(s=>s&&!s.isBot&&!s.left).length,
       capacity:r.seats.length,bots:r.seats.filter(s=>s?.isBot).length,
-      started:!!r.match,spectators:r.spectators.length,spectatorCap:r.spectatorCap,
+      started:!!r.match,spectators:r.spectators.length,spectatorCap:r.spectatorCap,version:r.version,
     })) };
   }
 
