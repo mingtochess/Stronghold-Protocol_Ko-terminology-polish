@@ -391,11 +391,13 @@ function raidTargets(battle, u, pid, { taunt = false } = {}) {
   const own = [], other = [];
   for (const e of battle.enemies) {
     if (!raidGroundEnemy(u, e)) continue;
-    (e.ownerId === pid ? own : other).push(e);
+    const onOwnField = battle.kind==='unite' ? battle.onOwnBoard(battle.getPlayer(pid),Math.round(e.y),Math.round(e.x)) : e.ownerId===pid;
+    (onOwnField ? own : other).push(e);
   }
-  const list = own.length ? own : other;
+  const list = battle.kind === 'unite' ? [...own,...other] : own.length ? own : other;
+  const ownSet = new Set(own);
   const dist = new Map(list.map((e) => [e, num(battle.remainingDistance ? battle.remainingDistance(e) : 0)]));
-  list.sort((a, b) => (taunt ? num(b.s.taunt) - num(a.s.taunt) : 0) || dist.get(a) - dist.get(b) || a.id - b.id);
+  list.sort((a, b) => (battle.kind==='unite'&&!taunt ? Number(ownSet.has(b))-Number(ownSet.has(a)) : 0) || (taunt ? num(b.s.taunt) - num(a.s.taunt) : 0) || dist.get(a) - dist.get(b) || a.id - b.id);
   return list;
 }
 
@@ -415,51 +417,42 @@ function raidRefreshContact(battle, u) {
 function raidPoll(battle, st) {
   const bb = st.bb[ID.raid];
   const idle = num(bb.no_attack_duration, isFirstPeriod() ? Infinity : 10);
-  // Ordinary and post-revive orders stay separate: one poll can hold a member of each.
-  let plain = null, taunted = null;
+  let targets = null, taunted = null; // the player's candidates (raidTargets), shared by its members until a jump changes the field
   for (const u of st.members[ID.raid]) {
     if (!onField(u) || !u.canAct) continue;
-    // Maintainer 2026-10-10: one fresh target check after revival when unblocked, even with enemies in attack range.
-    // Ordinary later polls retain their original empty-range rule and distance order. A Raid jump cannot arm another check.
     const revived = u.mem.raidReviveSeq === u.deploySeq;
-    if (revived) {
-      u.mem.raidReviveSeq = 0;
-      raidRefreshContact(battle, u);
-    }
-    if (revived && u.blocking.some((e) => e.alive && e.blockedBy === u)) continue;
+    if (revived) { u.mem.raidReviveSeq = 0; raidRefreshContact(battle, u); }
+    if (revived && u.blocking.some(e => e.alive && e.blockedBy === u)) continue;
     const since = Math.max(u.lastAttackAt ?? -Infinity, u.deployedAt ?? -Infinity, u.mem[KEY.raid] ?? -Infinity);
-    // 技能就绪: a charged skill, or a passive skill that is on (GitHub #49: skills.js `ready` is false for every passive,
-    // so 缄默德克萨斯 / 宴 … only ever jumped on the idle trigger; the reporter's footage of the official game shows
-    // 缄默德克萨斯 jumping within her passive's 10 s with no enemy in range). The engine keeps a passive on for the whole
-    // deployment, so such a member may jump whenever nothing is in its range [ASSUMED: "技能就绪" of a passive = the
-    // skill being on]; the landing rule below keeps it from hopping. Here only — the global `ready` stays as it is.
-    // A deploy-timed skill (#109: kind 'duration' with no SP — spType 'none' — run from the deployment: 宴 S2, 斯卡蒂 S2,
-    // 伊内丝 S3, 缄默德克萨斯 S1–S3, 耀骑士临光 S2, the generic "部署后…N秒内" passives) counts the same way while its
-    // window runs — the 10 s of the reporter's footage; once it has ended only the idle trigger is left.
     const sk = u.skill;
-    const deploySkillOn = !!(sk && sk.active && (sk.kind === 'passive' || sk.spType === 'none'));
+    const deploySkillOn = !!(sk && sk.active && (sk.kind === 'passive' || sk.spType === 'none')); // (규정)
     const ready = !!(sk && !sk.noSkill && ((sk.ready && !(sk.active && sk.isTimed)) || deploySkillOn));
     const idleOk = battle.time - since >= idle - 1e-9;
-    if (!(revived || ready || idleOk)) continue;
-    // 「若范围内没有敌人」: a targetable enemy, or a 隐匿 ground one (the owner's decision of 2026-10-08, raidGroundEnemy)
-    if (!revived && (battle.enemiesInKeys(u.rangeKeys || [], u, u.profile).length || raidStealthInRange(battle, u))) continue;
-    const list = revived ? (taunted ??= raidTargets(battle, u, st.pid, { taunt: true })) : (plain ??= raidTargets(battle, u, st.pid));
+    if (!(revived || ready || idleOk || u.mem.raidEntryPending)) continue;
+    if (!revived && (battle.enemiesInKeys(u.rangeKeys || [], u, u.profile).length || raidStealthInRange(battle, u))) { u.mem.raidEntryPending=false; continue; }
+    const list = revived ? (taunted ??= raidTargets(battle, u, st.pid, { taunt: true })) : (targets ??= raidTargets(battle, u, st.pid));
     if (!list.length) continue;
     // either trigger: raidTile only offers tiles with the target in range (without that a ready skill that finds no
     // target would redeploy — firing every 部署时 effect — at every poll; the idle trigger, which lacked it up to
     // 0.1.1, hopped every 10 s: issue #51)
     const reach = raidReach(u);
-    for (let i = 0; i < list.length && i < RAID_TARGETS; i++) {
-      const tile = raidTile(battle, u, list[i], reach);
+    const counts = new Map();
+    const candidates = battle.kind==='unite' ? list.filter(e=>{
+      const field=battle.players.find(ps=>battle.onOwnBoard(ps,Math.round(e.y),Math.round(e.x)))?.playerId ?? 'outside';
+      const n=counts.get(field)||0;counts.set(field,n+1);return n<RAID_TARGETS;
+    }) : list.slice(0,RAID_TARGETS);
+    for (const target of candidates) {
+      const tile = raidTile(battle, u, target, reach);
       if (!tile) continue;
-      plain = taunted = null; // the retreat / redeploy handlers (部署时 effects) may change the enemies: the next member re-sorts
+      targets = taunted = null; // the retreat / redeploy handlers (部署时 effects) may change the enemies: the next member re-sorts
       const res = raidRedeploy(battle, u, tile[0], tile[1]);
       u.mem.raidReviveSeq = 0;
       if (!res) continue;
+      u.mem.raidEntryPending=false;
       u.mem[KEY.raid] = battle.time; // with deployedAt: the idle time starts again from the landing
       if (res === 'raid') {
         battle.addBuff(u, { key: KEY.raid, mods: st.raidMods });
-        fxOn(battle, 'blink', u, KEY.raid, 'relocate', { target: list[i].id });
+        fxOn(battle, 'blink', u, KEY.raid, 'relocate', { target: target.id });
       }
       break;
     }
@@ -474,10 +467,13 @@ function raidPoll(battle, st) {
  * Returns 'raid' | 'home' | false.
  */
 function raidRedeploy(battle, u, r, c) {
+  u.mem.raidRelocating=true;
+  try {
   battle.retreat(u, { reason: 'raid' });
   if (u.alive) return false;
-  if (battle.redeploy(u, { free: true, tile: [r, c], keepSp: true })) return 'raid';
+  if (battle.redeploy(u, { free: true, tile: [r, c], keepSp: true, addInitialSp: true })) return 'raid';
   return battle.redeploy(u, { free: true, keepSp: true }) ? 'home' : false;
+  } finally {u.mem.raidRelocating=false;}
 }
 
 // =====================================================================================================================
@@ -531,6 +527,20 @@ export function install(battle) {
 
   // 突袭
   if (has(ID.raid)) {
+    // 맹약 (server/sim/content/bonds/addon/battle.js): the raid buff during a skill, and a ready retry after a deploy
+    battle.on('skillStart',({unit:u,reason})=>{
+      const st=byPid[u?.ownerId];
+      if(onField(u)&&st?.members[ID.raid]?.has(u)){
+        battle.addBuff(u,{key:KEY.raid,mods:st.raidMods,refresh:'replace'});
+        // Deployment skills are already active when the poll checks readiness.
+        // Give them the same initial relocation as a ready ordinary skill.
+        if(reason==='deploy'&&!u.mem.raidRelocating)u.mem.raidEntryPending=true;
+      }
+    });
+    battle.on('skillEnd',({unit:u})=>{
+      if(u&&byPid[u.ownerId]?.members[ID.raid]?.has(u))battle.removeBuff(u,KEY.raid);
+    });
+    battle.on('deploy',({unit:u,initial})=>{if(u&&!initial&&!u.mem.raidRelocating&&byPid[u.ownerId]?.members[ID.raid]?.has(u))u.mem.raidEntryPending=true;});
     const raid = states.filter((st) => st.tiers[ID.raid] && st.members[ID.raid].size);
     if (raid.length) {
       battle.on('deploy', (c) => {

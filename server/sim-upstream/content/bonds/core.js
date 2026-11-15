@@ -463,7 +463,10 @@ function devour(battle, pid, bb, members) {
     }
     if (atk > 0) mods.atkFinal = atk; // 最终加算 (units.js _recalc)
     if (block > 0) mods.blockCnt = block;
-    if (Object.keys(mods).length) S.passiveBuff(battle, m, 'bond:egir:devour', mods);
+    if (Object.keys(mods).length) {
+      m.mem.egirDevourMods = { ...mods }; // 맹약: the battle result records it (Battle._buildResult egirDevour)
+      S.passiveBuff(battle, m, 'bond:egir:devour', mods);
+    }
   }
   const amount = num(bb.damage_value, 0);
   const layered = new Set();
