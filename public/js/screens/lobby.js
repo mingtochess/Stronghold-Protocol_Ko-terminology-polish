@@ -442,7 +442,7 @@ export function LobbyScreen() {
   const betaNotice = html`<${Modal} open=${betaOpen} onClose=${closeBeta} title=${t('규정 시즌 베타 안내')} micro="BETA" class="beta-dlg"
     actions=${html`<${Button} variant="primary" data-autofocus onClick=${closeBeta}>${t('확인')}<//>`}>
     <p>${t('규정 시즌은 현재 베타 버전입니다. 일부 기능·리소스·번역이 완성되지 않았고, 동작이 바뀌거나 오류가 있을 수 있습니다.')}</p>
-    <p class="t-dim">${t('동기화 시뮬레이션은 아직 사용할 수 없습니다. 실험실·연습실은 규정 데이터로 열 수 있습니다. 문제를 발견하면 알려 주세요.')}</p>
+    <p class="t-dim">${t('동기화 시뮬레이션은 아직 사용할 수 없습니다. 문제를 발견하면 알려 주세요.')}</p>
   <//>`;
   return html`<div class="screen lobby-screen">${betaNotice}
     <header class="topbar app-topbar">
