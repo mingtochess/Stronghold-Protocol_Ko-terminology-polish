@@ -3801,11 +3801,11 @@
   "포탑 옆의 무게 3 이하 지상 적 1명을 포탄과 함께 떨어진 곳으로 보냅니다": "Sends 1 adjacent ground enemy of weight 3 or less to the impact point with the shell",
   "적 구조물: 체력 {hp}, 방어력 {def}, 마법 저항 {res}. 아군이 공격해 파괴할 수 있지만 잘 노려지지 않습니다(도발 레벨 -1)": "Enemy structure: HP {hp}, DEF {def}, RES {res}. Your units can attack and destroy it, but rarely target it (taunt level -1)",
   "파괴되면 태우고 있던 적이 즉시 폭심지로 보내지고, 더는 포탄을 쏘지 않습니다. 기절·빙결·침묵·수면에 걸리지 않습니다": "When destroyed, its rider is sent to the blast centre at once and it fires no more. Immune to stun, freeze, silence and sleep",
-  "가속 구역": "Acceleration Zone",
-  "이 위에 선 지상 유닛(아군·적 모두)은 공격 속도 +{aspd}, 이동 속도 ×{move}": "Ground units standing on it (allies and enemies) get ATK speed +{aspd} and move speed ×{move}",
-  "구역을 벗어나면 효과가 사라집니다. 비행 유닛에게는 적용되지 않습니다": "The effect ends on leaving the zone. Flying units are unaffected",
   "다른 시즌의 방": "A room of another season",
   "이 방은 {room} 시즌입니다. 참가하면 현재 {cur} 시즌에서 {room} 시즌으로 전환됩니다. 계속할까요?": "This room plays the {room} season. Joining switches you from the {cur} season to {room}. Continue?",
   "전환하고 참가": "Switch and join",
-  "동기화 시뮬레이션은 아직 사용할 수 없습니다. 문제를 발견하면 알려 주세요.": "Synced simulation is not available yet. Please report any problems you find."
+  "동기화 시뮬레이션은 아직 사용할 수 없습니다. 문제를 발견하면 알려 주세요.": "Synced simulation is not available yet. Please report any problems you find.",
+  "이 위에 선 오퍼레이터는 공격 속도 +{aspd}, 지나간 적은 이동 속도 ×{move}": "Operators on it get ATK speed +{aspd}; enemies passing over it move ×{move}",
+  "효과는 구역을 벗어나도 계속 유지됩니다. 비행 유닛에게는 적용되지 않습니다": "The effect stays after leaving the zone. Flying units are unaffected",
+  "최적화 모듈": "Optimization Module"
 }

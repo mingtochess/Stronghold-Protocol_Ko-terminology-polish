@@ -368,6 +368,7 @@ function buildTerrain(battle, st) {
   const sp = battle.stage?.special || {};
   // 규정 tile_speedup (a 규정 map in the custom settings): ASPD +attack_speed, move ×move_speed (official 25 / 1.5)
   const su = sp.speedup || {};
+  // PRTS 优化模块: operators ASPD +attack_speed; enemies move ×move_speed (the blackboard multiplier, official ×1.5)
   st.speedup = { aspd: aspdOf(num(su.attack_speed, 25)), moveMul: num(su.move_speed, 1.5) };
   const devSkill = (role) => (battle.stage?.devices || []).find((d) => d.role === role)?.raw?.skill?.bb ?? null;
   // mire
@@ -434,7 +435,8 @@ function enterTerrain(battle, st, u, code) {
   const m = u.mem;
   if (m.terrain === code) return;
   // leaving a tile ends its effect — except 活性源石's, which runs out on its own (touchInfection)
-  if (m.terrain && m.terrain !== TERRAIN.infection) battle.removeBuff(u, BUFF[m.terrain]);
+  // and 优化模块's (speedup), which lasts for good once gained (PRTS 优化模块: "加成持续时间无限，离开地块后依旧可生效")
+  if (m.terrain && m.terrain !== TERRAIN.infection && m.terrain !== TERRAIN.speedup) battle.removeBuff(u, BUFF[m.terrain]);
   m.terrain = code;
   m.terrainSince = battle.time;
   m.mireStacks = 0;
@@ -446,8 +448,12 @@ function enterTerrain(battle, st, u, code) {
     battle.addBuff(u, { key: BUFF[code], mods: { aspd: D.aspd, moveMul: D.moveMul }, interval: 1, onTick: deepWaterDamage(battle, D.damage) });
   }
   else if (code === TERRAIN.speedup) {
+    // one lasting bonus: an operator (not a device) ASPD, an enemy move speed; other units nothing (PRTS 优化模块)
     const S = st.speedup;
-    battle.addBuff(u, { key: BUFF[code], mods: { aspd: S.aspd, moveMul: S.moveMul } });
+    if (!u.findBuff(BUFF[code]) && u.kind !== 'device' && !u.mem?.structure) {
+      if (u.side === 'ally') battle.addBuff(u, { key: BUFF[code], persist: true, mods: { aspd: S.aspd } });
+      else if (u.side === 'enemy') battle.addBuff(u, { key: BUFF[code], persist: true, mods: { moveMul: S.moveMul } });
+    }
   }
   // mire layers are applied by tickMire, 活性源石 by touchInfection (every tick on the tile)
 }

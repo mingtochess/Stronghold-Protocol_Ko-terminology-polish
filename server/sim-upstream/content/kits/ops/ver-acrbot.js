@@ -44,6 +44,18 @@ function acrbot(_bb, chess, def) {
           ctx.dmg.mul *= cut;
         }, { owner: unit });
       }
+      // 酋长之威 (PRTS 备注): each attack's max targets = the enemies it blocks now (at least 1), fixed as the attack starts —
+      // the blocked ones first, then others of its range
+      battle.on('beforeAttack', (ctx) => {
+        if (ctx.attacker !== unit) return;
+        const blocked = (unit.blocking || []).filter((e) => e && e.alive && e.side === 'enemy');
+        const n = Math.max(1, blocked.length);
+        const targets = (ctx.targets || []).filter((t) => t && t.side === 'enemy');
+        if (targets.length >= n) return;
+        const pool = [...blocked, ...battle.enemiesInKeys(unit.rangeKeys, unit, ctx.profile)];
+        for (const e of pool) { if (targets.length >= n) break; if (!targets.includes(e)) targets.push(e); }
+        ctx.targets = [...targets, ...(ctx.targets || []).filter((t) => t && t.side !== 'enemy')];
+      }, { owner: unit, priority: 10 });
       battle.on('beforeStatus', (ctx) => {
         if (ctx.target !== unit) return;
         const sk = unit.skill;

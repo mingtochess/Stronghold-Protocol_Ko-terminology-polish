@@ -21,9 +21,9 @@
 //              attack_speed for `duration` s from its last contact — an enemy keeps it after walking off; one effect
 //              per unit, its time starts again while the unit is on the tile; the tiles never switch off
 //   隐匿模块 w  规程 m09 tile_duel_grassland (PRTS 战场一览 #09 "位于其上的单位和敌人获得隐匿"): 隐匿 for every unit on it
-//   加速 z      规程 tile_speedup: a ground unit standing on it (allies and enemies) gets ASPD +attack_speed (flat,
-//              official 25) and move ×move_speed (official 1.5), from stage.special.speedup when that block is present.
-//              Cleared on leaving. Flyers skip it (terrainFor). 草地 w (tile_duel_grassland, no blackboard) is plain
+//   加速 z      规程 tile_speedup (PRTS 优化模块): an operator stepping on it gets ASPD +attack_speed (flat, official 25), an
+//              enemy move ×move_speed (official ×1.5), from stage.special.speedup; it lasts after leaving the tile.
+//              Flyers skip it (terrainFor). 草地 w (tile_duel_grassland, no blackboard) is plain
 //              ground [ASSUMED]
 //   “双眼皮”   turrets (`trap_1104_aclasert`, band 机械援助 / `deviceOverrides` alias on): ranged arts shooter on its data
 //              range; ASPD + attack_speed_per_stack × L (≤ max_attack_speed), hits apply fragile 1 + damage_scale_per_stack
@@ -409,6 +409,7 @@ function buildTerrain(battle, st) {
   };
   // 规程 tile_speedup. Absent on every other season's stages (no `z` glyph), so the defaults never apply there.
   const su = sp.speedup || {};
+  // PRTS 优化模块: operators ASPD +attack_speed; enemies move ×move_speed (the blackboard multiplier, official ×1.5)
   st.speedup = { aspd: aspdOf(num(su.attack_speed, 25)), moveMul: num(su.move_speed, 1.5) };
   // blowers
   for (const d of battle.stage?.devices || []) {
@@ -445,7 +446,8 @@ function enterTerrain(battle, st, u, code) {
   const m = u.mem;
   if (m.terrain === code) return;
   // leaving a tile ends its effect — except 活性源石's, which runs out on its own (touchInfection)
-  if (m.terrain && m.terrain !== TERRAIN.infection) battle.removeBuff(u, BUFF[m.terrain]);
+  // and 优化模块's (speedup), which lasts for good once gained (PRTS 优化模块: "加成持续时间无限，离开地块后依旧可生效")
+  if (m.terrain && m.terrain !== TERRAIN.infection && m.terrain !== TERRAIN.speedup) battle.removeBuff(u, BUFF[m.terrain]);
   m.terrain = code;
   m.terrainSince = battle.time;
   m.mireStacks = 0;
@@ -457,8 +459,12 @@ function enterTerrain(battle, st, u, code) {
     const D = st.deepsea;
     battle.addBuff(u, { key: BUFF[code], mods: { aspd: D.aspd, moveMul: D.moveMul }, interval: 1, onTick: deepWaterDamage(battle, D.damage) });
   } else if (code === TERRAIN.speedup) {
+    // one lasting bonus: an operator (not a device) ASPD, an enemy move speed; other units nothing (PRTS 优化模块)
     const S = st.speedup;
-    battle.addBuff(u, { key: BUFF[code], mods: { aspd: S.aspd, moveMul: S.moveMul } });
+    if (!u.findBuff(BUFF[code]) && u.kind !== 'device' && !u.mem?.structure) {
+      if (u.side === 'ally') battle.addBuff(u, { key: BUFF[code], persist: true, mods: { aspd: S.aspd } });
+      else if (u.side === 'enemy') battle.addBuff(u, { key: BUFF[code], persist: true, mods: { moveMul: S.moveMul } });
+    }
   }
   // mire layers are applied by tickMire, 活性源石 by touchInfection (every tick on the tile)
 }

@@ -69,14 +69,14 @@ const TERRAIN_TIPS = Object.freeze({
       t('은신 중에는 상대의 원거리 공격 대상으로 선택되지 않지만, 저지 중인 상대에게는 공격받습니다'),
     ],
   },
-  // 규정 加速 (tile_speedup, devices.js TERRAIN.speedup): stage.special.speedup, else the official 25 / ×1.5
+  // 규정 优化模块 (tile_speedup, devices.js TERRAIN.speedup; PRTS 优化模块): stage.special.speedup, else the official 25 / ×1.5
   speedup: {
-    name: N_('가속 구역'), tag: N_('特殊地形'),
+    name: N_('최적화 모듈'), tag: N_('特殊地形'),
     lines: (st) => {
       const b = isObj(st?.speedup) ? st.speedup : {};
       return [
-        t('이 위에 선 지상 유닛(아군·적 모두)은 공격 속도 +{aspd}, 이동 속도 ×{move}', { aspd: param(b.attack_speed, 25), move: param(b.move_speed, 1.5) }),
-        t('구역을 벗어나면 효과가 사라집니다. 비행 유닛에게는 적용되지 않습니다'),
+        t('이 위에 선 오퍼레이터는 공격 속도 +{aspd}, 지나간 적은 이동 속도 ×{move}', { aspd: param(b.attack_speed, 25), move: param(b.move_speed, 1.5) }),
+        t('효과는 구역을 벗어나도 계속 유지됩니다. 비행 유닛에게는 적용되지 않습니다'),
       ];
     },
   },
