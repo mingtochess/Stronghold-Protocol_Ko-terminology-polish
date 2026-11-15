@@ -5,10 +5,7 @@ import { COLS } from '../../../constants.js';
 import { bodyKeys } from '../../../body.js';
 import { toLocal } from '../../../dir.js';
 import { absoluteRangeKeys } from '../../../targeting.js';
-import {
-  AURA_IV, AURA_DUR, num, on, talent, talentRec, skillGrid, mods, inFaction, isOp, selectedId, lazySkills, instantKind,
-  skillRange, whileOn, enemiesInGrid,
-} from '../shared/tier5.js';
+import { AURA_IV, AURA_DUR, num, on, talent, talentRec, skillGrid, mods, inFaction, isOp, selectedId, lazySkills, instantKind, skillRange, whileOn, enemiesInGrid } from '../shared/tier5.js';
 
 const isKjerag = (u) => inFaction(u, 'kjeragShip', ['kjerag']);
 /** The enemy profile the skill's range selection uses: his own, lifted to air (PRTS 备注 可对空) — canHitFly false is a melee PIONEER's. */
@@ -184,7 +181,7 @@ export default {
           // [ASSUMED] its attack grid (plus permanent range extension), not the eagle's whole projectile path; the
           // operation cooldown and control checks stay the engine's.
           unit.skill.addTriggerRange(() => [{
-            keys: absoluteRangeKeys(grid, unit.tileR, unit.tileC, unit.dir, unit.s.baseRangeExtend || 0), profile: AIR,
+            keys: absoluteRangeKeys(grid, unit.tileR, unit.tileC, unit.dir, unit.s.baseRangeExtend || 0, unit.battle?.grid), profile: AIR,
           }]);
           // S3: every attack hits the enemies of the skill range on the target's line (his facing frame): the line of
           // the target's position; another enemy is on it when its body is (a huge one: any tile — body.js)

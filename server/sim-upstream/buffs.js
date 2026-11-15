@@ -118,7 +118,8 @@ export const STATUS = Object.freeze({
   unblockable: { flags: { unblockable: true } },
   // 诱导 (ba.attract): 无法被阻挡并向目标位置移动 — the engine walks the enemy (own speed, grid path; flyers straight)
   // to `opts.point` (default: the source's tile) and keeps it there until the status ends, then it resumes its route
-  attract: { flags: { attract: true, unblockable: true }, attract: true },
+  // 诱导: enemy data otherImmunities 'attract' (规程's fixed bosses 假想敌：茧 / 胄 …, 阿利斯泰尔) resists it like 'feared' / 'palsy'
+  attract: { flags: { attract: true, unblockable: true }, attract: true, immune: 'attract' },
   // 抵抗 (ba.buffres): the RESIST_STATUSES applied to the unit last (1 − value) as long, value default 0.5 (减半);
   // 同名效果不叠加 — several sources never compound (strongest value wins, a weaker one resumes if it outlasts it);
   // a resisting unit also loses one 麻痹 stack every RESIST_PALSY_DECAY s (Battle.applyStatus)

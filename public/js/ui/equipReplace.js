@@ -1,4 +1,5 @@
 import { morphSlotPolicy } from '../../../shared/plugins/rules.js';
+import { equipmentCapacity } from '../../../shared/itemRules.js';
 import { t } from '../../../shared/i18n.js';
 // Equip-replace dialog (research 04 §"Replacement" / 09 §1.2 UseEquipUp { charChessInstId, equipChessInstId,
 // isChangeEquip, unloadInstId }; PRTS 帮助 "达到上限强行佩戴会改为替换装备"): an item dropped on an operator whose two
@@ -36,15 +37,17 @@ export function replaceRequest(ctx, intent, getChess = () => null, getItem = () 
   if (!isObj(target) || target.kind !== 'chess' || !isObj(item) || item.kind !== 'item') return null;
   const equipped = (Array.isArray(target.items) ? target.items : []).filter((it) => isObj(it) && Number.isInteger(it.uid));
   const rec = (id) => getItem(id) || null;
+  const shown = getChess(target.id) || null;
+  // per-form capacity (data equipSlotNum, e.g. 规程 “暴躁铁皮” 4 / 6); the default 2 otherwise
+  const capacity = equipmentCapacity(shown);
   let options = equipped;
   if (ctx?.morphMode === 'plus') {
     const policy = morphSlotPolicy('plus', (it) => !!rec(typeof it === 'string' ? it : it?.id)?.canGiveBond);
     if (!policy.occupies(rec(item.id))) return null;
-    if (policy.slotsUsed(equipped) < policy.slotCap(2)) return null;
+    if (policy.slotsUsed(equipped) < policy.slotCap(capacity)) return null;
     options = equipped.filter((it) => policy.occupies(rec(it.id)));
     if (!options.length) return null;
-  } else if (equipped.length < 2) return null;
-  const shown = getChess(target.id) || null;
+  } else if (equipped.length < capacity) return null;
   return {
     targetUid: target.uid,
     targetId: target.id,
@@ -52,6 +55,7 @@ export function replaceRequest(ctx, intent, getChess = () => null, getItem = () 
     // the record the avatar draws (a 补位 stand-in's or a 自选 operator's composed record; the data's for any other chess)
     targetRec: shown && (shown.standInFor || shown.diyFor) ? shown : null,
     golden: !!target.golden,
+    capacity,
     item: { uid: item.uid, id: item.id, name: rec(item.id)?.name || t('装备') },
     options: options.map((it) => ({ uid: it.uid, id: it.id, name: rec(it.id)?.name || it.id })),
   };
@@ -124,7 +128,7 @@ export function EquipReplaceDialog({ request, getItem = () => null, busy = false
         <${Button} variant="secondary" icon="close" class="eqr__cancel" onClick=${onCancel}>取消<//>
         <${Button} variant="danger" class="eqr__ok" disabled=${!chosen} loading=${busy} data-autofocus onClick=${() => chosen && onConfirm(chosen.uid)}>
           ${confirmIcon ? html`<img class="eqr__ok-icon" src=${confirmIcon} alt="" draggable=${false} />` : null}确认替换<//>`}>
-      <p class="eqr__lead">「<b>${request.targetName}</b>」的装备栏已满（2/2）。选择一件装备进行替换，<b class="t-red">被替换的装备将被销毁</b>。</p>
+      <p class="eqr__lead">「<b>${request.targetName}</b>${`」的装备栏已满（${request.capacity ?? 2}/${request.capacity ?? 2}）。选择一件装备进行替换，`}<b class="t-red">被替换的装备将被销毁</b>。</p>
       <div class="eqr__top">
         <div class="eqr__op" title=${request.targetName}>
           <span class="eqr__ava"><${UnitThumb} kind="chess" id=${request.targetId} golden=${request.golden} size="md" /></span>

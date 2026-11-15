@@ -299,7 +299,7 @@ export function acquireTargets(b, u, prof, state = null) {
   // Fortress has an extra melee tile even against enemies it cannot block (PRTS branch / 号角). Its ordinary
   // ranged targets still take priority; this does not fill the other tiles in its ranged blind spot.
   if (prof.fortress && !cands.length && !extra?.length) {
-    const here = [u.tileR * COLS + u.tileC];
+    const here = [u.tileR * (b.grid?.cols ?? COLS) + u.tileC];
     const near = b.enemiesInKeys(here, u, prof);
     if (!near.length && b._allyTargets?.size) near.push(...b.allyTargetsInKeys(here, u));
     setFortressMelee(prof, state, near.length > 0);

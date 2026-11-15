@@ -13,8 +13,8 @@ export const LANGUAGE_PACKS = {
     },
     {
       "path": "/i18n/ko/compiled.json",
-      "bytes": 3310594,
-      "hash": "c44bbc35b1caa577cf800c2a3d2de0646f7ee5aec6bde563085847df8f6ec88e"
+      "bytes": 3311808,
+      "hash": "1913bad20eb580e6da4af8b63391b7f21f89ae785224a8b41a6099148bc66d32"
     },
     {
       "path": "/i18n/en.json",
@@ -40,8 +40,8 @@ export const LANGUAGE_PACKS = {
     },
     {
       "path": "/i18n/ko/compiled.json",
-      "bytes": 3310594,
-      "hash": "c44bbc35b1caa577cf800c2a3d2de0646f7ee5aec6bde563085847df8f6ec88e"
+      "bytes": 3311808,
+      "hash": "1913bad20eb580e6da4af8b63391b7f21f89ae785224a8b41a6099148bc66d32"
     },
     {
       "path": "/i18n/ja.json",
@@ -87,8 +87,8 @@ export const LANGUAGE_PACKS = {
     },
     {
       "path": "/i18n/ko/compiled.json",
-      "bytes": 3310594,
-      "hash": "c44bbc35b1caa577cf800c2a3d2de0646f7ee5aec6bde563085847df8f6ec88e"
+      "bytes": 3311808,
+      "hash": "1913bad20eb580e6da4af8b63391b7f21f89ae785224a8b41a6099148bc66d32"
     }
   ]
 };

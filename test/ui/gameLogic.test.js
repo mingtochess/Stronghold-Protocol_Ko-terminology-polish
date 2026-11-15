@@ -761,3 +761,14 @@ test('unselected recruit-only operators are absent from bond catalogue members',
  const own=bondMembers(b,{board:[{kind:'chess',id:'recruit',items:[]}],hand:[]},[],lookup);
  assert.equal(own.find(r=>r.id==='recruit')?.onBoard,true,'an actually owned recruit remains visible');
 });
+
+test('규정 “暴躁铁皮”: the replace dialog opens only when its per-form capacity (equipSlotNum 4) is full', async () => {
+  const { replaceRequest } = await import('../../public/js/ui/equipReplace.js');
+  const items = (n) => Array.from({ length: n }, (_, i) => ({ uid: 100 + i, id: 'equip_x' }));
+  const ctx = (n) => ({ pieces: new Map([[1, { piece: { uid: 1, kind: 'chess', id: 'chess_char_5_22_a', items: items(n) } }], [2, { piece: { uid: 2, kind: 'item', id: 'equip_y' } }]]) });
+  const intent = { t: 'g.equip', confirmReplace: true, fields: { itemUid: 2, targetUid: 1 } };
+  const getChess = () => ({ name: 'robot', equipSlotNum: 4 });
+  assert.equal(replaceRequest(ctx(2), intent, getChess), null, '2 of 4 used: no dialog');
+  assert.equal(replaceRequest(ctx(4), intent, getChess)?.capacity, 4);
+  assert.equal(replaceRequest(ctx(2), intent, () => ({ name: 'op' }))?.capacity, 2, 'ordinary operators keep 2');
+});

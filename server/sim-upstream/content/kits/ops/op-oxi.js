@@ -119,7 +119,7 @@ const STACK_KEY = 'skill:oxi:stack';
 const RAIN_SLOT = new WeakMap();
 
 const bbOf = (chess, id) => skillRec(chess, id)?.bb ?? {};
-const tileOf = (key) => [Math.floor(key / COLS), key % COLS];
+const tileOf = (key, cols = COLS) => [Math.floor(key / cols), key % cols];
 /** S2 selects with 隐匿 ignored (PRTS; `_onlyIgnoreSomeOfTargetFreeCase`): a living enemy no 无法选中 or 沉睡 keeps out. */
 const retaliable = (e) => !!e && e.alive && e.deployed && !e.hidden && e.side === 'enemy' && !e.s.flags.untargetable && !e.s.flags.sleep;
 /** S3 is channelling on `u`. */
@@ -156,7 +156,7 @@ export default {
       if (retaliable(src)) return src;
       const blocked = unit.blocking.filter((e) => retaliable(e) && !e.isFlying);
       if (blocked.length) return sortEnemyTargets(battle, unit, blocked, null)[0];
-      const keys = new Set(absoluteRangeKeys(ownGrid, unit.tileR, unit.tileC, unit.dir, 0));
+      const keys = new Set(absoluteRangeKeys(ownGrid, unit.tileR, unit.tileC, unit.dir, 0, unit.battle?.grid));
       const near = battle.enemies.filter((e) => retaliable(e) && !e.isFlying && bodyInRange(e, keys));
       return near.length ? sortEnemyTargets(battle, unit, near, null)[0] : null;
     };
@@ -336,7 +336,7 @@ export default {
           const lease = (f, e) => {
             const key = tileKeyOf(e);
             if (key < 0) return;
-            const [r, c] = tileOf(key);
+            const [r, c] = tileOf(key, battle.grid.cols);
             if (!battle.grid.groundPassable(r, c, true) || !battle.grid.isLow(r, c)) return;
             const fresh = !f.tiles.has(key);
             if (fresh && f.tiles.size >= cap) return;

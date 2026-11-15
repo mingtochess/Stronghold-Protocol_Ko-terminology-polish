@@ -13,6 +13,7 @@ import { bodyInKeys, hitRect } from '../../../body.js';
 import { dirVec } from '../../../dir.js';
 import { COLS } from '../../../constants.js';
 import { hasHp } from '../../../attack.js';
+import { isFixedPost } from '../../../fixedPost.js';
 
 const S1 = 'skchr_clemnt_1', S2 = 'skchr_clemnt_2', S3 = 'skchr_clemnt_3';
 const GROUND = Object.freeze({ canHitFly: false, groundOnly: true });
@@ -25,7 +26,7 @@ const skillBb = (raw, id) => skillRec(raw, id)?.bb ?? {};
 const tile = (u) => [Math.round(u.y), Math.round(u.x)];
 const immunity = (e) => e.def?.raw?.stats?.otherImmunities ?? [];
 // No current mode enemy has the three named teleport immunities. Also honour explicit normalized flags for custom data.
-const cannotCarry = (e) => e.s.flags.selfBound || e.def?.immune?.has('exile') || e.def?.immune?.has('teleport')
+const cannotCarry = (e) => isFixedPost(e) || e.s.flags.selfBound || e.def?.immune?.has('exile') || e.def?.immune?.has('teleport')
   || immunity(e).some((s) => /teleport|transmit|exile/i.test(String(s)));
 
 /** Cabin's 1.1 × 1.1 collision square; huge bodies use the engine hit rectangle. */
@@ -55,7 +56,7 @@ export default {
       freePassengers(battle, unit);
       // PRTS: vortex at the cabin's actual stopping position, radius 1.5, can hit air.
       c.tick = 0;
-      battle.fx('tide', { x: c.x, y: c.y, r: VORTEX_RADIUS, dur: unit.skill.timeLeft, id: unit.id });
+      battle.fx('tide', { x: c.x, y: c.y, r: VORTEX_RADIUS, dur: unit.skill.timeLeft, id: unit.id, skill:'clemnt:cabin' });
     };
     const startCabin = (battle, unit) => {
       const [dr, dc] = dirVec(unit.dir), [r, col] = tile(unit);
@@ -70,7 +71,7 @@ export default {
       const c = unit.mem.clemntCabin = { x: col, y: r, ox: col, oy: r, dr, dc, distance, moved: 0,
         mass: num(b2['attack@max_passenger_mass'], 8), passengers: [], stopped: false, tick: 0 };
       battle.addBuff(unit, { key: CAST, duration: 10, flags: { disarm: true }, tags: ['skill'] });
-      battle.fx('anchor', { x: col + dc * distance, y: r + dr * distance, fromX: col, fromY: r, id: unit.id, dur: distance / SPEED });
+      battle.fx('anchor', { x: col + dc * distance, y: r + dr * distance, fromX: col, fromY: r, id: unit.id, dur: distance / SPEED, skill:'clemnt:cabin' });
       if (distance <= 1e-9) finishCabin(battle, unit, c);
     };
     const tickCabin = (battle, unit, dt) => {

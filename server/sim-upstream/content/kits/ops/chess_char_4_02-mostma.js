@@ -1,10 +1,7 @@
 // server/sim/content/kits/ops/chess_char_4_02-mostma.js — 莫斯提马 (char_213_mostma) kit, tier 4.
 // Conventions of the tier-4 kits: ../shared/tier4.js; kit contract and rules: ../README.md.
 
-import {
-  AURA, num, tbb, grid, enemiesOnRange, whileDeployed, pulse, spAura, skillActive, isSel, alt, applyModuleRange,
-  withDefaults,
-} from '../shared/tier4.js';
+import { AURA, num, tbb, grid, enemiesOnRange, whileDeployed, pulse, spAura, skillActive, isSel, alt, applyModuleRange, withDefaults } from '../shared/tier4.js';
 
 const TICK_EPS = 0.01;     // minimal status duration (s)
 /**
@@ -47,6 +44,7 @@ export default withDefaults({
               L.acc -= 1;
               for (const e of enemiesOnRange(battle, unit)) {
                 battle.dealDamage(unit, e, { amount: unit.s.atk * num(bb.atk_scale, 1), type: 'arts', isSkill: true, tags: ['skill', 'timeLock'] });
+                battle.fx('lockHit', { x: e.x, y: e.y, id: unit.id, target: e.id });
               }
             }
           },

@@ -16,6 +16,7 @@ import { data } from '../data.js';
 import { defaultDiyBring } from '../../../shared/diyBring.js';
 import { diySlot, diySlotIds } from '../../../shared/diy.js';
 import { t } from '../../../shared/i18n.js';
+import { slotRecord } from '../ui/diyModel.js';
 
 const cx = (...p) => p.flat().filter(Boolean).join(' ');
 
@@ -56,6 +57,8 @@ export function DiyCheckScreen() {
     await actions.diyBring(shown);
     setBusy(false);
   };
+  // a slot shows the operator the player put in it (자선 편성), not the slot's 甄选干员 placeholder
+  const recOf = (id) => slotRecord(id, roster[id], pack);
   const players = sortedPlayers(pub);
   return html`<div class="screen rsel">
     <div class="brief__bg" aria-hidden="true"></div>
@@ -84,8 +87,8 @@ export function DiyCheckScreen() {
                 return html`<button key=${id} type="button" role="option" aria-selected=${on} disabled=${!canEdit || grey || full}
                     class=${cx('rsel__card', on && 'is-on', (grey || full) && 'is-full')} onClick=${() => tap(id)}
                     title=${grey ? t('금지된 맹약의 오퍼레이터입니다') : null}>
-                  <${UnitThumb} kind="chess" id=${id} size="lg" />
-                  <span class="rsel__name">${gd.chess(id)?.name || id}</span>
+                  <${UnitThumb} kind="chess" id=${id} rec=${recOf(id)} size="lg" />
+                  <span class="rsel__name">${recOf(id)?.name || gd.chess(id)?.name || id}</span>
                   ${on ? html`<span class="rsel__mark"><${Icon} name="check" /></span>` : null}
                 </button>`;
               })}

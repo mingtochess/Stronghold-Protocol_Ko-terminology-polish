@@ -1058,6 +1058,10 @@ export class Battle {
     // 影响 (content: 自制投石机 — targeting.js canTargetAlly / sortAllyTargets, ai.js attackTargets)
     e.profile = { noAttack: !!def.raw?.laboratoryDummy || def.dmgType === 'none', maxTargets: 1, atkScale: 1, dmgType: null, blockFree: false };
     e.route = { legs: route ? compileRoute(route, this.rect) : [], legIdx: 0, pts: null, ptIdx: 0, suffix: null, version: -1, waitLeft: null };
+    // a route that only waits where it starts — a 规程 boss standing at its post (fixedPost.js; snapshot `fixed`)
+    e.stationary = !!route && Array.isArray(route.start) && Array.isArray(route.end) && route.start[0] === route.end[0]
+      && route.start[1] === route.end[1] && Array.isArray(route.checkpoints) && route.checkpoints.length > 0
+      && route.checkpoints.every((cp) => cp?.type === 'WAIT');
     if (!e.route.legs.length) {
       const end = this.grid.specialTiles('end')[0];
       if (end) e.route.legs.push({ t: 'move', r: end[0], c: end[1], final: true });

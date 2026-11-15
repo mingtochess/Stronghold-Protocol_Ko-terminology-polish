@@ -35,6 +35,7 @@ function agoat2(bb, chess, def) {
     // S2 云霭荫佑 (heal): one heal (her normal amount + element recovery) on every ally of her range, then a barrier
     // over that range for `duration` s absorbing agoat2_s_2[shield].atk_scale × ATK of 元素损伤 in all (install)
     skchr_agoat2_2: {
+      trigger: 'SP_FULL',
       kind: 'instant',
       heal: true,
       onStart({ battle, unit }) {

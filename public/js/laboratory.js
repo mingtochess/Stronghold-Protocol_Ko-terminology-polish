@@ -8,6 +8,7 @@ import { customExtensionCatalog, normalizeCustomExtensions, applyCustomExtension
 import { attachAttackTimings } from '../../shared/attackTiming.js';
 import { validateC2S } from '../../shared/protocol.js';
 import { versionById, versionSlug } from '../../shared/versions.js';
+import { seasonExtensionSelection, applySeasonExtensions } from '../../shared/seasonExtensions.js';
 import { lobbyVersion } from './versions.js';
 
 /** 규정(规程): the lobby's season, when it is one — the laboratory then runs that season's data, match and engine. */
@@ -69,7 +70,11 @@ export async function startLaboratory(setup) {
   const lo = loadoutStore.get();
   const catalog = customExtensionCatalog(raw);
   const customExtensions = normalizeCustomExtensions(setup.customExtensions===undefined?{bonds:catalog.bonds.map(x=>x.id),stages:catalog.stages.map(x=>x.id)}:{bonds:setup.customExtensions.bonds||[],stages:setup.customExtensions.stages||[],rules:setup.customExtensions.rules||[],commonBands:setup.customExtensions.commonBands||[],ruleValues:setup.customExtensions.ruleValues},raw);
-  const configured=applyCustomExtensions(raw,customExtensions);
+  // 규정: its own custom settings (shared/seasonExtensions.js), applied to the season's tables as a 규정 room's match does
+  // (server/match/Match.js) — 공통 적용 전략, 게임 규칙 (전략 중복 선택 …), 수치 — instead of the 맹약 season's switches
+  const seasonSel = reg ? seasonExtensionSelection(setup.customExtensions || {}, raw) : null;
+  let configured=reg?applySeasonExtensions(raw,seasonSel):applyCustomExtensions(raw,customExtensions);
+  if(reg)configured={...configured,config:{...configured.config}};   // (the laboratory cap below never lands in the season's own table)
   if(!setup.practice)configured.config.customRules={...configured.config.customRules,deployCap:15};
   setSimData(configured);
   support.setGameData(configured);
@@ -77,7 +82,8 @@ export async function startLaboratory(setup) {
   globalThis.__SP_LAB_CONTENT = reg ? { data: configured, version: reg.id } : null;
   const push = msg => { net._emit(msg.t, msg); net._emit('*', msg); };
   const match = new MatchClass({
-    laboratory: setup, practice:setup, difficulty: setup.difficulty, roomCode: setup.practice?'PRACTICE':'LAB', seed: crypto.getRandomValues(new Uint32Array(1))[0], data: raw,
+    laboratory: setup, practice:setup, difficulty: setup.difficulty, roomCode: setup.practice?'PRACTICE':'LAB', seed: crypto.getRandomValues(new Uint32Array(1))[0], data: reg ? configured : raw,
+    ...(reg ? { seasonExtensions: seasonSel, gameplayMode: 'custom' } : {}),
     customExtensions, seats: [{ seat: 0, playerId, name, isBot: false, connected: true, loadout: lo.entries, ops: lo.ops }],
     send: (_, msg) => { push(msg); return true; }, broadcast: push,
     onEnd: () => store.set({ room: { ...store.get().room, inMatch: false } }),

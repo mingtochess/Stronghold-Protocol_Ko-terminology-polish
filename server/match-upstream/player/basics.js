@@ -103,6 +103,9 @@ export class PlayerBasics {
         const x = {};
         if (Number.isInteger(e.skill)) x.skill = e.skill;
         if (typeof e.module === 'string') x.module = e.module;
+        // the loadout's costume (chess record `skins`; shared/protocol.js resolveLoadout keeps it when the record lists
+        // it) — server/match/PlayerState.js keeps it too; without it a 규정 player's skin never reached the battle
+        if (typeof e.skin === 'string') x.skin = e.skin;
         if (Object.keys(x).length) entries[id] = x;
       }
     }
@@ -116,7 +119,7 @@ export class PlayerBasics {
     const out = merge && this.loadout && typeof this.loadout === 'object' ? { ...this.loadout } : {};
     // Validation drops defaults. A named default resets that operator; an omitted operator keeps its choice.
     if (merge) for (const id of Object.keys(entries)) delete out[id];
-    for (const [id, e] of Object.entries(res.loadout)) out[id] = Object.freeze({ skill: e.skill, module: e.module ?? null });
+    for (const [id, e] of Object.entries(res.loadout)) out[id] = Object.freeze({ skill: e.skill, module: e.module ?? null, ...(e.skin ? { skin: e.skin } : {}) });
     this.loadout = Object.freeze(out);
     if (opsRes) {
       const o = merge && this.ops && typeof this.ops === 'object' ? { ...this.ops } : {};

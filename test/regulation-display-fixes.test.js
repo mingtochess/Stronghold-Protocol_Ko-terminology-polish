@@ -103,3 +103,78 @@ test('矩兽: a regBurst at its death; 假想敌：茧: its 伪装 buff is visib
   assert.ok(phases.some((o) => o.from), 'a switch from the other form');
   assert.ok(phases.some((o) => !o.from), 'a summon (no switch)');
 });
+
+// 제보 2026-11-15: a co-op 假想敌：茧 walked to the 叙拉古 player's side (its 6 rolls 诱导 among its abnormal statuses) and
+// the other player's operators could not reach it — the attract template ignored the data's otherImmunities 'attract'
+test('诱导 (attract) respects otherImmunities: an immune fixed boss stays, a plain enemy is pulled; both engines', async () => {
+  const { STATUS: up } = await import('../server/sim-upstream/buffs.js');
+  const { STATUS: cov } = await import('../server/sim/buffs.js');
+  assert.equal(up.attract.immune, 'attract');
+  assert.equal(cov.attract.immune, 'attract');
+  const { h, boss } = bossFight('enemy_9035_acspider');
+  const u = h.b.allies()[0];
+  assert.equal(h.b.applyStatus(boss, 'attract', { duration: 5, source: u }), false);
+  const x0 = boss.x;
+  h.run(5);
+  assert.equal(boss.x, x0);
+  const plain = bossFight('enemy_9040_accrit');
+  assert.ok(!plain.boss.def.immune.has('attract'));
+  assert.equal(plain.h.b.applyStatus(plain.boss, 'attract', { duration: 5, source: plain.h.b.allies()[0] }), true);
+});
+
+// 제보 2026-11-15: a 克莱门莎 S2 carriage carried 假想敌：茧 (安洁莉娜 S3 失重 brings it from weight 9 to the carriage's 8) —
+// owner's rule: nothing an operator does moves a fixed boss (server/sim*/fixedPost.js)
+test('a fixed boss (route only waits) refuses 诱导 / 恐惧 and every carry / teleport; a patrolling boss does not', async () => {
+  const { isFixedPost } = await import('../server/sim-upstream/fixedPost.js');
+  const { isFixedPost: covFixed } = await import('../server/sim/fixedPost.js');
+  setGameData(raw);
+  const data = new DataSource({ ...raw, chess: { ...raw.chess, t0: chessRec({ id: 't0', skill: null, stats: { maxHp: 1e6, atk: 0, def: 300, blockCnt: 0 } }) } }, null);
+  const fight = (wave, key) => {
+    const h = makeBattle({ data, content: 'full', autoFinish: false, kind: 'boss', timeLimit: 60, stageId: 'act3autochess_m01', waveTemplate: wave,
+      players: [{ playerId: 'pL', seat: 0, side: 'L', units: [{ uid: 1, kind: 'chess', chessId: 't0', row: 10, col: 3 }], bonds: {} }] });
+    h.runUntil(() => h.b.enemies.some((x) => x.defId === key && x.alive), 30);
+    return { h, e: h.b.enemies.find((x) => x.defId === key), u: h.b.allies()[0] };
+  };
+  // 假想敌：管 has no data immunity to 诱导: only the fixed-boss rule holds it
+  const pipe = fight('act3autochess_h07_03', 'enemy_9021_acduml');
+  assert.equal(isFixedPost(pipe.e), true);
+  assert.equal(pipe.h.b.applyStatus(pipe.e, 'attract', { duration: 3, source: pipe.u }), false);
+  assert.equal(pipe.h.b.applyStatus(pipe.e, 'fear', { duration: 3, source: pipe.u }), false);
+  const eel = fight('act3autochess_h07_10', 'enemy_9037_aceel');
+  assert.equal(isFixedPost(eel.e), false);
+  assert.equal(eel.h.b.applyStatus(eel.e, 'attract', { duration: 3, source: eel.u }), true);
+  // the 맹약 engine reads the same rule (its fixed bosses: a waiting route or a data moveSpeed ≤ 0.1)
+  assert.equal(covFixed({ side: 'enemy', isBoss: true, stationary: false, base: { moveSpeed: 0 } }), true);
+  assert.equal(covFixed({ side: 'enemy', isBoss: true, stationary: false, base: { moveSpeed: 1 } }), false);
+  assert.equal(covFixed({ side: 'enemy', isBoss: false, stationary: true, base: { moveSpeed: 0 } }), false);
+});
+
+// 제보 2026-11-15: a 규정 player's operator skin (the loadout's costume: chess record `skins`) never reached the game —
+// match-upstream dropped `skin` from the loadout, and the engine's pre-battle sync swapped the skinned def back
+test('규정: the loadout costume reaches the battle input, the unit model and the prep board', async () => {
+  const { LaboratoryMatch } = await import('../server/match-upstream/LaboratoryMatch.js');
+  const { LAB_DUMMY_BOSS } = await import('../shared/laboratoryDummy.js');
+  const rec = raw.chess.chess_char_1_01_a, skin = rec.skins[0];
+  const m = new LaboratoryMatch({ send() { return true; }, broadcast() {}, onEnd() {}, seed: 1, data: raw,
+    seats: [{ seat: 0, playerId: 'p', name: 'P', isBot: false, connected: true, loadout: { [rec.chessId]: { skill: 0, skin: skin.id } } }],
+    laboratory: { stageId: 'act3autochess_m01', bossId: LAB_DUMMY_BOSS, bandId: Object.keys(raw.bands).find((b) => b !== 'band_random'), kind: 'boss', players: 1 } });
+  try {
+    m.start(); m.phase = 'PREP';
+    const ps = m.players.get('p');
+    assert.deepEqual(m.handle('p', { t: 'g.labGain', kind: 'chess', id: rec.chessId }), { ok: true });
+    const piece = ps.hand.find((x) => x?.id === rec.chessId);
+    ps.hand = ps.hand.filter((x) => x !== piece); ps.board.set('10,4', piece);
+    assert.equal(ps.loadoutFor(rec).skinId, skin.id);
+    const unit = ps.battleInput().units.find((u) => u.chessId === rec.chessId);
+    assert.equal(unit.skinId, skin.id);
+    const view = m._prepBoardUnits(ps).find((u) => u.defId === rec.chessId);
+    assert.equal(view.spine, skin.assets.spine);
+    setGameData(raw);
+    const h = makeBattle({ data: new DataSource(raw, null), content: 'full', autoFinish: false, timeLimit: 10, stageId: 'act3autochess_m01',
+      players: [{ playerId: 'p', seat: 0, side: 'L', units: [{ ...unit, row: 10, col: 4 }], bonds: {} }] });
+    h.step();
+    const info = unitInfo(h.b.allies()[0]);
+    assert.equal(info.spine, skin.assets.spine);
+    assert.equal(info.skinId, skin.id);
+  } finally { m.dispose?.(); }
+});

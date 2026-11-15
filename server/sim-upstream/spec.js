@@ -128,12 +128,13 @@ function cleanDiyPick(d) {
 export function sanitizeUnitLoadout(u) {
   if ('skillIndex' in u && !(Number.isInteger(u.skillIndex) && u.skillIndex >= 0 && u.skillIndex <= 9)) delete u.skillIndex;
   if ('moduleId' in u && !(typeof u.moduleId === 'string' && LOADOUT_ID.test(u.moduleId))) delete u.moduleId;
+  if ('skinId' in u && !(typeof u.skinId === 'string' && LOADOUT_ID.test(u.skinId))) delete u.skinId;
   if ('standIn' in u && u.standIn !== true) delete u.standIn;
   if ('diy' in u) { const d = cleanDiyPick(u.diy); if (d) u.diy = d; else delete u.diy; }
   if ('potential' in u && !isPotential(u.potential)) delete u.potential;
   if ('cultivate' in u && !isCultivate(u.cultivate)) delete u.cultivate;
   if (u.standIn === true) { delete u.potential; delete u.cultivate; }
-  if (u.kind === 'token') { delete u.skillIndex; delete u.moduleId; delete u.standIn; delete u.diy; delete u.potential; delete u.cultivate; }
+  if (u.kind === 'token') { delete u.skinId; delete u.skillIndex; delete u.moduleId; delete u.standIn; delete u.diy; delete u.potential; delete u.cultivate; }
   return u;
 }
 
@@ -326,7 +327,7 @@ export function battleProgress(battle) {
   }
   if (battle && (battle.kind === 'boss' || battle.kind === 'hidden')) {
     const leaksBy = {};
-    for (const pid of Object.keys(pp).slice(0, 4)) leaksBy[pid] = Math.min(1e6, leakEntries(pp[pid]).reduce((n, l) => n + leakLpr(l), 0));
+    for (const pid of Object.keys(pp).slice(0, 8)) leaksBy[pid] = Math.min(1e6, leakEntries(pp[pid]).reduce((n, l) => n + leakLpr(l), 0));
     out.leaksBy = leaksBy;
   }
   return out;
@@ -414,7 +415,7 @@ function compactMods(m) {
 export function compactResult(res) {
   const r = res && typeof res === 'object' ? res : {};
   const perPlayer = {};
-  for (const pid of Object.keys(r.perPlayer || {}).slice(0, 4)) {
+  for (const pid of Object.keys(r.perPlayer || {}).slice(0, 8)) {
     const p = r.perPlayer[pid] || {};
     const layerGains = {};
     for (const [k, v] of Object.entries(p.layerGains || {}).slice(0, 40)) if (isKey(k) && fnum(v) > 0) layerGains[k] = Math.min(1e4, fnum(v));

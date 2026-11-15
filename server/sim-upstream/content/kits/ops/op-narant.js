@@ -211,7 +211,8 @@ export default {
           const sa = num(t0['attack@steal_atk']), sd = num(t0['attack@steal_def']);
           if (!(sa > 0) && !(sd > 0)) return;
           const capA = num(t0['attack@steal_atk_max'], Infinity), capD = num(t0['attack@steal_def_max'], Infinity);
-          const nearTimes = Math.max(1, Math.floor(textCount(String(talentRec(chess, 0)?.desc ?? ''), /偷取触发(\d+)次/, 1, 'steal')));
+          const m = /周围8格的敌人时偷取触发(\d+)次/.exec(String(talentRec(chess, 0)?.desc ?? ''));
+          const nearTimes = m ? Math.max(1, +m[1]) : chess.module?.active && chess.module.id==='uniequip_002_narant' && chess.module.level>=3 ? 2 : 1;
           const losses = stolenOf(battle);
           const victims = new Set();
           const reset = () => { unit.mem.narantLoot = { a: 0, d: 0 }; };

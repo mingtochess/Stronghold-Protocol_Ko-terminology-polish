@@ -270,6 +270,8 @@ function inputLoadout(unit) {
   const x = inputEntry(unit);
   if (!x) return null;
   const extra = {
+    // the loadout's costume (chess record `skins`): without it the pre-battle sync swapped a skinned def back
+    ...(x.skinId ? { skinId: x.skinId } : null),
     ...(x.standIn === true ? { standIn: true } : null),
     ...(x.diy && typeof x.diy === 'object' ? { diy: x.diy } : null),
     ...(x.standIn !== true && isPotential(x.potential) ? { potential: x.potential } : null),

@@ -57,6 +57,7 @@
 import { num, traitBb, skillRec, batMod, up, giveSp, holdProtect } from '../shared/tier1.js';
 import { COLS } from '../../../constants.js';
 import { effectiveProfile, acquireTargets, performAttack } from '../../../ai.js';
+import { isFixedPost } from '../../../fixedPost.js';
 
 const S1 = 'skchr_shu_1';
 const S2 = 'skchr_shu_2';
@@ -202,7 +203,7 @@ export default {
               if (k === m.last) continue;
               m.last = k;
               const dist = Math.abs(Math.floor(k / (battle.grid?.cols ?? COLS)) - m.r) + Math.abs((k % (battle.grid?.cols ?? COLS)) - m.c);
-              if (dist < far - 1e-9) continue;
+              if (dist < far - 1e-9 || isFixedPost(e)) continue;
               e.x = m.c;
               e.y = m.r;
               battle._unblock(e);

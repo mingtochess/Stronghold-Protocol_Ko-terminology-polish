@@ -61,6 +61,8 @@ export class MatchIntents {
       case 'g.test': return this.applyTestCommand(ps, msg);
       case 'b.progress': return this._onProgress(ps, msg);
       case 'b.result': return this._onResult(ps, msg);
+      // 전투 포기 (the fork's button, public/js/screens/game.js): every human of the field agrees
+      case 'g.endBattle': return this.endBattle(ps, msg.fieldId, msg.gt);
       // the host's answer to a delegated bot layout rehearsal (DESIGN §14): a report, never an error — an unknown,
       // expired or foreign task is ignored (MatchRehearsal._onRehearsalResult)
       case 'b.rehearsalResult': this._onRehearsalResult(ps, msg); return OK;

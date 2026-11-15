@@ -31,6 +31,9 @@ export class Unit {
     for (const k of ['def', 'player', 'ownerUnit', 'kit', 'profile', 'skill', 'route', 'bossPool', 'blockedBy', 'blocking', 'carry', 'mem', 'trait', 'battle']) {
       Object.defineProperty(this, k, { value: null, writable: true, enumerable: false, configurable: true });
     }
+    // the battle (as in the 맹약 engine): range / tile keys read its grid — a 联防 joined stage is 37 columns wide, and
+    // without it every key fell back to 21 columns (operators on the far board had no range at all)
+    this.battle = init.battle ?? null;
     this.id = init.id;
     this.side = init.side;            // 'ally' | 'enemy'
     this.kind = init.kind;            // 'op' | 'token' | 'enemy' | 'device'
@@ -148,6 +151,12 @@ export class Unit {
   _recalc() {
     const prevMax = this._s ? this._s.maxHp : this.base.maxHp;
     const { add, mul, flags, shield, permRangeExtend } = aggregateMods(this.buffs);
+    // 증강 재생 (augments.js regen) skips a 频次 enemy, but some kits switch to hit-count HP after the augment's deploy
+    // hook ran (假想敌：再生's puppet, the 余烬 husks, a boss token): exclude it whenever that form is active (the 맹약
+    // engine's server/sim/units.js does the same)
+    const augmentRegen = this.side === 'enemy' && (flags.hitCount || flags.hitCountArts)
+      ? this.buffs.reduce((sum, buff) => sum + (buff.key?.startsWith('augment:') && buff.key.endsWith(':regen') ? (buff.mods?.hpRegen || 0) : 0), 0)
+      : 0;
     const a = (k) => add[k] ?? 0;
     const m = (k) => mul[k] ?? 1;
     const b = this.base;
@@ -200,7 +209,7 @@ export class Unit {
       spCostFlat: a('spCostFlat'),
       redeployMul: m('redeployMul'),
       costMul: m('costMul'),
-      hpRegen: fin(b.hpRecoveryPerSec + a('hpRegen') + a('hpRegenRatio') * maxHp, 0),
+      hpRegen: fin(b.hpRecoveryPerSec + a('hpRegen') - augmentRegen + a('hpRegenRatio') * maxHp, 0),
       shield,
       flags: flags || EMPTY,
     };

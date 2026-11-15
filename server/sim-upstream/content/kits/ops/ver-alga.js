@@ -15,8 +15,8 @@ const S2 = 'skchr_alga_2';
 
 function covers(unit, grid, ally) {
   if (!grid) return false;
-  const keys = absoluteRangeKeys(grid, unit.tileR, unit.tileC, unit.dir, 0);
-  return keys.includes(ally.tileR * COLS + ally.tileC);
+  const keys = absoluteRangeKeys(grid, unit.tileR, unit.tileC, unit.dir, 0, unit.battle?.grid);
+  return keys.includes(ally.tileR * (unit.battle?.grid?.cols ?? COLS) + ally.tileC);
 }
 
 function isElite(e) {

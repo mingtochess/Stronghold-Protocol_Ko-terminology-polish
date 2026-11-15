@@ -5,7 +5,8 @@
 // Installed on Match.prototype by server/match/Match.js (a method container: never instantiated; `this` is the match).
 
 import { requiresTraitLayerAuthority } from '../operatorTraits.js';
-import { PHASE } from '../../../shared/constants.js';
+import { PHASE, ERR } from '../../../shared/constants.js';
+import { OK, fail } from './common.js';
 import { DeadBattle, syntheticResult, RESULT_GRACE_MS, HARD_CAP_SECONDS, HeadlessJob } from '../fields.js';
 import { buildBattleSpec, createBattleFromSpec } from '../../sim-upstream/spec.js';
 import { testSlice } from '../testTrace.js';
@@ -218,6 +219,43 @@ export class MatchClientCombat {
       this._progressTimer = this.later(1000, tick);
     };
     this._progressTimer = this.later(1000, tick);
+  }
+
+  /**
+   * 전투 포기 (the fork's rule, server/match/Match.js endBattle): a normal / 联防 field ends once every human on it asks.
+   * Server-run: force-end now. Client-run: the server replays only the elapsed fight (never future kills) and settles it.
+   */
+  endBattle(ps, fieldId, gt) {
+    const f = this.fields.find((x) => x.fieldId === fieldId && x.live && !x.done);
+    if (!ps.alive || !f || !f.players.includes(ps.playerId) || f.kind === 'boss' || f.kind === 'hidden'
+      || ![PHASE.COMBAT, PHASE.UNITE].includes(this.phase)) return fail(ERR.WRONG_PHASE);
+    if (f.endRequested) return OK;
+    const required = f.players.map((id) => this.players.get(id)).filter((p) => p && !p.isBot && !p.left && p.alive);
+    const votes = (f.endVotes ||= new Set());
+    votes.add(ps.playerId); this.markPublic();
+    if (!required.every((p) => votes.has(p.playerId))) return OK;
+    f.endRequested = true;
+    if (!this.clientCombat || !f.cc) {
+      f.battle?.forceEnd?.('surrender');
+      return OK;
+    }
+    const wallElapsed = this._fieldElapsed(f);
+    const reported = Math.max(0, Number(f.progress?.gt) || 0);
+    const observed = f.authority === ps.playerId && Number.isFinite(gt) && gt >= 0 ? Math.max(reported, gt) : reported;
+    const elapsed = Math.max(0.01, f.mode === 'client' ? Math.min(wallElapsed, observed) : wallElapsed);
+    const battle = this._specBattle(f.spec);
+    const job = new HeadlessJob(battle, { players: f.players, onError: (e) => this.reportError('end battle', e) });
+    job.cap = Math.max(1, Math.ceil(elapsed / (battle.dt || 1 / 30)));
+    job.capReason = 'surrender';
+    this._clearFieldTimers(f); f.mode = 'server'; f.authority = null; f.job = job;
+    for (const pid of f.players) this.sendTo(pid, { t: 'b.end', battleId: f.battleId, fieldId: f.fieldId, reason: 'surrender' });
+    const step = () => {
+      if (this.disposed || this.ended || f.done || f.job !== job) return;
+      if (!job.run(Number.isFinite(this.headlessSliceMs) ? this.headlessSliceMs : Infinity)) { f.sliceTimer = this.later(0, step); return; }
+      const out = job.output(); f.job = null; f.battle = out.battle; f.result = out.result; f.resultSource = 'server'; f.timeline = out.timeline;
+      this._fieldDone(f);
+    };
+    step(); return OK;
   }
 
   /** A field has its final result. */

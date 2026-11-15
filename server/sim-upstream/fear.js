@@ -105,7 +105,7 @@ export function reachableTiles(b, e, st) {
 
 /** Whether the unit can stand on / step through tile key `k` (its passable terrain; ground: no block, no crate). */
 function openTile(g, fly, k) {
-  const r = (k / (b.grid?.cols ?? COLS)) | 0, c = k - r * (b.grid?.cols ?? COLS);
+  const r = (k / (g?.cols ?? COLS)) | 0, c = k - r * (g?.cols ?? COLS);
   return passable(g, fly, r, c) && (fly || !g.isObstacle(r, c));
 }
 

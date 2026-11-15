@@ -154,6 +154,7 @@ export class PlayerRound {
           const lo = this.loadoutFor(this.gd.chess(piece.id));
           u.skillIndex = lo.skillIndex;
           u.moduleId = lo.moduleId;
+          if (lo.skinId) u.skinId = lo.skinId;   // the loadout's costume (chess record `skins`, shared/loadoutRecord.js)
         }
         // 0.2.2: the potential / 练度 of an operator the player owns (the chess as itself, an owned 自选 pick — the player's
         // 干员调配 settings, 潜能 6 / 精英2 Lv.60 by default and for bots; never a stand-in's nor a prototype pick's)
@@ -238,6 +239,7 @@ function regulationBench(ps) {
       const lo = ps.loadoutFor(rec);
       u.skillIndex = lo.skillIndex;
       u.moduleId = lo.moduleId;
+      if (lo.skinId) u.skinId = lo.skinId;
     }
     const cv = u.standIn ? null : ps.cultivationFor(rec);
     if (cv) { u.potential = cv.potential; u.cultivate = cv.cultivate; }

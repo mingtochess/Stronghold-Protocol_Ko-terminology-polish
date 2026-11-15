@@ -7,6 +7,7 @@ import {
   elementDmg, aura,
 } from '../shared/tier6.js';
 import { holdProtect, byEnemyDamage } from '../shared/tier1.js';
+import { isFixedPost } from '../../../fixedPost.js';
 
 /**
  * "传送至自身位置": a ground enemy that can reach `unit`'s tile on the ground grid is moved onto it (unblocked, its
@@ -18,7 +19,7 @@ import { holdProtect, byEnemyDamage } from '../shared/tier1.js';
  * only 消失 / 自缚 / 免疫传送); every 静态刚体 of the mode flies or is 自缚 anyway.
  */
 function teleportEnemy(battle, unit, e) {
-  if (!e || !e.alive || e.isFlying || e.s.flags.selfBound) return false;
+  if (!e || !e.alive || e.isFlying || e.s.flags.selfBound || isFixedPost(e)) return false;
   const r = unit.tileR, c = unit.tileC;
   if (!battle.grid.groundPassable(r, c)) return false;
   const er = Math.round(e.y), ec = Math.round(e.x);

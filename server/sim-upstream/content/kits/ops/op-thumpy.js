@@ -54,6 +54,7 @@ import { bodyInKeys, bodyInRange } from '../../../body.js';
 import { enemyStealthed, tileKeyOf } from '../../../targeting.js';
 import { hasHp } from '../../../attack.js';
 import { COLS } from '../../../constants.js';
+import { isFixedPost } from '../../../fixedPost.js';
 
 const S1 = 'skchr_thumpy_1';
 const S2 = 'skchr_thumpy_2';
@@ -148,7 +149,7 @@ export default {
       const step = beltRate * dt;
       if (!(step > 0)) return;
       for (const e of battle.enemies) {
-        if (!e.alive || e.hidden || e.isFlying || e.blockedBy || e.s.flags.selfBound || e.s.massLevel > massCap) continue;
+        if (!e.alive || e.hidden || e.isFlying || e.blockedBy || e.s.flags.selfBound || e.s.massLevel > massCap || isFixedPost(e)) continue;
         if (!belt.carryKeys.has(tileKeyOf(e))) continue;
         let nx = e.x - fc * step, ny = e.y - fr * step;
         const r = Math.round(ny), c = Math.round(nx);

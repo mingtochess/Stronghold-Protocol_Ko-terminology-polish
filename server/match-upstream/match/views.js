@@ -14,6 +14,7 @@ import { cardView } from '../choices.js';
 import { bountySpawns, previewOf } from '../waves.js';
 import { timelineAt } from '../fields.js';
 import { bossFieldPlacement } from '../finalAssault.js';
+import { loadoutRecord, resolveRecordLoadout } from '../../../shared/loadoutRecord.js';
 import { battleProgress } from '../../sim-upstream/spec.js';
 
 /** Milliseconds since the match started. A stamp before the start, or a bad stamp, is 0. The stored log keeps the epoch. */
@@ -87,6 +88,9 @@ export class MatchViews {
       modeId: this.modeId,
       // 8인 협동 only (the 맹약 field and rules read it, public/js/data.js): other rooms keep upstream's view
       ...(this.mode === 'coop8' ? { mode: 'coop8' } : {}),
+      // 커스텀 / 증강 rooms (opts.seasonExtensions): the selection the client's rules read like a 맹약 room's (전략 중복
+      // 선택 on the strategy draft, 공용 체력, 층수 제한 해제, the custom-settings panel); classic rooms keep upstream's view
+      ...(this.gameplayMode !== 'classic' ? { gameplayMode: this.gameplayMode, customExtensions: structuredClone(this.customExtensions) } : {}),
       difficulty: this.difficulty,
       stageId: this.stageId,
       // a non-default official version's match (DESIGN §35.23): its registry id, so a page that never saw the room (a
@@ -150,7 +154,7 @@ export class MatchViews {
         ...this._avatarView(ps),
       })),
       fields: this.fields.map((f) => {
-        const v = { fieldId: f.fieldId, kind: f.kind, players: f.players.slice(), live: !!f.live };
+        const v = { fieldId: f.fieldId, kind: f.kind, players: f.players.slice(), live: !!f.live, endVotes: [...(f.endVotes || [])] };
         const pr = this._fieldProgress(f);
         if (pr) v.progress = pr;
         return v;
@@ -373,11 +377,14 @@ export class MatchViews {
       const chess = piece.kind === 'token' ? null : gd.chess(piece.id);
       // 0.2.0 补位: a chess this player fields as its stand-in is deployed with the stand-in's body — name, art, max HP,
       // skill, like the sim's UnitInfo (`standInFor` = the replaced operator's charId)
-      const rec = piece.kind === 'token' ? gd.token(piece.id) : ps.fieldRecord(chess);
-      const assets = (rec && rec.assets) || {};
+      let rec = piece.kind === 'token' ? gd.token(piece.id) : ps.fieldRecord(chess);
       // DESIGN §16: the skill / module THIS player's operator fights with (the scout's detail card shows it, like the
       // sim's UnitInfo in a shared field); moduleId only for an elite; 0.2.2 its potential (below 6) and 练度
       const lo = piece.kind === 'chess' && chess ? ps.loadoutFor(chess) : null;
+      // the loadout's costume (chess record `skins`) names the model THIS player's piece wears — as server/match (not a
+      // stand-in's body: the replaced operator's costume is not the stand-in's)
+      if (rec && lo?.skinId && rec === chess) rec = loadoutRecord(rec, resolveRecordLoadout(rec, lo));
+      const assets = (rec && rec.assets) || {};
       const diy = this._diyInfo(ps, piece);
       units.push({
         id: piece.uid, uid: piece.uid, kind: piece.kind === 'token' ? 'token' : 'op', side: 'ally', ownerId: ps.playerId, defId: piece.id,
@@ -387,6 +394,7 @@ export class MatchViews {
         x: c, y: r, dir: pieceDir(piece), facing: pieceDir(piece) === 'LEFT' ? -1 : 1, maxHp: rec && rec.stats && Number.isFinite(rec.stats.maxHp) ? rec.stats.maxHp : 1,
         skillIndex: lo && Number.isInteger(lo.skillIndex) ? lo.skillIndex : undefined,
         moduleId: lo && typeof lo.moduleId === 'string' ? lo.moduleId : undefined,
+        skinId: lo?.skinId, charId: chess?.charId,
         // the equipped items (like the sim's UnitInfo): a 变形同构体 wearer shows as a member of the bond it grants
         items: piece.kind === 'chess' && Array.isArray(piece.items) && piece.items.length ? piece.items.map((it) => it.id) : undefined,
         itemProgress: equippedItemProgress(ps, piece),

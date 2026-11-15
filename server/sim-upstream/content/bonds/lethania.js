@@ -118,22 +118,22 @@ function canAttackFromTile(battle, unit, enemy, r, c) {
 function findGroundRoute(battle, unit, goals, { idle = false } = {}) {
   const startR = unit.tileR, startC = unit.tileC;
   if (!battle.grid.groundPassable(startR, startC)) return null;
-  const start = startR * COLS + startC;
-  const prev = new Int16Array(ROWS * COLS).fill(-2);
-  const queue = new Int16Array(ROWS * COLS);
+  const start = startR * battle.grid.cols + startC;
+  const prev = new Int16Array(battle.grid.rows * battle.grid.cols).fill(-2);
+  const queue = new Int16Array(battle.grid.rows * battle.grid.cols);
   let head = 0, tail = 0;
   prev[start] = -1;
   queue[tail++] = start;
   let goal = -1;
 
-  while (head < tail) { // loop-cap: each grid tile is enqueued at most once (ROWS * COLS)
+  while (head < tail) { // loop-cap: each grid tile is enqueued at most once (battle.grid.rows * battle.grid.cols)
     const key = queue[head++];
-    const r = (key / COLS) | 0, c = key % COLS;
+    const r = (key / battle.grid.cols) | 0, c = key % battle.grid.cols;
     if (goals.has(key)) { goal = key; break; }
     for (const [dr, dc] of FOUR_WAYS) {
       const nr = r + dr, nc = c + dc;
       if (!battle.grid.inRect(nr, nc)) continue;
-      const next = nr * COLS + nc;
+      const next = nr * battle.grid.cols + nc;
       if (prev[next] !== -2 || !battle.grid.groundPassable(nr, nc)) continue;
       prev[next] = key;
       queue[tail++] = next;
@@ -141,7 +141,7 @@ function findGroundRoute(battle, unit, goals, { idle = false } = {}) {
   }
   if (goal < 0) return null;
   const reversed = [];
-  for (let k = goal; k >= 0; k = prev[k]) reversed.push([(k / COLS) | 0, k % COLS]);
+  for (let k = goal; k >= 0; k = prev[k]) reversed.push([(k / battle.grid.cols) | 0, k % battle.grid.cols]);
   reversed.reverse();
   const first = reversed[1];
   const firstAxis = first ? (first[0] !== startR ? 'y' : 'x') : null;
@@ -165,7 +165,7 @@ function findAttackPosition(battle, unit, targets) {
     const r0 = Math.max(R.r0, Math.ceil(enemy.y - reach - ey - 0.5 - EPS));
     const r1 = Math.min(R.r1, Math.floor(enemy.y + reach + ey + 0.5 + EPS));
     for (let r = r0; r <= r1; r++) for (let c = c0; c <= c1; c++) {
-      if (canAttackFromTile(battle, unit, enemy, r, c)) goals.set(r * COLS + c, enemy);
+      if (canAttackFromTile(battle, unit, enemy, r, c)) goals.set(r * battle.grid.cols + c, enemy);
     }
   }
   return goals.size ? findGroundRoute(battle, unit, goals) : null;
@@ -174,7 +174,7 @@ function findAttackPosition(battle, unit, targets) {
 function findIdleRoute(battle, unit, target) {
   const row = Math.round(target.y), col = Math.round(target.x);
   if (!battle.grid.groundPassable(row, col)) return null;
-  const goal = row * COLS + col;
+  const goal = row * battle.grid.cols + col;
   return findGroundRoute(battle, unit, new Map([[goal, null]]), { idle: true });
 }
 
@@ -208,7 +208,7 @@ function setPosition(battle, unit, x, y) {
     if (!canEnter(battle, r, c)) return false;
     unit.tileR = r;
     unit.tileC = c;
-    unit.ground = battle.grid.isLow(r, c) && !battle._elevated?.has(r * COLS + c);
+    unit.ground = battle.grid.isLow(r, c) && !battle._elevated?.has(r * battle.grid.cols + c);
     battle._refreshRange(unit);
   }
   unit.x = x;
@@ -220,8 +220,8 @@ function setPosition(battle, unit, x, y) {
 function walkPath(battle, unit, route, dt) {
   let budget = Math.max(0, unit.s.moveSpeed) * MOVE_SCALE * Math.max(0, dt);
   let moved = false;
-  let guard = ROWS * COLS + 2;
-  while (budget > EPS && guard-- > 0) { // loop-cap: ROWS * COLS route tiles plus at most 2 alignment/terminal steps
+  let guard = battle.grid.rows * battle.grid.cols + 2;
+  while (budget > EPS && guard-- > 0) { // loop-cap: battle.grid.rows * battle.grid.cols route tiles plus at most 2 alignment/terminal steps
     if (route.index >= route.path.length) {
       if (route.idle) break;
       if (!inAttackRange(unit, route.target, unit.x, unit.y)) {
@@ -301,7 +301,7 @@ function moveTowardTarget(battle, unit, dt) {
     if (!battle.grid.groundPassable(unit.tileR, unit.tileC)) return;
     const idle = unit.mem.lethaniaIdleTarget;
     if (!idle) return;
-    const goalKey = Math.round(idle.y) * COLS + Math.round(idle.x);
+    const goalKey = Math.round(idle.y) * battle.grid.cols + Math.round(idle.x);
     let route = unit.mem.lethaniaRoute;
     if (route && !route.idle) route = null;
     if (!route || !route.idle || route.goalKey !== goalKey || route.version !== battle.grid.version) route = null;

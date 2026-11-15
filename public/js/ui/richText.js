@@ -19,6 +19,7 @@
 // 한글 패치: 태그로 나누기 전에 문장 전체를 번역한다 (Node 테스트에서는 원문 그대로).
 import {customBondEffectTemplate} from './bondDescriptions.js';
 import { tr } from '../i18n/i18n.js';
+import { fillShowTags } from './showTags.js';
 
 /** Official style id → our CSS modifier (css/screens/game-panels.css `.rt-*`). */
 const STYLE_CLASS = {
@@ -54,11 +55,13 @@ const TAG_CLOSE = '</>';
 /**
  * Parse official rich text into flat styled segments.
  * @param {any} src
+ * @param {{ values?: any[]|null, start?: any[]|null }|null} [tags] the official {showtag_value_N} numbers (ui/showTags.js):
+ *   filled AFTER translation so the translation still matches the record's text; none given → the start values, else 0
  * @returns {Array<{ text: string, cls: string[], term: boolean } | { br: true }>}
  */
-export function parseRichText(src) {
+export function parseRichText(src, tags = null) {
   if (src == null) return [];
-  const s = tr(String(src)).replace(/\\n/g, '\n').replace(/\r\n?/g, '\n');
+  const s = fillShowTags(tr(String(src)), tags?.values ?? null, tags?.start ?? null).replace(/\\n/g, '\n').replace(/\r\n?/g, '\n');
   /** @type {Array<{ cls: string, term: boolean }>} */
   const stack = [];
   const out = [];
@@ -114,10 +117,10 @@ export function parseRichText(src) {
 // Apply the same fallback emphasis to every description after translation. Explicit official
 // markup wins; missing markup in a translated/custom sentence receives the common number/term rules.
 const DESCRIPTION_TOKEN = /속세의 음|최대 HP|공격 속도|공격력|방어력|마법 저항|저지 가능 수|물리 회피|마법 회피|트루 대미지|약점 대미지|은신|냉각|빙결|공포|정지|기절|치료|Voice of Mundane|\b(?:Max HP|ATK|DEF|RES|ASPD|HP|SP|DP|Invisible|Cold|Frozen|Fear|Stun)\b|塵界の音|尘世之音|攻撃力|防御力|術耐性|最大HP|攻撃速度|ステルス|寒冷|凍結|攻击力|防御力|法术抗性|生命上限|攻击速度|隐匿|冻结|[+-]?\d+(?:\.\d+)?%?/g;
-export function parseDescriptionText(src) {
+export function parseDescriptionText(src, tags = null) {
   const out=[];
   let note=0;
-  for(const seg of parseRichText(src)){
+  for(const seg of parseRichText(src, tags)){
     if(seg.br){out.push(seg);continue;}
     if(seg.cls.length||seg.term){out.push(seg);for(const ch of seg.text){if(ch==='('||ch==='（')note++;else if(ch===')'||ch==='）')note=Math.max(0,note-1);}continue;}
     for(const part of seg.text.split(/([()（）])/)){

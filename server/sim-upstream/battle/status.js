@@ -8,6 +8,7 @@ import { makeBuff, STATUS, RESIST_STATUSES } from '../buffs.js';
 import { palsyBuff } from '../attack.js';
 import { evadesGround } from '../targeting.js';
 import { stampFear } from '../fear.js';
+import { isFixedPost } from '../fixedPost.js';
 
 export class BattleStatus {
   addBuff(unit, b) {
@@ -187,6 +188,7 @@ export class BattleStatus {
     if (!(duration > 0)) return false;
     const immune = target.def && target.def.immune;
     if (!opts.force && tpl.immune && immune && immune.has(tpl.immune)) return false;
+    if ((tpl.attract || key === 'fear') && isFixedPost(target)) return false;   // a fixed boss is never walked off its post
     // 浮空 Buff (PRTS 异常效果: "若单位数据上为飞行单位且不持有缚地异常或是持有浮空异常则Buff取消"; 行动方式 "行动类型（数据）为
     // 飞行的单位、以及已持有浮空异常的单位无法被施加浮空Buff"): refused on data flyers (`motion` FLY) that hold no 缚地 and on
     // units already levitated — a hovering 近地悬浮 enemy is WALK in its data, so it can be levitated (no 浮空强化 in this mode)

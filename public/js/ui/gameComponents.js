@@ -83,8 +83,9 @@ export function LocalSprite({ group = 'ui/battle', name, class: cls, fallback = 
  * Rich text (official markup) → spans. Newlines become <br>.
  * @param {{ text: any, class?: string, as?: string }} props
  */
-export function RichText({ text, class: cls, as = 'span' }) {
-  const segs = useMemo(() => parseDescriptionText(text), [text]);
+export function RichText({ text, class: cls, as = 'span', tags = null }) {
+  // `tags`: the {showtag_value_N} numbers of the record (ui/showTags.js), filled after the text is translated
+  const segs = useMemo(() => parseDescriptionText(text, tags), [text, tags?.values?.join?.(','), tags?.start?.join?.(',')]);
   const Tag = as;
   return html`<${Tag} class=${cx('rt', cls)}>${segs.map((s, i) => (s.br
     ? html`<br key=${i} />`

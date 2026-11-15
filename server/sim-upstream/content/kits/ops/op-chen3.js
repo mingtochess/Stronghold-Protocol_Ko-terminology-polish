@@ -139,7 +139,7 @@ export default {
       const keep = m.target && !m.lost && !gone(m.target) && m.at;
       const [r, c] = keep && landable(battle, unit, m.at[0], m.at[1]) ? m.at : [unit.tileR, unit.tileC];
       battle.moveRedeploy(unit, r, c);
-      battle.fx('blink', { x: unit.x, y: unit.y, id: unit.id, skill: 'chen3:respawn' });
+      battle.fx('blink', { x: unit.x, y: unit.y, id: unit.id, skill: 'chen3:respawn', dur: skill.duration });
       if (!unit.alive || !skill.active) return;
       const p = num(b2['chen3_s2[respawn_buff].prob']);
       battle.addBuff(unit, { key: AFTER_KEY, mods: { atkPct: num(b2['chen3_s2[respawn_buff].atk']), dodgePhys: p, dodgeArts: p }, tags: ['skill'] });
@@ -221,6 +221,7 @@ export default {
           },
         },
         [S3]: {
+          triggerProfile: { canHitFly:true, groundOnly:false },
           kind: 'duration',
           targeting: { rangeGrid: grid3, maxTargets: Math.max(1, Math.floor(num(b3['attack@max_target'], 3))) },
           attack: { atkScale: num(b3['attack@atk_scale'], 1), hits: 3 },   // `_additionalTimes` 2
@@ -318,6 +319,8 @@ export default {
           for (const e of battle.foesInRadius(w.x, w.y, WAVE_HIT_RADIUS)) {
             if (w.hit.has(e) || !canTargetEnemy(unit, e, AIR)) continue;
             w.hit.add(e);
+            // The wave's HP-based hit is void above 300,000, independently of the configurable boss ceiling.
+            if (ratio * e.hp > 300000) continue;
             const amount = Math.max(ratio * e.hp, minScale * unit.s.atk);
             battle.fx('slash', { x: e.x, y: e.y, id: unit.id, n: 1, skill: 'chen3:wave' });
             battle.dealDamage(unit, e, { amount, type: 'arts', isSkill: true, tags: ['skill', 'chen3:wave'] });
