@@ -1,4 +1,5 @@
 import { useDocClass } from '../ui/device.js';
+import { garrisonShowStart } from '../ui/showTags.js';
 import { statsPreview, LoadoutStats } from '../ui/loadoutStats.js';
 import { OperatorVoice } from '../ui/operatorVoice.js';
 import { RECRUIT_CANDIDATES, RECRUIT_PICKS } from '../../../shared/recruitPick.js';
@@ -308,6 +309,8 @@ function Detail({ m, chess, golden, entries, ops, onChange, onReset, locked }) {
   const opt = chessOptions(chess, golden);
   const choice = effectiveChoice(entries, chess, golden);
   const traitTexts=garrisonTexts(statLevel==='elite'&&golden?golden:chess,id=>data.lookup('garrisons',id));
+  // {showtag_value_N}: no live value before a match — the 特质's starting value (an upgrading grant's first count), else 0
+  const traitStart=((statLevel==='elite'&&golden?golden:chess).garrisonIds||[]).map(id=>garrisonShowStart(data.lookup('garrisons',id))).find(Boolean)||null;
   const cv = cultivationView(chess.charId, ops);
   const changed = choice.changed || cv.changed;
   const modOpt = opt.moduleOptions.find((x) => x.id === choice.module) || null;
@@ -340,7 +343,7 @@ function Detail({ m, chess, golden, entries, ops, onChange, onReset, locked }) {
           <button type="button" role="tab" aria-selected=${statLevel==='normal'} class=${cx(statLevel==='normal'&&'is-on')} onClick=${()=>setStatLevel('normal')}>일반</button>
           <button type="button" role="tab" aria-selected=${statLevel==='elite'} class=${cx(statLevel==='elite'&&'is-on')} disabled=${!golden} onClick=${()=>setStatLevel('elite')}>정예</button>
         </div></header>
-        ${traitTexts.length ? traitTexts.map((text,i)=>html`<${RichText} key=${i} text=${text} />`) : html`<p class="t-dim">특질 없음</p>`}
+        ${traitTexts.length ? traitTexts.map((text,i)=>html`<${RichText} key=${i} text=${text} tags=${{ start: traitStart }} />`) : html`<p class="t-dim">특질 없음</p>`}
       </section>
       <section class="lo-sec lo-sec--skins"><header class="lo-sec__head"><h3>스킨<${MicroLabel}>SKIN<//></h3></header>
         <div class="lo-skin-list" role="radiogroup" aria-label="스킨 선택">
