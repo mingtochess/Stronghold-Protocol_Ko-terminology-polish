@@ -39,16 +39,16 @@ export class BattleQueries {
       // every tick for every enemy: colliderKeys / bodyKeys inlined without their arrays (the same tiles, same order)
       const x = e.x, y = e.y;
       const tr = roundHalfEven(y), tc = roundHalfEven(x);
-      if (tr >= 0 && tr < ROWS && tc >= 0 && tc < COLS) { const k = tr * COLS + tc; if (!et[k].length) etUsed.push(k); et[k].push(e); }
-      const r0 = Math.max(0, Math.floor(y - rho + 0.5 + 1e-9)), r1 = Math.min(ROWS - 1, Math.ceil(y + rho - 0.5 - 1e-9));
-      const c0 = Math.max(0, Math.floor(x - rho + 0.5 + 1e-9)), c1 = Math.min(COLS - 1, Math.ceil(x + rho - 0.5 - 1e-9));
+      if (tr >= 0 && tr < this.grid.rows && tc >= 0 && tc < this.grid.cols) { const k = tr * this.grid.cols + tc; if (!et[k].length) etUsed.push(k); et[k].push(e); }
+      const r0 = Math.max(0, Math.floor(y - rho + 0.5 + 1e-9)), r1 = Math.min(this.grid.rows - 1, Math.ceil(y + rho - 0.5 - 1e-9));
+      const c0 = Math.max(0, Math.floor(x - rho + 0.5 + 1e-9)), c1 = Math.min(this.grid.cols - 1, Math.ceil(x + rho - 0.5 - 1e-9));
       let n = 0;
       for (let r = r0; r <= r1; r++) {
         const dy = y < r - 0.5 ? r - 0.5 - y : y > r + 0.5 ? y - r - 0.5 : 0;
         for (let c = c0; c <= c1; c++) {
           const dx = x < c - 0.5 ? c - 0.5 - x : x > c + 0.5 ? x - c - 0.5 : 0;
           if (dx > 0 && dy > 0 && dx * dx + dy * dy >= rho2) continue;
-          const k = r * COLS + c;
+          const k = r * this.grid.cols + c;
           if (!eb[k].length) ebUsed.push(k);
           eb[k].push(e);
           n++;
@@ -114,7 +114,7 @@ export class BattleQueries {
     if (!set || !set.size || !keys || !attacker || set.has(attacker)) return [];
     const ks = keys instanceof Set ? keys : (keys === attacker.rangeKeys && attacker.rangeKeySet ? attacker.rangeKeySet : new Set(keys));
     const out = [];
-    for (const a of set) if (a.alive && a.deployed && !a.hidden && ks.has(a.tileR * COLS + a.tileC)) out.push(a);
+    for (const a of set) if (a.alive && a.deployed && !a.hidden && ks.has(a.tileR * this.grid.cols + a.tileC)) out.push(a);
     return out;
   }
 
@@ -171,7 +171,7 @@ export class BattleQueries {
     const through = healer && healer.profile && typeof healer.profile.healThrough === 'function' ? healer.profile.healThrough : null;
     for (const a of this.allyUnits) {
       if (!a.alive || !a.deployed || a.hidden || a.kind === 'device') continue;
-      if (!set.has(a.tileR * COLS + a.tileC)) continue;
+      if (!set.has(a.tileR * this.grid.cols + a.tileC)) continue;
       if (a !== healer && ((a.s.flags.noHeal && !(through && through(healer, a))) || (a.profile && a.profile.noHeal))) continue;
       const injured = a.hp < a.s.maxHp - 1e-6;
       const elem = includeElement && (a.elem.burn + a.elem.neural + a.elem.necrosis + a.elem.apoptosis + a.elem.erosion) > 0;
@@ -207,7 +207,7 @@ export class BattleQueries {
   /** Allies inside `unit`'s current range (for auras) — not the 孤立 ones ("无法被同阵营选中": 炎佑), `unit` aside. */
   alliesInGrid(unit) {
     const set = unit.rangeKeySet || new Set(unit.rangeKeys || []);
-    return this.allyUnits.filter((a) => a.alive && a.deployed && !a.hidden && a.kind !== 'device' && set.has(a.tileR * COLS + a.tileC) && this.allySelectable(a, unit));
+    return this.allyUnits.filter((a) => a.alive && a.deployed && !a.hidden && a.kind !== 'device' && set.has(a.tileR * this.grid.cols + a.tileC) && this.allySelectable(a, unit));
   }
 
   /**
@@ -301,7 +301,7 @@ export class BattleQueries {
 
   aliveEnemies() { return this.enemies.filter((e) => e.alive); }
 
-  unitAt(r, c) { const u = this._occ[r * COLS + c]; return u && u.alive ? u : null; }
+  unitAt(r, c) { const u = this._occ[r * this.grid.cols + c]; return u && u.alive ? u : null; }
 
   unitById(id) { return this.units.find((u) => u.id === id) ?? null; }
 
@@ -333,7 +333,7 @@ export class BattleQueries {
     const ext = (tg && tg.noRangeExtend ? 0 : u.s.rangeExtend) + ((tg && tg.rangeExtend) || 0);
     u._rangeExtend = u.s.rangeExtend;
     u._baseExtend = u.s.baseRangeExtend;
-    const keys = absoluteRangeKeys(grid, u.tileR, u.tileC, u.dir, ext);
+    const keys = absoluteRangeKeys(grid, u.tileR, u.tileC, u.dir, ext, u.battle?.grid);
     const set = new Set(keys);
     const extra = u.extraRangeKeys;
     if (extra) for (const k of extra) if (!set.has(k)) { set.add(k); keys.push(k); }
@@ -342,7 +342,7 @@ export class BattleQueries {
     const own = !!(tg && tg.showOwnRange);
     const lg = own ? u.rangeGrid || [[0, 0]] : grid, le = own ? u.s.rangeExtend : ext;
     u.liveRangeGrid = le > 0 ? extendedGrid(lg, le) : lg;
-    if (u.kind !== 'device') u.baseRangeKeys = absoluteRangeKeys(u.rangeGrid || [[0, 0]], u.tileR, u.tileC, u.dir, u.s.baseRangeExtend);
+    if (u.kind !== 'device') u.baseRangeKeys = absoluteRangeKeys(u.rangeGrid || [[0, 0]], u.tileR, u.tileC, u.dir, u.s.baseRangeExtend, u.battle?.grid);
     if (u.skill) u.skill._trigKeys = null; // CUSTOM_RANGE trigger grid is relative to the tile
   }
 
@@ -360,14 +360,14 @@ export class BattleQueries {
 
   /**
    * Extra targetable tiles merged into the unit's range (蕾缪安 wanted targets, 维娜 S3, …): absolute tile keys
-   * (row × COLS + col), kept across every later range rebuild until content sets them again (null / [] clears).
+   * (row × this.grid.cols + col), kept across every later range rebuild until content sets them again (null / [] clears).
    * Not part of `baseRangeKeys` (the DEFAULT trigger range) — see SkillRuntime.addTriggerRange for that.
    */
   setExtraRange(unit, keys) {
     if (!unit || unit.side !== 'ally') return false;
     const out = [];
     const seen = new Set();
-    for (const k of keys || []) if (Number.isInteger(k) && k >= 0 && k < ROWS * COLS && !seen.has(k)) { seen.add(k); out.push(k); }
+    for (const k of keys || []) if (Number.isInteger(k) && k >= 0 && k < this.grid.rows * this.grid.cols && !seen.has(k)) { seen.add(k); out.push(k); }
     unit.extraRangeKeys = out.length ? out : null;
     if (unit.alive && unit.deployed) this._refreshRange(unit);
     return true;

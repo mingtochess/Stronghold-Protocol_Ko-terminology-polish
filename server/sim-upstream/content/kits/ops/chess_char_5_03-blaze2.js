@@ -75,7 +75,7 @@ export default {
           targeting: skillRange(chess, def, { maxTargets: Math.max(1, num(bb['attack@max_target'], 3)) }),
           attack: {
             onEachHit({ unit, target }) {
-              if (target && target.side === 'enemy') unit.mem.blazeTiles?.add(Math.round(target.y) * COLS + Math.round(target.x));
+              if (target && target.side === 'enemy') unit.mem.blazeTiles?.add(Math.round(target.y) * (battle.grid?.cols ?? COLS) + Math.round(target.x));
             },
           },
           onStart({ unit }) { unit.mem.blazeTiles = new Set(); unit.mem.blazeAcc2 = 0; },

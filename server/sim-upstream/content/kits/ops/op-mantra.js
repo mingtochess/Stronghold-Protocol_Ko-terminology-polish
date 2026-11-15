@@ -78,7 +78,7 @@ function setPalsy(battle, e, n) {
   else { b.stacks = n; e.markDirty(); }
 }
 // 【麻痹付与】 takes the enemy's tile (PRTS 备注: 格子判定), unlike the reveal and the overflow (碰撞判定: bodyInRange)
-const tileIn = (e, set) => set.has(Math.round(e.y) * COLS + Math.round(e.x));
+const tileIn = (e, set) => set.has(Math.round(e.y) * (e.battle?.grid?.cols ?? COLS) + Math.round(e.x));
 
 /** The S1 / S2 riders: share × the damage dealt as 神经 损伤, then elemScale × ATK 元素伤害 on a target in its 神经 burst. */
 function riders(battle, unit, t, dealt, share, elemScale) {
@@ -313,7 +313,7 @@ export default {
         // 【麻痹付与】 when another operator on her range starts a skill
         battle.on('skillStart', (ctx) => {
           const u = ctx.unit;
-          if (u === unit || !u || u.kind !== 'op' || !s3On(unit) || !unit.rangeKeySet?.has(u.tileR * COLS + u.tileC)) return;
+          if (u === unit || !u || u.kind !== 'op' || !s3On(unit) || !unit.rangeKeySet?.has(u.tileR * (battle.grid?.cols ?? COLS) + u.tileC)) return;
           grant(battle, unit);
         }, { owner: unit });
       },

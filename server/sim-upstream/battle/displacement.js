@@ -191,7 +191,7 @@ export class BattleDisplacement {
     const dxv = fin(dir.x, 0), dyv = fin(dir.y, 0);
     const len = hypot(dxv, dyv);
     if (!(len > 0)) return 0;
-    const eff = Math.min(fin(distance, 0), 2 * COLS);
+    const eff = Math.min(fin(distance, 0), 2 * this.grid.cols);
     if (!(eff > 0)) return 0;
     const ux = dxv / len, uy = dyv / len;
     let moved = 0;

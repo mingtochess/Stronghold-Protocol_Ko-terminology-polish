@@ -57,3 +57,15 @@ test('regulation coop8: 9 − players core bans, at least 5 core bonds left', ()
     assert.ok(core.length - drawn.length >= Math.min(5, core.length));
   }
 });
+
+test('regulation coop8: the 규정 engine takes the 37-column joined field (rect kept, grid 37 wide, ranges keyed by it)', async () => {
+  const { Battle } = await import('../../server/sim-upstream/Battle.js');
+  const { DataSource } = await import('../../server/sim-upstream/simdata.js');
+  const { EIGHT_UNITE_RECT, eightUniteStageId } = await import('../../shared/cooperativeEight.js');
+  const raw = getVersionData('act3autochess@V3_1');
+  const stageId = eightUniteStageId(Object.keys(raw.stages)[0]);
+  const b = new Battle({ data: new DataSource(raw, null), kind: 'unite', stageId, rect: { ...EIGHT_UNITE_RECT }, timeLimit: 10, players: [], spawns: [], routes: [] });
+  assert.equal(b.grid.cols, 37);
+  assert.equal(b.rect.c1, 36, 'the joined rect is not refused');
+  assert.equal(b._occ.length, b.grid.rows * 37);
+});

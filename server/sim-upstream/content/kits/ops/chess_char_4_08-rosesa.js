@@ -26,7 +26,7 @@ export default withDefaults({
           const t = c.target;
           // "友方干员": operators only (summons/devices keep the full hit)
           if (!skillActive(unit) || !unit.alive || t.side !== 'ally' || t.kind !== 'op' || (c.dmg.type !== 'phys' && c.dmg.type !== 'arts')) return;
-          if (!keySet(unit).has(t.tileR * COLS + t.tileC)) return;
+          if (!keySet(unit).has(t.tileR * (battle.grid?.cols ?? COLS) + t.tileC)) return;
           c.dmg.mul *= scale;
           deferred.add(c.dmg);
         }, { owner: unit, priority: -5 });

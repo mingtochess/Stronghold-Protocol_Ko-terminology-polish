@@ -32,11 +32,11 @@ export class BattleBlocking {
     let u = null, bd = Infinity;
     const fly = e.isFlying;
     for (let r = r0 - 1; r <= r0 + 1; r++) {
-      if (r < 0 || r >= ROWS) continue;
+      if (r < 0 || r >= this.grid.rows) continue;
       for (let c = c0 - 1; c <= c0 + 1; c++) {
         // a diagonal neighbour's centre is ≥ √0.5 away: out of reach of the ground (and device) radius
-        if (c < 0 || c >= COLS || (!fly && r !== r0 && c !== c0)) continue;
-        const o = this._occ[r * COLS + c];
+        if (c < 0 || c >= this.grid.cols || (!fly && r !== r0 && c !== c0)) continue;
+        const o = this._occ[r * this.grid.cols + c];
         if (!o || !this._blockerFor(o, e, w, fly)) continue;
         const d2 = (e.x - c) * (e.x - c) + (e.y - r) * (e.y - r);
         const k = fly ? 1 + (o.s.blockRadiusScale || 0) : 1;

@@ -92,12 +92,15 @@ export class Battle {
     this.stage = stage || { id: 'empty', rows: [], devices: [] };
     this.stageId = this.stage.id ?? opts.stageId ?? null;
     this.rect = { ...(opts.rect ?? DEFAULT_RECTS[this.kind] ?? GEO.NORMAL_RECT) };
+    // 맹약 (server/sim/Battle.js): the grid takes the stage's own size (the 8-player 联防 field is 37 columns wide), and
+    // the rect is checked against it — against the fixed 21 columns the joined field's rect was refused
+    this.grid = new Grid(this.stage, this.rect);
     { // a malformed rect (non-integers, inverted, off the stage) falls back to the kind's default field
       const R = this.rect;
-      const ok = [R.r0, R.r1, R.c0, R.c1].every(Number.isInteger) && R.r0 >= 0 && R.c0 >= 0 && R.r1 < ROWS && R.c1 < COLS && R.r0 <= R.r1 && R.c0 <= R.c1;
+      const ok = [R.r0, R.r1, R.c0, R.c1].every(Number.isInteger) && R.r0 >= 0 && R.c0 >= 0 && R.r1 < this.grid.rows && R.c1 < this.grid.cols && R.r0 <= R.r1 && R.c0 <= R.c1;
       if (!ok) this.rect = { ...(DEFAULT_RECTS[this.kind] ?? GEO.NORMAL_RECT) };
     }
-    this.grid = new Grid(this.stage, this.rect);
+    this.grid.rect = this.rect;
     const bossLike = this.kind === 'boss' || this.kind === 'hidden';
     // A bad limit (0, negative, NaN — e.g. a missing config row) must not turn a normal round into an endless one:
     // non-boss kinds fall back to 60 s; only boss/hidden (or an explicit Infinity) run without a limit.
@@ -138,11 +141,11 @@ export class Battle {
     this._sched = [];
     this._evq = [];
     this.projectiles = new ProjectileSystem(this);
-    this._occ = new Array(ROWS * COLS).fill(null);
-    this._eb = new Array(ROWS * COLS);   // range buckets (colliders: queries.js _buildEnemyIndex)
+    this._occ = new Array(this.grid.rows * this.grid.cols).fill(null);
+    this._eb = new Array(this.grid.rows * this.grid.cols);   // range buckets (colliders: queries.js _buildEnemyIndex)
     for (let i = 0; i < this._eb.length; i++) this._eb[i] = [];
     this._ebUsed = [];
-    this._et = new Array(ROWS * COLS);   // tile buckets (格子判定: the position's tile, a huge enemy's rectangle tiles)
+    this._et = new Array(this.grid.rows * this.grid.cols);   // tile buckets (格子判定: the position's tile, a huge enemy's rectangle tiles)
     for (let i = 0; i < this._et.length; i++) this._et[i] = [];
     this._etUsed = [];
     this._idSeq = 0;

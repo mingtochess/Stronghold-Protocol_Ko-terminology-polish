@@ -53,7 +53,7 @@ export class BattleSummons {
       return null;
     }
     if (!Number.isInteger(row) || !Number.isInteger(col) || !this.grid.inRect(row, col)) return null;
-    const occ = this._occ[row * COLS + col];
+    const occ = this._occ[row * this.grid.cols + col];
     if (occ && occ.alive && !opts.force) return null;
     const dir = opts.dir != null ? normDir(opts.dir) : opts.facing != null ? normDir(opts.facing) : ownerUnit ? ownerUnit.dir : ps ? ps.dir : 'RIGHT';
     // 召唤物皮肤 (docs/SKINS.md): the summon wears the appearance its owner's outfit brings (display only)
@@ -82,7 +82,7 @@ export class BattleSummons {
     // Devices are ally-side units on a field tile: never outside the rect, never on top of a living unit or of a
     // knocked-out operator (downOn).
     if (!Number.isInteger(row) || !Number.isInteger(col) || !this.grid.inRect(row, col)) return null;
-    const occ = this._occ[row * COLS + col];
+    const occ = this._occ[row * this.grid.cols + col];
     if (occ && occ.alive) return null;
     if (this.downOn(row, col)) return null;
     const hp = fin(opts.hp, 100);
@@ -110,7 +110,7 @@ export class BattleSummons {
     u.deployRemaining = Math.max(0, ((u.dir === 'UP' && u.def.attackTiming?.back) || u.def.attackTiming?.front)?.deploy || 0);
     u.deployUntil = this.time + u.deployRemaining;
     u.rangeKeys = [];
-    this._occ[row * COLS + col] = u;
+    this._occ[row * this.grid.cols + col] = u;
     if (u.obstacle) this.grid.setObstacle(row, col, true, u.obstacleKind);
     this._ev(['spawn', unitInfo(u)]);
     if (this._hooks.deploy) this.emit('deploy', { unit: u, initial: !this.started });
@@ -129,13 +129,13 @@ export class BattleSummons {
         // (does not block) — the match lets ranged operators deploy there (deployTiles.rangedOnly).
         if (!this.grid.inRect(d.row, d.col)) continue;
         this.grid.setObstacle(d.row, d.col, true);
-        (this._elevated ??= new Set()).add(d.row * COLS + d.col);
+        (this._elevated ??= new Set()).add(d.row * this.grid.cols + d.col);
         continue;
       }
       const spec = OBSTACLE_DEVICES[d.key] ?? (d.role === 'crate' ? { hp: d.stats?.maxHp ?? 100, name: d.name } : null);
       if (!spec) continue;
       if (!this.grid.inRect(d.row, d.col)) continue;
-      if (this._occ[d.row * COLS + d.col]) continue;
+      if (this._occ[d.row * this.grid.cols + d.col]) continue;
       this.spawnDevice(d.key, d.row, d.col, { hp: spec.hp, obstacle: true, name: spec.name });
     }
   }

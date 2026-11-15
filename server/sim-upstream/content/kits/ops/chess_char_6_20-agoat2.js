@@ -55,7 +55,7 @@ function agoat2(bb, chess, def) {
             const t = ctx.target, d = ctx.dmg;
             if (!t || t.side !== 'ally' || !d || d.type !== 'element' || d.cancel) return;
             S.agoatVeils = S.agoatVeils.filter((v) => v.pool > 1e-9 && battle.time < v.until);
-            const k = t.tileR * COLS + t.tileC;
+            const k = t.tileR * (battle.grid?.cols ?? COLS) + t.tileC;
             for (const v of S.agoatVeils) {
               if (!v.keys.has(k)) continue;
               const eff = d.amount * d.mul;

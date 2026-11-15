@@ -56,7 +56,7 @@ function skadi2(bb, chess, def) {
     return [...set];
   };
   const inCover = (battle, unit, a) => {
-    const k = a.tileR * COLS + a.tileC;
+    const k = a.tileR * (battle.grid?.cols ?? COLS) + a.tileC;
     if (unit.rangeKeySet?.has(k)) return true;
     return seaborns(battle, unit).some((t) => t.rangeKeySet?.has(k));
   };

@@ -453,10 +453,10 @@ export class SkillRuntime {
    */
   _triggerKeys() {
     const u = this.unit;
-    const tile = u.tileR * COLS + u.tileC;
+    const tile = u.tileR * (this.battle.grid?.cols ?? COLS) + u.tileC;
     const ext = this.rule === 'ACTIVE_RANGE' && !this.spec.targeting?.noRangeExtend ? (u.s.baseRangeExtend || 0) : 0;
     if (!this._trigKeys || this._trigTile !== tile || this._trigDir !== u.dir || this._trigExt !== ext) {
-      this._trigKeys = absoluteRangeKeys(this.triggerGrid, u.tileR, u.tileC, u.dir, ext);
+      this._trigKeys = absoluteRangeKeys(this.triggerGrid, u.tileR, u.tileC, u.dir, ext, this.battle.grid);
       this._trigSet = new Set(this._trigKeys);
       this._trigTile = tile;
       this._trigDir = u.dir;
@@ -521,7 +521,7 @@ export class SkillRuntime {
     }
     if (!this.healSkill && u.profile?.fortress) {
       // The branch's own-tile melee range also satisfies the basic cast condition for unblockable fragments.
-      const here = [u.tileR * COLS + u.tileC];
+      const here = [u.tileR * (b.grid?.cols ?? COLS) + u.tileC];
       if (b.enemiesInKeys(here, u, u.profile).length > 0 || this._allyTargetIn(here)) return true;
     }
     // the enemies a unit blocks are always its targets (Battle.blockedTargets), in range or not — PRTS 卫戍协议/帮助

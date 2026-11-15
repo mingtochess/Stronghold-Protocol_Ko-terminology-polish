@@ -146,7 +146,7 @@ export default {
               if (unit.findBuff(selfKey)) battle.removeBuff(unit, selfKey);
               return;
             }
-            const around = new Set(absoluteRangeKeys(X4, unit.tileR, unit.tileC, unit.dir, 0));
+            const around = new Set(absoluteRangeKeys(X4, unit.tileR, unit.tileC, unit.dir, 0, battle.grid));
             let n = 0;
             for (const e of battle.enemies) if (e.alive && !e.hidden && bodyInRange(e, around)) n++;
             const k = n === alone ? 2 : 1;

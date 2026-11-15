@@ -25,7 +25,7 @@ function nearl2(bb, chess, def) {
   const skillGrid = def?.skill?.rangeGrid?.length ? def.skill.rangeGrid : null;
   const tokId = (chess?.tokens || []).find((t) => /nearl2_sword/.test(String(t))) || 'token_10019_nearl2_sword';
   const sunBurst = (battle, unit, r, c, scale, stun) => {
-    const keys = new Set(absoluteRangeKeys(N4, r, c, 1, 0));
+    const keys = new Set(absoluteRangeKeys(N4, r, c, 1, 0, battle.grid));
     battle.fx('sunBurst', { x: c, y: r, id: unit.id });
     for (const e of battle.enemies) {
       if (!e.alive || e.hidden || !bodyInRange(e, keys)) continue;

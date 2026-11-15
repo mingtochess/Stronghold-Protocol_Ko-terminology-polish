@@ -178,7 +178,7 @@ export default {
           if (c.prevented || a.side !== 'ally' || a === unit) return;
           const guard = a.findBuff('titi:allySleep');
           if (guard) { if (guard.data.src === unit) c.prevented = true; return; }
-          if (!isOp(a) || !unit.skill?.active || !on(unit) || !unit.rangeKeySet?.has(a.tileR * COLS + a.tileC)) return;
+          if (!isOp(a) || !unit.skill?.active || !on(unit) || !unit.rangeKeySet?.has(a.tileR * (battle.grid?.cols ?? COLS) + a.tileC)) return;
           c.prevented = true;
           const entered = !a.buffs.some((b) => (b.status ?? b.key) === 'sleep');
           battle.addBuff(a, {

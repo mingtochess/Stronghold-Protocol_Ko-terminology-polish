@@ -149,7 +149,7 @@ export default {
     let st = null;
 
     /** The original 3-9 of her deployment tile (S3 "原技能范围"), grown by her permanent rangeExtend. */
-    const keys39 = (unit) => absoluteRangeKeys(g39, st.r0, st.c0, st.dir0, unit.s.baseRangeExtend || 0);
+    const keys39 = (unit) => absoluteRangeKeys(g39, st.r0, st.c0, st.dir0, unit.s.baseRangeExtend || 0, unit.battle?.grid);
     const atHome = (unit) => !!st && unit.tileR === st.r0 && unit.tileC === st.c0;
     /** May she (blocking nothing) block flyer `e` once there: unblocked, no 无法被阻挡 state, room for its weight. */
     const blockable = (unit, e) => !e.blockedBy && !e.s.flags.unblockable && !e.s.flags.levitate && !e.s.flags.fear && !e.s.flags.attract

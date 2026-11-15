@@ -55,8 +55,8 @@ export { extendedGrid } from '../../shared/loadoutRecord.js';
 /** Tile key of a unit's current position (rounded half to even, as body.js). */
 export function tileKeyOf(u) {
   const r = roundHalfEven(u.y), c = roundHalfEven(u.x);
-  if (r < 0 || r >= ROWS || c < 0 || c >= COLS) return -1;
-  return r * COLS + c;
+  if (r < 0 || r >= (u.battle?.grid?.rows ?? ROWS) || c < 0 || c >= (u.battle?.grid?.cols ?? COLS)) return -1;
+  return r * (u.battle?.grid?.cols ?? COLS) + c;
 }
 
 /** Key of the buff that keeps an enemy's 隐匿 source `sourceKey` switched off after a block (Battle._stealthSwitch). */

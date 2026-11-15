@@ -22,7 +22,7 @@ export default {
         battle.on('death', (ctx) => {
           const e = ctx.unit;
           if (e.side !== 'enemy' || ctx.reason !== 'killed' || !up(unit)) return;
-          const near = grid ? bodyInRange(e, absoluteRangeKeys(grid, unit.tileR, unit.tileC, unit.dir, 0)) : cheb(unit, e) <= 1;
+          const near = grid ? bodyInRange(e, absoluteRangeKeys(grid, unit.tileR, unit.tileC, unit.dir, 0, battle.grid)) : cheb(unit, e) <= 1;
           if (near) battle.heal(unit, unit, unit.s.maxHp * num(t.hp_ratio), { self: true, tags: ['talent'] });
         }, { owner: unit });
         if (tb.damage_resistance != null) {

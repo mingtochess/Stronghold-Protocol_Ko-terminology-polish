@@ -592,7 +592,7 @@ function legField(b, r, c, k) {
 
 const tileKey = (b, e) => {
   const r = Math.round(e.y), c = Math.round(e.x);
-  return b.grid.inBounds(r, c) ? r * COLS + c : -1;
+  return b.grid.inBounds(r, c) ? r * (b.grid?.cols ?? COLS) + c : -1;
 };
 
 /**
@@ -610,11 +610,11 @@ function planLeg(b, e, leg) {
     pts = [];
     if (f) {
       let x = k;
-      let guard = COLS * 32;
+      let guard = (b.grid?.cols ?? COLS) * 32;
       while (x !== f.dest && guard-- > 0) { // loop-cap: flow-field guard
         x = f.next[x];
         if (x < 0) break;
-        pts.push({ x: x % COLS, y: (x / COLS) | 0 });
+        pts.push({ x: x % (b.grid?.cols ?? COLS), y: (x / (b.grid?.cols ?? COLS)) | 0 });
       }
     }
     const last = pts[pts.length - 1];
@@ -622,8 +622,8 @@ function planLeg(b, e, leg) {
     // The smoothed chain is line-of-sight clear from the tile CENTRE only. An enemy re-planning off-centre (pushed,
     // released by 诱导, an obstacle change mid-segment) first steps back to its tile centre when the straight line to
     // the first waypoint would cut a tile it cannot walk (a fence corner, a crate) — else it would walk inside it.
-    if (f && (e.x !== k % COLS || e.y !== ((k / COLS) | 0)) && !straightClear(b.grid, e.x, e.y, pts[0])) {
-      pts.unshift({ x: k % COLS, y: (k / COLS) | 0 });
+    if (f && (e.x !== k % (b.grid?.cols ?? COLS) || e.y !== ((k / (b.grid?.cols ?? COLS)) | 0)) && !straightClear(b.grid, e.x, e.y, pts[0])) {
+      pts.unshift({ x: k % (b.grid?.cols ?? COLS), y: (k / (b.grid?.cols ?? COLS)) | 0 });
     }
   }
   R.pts = pts;
@@ -655,8 +655,8 @@ function tailLength(b, e, idx) {
         const [sr, sc] = starts[i];
         len = hypot(L.r - sr, L.c - sc);
         if (e.motion !== 'FLY' && b.grid.inBounds(sr, sc)) {
-          const f = legField(b, L.r, L.c, sr * COLS + sc);
-          const fl = f ? b.grid.fieldLength(f, sr * COLS + sc) : Infinity;
+          const f = legField(b, L.r, L.c, sr * (b.grid?.cols ?? COLS) + sc);
+          const fl = f ? b.grid.fieldLength(f, sr * (b.grid?.cols ?? COLS) + sc) : Infinity;
           if (Number.isFinite(fl)) len = fl;
         }
       }

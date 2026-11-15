@@ -16,10 +16,10 @@ export class BattleTiles {
     // would later "block" from a tile it no longer stands on once it redeploys at home)
     if (!unit || unit.side !== 'ally' || !unit.alive || !unit.deployed) return false;
     if (!Number.isInteger(r) || !Number.isInteger(c) || !this.grid.inRect(r, c)) return false;
-    const k = r * COLS + c;
+    const k = r * this.grid.cols + c;
     if (this._occ[k] && this._occ[k] !== unit && this._occ[k].alive) return false;
     if (this.downOn(r, c)) return false;
-    const ok = unit.tileR * COLS + unit.tileC;
+    const ok = unit.tileR * this.grid.cols + unit.tileC;
     if (this._occ[ok] === unit) this._occ[ok] = null;
     this.releaseBlocked(unit);
     if (unit.obstacle) this.grid.setObstacle(unit.tileR, unit.tileC, false, unit.obstacleKind);
@@ -69,8 +69,8 @@ export class BattleTiles {
    * 卫戍协议/帮助 §作战阶段 单位部署), else its home tile (a token parked there would keep that unit off the field).
    */
   isReservedTile(r, c) {
-    if (!Number.isInteger(r) || !Number.isInteger(c) || r < 0 || r >= ROWS || c < 0 || c >= COLS) return true;
-    const u = this._occ[r * COLS + c];
+    if (!Number.isInteger(r) || !Number.isInteger(c) || r < 0 || r >= this.grid.rows || c < 0 || c >= this.grid.cols) return true;
+    const u = this._occ[r * this.grid.cols + c];
     if (u && u.alive) return true;
     for (const a of this.allyUnits) {
       if (a.alive || a.removed || (a.kind !== 'op' && a.kind !== 'token')) continue;
@@ -137,7 +137,7 @@ export class BattleTiles {
     const onPath = this.groundPathTiles();
     let best = null, bp = 2, bd = Infinity, bo = null;
     for (const k of unit.baseRangeKeys || unit.rangeKeys || []) {
-      const r = (k / COLS) | 0, c = k % COLS;
+      const r = (k / this.grid.cols) | 0, c = k % this.grid.cols;
       if (!this.grid.groundPassable(r, c) || !this.grid.canStand(r, c)) continue;
       if (this.isReservedTile(r, c)) continue;
       const o = localOrder(r - unit.tileR, c - unit.tileC, unit.dir);
@@ -177,7 +177,7 @@ export class BattleTiles {
       for (let j = 1; j < pts.length; j++) {
         const [a, b] = [pts[j - 1], pts[j]];
         const p = this.grid.findPath(a[0], a[1], b[0], b[1]) || this.grid.findPath(a[0], a[1], b[0], b[1], { ignoreObstacles: true });
-        for (const [r, c] of p || []) set.add(r * COLS + c);
+        for (const [r, c] of p || []) set.add(r * this.grid.cols + c);
       }
     });
     this._pathTiles = set;
@@ -210,7 +210,7 @@ export class BattleTiles {
   _downState(u) {
     if (this.time + 1e-9 < u.respawnAt) return DOWN_STATE.COUNTING;
     const [r, c] = this.restTile(u);
-    const occ = this._occ[r * COLS + c];
+    const occ = this._occ[r * this.grid.cols + c];
     if ((occ && occ.alive && occ !== u) || this.downOn(r, c, u)) return DOWN_STATE.WAIT_TILE;
     const ps = this.getPlayer(u.ownerId);
     return !ps || ps.dp + 1e-9 < u.base.cost ? DOWN_STATE.WAIT_DP : DOWN_STATE.COUNTING;

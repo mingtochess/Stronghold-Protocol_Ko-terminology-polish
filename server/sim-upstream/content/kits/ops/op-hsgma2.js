@@ -269,7 +269,7 @@ export default {
       install(battle, unit) {
         // S3 attacks air as well: its expanded auto-cast area must not inherit the inactive ground-only profile.
         if (unit.skill?.id === S3) unit.skill.addTriggerRange(() => [{
-          keys: absoluteRangeKeys(skillRec(chess, S3)?.rangeGrid ?? X2, unit.tileR, unit.tileC, unit.dir, unit.s.baseRangeExtend || 0),
+          keys: absoluteRangeKeys(skillRec(chess, S3)?.rangeGrid ?? X2, unit.tileR, unit.tileC, unit.dir, unit.s.baseRangeExtend || 0, battle.grid),
           profile: { canHitFly: true },
         }]);
         // AST-X 无迹: her attack damage ⇒ +atk_scale × ATK arts (附加伤害); an enemy damage instance she takes (the official
@@ -293,7 +293,7 @@ export default {
         }
         // S3 临死模式: every other allied operator on her range holds 不死; the part of a damage instance past its HP is her 流失
         const shelters = (t) => !!unit.mem.hsDying && up(unit) && !!t && t !== unit && t.side === 'ally' && t.kind === 'op' && t.alive
-          && !!unit.rangeKeySet && unit.rangeKeySet.has(t.tileR * COLS + t.tileC);
+          && !!unit.rangeKeySet && unit.rangeKeySet.has(t.tileR * (battle.grid?.cols ?? COLS) + t.tileC);
         battle.on('hpDamage', (c) => {
           const t = c.target;
           if (!shelters(t) || c.amount < t.hp) return;

@@ -21,7 +21,7 @@ export class BattleDeploy {
       if (!tile) u.removed = true;
       return false;
     }
-    const k = R0 * COLS + C0;
+    const k = R0 * this.grid.cols + C0;
     const occ = this._occ[k];
     if (occ && occ !== u && occ.alive && occ.deployed) { this.log(`tile ${R0},${C0} occupied; ${u} not deployed`); return false; }
     // "倒地干员所在地块视为可部署，但所有我方单位在此处的部署行为将被阻止" (PRTS 卫戍协议/帮助 §作战阶段 单位部署)
@@ -123,7 +123,7 @@ export class BattleDeploy {
     unit._removing = false;
     if (unit.side === 'ally') {
       this.releaseBlocked(unit);
-      const k = unit.tileR * COLS + unit.tileC;
+      const k = unit.tileR * this.grid.cols + unit.tileC;
       if (this._occ[k] === unit) this._occ[k] = null;
       // keep persistent buffs only
       const kept = [];
@@ -212,7 +212,7 @@ export class BattleDeploy {
       const rest = this.restTile(unit);
       if (rest[0] !== unit.homeR || rest[1] !== unit.homeC) at = rest;
     }
-    const k = at ? at[0] * COLS + at[1] : unit.homeR * COLS + unit.homeC;
+    const k = at ? at[0] * this.grid.cols + at[1] : unit.homeR * this.grid.cols + unit.homeC;
     const occ = this._occ[k];
     if (occ && occ.alive && occ !== unit) return false;
     if (at && this.downOn(at[0], at[1], unit)) return false;
@@ -245,7 +245,7 @@ export class BattleDeploy {
       const cost = u.base.cost * u.s.costMul;
       if (!ps || ps.dp + 1e-9 < cost) continue;
       const [r, c] = this.restTile(u);
-      const occ = this._occ[r * COLS + c];
+      const occ = this._occ[r * this.grid.cols + c];
       if (occ && occ.alive && occ !== u) continue;
       if (this.downOn(r, c, u)) continue;
       ps.dp = Math.max(0, ps.dp - cost);

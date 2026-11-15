@@ -37,10 +37,10 @@ export default {
     const sid = selectedId(chess, def);
     const grid = skillGrid(chess, def) ?? [[0, 0]];
     const zone = (battle, unit) => {
-      const at = unit.tileR * COLS + unit.tileC;
-      if (unit.mem.sariaAt !== at) { unit.mem.sariaAt = at; unit.mem.sariaKeys = new Set(absoluteRangeKeys(grid, unit.tileR, unit.tileC, unit.dir, 0)); }
+      const at = unit.tileR * (battle.grid?.cols ?? COLS) + unit.tileC;
+      if (unit.mem.sariaAt !== at) { unit.mem.sariaAt = at; unit.mem.sariaKeys = new Set(absoluteRangeKeys(grid, unit.tileR, unit.tileC, unit.dir, 0, battle.grid)); }
       const keys = unit.mem.sariaKeys;
-      return battle.allies().filter((a) => keys.has(a.tileR * COLS + a.tileC) && (a === unit || !(a.s.flags.noHeal || a.profile?.noHeal)));
+      return battle.allies().filter((a) => keys.has(a.tileR * (battle.grid?.cols ?? COLS) + a.tileC) && (a === unit || !(a.s.flags.noHeal || a.profile?.noHeal)));
     };
     const healable = (a, unit) => a.kind !== 'device' && (a === unit || !(a.s.flags.noHeal || a.profile?.noHeal));
     return {

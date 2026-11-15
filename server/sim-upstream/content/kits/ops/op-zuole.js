@@ -147,7 +147,7 @@ export default {
           kind: 'instant',
           onStart({ battle, unit }) {
             const grid = s3?.rangeGrid?.length ? s3.rangeGrid : [[0, 0], [0, 1], [0, 2], [0, 3]];
-            const keys = absoluteRangeKeys(grid, unit.tileR, unit.tileC, unit.dir, 0);
+            const keys = absoluteRangeKeys(grid, unit.tileR, unit.tileC, unit.dir, 0, battle.grid);
             // [ASSUMED] DESIGN §32.5: a bypass that never ran validateData still cannot loop 1e9 times. Official is 7.
             const times = Math.min(bbCap('times'), Math.max(1, Math.floor(num(b3.times, 7))));
             battle.fx('aoe', { x: unit.x + 1.5 * unit.fwd.x, y: unit.y + 1.5 * unit.fwd.y, radius: 1, id: unit.id, skill: 'zuole:slash' });

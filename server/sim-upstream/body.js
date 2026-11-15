@@ -54,7 +54,7 @@ export function hitRect(u) {
 /** Tile key of a unit's position (-1 off the grid). */
 function posKey(u) {
   const r = roundHalfEven(u.y), c = roundHalfEven(u.x);
-  return r < 0 || r >= ROWS || c < 0 || c >= COLS ? -1 : r * COLS + c;
+  return r < 0 || r >= (u.battle?.grid?.rows ?? ROWS) || c < 0 || c >= (u.battle?.grid?.cols ?? COLS) ? -1 : r * (u.battle?.grid?.cols ?? COLS) + c;
 }
 
 /**
@@ -65,9 +65,9 @@ export function bodyKeys(u) {
   const R = hitRect(u);
   if (!R) { const k = posKey(u); return k < 0 ? [] : [k]; }
   const out = [];
-  const r0 = Math.max(0, Math.floor(R.y0 + 0.5 + 1e-9)), r1 = Math.min(ROWS - 1, Math.ceil(R.y1 - 0.5 - 1e-9));
-  const c0 = Math.max(0, Math.floor(R.x0 + 0.5 + 1e-9)), c1 = Math.min(COLS - 1, Math.ceil(R.x1 - 0.5 - 1e-9));
-  for (let r = r0; r <= r1; r++) for (let c = c0; c <= c1; c++) out.push(r * COLS + c);
+  const r0 = Math.max(0, Math.floor(R.y0 + 0.5 + 1e-9)), r1 = Math.min((u.battle?.grid?.rows ?? ROWS) - 1, Math.ceil(R.y1 - 0.5 - 1e-9));
+  const c0 = Math.max(0, Math.floor(R.x0 + 0.5 + 1e-9)), c1 = Math.min((u.battle?.grid?.cols ?? COLS) - 1, Math.ceil(R.x1 - 0.5 - 1e-9));
+  for (let r = r0; r <= r1; r++) for (let c = c0; c <= c1; c++) out.push(r * (u.battle?.grid?.cols ?? COLS) + c);
   return out;
 }
 
@@ -99,8 +99,8 @@ export function bodyInKeys(u, keys) {
 export function colliderKeys(u) {
   if (u.hitArea || u.side === 'ally') return bodyKeys(u);
   const rho = ENEMY_COLLIDER_RADIUS, x = u.x, y = u.y;
-  const r0 = Math.max(0, Math.floor(y - rho + 0.5 + 1e-9)), r1 = Math.min(ROWS - 1, Math.ceil(y + rho - 0.5 - 1e-9));
-  const c0 = Math.max(0, Math.floor(x - rho + 0.5 + 1e-9)), c1 = Math.min(COLS - 1, Math.ceil(x + rho - 0.5 - 1e-9));
+  const r0 = Math.max(0, Math.floor(y - rho + 0.5 + 1e-9)), r1 = Math.min((u.battle?.grid?.rows??ROWS) - 1, Math.ceil(y + rho - 0.5 - 1e-9));
+  const c0 = Math.max(0, Math.floor(x - rho + 0.5 + 1e-9)), c1 = Math.min((u.battle?.grid?.cols??COLS) - 1, Math.ceil(x + rho - 0.5 - 1e-9));
   const out = [];
   for (let r = r0; r <= r1; r++) {
     const dy = y < r - 0.5 ? r - 0.5 - y : y > r + 0.5 ? y - r - 0.5 : 0;
@@ -108,7 +108,7 @@ export function colliderKeys(u) {
       const dx = x < c - 0.5 ? c - 0.5 - x : x > c + 0.5 ? x - c - 0.5 : 0;
       // a diagonal tile only when the circle reaches past its corner (the side tiles are within rho by the bounds)
       if (dx > 0 && dy > 0 && dx * dx + dy * dy >= rho * rho) continue;
-      out.push(r * COLS + c);
+      out.push(r * (u.battle?.grid?.cols??COLS) + c);
     }
   }
   return out;
@@ -124,8 +124,8 @@ export function bodyInRange(u, keys) {
   if (u.hitArea || u.side === 'ally') { for (const k of bodyKeys(u)) if (has(k)) return true; return false; }
   // colliderKeys without its array (kits call this per enemy on every aura tick)
   const rho = ENEMY_COLLIDER_RADIUS, x = u.x, y = u.y;
-  const r0 = Math.max(0, Math.floor(y - rho + 0.5 + 1e-9)), r1 = Math.min(ROWS - 1, Math.ceil(y + rho - 0.5 - 1e-9));
-  const c0 = Math.max(0, Math.floor(x - rho + 0.5 + 1e-9)), c1 = Math.min(COLS - 1, Math.ceil(x + rho - 0.5 - 1e-9));
+  const r0 = Math.max(0, Math.floor(y - rho + 0.5 + 1e-9)), r1 = Math.min((u.battle?.grid?.rows??ROWS) - 1, Math.ceil(y + rho - 0.5 - 1e-9));
+  const c0 = Math.max(0, Math.floor(x - rho + 0.5 + 1e-9)), c1 = Math.min((u.battle?.grid?.cols??COLS) - 1, Math.ceil(x + rho - 0.5 - 1e-9));
   for (let r = r0; r <= r1; r++) {
     const dy = y < r - 0.5 ? r - 0.5 - y : y > r + 0.5 ? y - r - 0.5 : 0;
     for (let c = c0; c <= c1; c++) {
@@ -165,7 +165,7 @@ export function bodyTileReach(u, r, c) {
   if (!u.hitArea) return Math.max(Math.abs(roundHalfEven(u.y) - r), Math.abs(roundHalfEven(u.x) - c));
   let best = Infinity;
   for (const k of bodyKeys(u)) {
-    const kr = Math.floor(k / COLS), kc = k % COLS;
+    const kr = Math.floor(k / (u.battle?.grid?.cols ?? COLS)), kc = k % (u.battle?.grid?.cols ?? COLS);
     const d = Math.max(Math.abs(kr - r), Math.abs(kc - c));
     if (d < best) best = d;
   }

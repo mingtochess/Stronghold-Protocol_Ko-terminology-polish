@@ -193,7 +193,7 @@ export default {
             const main = c.targets[0];
             const lat = (r, cc) => toLocal(r - unit.tileR, cc - unit.tileC, unit.dir)[0];
             const l0 = lat(Math.round(main.y), Math.round(main.x));
-            const onLine = (e) => bodyKeys(e).some((k) => lat(Math.floor(k / COLS), k % COLS) === l0);
+            const onLine = (e) => bodyKeys(e).some((k) => lat(Math.floor(k / (battle.grid?.cols ?? COLS)), k % (battle.grid?.cols ?? COLS)) === l0);
             const line = battle.enemiesInKeys(unit.rangeKeys, unit, { ...unit.profile, canHitFly: true }).filter((e) => e !== main && onLine(e));
             if (line.length) c.targets = [main, ...line];
           }, { owner: unit, priority: 10 });

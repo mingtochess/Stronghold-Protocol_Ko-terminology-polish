@@ -145,7 +145,7 @@ export default withDefaults({
         if (!a) return;
         whileDeployed(battle, unit, AURA, () => {
           const set = new Set(unit.baseRangeKeys || []);
-          const n = battle.allies(unit.ownerId).filter((o) => o !== unit && o.kind === 'op' && set.has(o.tileR * COLS + o.tileC)).length;
+          const n = battle.allies(unit.ownerId).filter((o) => o !== unit && o.kind === 'op' && set.has(o.tileR * (battle.grid?.cols ?? COLS) + o.tileC)).length;
           toggleBuff(battle, unit, 'cetsyr:module', n >= cnt, { atkPct: a });
         });
       },

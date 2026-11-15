@@ -97,10 +97,10 @@ export class BattlePlayers {
     if (!keys) {
       keys = ps._boardKeys = new Set();
       for (let br = GEO.FIELD.r0; br <= GEO.FIELD.r1; br++) {
-        for (let bc = GEO.FIELD.c0; bc <= GEO.FIELD.c1; bc++) { const [fr, fc] = this._boardTile(ps, br, bc); keys.add(fr * COLS + fc); }
+        for (let bc = GEO.FIELD.c0; bc <= GEO.FIELD.c1; bc++) { const [fr, fc] = this._boardTile(ps, br, bc); keys.add(fr * this.grid.cols + fc); }
       }
     }
-    return keys.has(r * COLS + c);
+    return keys.has(r * this.grid.cols + c);
   }
 
   /**
@@ -121,7 +121,7 @@ export class BattlePlayers {
     let r = row;
     if (ps.rowOffset != null) r = row + ps.rowOffset;
     else if (bossLike && row >= 7) r = row + BOSS_ROW_OFFSET;
-    const c = ps.mirror ? (col <= 10 ? COLS - 1 - col : col) : col + ps.colOffset;
+    const c = ps.mirror ? (col <= 10 ? this.grid.cols - 1 - col : col) : col + ps.colOffset;
     return [r, c];
   }
 

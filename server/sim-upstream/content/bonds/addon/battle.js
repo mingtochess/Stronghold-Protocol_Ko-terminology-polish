@@ -295,7 +295,7 @@ function raidBoard(battle, r, c) {
   if (battle.onFieldBoard(r, c)) return true;
   return battle.modeId?.startsWith('mode_multi_') && (battle.kind === 'boss' || battle.kind === 'hidden')
     && r >= GEO.FIELD.r0 + BOSS_ROW_OFFSET && r <= GEO.FIELD.r1 + BOSS_ROW_OFFSET
-    && c >= GEO.FIELD.c0 && c <= COLS - 1 - GEO.FIELD.c0;
+    && c >= GEO.FIELD.c0 && c <= (battle.grid?.cols ?? COLS) - 1 - GEO.FIELD.c0;
 }
 
 /**
@@ -335,19 +335,19 @@ function raidTile(battle, u, e, reach) {
   // on the far side of that body — the hidden round's leader then stopped being jumped to at all.
   let bR0 = Infinity, bR1 = -1, bC0 = Infinity, bC1 = -1;
   for (const k of body) {
-    const br = Math.floor(k / COLS), bc = k - br * COLS;
+    const br = Math.floor(k / (battle.grid?.cols ?? COLS)), bc = k - br * (battle.grid?.cols ?? COLS);
     bR0 = Math.min(bR0, br); bR1 = Math.max(bR1, br); bC0 = Math.min(bC0, bc); bC1 = Math.max(bC1, bc);
   }
   const path = !ranged && u.s.blockCnt > 0 ? battle.groundPathTiles() : null;
   let best = null, bp = 2, bd = Infinity, bo = null;
   for (const k of body) {
-    const br = Math.floor(k / COLS), bc = k - br * COLS;
+    const br = Math.floor(k / (battle.grid?.cols ?? COLS)), bc = k - br * (battle.grid?.cols ?? COLS);
     for (let i = 0; i < reach.length; i += 2) {
       const r = br - reach[i], c = bc - reach[i + 1], dr = r - er, dc = c - ec;
       const wr = Math.min(Math.max(r, bR0), bR1) - r, wc = Math.min(Math.max(c, bC0), bC1) - c;   // gap to the body
       if (Math.abs(wr) > RAID_SEARCH || Math.abs(wc) > RAID_SEARCH) continue;
       if (!battle.grid.inRect(r, c) || !raidBoard(battle, r, c) || !battle.grid.canStand(r, c, { ranged }) || battle.isReservedTile(r, c)) continue;
-      const t = r * COLS + c;
+      const t = r * (battle.grid?.cols ?? COLS) + c;
       const p = path && battle.grid.tile(r, c).pass === 'ALL' && (path.has(t) || body.includes(t)) ? 0 : 1;   // its block applies
       const d = Math.max(Math.abs(dr), Math.abs(dc)) + 0.01 * (Math.abs(dr) + Math.abs(dc));
       const o = localOrder(dr, dc, u.dir);

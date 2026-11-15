@@ -104,7 +104,7 @@ function lumen(bb, chess, def) {
         battle.on('statusApplied', (ctx) => {
           const t = ctx.target;
           if (!live(unit) || !t || t.side !== 'ally' || !ABNORMAL.has(ctx.status) || battle.time < ready || !(sc > 0)) return;
-          if (!unit.rangeKeySet?.has(t.tileR * COLS + t.tileC)) return;
+          if (!unit.rangeKeySet?.has(t.tileR * (battle.grid?.cols ?? COLS) + t.tileC)) return;
           ready = battle.time + cd;
           battle.heal(unit, t, unit.s.atk * sc);
           battle.fx('emergency', { x: t.x, y: t.y, id: t.id, src: unit.id });
