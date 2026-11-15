@@ -103,3 +103,21 @@ test('矩兽: a regBurst at its death; 假想敌：茧: its 伪装 buff is visib
   assert.ok(phases.some((o) => o.from), 'a switch from the other form');
   assert.ok(phases.some((o) => !o.from), 'a summon (no switch)');
 });
+
+// 제보 2026-11-15: a co-op 假想敌：茧 walked to the 叙拉古 player's side (its 6 rolls 诱导 among its abnormal statuses) and
+// the other player's operators could not reach it — the attract template ignored the data's otherImmunities 'attract'
+test('诱导 (attract) respects otherImmunities: an immune fixed boss stays, a plain enemy is pulled; both engines', async () => {
+  const { STATUS: up } = await import('../server/sim-upstream/buffs.js');
+  const { STATUS: cov } = await import('../server/sim/buffs.js');
+  assert.equal(up.attract.immune, 'attract');
+  assert.equal(cov.attract.immune, 'attract');
+  const { h, boss } = bossFight('enemy_9035_acspider');
+  const u = h.b.allies()[0];
+  assert.equal(h.b.applyStatus(boss, 'attract', { duration: 5, source: u }), false);
+  const x0 = boss.x;
+  h.run(5);
+  assert.equal(boss.x, x0);
+  const plain = bossFight('enemy_9040_accrit');
+  assert.ok(!plain.boss.def.immune.has('attract'));
+  assert.equal(plain.h.b.applyStatus(plain.boss, 'attract', { duration: 5, source: plain.h.b.allies()[0] }), true);
+});
