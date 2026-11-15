@@ -210,7 +210,7 @@ export default {
           const prof = battle.effectiveProfile(unit);
           if (!battle.enemiesInKeys(unit.rangeKeys, unit, prof).length && !battle.blockedTargets(unit, prof).length) return;
           if (!sk.activate('awake')) return;
-          if (battle.forceAttack(unit)) unit.atkCd = Math.max(unit.atkCd, unit.s.interval);
+          if (battle.forceAttack(unit, null, {castImpact:true})) unit.atkCd = Math.max(unit.atkCd, unit.s.interval);
         }, { owner: unit });
       },
     };

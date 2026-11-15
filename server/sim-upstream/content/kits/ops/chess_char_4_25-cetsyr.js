@@ -1,13 +1,11 @@
+import { emitMotes } from '../shared/cetsyrMotes.js';
 // server/sim/content/kits/ops/chess_char_4_25-cetsyr.js — 魔王 (char_4134_cetsyr) kit, tier 4.
 // Conventions of the tier-4 kits: ../shared/tier4.js; kit contract and rules: ../README.md.
 
 import { COLS } from '../../../constants.js';
 import { canTargetEnemy } from '../../../targeting.js';
 import { aggregateMods } from '../../../buffs.js';
-import {
-  AURA, AURA_DUR, num, tbb, moduleBb, grid, enemyHasTag, whileDeployed, toggleBuff, skillActive, isSel, alt,
-  withDefaults,
-} from '../shared/tier4.js';
+import { AURA, AURA_DUR, num, tbb, moduleBb, grid, enemyHasTag, whileDeployed, toggleBuff, skillActive, isSel, alt, withDefaults } from '../shared/tier4.js';
 
 /**
  * 鼓舞 (ba.inspire "获得额外附加的基础属性加成（同类属性取最高）"): +`val` ATK (or max HP) on top of the target's own
@@ -95,17 +93,17 @@ export default withDefaults({
         { install(battle, unit) { // 过往尘埃: 3 motes; touching an operator ⇒ her trait regen ×1.5 on it for 6 s; mote back after 6 s
           unit.mem.motes = new Array(baseCnt).fill(-Infinity);
           unit.mem.noInspire = true; // trait: 自身不受鼓舞影响 (another bard's 鼓舞 skips her)
-          // The orbiting 「微尘」 for the client (render/motes.js; snapshot.js moteView): how many are out right now and
-          // whether S2's 旋转半径扩大 is up. Display only — the mote logic below stays the sim's own.
-          unit.moteRing = () => [unit.mem.motes.reduce((k, t) => k + (t <= battle.time + 1e-9 ? 1 : 0), 0), S2 && skillActive(unit) ? 1 : 0];
           const cooldown = () => (S1 && skillActive(unit) ? num(bb.talent_cool_down, 3) : num(t0.cooldown, 6)); // S1: 重生速度加快
           const takeMote = () => {
             const i = unit.mem.motes.findIndex((t) => t <= battle.time + 1e-9);
             if (i < 0) return false;
             unit.mem.motes[i] = battle.time + cooldown();
+            showMotes();
             return true;
           };
+          const showMotes = () => emitMotes(battle, unit, unit.mem.motes, S2 && skillActive(unit) ? num(bb.outside_radius, 2) : num(t0.range_radius, 1.15), num(t0.dynamic_spd, 30), skillActive(unit) ? (S2 ? 2 : S3 ? 3 : S1 ? 1 : 0) : 0);
           whileDeployed(battle, unit, 0.25, () => {
+            showMotes();
             if (S2 && skillActive(unit)) {
               // S2: motes orbit wider and hit enemies instead of operators
               const hitAt = unit.mem.moteHit || (unit.mem.moteHit = new Map());
@@ -116,8 +114,8 @@ export default withDefaults({
                 if (!takeMote()) break;
                 hitAt.set(e.id, battle.time + MOTE_GAP);
                 battle.dealDamage(unit, e, { amount: unit.s.atk * num(bb.atk_scale, 2.2), type: 'true', isSkill: true, tags: ['skill', 'mote'] });
-                if (e.alive) battle.applyStatus(e, 'bind', { duration: num(bb.unmoveable_duration, 3), source: unit });
-                battle.fx('mote', { x: e.x, y: e.y, id: e.id });
+                if (e.alive) { battle.applyStatus(e, 'bind', { duration: num(bb.unmoveable_duration, 3), source: unit }); battle.fx('tie', { x: e.x, y: e.y, id: e.id, src: unit.id, dur: num(bb.unmoveable_duration, 3) }); }
+                battle.fx('mote', { x: e.x, y: e.y, id: e.id, src: unit.id, mode: 2 });
               }
               return;
             }
@@ -126,7 +124,7 @@ export default withDefaults({
               if (a === unit || a.kind !== 'op' || a.findBuff(`cetsyr:mote:${unit.id}`)) continue;
               if (!keep && !takeMote()) break;
               battle.addBuff(a, { key: `cetsyr:mote:${unit.id}`, duration: num(t0.talent_duration, 6), visible: true, source: unit });
-              battle.fx('mote', { x: a.x, y: a.y, id: a.id });
+              battle.fx('mote', { x: a.x, y: a.y, id: a.id, src: unit.id });
             }
           });
           // "受到魔王特性效果提升至1.5倍": her trait's 生命回复速度 on that operator (professions.js bardRegen hook)

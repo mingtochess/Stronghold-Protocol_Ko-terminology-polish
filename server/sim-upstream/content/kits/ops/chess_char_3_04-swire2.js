@@ -3,10 +3,7 @@
 
 import { COLS } from '../../../constants.js';
 import { bodyOnTile } from '../../../body.js';
-import {
-  num, defOf, talentBb, moduleTalentBb, selectedId, altSkills, alive, gridKeys, fx, textNum, freeTile,
-  groundTile, enemiesOn,
-} from '../shared/tier3.js';
+import { num, defOf, talentBb, moduleTalentBb, selectedId, altSkills, alive, gridKeys, fx, copyGrid, textNum, freeTile, groundTile, enemiesOn } from '../shared/tier3.js';
 import { powi } from '../../../detmath.js';
 import { champagneHold, champagneLeavesWithOwner, CHAMPAGNE_TRIGGER } from '../../tokens.js';
 import { canTargetEnemy } from '../../../targeting.js';
@@ -28,7 +25,7 @@ function merchantInstall(onPay) {
       const pl = battle.getPlayer(unit.ownerId);
       if (!pl) return;
       if (pl.dp >= cost) {
-        battle.addDp(unit.ownerId, -cost, unit);
+        battle.addDp(unit.ownerId, -cost);
         onPay(battle, unit, cost);
         battle.emit('merchantPay', { unit, cost });
       } else battle.retreat(unit, { reason: 'merchant' });
@@ -229,7 +226,7 @@ export default {
             const cost = Math.abs(num(t1.cost, -5)) * powi(num(t1.cost_multi, 2), n);
             const pl = battle.getPlayer(unit.ownerId);
             if (!pl || pl.dp + 1e-9 < cost) return;
-            battle.addDp(unit.ownerId, -cost, unit);
+            battle.addDp(unit.ownerId, -cost);
             unit.mem.saveCount = n + 1;
             ctx.prevented = true;
             unit.hp = Math.max(1, unit.s.maxHp * num(t1.hp_ratio, 0.7));

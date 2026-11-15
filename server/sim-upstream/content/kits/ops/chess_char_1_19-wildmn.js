@@ -40,7 +40,7 @@ export default {
           onHit({ battle, unit, target }) {
             if (!target || !target.alive || target.side !== 'enemy') return;
             const dir = { x: unit.fwd[1], y: unit.fwd[0] };
-            const behind = (target.x - unit.x) * dir.x + (target.y - unit.y) * dir.y < 0;
+            const behind = (target.x - unit.x) * dir.x + (target.y - unit.y) * dir.y < -1e-6;
             battle.push(target, force, { from: unit, dir, effect: behind });
           },
         },

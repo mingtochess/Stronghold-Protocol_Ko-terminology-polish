@@ -2,9 +2,7 @@
 // Conventions of the tier-5 kits: ../shared/tier5.js; kit contract and rules: ../README.md.
 
 import { bodyInRadius } from '../../../body.js';
-import {
-  AURA_IV, AURA_DUR, num, talent, traitBb, batPct, mods, isOp, selectedId, lazySkills, instantKind, whileOn,
-} from '../shared/tier5.js';
+import { AURA_IV, AURA_DUR, num, talent, traitBb, batPct, mods, isOp, selectedId, lazySkills, instantKind, whileOn } from '../shared/tier5.js';
 
 /** 号角 S2 过载: the second half of the ammo (PRTS 备注 of S3 "技能进行到一半时"; S2 counts shots). [ASSUMED] */
 const HORN_S2_OVERLOAD_AT = 0.5;
@@ -21,12 +19,6 @@ export default {
   // 隐匿). S2 暴风号令 (ammo 10): every attack attack@s2.atk_scale × ATK phys splash; 过载 for the second half of the
   // ammo [ASSUMED like S3]: + attack@s2.magic_atk_scale × ATK arts to every enemy hit (manual close never happens in the
   // auto battle). Module FOR-Y (elite): ASPD +10 while not blocking.
-  // Module ISW-A 号角特限证章 (elite, CN 2.7.91; an 集成战略 special module): only its stats apply here. Its 特性追加
-  // 「在集成战略中，可以部署在目标点且可以攻击隐匿敌人」 is inert (trait.modeOnly, no trait blackboard) and so are the 集成战略
-  // clauses of 军事要塞: the module's hidden talent part is empty at stage 1 (the tier-5 elite) and holds only those
-  // clauses at stages 2 / 3 (atk / max_hp / ability_range_forward_extend, stage 3 also sp / sp_max — 「在集成战略中，在场时
-  // 额外使重装干员攻击力+20%…」), which this kit never reads; 军事要塞 keeps its plain 「在场时所有重装干员的攻击力+20%（+3%）」,
-  // the base talent's atk (the module restates its text only, battle_equip_table uniequip_004_horn).
   // S2 and S3 cast with an enemy in range (data DEFAULT, rawRule TAKE_DAMAGE): the owner's deliberate deviation from the
   // official 重装 TAKE_DAMAGE row (DESIGN §21.29, tools/build-data.mjs TRIGGER_DEVIATIONS).
   chess_char_5_08_a: (bb, chess, def) => {
@@ -72,6 +64,8 @@ export default {
             const delta = ovAtk - num(bb.atk);
             battle.addBuff(unit, { key: 'horn:overload', visible: true, mods: mods({ atkPct: delta }) });
             battle.fx('overload', { x: unit.x, y: unit.y, id: unit.id });
+            // the overload's loop for the rest of the skill, its back view for a unit facing up (display only)
+            battle.fx(unit.dir === 'UP' ? 'overloadBack' : 'overloadFront', { x: unit.x, y: unit.y, id: unit.id, dur: unit.skill?.timeLeft });
           }
           if (!unit.mem.overload || !(ovPeak > 0)) return;
           unit.mem.hornAcc += dt;
@@ -106,7 +100,7 @@ export default {
         } },
       ],
       install(battle, unit) {
-        const aspd = num(tm.attack_speed); // FOR-Y: 不阻挡敌人时…攻击速度+10 (ISW-A's 集成战略-only part has no such key)
+        const aspd = num(tm.attack_speed); // FOR-Y: 不阻挡敌人时…攻击速度+10
         if (aspd) whileOn(battle, unit, 0.2, () => { if (!unit.blocking.length) battle.addBuff(unit, { key: 'horn:moduleY', duration: 0.3, mods: { aspd } }); });
         if (sid === 'skchr_horn_1') {
           // the pending shot: a ranged (unblocked) attack widens its splash and lights the impact
@@ -131,7 +125,7 @@ export default {
             if (c.attacker !== unit || !unit.skill?.active || !c.profile) return;
             const shot = s2Ammo - num(unit.skill.ammoLeft) + 1;
             const over = shot > s2Ammo * HORN_S2_OVERLOAD_AT + 1e-9;
-            if (over && !unit.mem.hornS2Over) battle.fx('overload', { x: unit.x, y: unit.y, id: unit.id });
+            if (over && !unit.mem.hornS2Over) { battle.fx('overload', { x: unit.x, y: unit.y, id: unit.id }); battle.fx(unit.dir === 'UP' ? 'overloadBack' : 'overloadFront', { x: unit.x, y: unit.y, id: unit.id, dur: 60 }); }
             unit.mem.hornS2Over = over;
             if (!over || !(magic > 0)) return;
             // decided at the shot (a shell still in flight when the skill ends keeps it): the effective profile of this
