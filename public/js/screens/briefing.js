@@ -8,7 +8,8 @@ import { ChatPanel } from '../ui/chat.js';
 // avatars — is ui/matchInfo.js MatchInfo, the same blocks the strategy draft's 本局信息 dialog shows (screens/bandDraft.js).
 
 import { useState } from '../../vendor/hooks.module.js';
-import { html, Button, Icon, MicroLabel, BondDisc } from '../ui/components.js';
+import { html, Button, Icon, MicroLabel } from '../ui/components.js';
+import { HudBond } from '../ui/bondStrip.js';
 import { useGameData, Img, RichText, BondGlyph } from '../ui/gameComponents.js';
 import { StepHeader, ExitModal } from '../ui/matchChrome.js';
 import { MatchInfo, matchInfoModel } from '../ui/matchInfo.js';
@@ -103,7 +104,9 @@ function BondGroupPicker({ pub, canPick }) {
       ${choice.groups.map((g, idx) => html`<button key=${idx} type="button" class=${cx('brief-group', choice.picked === idx && 'is-on')}
           aria-pressed=${choice.picked === idx} disabled=${busy || !canPick} onClick=${() => pick(idx)}>
         <span class="brief-group__label">${t('그룹')} ${idx === 0 ? 'A' : 'B'}</span>
-        <span class="brief-group__bonds">${g.map((b) => html`<span key=${b} class="brief-group__bond brief-bond"><${BondDisc} name=${gd.bond?.(b)?.name || b} icon=${bondIconUrl(data.get('assets'), b)} active=${choice.picked === idx} disabled=${choice.picked != null && choice.picked !== idx} tier=${choice.picked === idx ? (gd.bond?.(b)?.thresholds?.length || 1) : 0} maxTier=${Math.max(1, gd.bond?.(b)?.thresholds?.length || 1)} size="md" /></span>`)}</span>
+        <span class="brief-group__bonds">${g.map((b) => html`<span key=${b} class="brief-group__bond brief-bond">${/* the bond rows' own item (bondStrip.js HudBond) */''}<${HudBond} name=${gd.bond?.(b)?.name || b} icon=${bondIconUrl(data.get('assets'), b)}
+          thresholds=${Number(gd.bond?.(b)?.thresholds?.[0]) || 1} tier=${choice.picked === idx ? Number(gd.bond?.(b)?.thresholds?.[0]) || 1 : 0}
+          active=${choice.picked === idx} disabled=${choice.picked != null && choice.picked !== idx} /></span>`)}</span>
         ${choice.picked === idx ? html`<span class="brief-group__mark"><${Icon} name="check" /></span>` : null}
       </button>`)}
     </div>
