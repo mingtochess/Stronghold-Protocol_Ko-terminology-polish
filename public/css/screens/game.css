@@ -1072,6 +1072,13 @@
 .cmdx__tile.is-aiming { outline: 2px solid #f0c35a; outline-offset: 2px; }
 .cmdx__tile.is-dragging { opacity: .45; cursor: grabbing; }
 .cmdx__tile:disabled { opacity: .8; }
+.cmdx__tile { position: relative; }
+/* 쿨타임(남은 라운드) / 남은 사용 횟수 */
+.cmdx__tile.is-spent img { filter: grayscale(1) brightness(.55); }
+.cmdx__state { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); min-width: .3rem; padding: 0 .04rem; text-align: center;
+  font-size: .2rem; font-weight: 800; line-height: 1.1; color: #fff; text-shadow: 0 0 2px #000, 0 0 4px #000; pointer-events: none; }
+.cmdx__state:not(.is-cd) { left: auto; top: .02rem; right: .02rem; transform: none; font-size: .14rem; color: #f0c35a; }
+.cmdx__state.is-out { color: #ff6a6a; }
 .cmdx__ghost { position: fixed; z-index: 60; width: .56rem; height: .56rem; margin: -.28rem 0 0 -.28rem; pointer-events: none; display: grid; place-items: center;
   background: rgba(var(--shade-rgb),.9); border: 1px solid #f0c35a; box-shadow: 0 0 .16rem rgba(240,195,90,.7); }
 .cmdx__ghost img { width: 86%; height: 86%; object-fit: contain; }

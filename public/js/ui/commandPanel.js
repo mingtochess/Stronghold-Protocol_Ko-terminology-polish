@@ -156,12 +156,15 @@ export function CommandPanel({ priv, editable, getView }) {
     <button type="button" class=${`cmdx__info${draft ? ' is-pending' : ''}`} aria-label=${t('전략 명령 효과 보기')} title=${t('전략 명령 효과 보기')}
       onClick=${onInfo}><${Icon} name="search" />${draft ? html`<span class="cmdx__badge">!</span>` : null}</button>
     ${view ? html`<${Tooltip} placement="bottom" text=${tip}>
-      <button type="button" ref=${tileRef} data-testid="command-tile" class=${`cmdx__tile effect${usable ? ' is-usable' : ''}${aiming ? ' is-aiming' : ''}${ghost ? ' is-dragging' : ''}`}
+      <button type="button" ref=${tileRef} data-testid="command-tile" class=${`cmdx__tile effect${usable ? ' is-usable' : ''}${view.type === 'ACTIVE' && (view.reason === 'cooldown' || view.reason === 'exhausted') ? ' is-spent' : ''}${aiming ? ' is-aiming' : ''}${ghost ? ' is-dragging' : ''}`}
         aria-label=${t('전략 명령')} aria-pressed=${aiming} disabled=${view.type !== 'ACTIVE'}
         onClick=${onClick} onPointerDown=${onPointerDown} onPointerMove=${onPointerMove} onPointerUp=${onPointerUp}
         onPointerCancel=${() => { press.current = null; setGhost(null); }}>
         <${Img} src=${bandIconUrl(m, priv?.bandId)} fallback=${html`<${GIcon} name="bolt" />`} />
         ${cost != null && view.type === 'ACTIVE' ? html`<b class="effect__n num">${cost}</b>` : null}
+        ${/* 쿨타임 / 남은 횟수 on the tile itself: a cooling or spent command is greyed with its count */ ''}
+        ${view.type === 'ACTIVE' && view.cooldown ? html`<span class="cmdx__state is-cd num" title=${t('재사용 대기')}>${view.cooldown}</span>`
+          : view.type === 'ACTIVE' && view.usesLeft != null ? html`<span class=${`cmdx__state num${view.usesLeft === 0 ? ' is-out' : ''}`} title=${t('남은 횟수')}>×${view.usesLeft}</span>` : null}
       </button>
     <//>` : null}
     ${ghost ? (() => {
