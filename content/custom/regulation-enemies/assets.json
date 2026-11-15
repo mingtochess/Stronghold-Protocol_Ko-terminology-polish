@@ -1,0 +1,126 @@
+{
+ "description": "규정(act3autochess) 전용 적 Spine 8종(+기본 모델을 공유하는 _2 변형 2종): 공개 미러 isHarryh/Ark-Models@b799ffe8ee30bbb1b04f3c551234edfab8d5549a 원본. 애니메이션·타격 시점·이벤트가 assets.json spineLocal(공식 클라이언트 추출 메타데이터)과 일치함을 tools/assets/spine.mjs localSpineMeta로 확인",
+ "source": "https://github.com/isHarryh/Ark-Models/tree/b799ffe8ee30bbb1b04f3c551234edfab8d5549a/models_enemies",
+ "files": [
+  {
+   "path": "/assets/local/spine/enemy/enemy_9024_acsgnt/enemy_9024_acsgnt.atlas",
+   "bytes": 2455,
+   "sha256": "730743a2ca3654fb6452b85a13fc857afe94a5e43669b86b0b13ff95ba6bc1a7"
+  },
+  {
+   "path": "/assets/local/spine/enemy/enemy_9024_acsgnt/enemy_9024_acsgnt.png",
+   "bytes": 134010,
+   "sha256": "9578ce48eb343f8502efe6afcde97731a74f4d93150a2c39e5b5ccdabdb590d5"
+  },
+  {
+   "path": "/assets/local/spine/enemy/enemy_9024_acsgnt/enemy_9024_acsgnt.skel",
+   "bytes": 104002,
+   "sha256": "538ffa5e8f3e64fc888f14ff020a221f9f660815dea4b65be7d19b539b38d31a"
+  },
+  {
+   "path": "/assets/local/spine/enemy/enemy_9027_acfnca/enemy_9027_acfnca.atlas",
+   "bytes": 1435,
+   "sha256": "ea3d9f452a88cfaf952f2474625efb9376d74720416ec2c56692dc4c30a379ca"
+  },
+  {
+   "path": "/assets/local/spine/enemy/enemy_9027_acfnca/enemy_9027_acfnca.png",
+   "bytes": 87311,
+   "sha256": "6d9e9f077b965c3d52eeedd3b4458709d8e99a4bc07d44710457ebceeffe2f5f"
+  },
+  {
+   "path": "/assets/local/spine/enemy/enemy_9027_acfnca/enemy_9027_acfnca.skel",
+   "bytes": 64336,
+   "sha256": "4306d261a8da40e2adc9ad65aa6cce67a8271346843ea1ba5998eff934d4cadc"
+  },
+  {
+   "path": "/assets/local/spine/enemy/enemy_9028_acfncb/enemy_9028_acfncb.atlas",
+   "bytes": 1741,
+   "sha256": "6aa0e4a7e5d8de03a672f687cea219f54e4cc118b5d537aa25596748e89bdffa"
+  },
+  {
+   "path": "/assets/local/spine/enemy/enemy_9028_acfncb/enemy_9028_acfncb.png",
+   "bytes": 34103,
+   "sha256": "df37d378d500a2d0834ec8423ad5e65191e5ce3c0fb22f70c8d9a51aa3808011"
+  },
+  {
+   "path": "/assets/local/spine/enemy/enemy_9028_acfncb/enemy_9028_acfncb.skel",
+   "bytes": 19306,
+   "sha256": "7d7035c43b570babda88b086bed40fd30ae0ad19a1068c0465161f51681b1874"
+  },
+  {
+   "path": "/assets/local/spine/enemy/enemy_9029_acfnc/enemy_9029_acfnc.atlas",
+   "bytes": 6287,
+   "sha256": "157412125b00542a908c2b087daff031b55cda187a0b66ddacc47da36b5e7b6a"
+  },
+  {
+   "path": "/assets/local/spine/enemy/enemy_9029_acfnc/enemy_9029_acfnc.png",
+   "bytes": 409450,
+   "sha256": "07f29cee8793ceacf7219b3c49ebe7ce67a5f84c03820bac2abec700860c71ff"
+  },
+  {
+   "path": "/assets/local/spine/enemy/enemy_9029_acfnc/enemy_9029_acfnc.skel",
+   "bytes": 480366,
+   "sha256": "fa5768549d241cc7ac050bc8854e10093f762701c352f7dddad6e28ed2d6873e"
+  },
+  {
+   "path": "/assets/local/spine/enemy/enemy_9035_acspider/enemy_9035_acspider.atlas",
+   "bytes": 3694,
+   "sha256": "1477d1d33d07f39730584b6085cd86a30df81cd1e0e080fb808fa78bf04ab2e8"
+  },
+  {
+   "path": "/assets/local/spine/enemy/enemy_9035_acspider/enemy_9035_acspider.png",
+   "bytes": 439010,
+   "sha256": "24bf7b6504a6e37ec1be2bbd422f22db6cb7b05d202d4edd40748c53642f2767"
+  },
+  {
+   "path": "/assets/local/spine/enemy/enemy_9035_acspider/enemy_9035_acspider.skel",
+   "bytes": 127379,
+   "sha256": "0179dfa7ddcceb68a9b829ea655b88ec90c56101efffc12e46ff5380a66d1ac2"
+  },
+  {
+   "path": "/assets/local/spine/enemy/enemy_9035_acspider_2/enemy_9035_acspider_2.atlas",
+   "bytes": 3983,
+   "sha256": "c3ac67471f874f8aab00cfc49423dea9f5bd265337fa7794002a1885b3c57602"
+  },
+  {
+   "path": "/assets/local/spine/enemy/enemy_9035_acspider_2/enemy_9035_acspider_2.png",
+   "bytes": 462612,
+   "sha256": "4f952f64bd04b8a30d378aa7a0b060baa8262752af909a332652d69a2495ed90"
+  },
+  {
+   "path": "/assets/local/spine/enemy/enemy_9035_acspider_2/enemy_9035_acspider_2.skel",
+   "bytes": 131370,
+   "sha256": "5c2867e9b6cbde02be833411c96a2479fe5428df9faed76223a5e0f8e5bb9531"
+  },
+  {
+   "path": "/assets/local/spine/enemy/enemy_9037_aceel/enemy_9037_aceel.atlas",
+   "bytes": 1476,
+   "sha256": "c116f55aa750414f8c72572ee40adabb0859e609f948cd188b4808889aae8709"
+  },
+  {
+   "path": "/assets/local/spine/enemy/enemy_9037_aceel/enemy_9037_aceel.png",
+   "bytes": 75973,
+   "sha256": "928ed4f2bbe325a5e0224eb439e675af935fba1e91c1a2d131276cecb4184d4c"
+  },
+  {
+   "path": "/assets/local/spine/enemy/enemy_9037_aceel/enemy_9037_aceel.skel",
+   "bytes": 74643,
+   "sha256": "c04ef128dd7068d37bf365ad0a0d205072e188be8411a91e7a0532b5368dd341"
+  },
+  {
+   "path": "/assets/local/spine/enemy/enemy_9040_accrit/enemy_9040_accrit.atlas",
+   "bytes": 2256,
+   "sha256": "7d16fe79c7a329443c932e99dec9955373a5ea9f36a64bba2cf8d2697ec43eed"
+  },
+  {
+   "path": "/assets/local/spine/enemy/enemy_9040_accrit/enemy_9040_accrit.png",
+   "bytes": 104967,
+   "sha256": "53aea3ae7af03fbee968833ebbee114d380232e47e27d3146756180899616443"
+  },
+  {
+   "path": "/assets/local/spine/enemy/enemy_9040_accrit/enemy_9040_accrit.skel",
+   "bytes": 73353,
+   "sha256": "7ba5b18012971867d4619e1c5a70a32a80e6df7435d67492fc75bf7d00118ec9"
+  }
+ ]
+}
