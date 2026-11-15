@@ -1,3 +1,8 @@
+// server/sim-upstream/skills.js — the 맹약 season's skill runtime (server/sim/skills.js, same file) for the 규정 engine, plus
+// 규정's own AUTO_STOP (斩业星熊 S3) rule
+import { skillImpactTiming } from '../../shared/attackTiming.js';
+import { showsSkillArea, skillAreaKeys } from './skillArea.js';
+import { skillMotionSpeed } from './motionSpeed.js';
 // server/sim/skills.js — skill runtime: SP, charges, trigger rules, kinds, SkillSpec interpretation (DESIGN §5.6).
 //
 // SP types: 'time' (+spRecovery/s), 'attack' (+1 per attack), 'hurt' (+1 per hit taken), 'none'.
@@ -52,20 +57,23 @@
 //   also carries `noAmmo` (set it to true: this attack spends no ammo). onEnd runs while the skill's mods / range are
 //   still applied (`active` is already false); they are removed right after it (unless onEnd re-activated the skill).
 
-import { skillImpactTiming } from '../../shared/attackTiming.js';
-import { customRules, rulePct } from './customRules.js';
 import { absoluteRangeKeys, canTargetEnemy } from './targeting.js';
 import { AUTO_OP_COOLDOWN, COLS, ROWS } from './constants.js';
 import { boundedCount } from '../../shared/plugins/limits.js';
 import { fieldCap } from '../../shared/plugins/officialBounds.js';
 
-const TICK_RULES = new Set(['SP_FULL', 'SEARCH', 'CUSTOM_RANGE', 'SKILL_RANGE', 'ACTIVE_RANGE', 'GDGLOW_SKILL_2']);
+const TICK_RULES = new Set(['SP_FULL', 'SEARCH', 'ACTIVE_RANGE', 'CUSTOM_RANGE', 'SKILL_RANGE', 'GDGLOW_SKILL_2']);
 /** True when a SkillSpec `targeting` changes the unit's range while the skill runs (Battle._refreshRange). */
 const changesRange = (tg) => !!(tg && (tg.rangeGrid || tg.rangeExtend || tg.noRangeExtend));
 /** Enemies that satisfy a content trigger range (any targetable enemy, flyers included). */
 const TRIGGER_PROFILE = Object.freeze({ canHitFly: true });
 /** Every tile of the stage (GDGLOW_SKILL_2: the whole field). */
-const ALL_TILES = new Set(Array.from({ length: ROWS * COLS }, (_, i) => i));
+const ALL_TILES = new Map();
+function allTiles(b) {
+  const size = b.grid.rows * b.grid.cols;
+  if (!ALL_TILES.has(size)) ALL_TILES.set(size, new Set(Array.from({length:size}, (_,i)=>i)));
+  return ALL_TILES.get(size);
+}
 
 /**
  * The 'skill' animation window the sim reports to the client: `unit.skillAnimUntil` (snapshot.js `animOf` → ANIM.SKILL,
@@ -96,20 +104,23 @@ export class SkillRuntime {
     this.ammo = Math.max(0, Math.floor(+s.ammo || 0));
     this.baseSpCost = Math.max(0, Number.isFinite(+s.spCost) ? +s.spCost : (d.spCost ?? 0));
     this.initSp = Math.max(0, Number.isFinite(+s.initSp) ? +s.initSp : (d.initSp ?? 0));
-    // 커스텀 최대 SP / 초기 SP (customRules allySpCost / allyInitSp) of operators and their summons
-    const rules = customRules(this.battle);
-    if (rules && unit.side === 'ally' && (unit.kind === 'op' || unit.kind === 'token')) {
-      if (this.baseSpCost > 0) this.baseSpCost = Math.max(1, this.baseSpCost * rulePct(rules, 'allySpCost'));
-      this.initSp *= rulePct(rules, 'allyInitSp');
+    const rules=this.battle.data.raw?.config?.customRules||{};
+    if(unit.side==='ally'&&(unit.kind==='op'||unit.kind==='token')){
+      if(this.baseSpCost>0)this.baseSpCost=Math.max(1,this.baseSpCost*(Number.isFinite(rules.allySpCost)?rules.allySpCost/100:1));
+      this.initSp*=Number.isFinite(rules.allyInitSp)?rules.allyInitSp/100:1;
     }
     this.maxCharges = Math.max(1, Math.floor(boundedCount(s.charges ?? d.maxCharges ?? 1, fieldCap('skill.maxCharges'), 1)));
+    // 蓄力 (simdata `charged`): the stored "charges" are SP past the cost, not casts — cast at the cost it spends the cost
+    // (no charged effect); cast at twice the cost (the 蓄力 mark) it has the charged effect and spends ALL the SP, so it is
+    // never cast again at once from a second stored charge
+    this.chargeHold = this.maxCharges > 1 && !!(s.chargeHold ?? d.charged);
     this.spType = s.spType ?? d.spType ?? 'time';
     const trig = typeof s.trigger === 'string' ? { rule: s.trigger } : (s.trigger || d.trigger || {});
     this.rule = String(trig.rule ?? 'DEFAULT').toUpperCase();
     if (this.rule === 'ALWAYS') this.rule = 'SP_FULL';
     if (this.rule === 'MANUAL') this.rule = 'NEVER';
     if (this.rule.startsWith('CUSTOM_RANGE')) this.rule = 'CUSTOM_RANGE';
-    this.triggerGrid = trig.grid ?? trig.rangeGrid ?? d.trigger?.grid ?? null;
+    this.triggerGrid = trig.grid ?? trig.rangeGrid ?? d.trigger?.grid ?? (this.rule === 'SKILL_RANGE' ? (s.targeting?.rangeGrid ?? d.rangeGrid) : null);
     // kit options: an injured, healable ally of the trigger grid with an HP ratio of at most `hpAtMost` (SKILL_RANGE:
     // instead of an enemy; DEFAULT: a heal target at the normal attack cadence)
     this.triggerAllies = !!trig.allies;
@@ -162,6 +173,9 @@ export class SkillRuntime {
    * { attackOnly: true } is for special targeting that must wait for the next attack (蕾缪安, 死芒).
    * Returns an unregister fn.
    */
+
+
+
   addTriggerRange(fn, { attackOnly = false } = {}) {
     if (typeof fn !== 'function') return () => {};
     this.triggerRanges.push(fn);
@@ -224,9 +238,8 @@ export class SkillRuntime {
   get spCost() {
     const c = Math.floor(this.baseSpCost * this.spCostMul + (this.unit.s ? this.unit.s.spCostFlat : 0));
     // content writes spCostMul / spCostFlat: a NaN/Infinity cost would freeze SP forever — use the base cost instead
-    const value = Number.isFinite(c) ? Math.max(0, c) : this.baseSpCost;
-    // 증강 SP 감소 (content/augments.js mem.augmentSpCost; never set on an official battle)
-    return this.unit.mem?.augmentSpCost != null ? Math.ceil(value * this.unit.mem.augmentSpCost) : value;
+    const value=Number.isFinite(c)?Math.max(0,c):this.baseSpCost;
+    return this.unit.mem?.augmentSpCost!=null?Math.ceil(value*this.unit.mem.augmentSpCost):value;
   }
 
   /** SP cost multiplier (content-writable). Invalid values count as 1; SP/charges are re-normalised immediately. */
@@ -279,6 +292,7 @@ export class SkillRuntime {
   reset(carry = null) {
     this.active = false;
     this.pending = false;
+    this.unit.mem.skillArea = null;
     this.timeLeft = 0;
     this.ammoLeft = 0;
     this.ammoMax = 0;
@@ -297,7 +311,9 @@ export class SkillRuntime {
     this.gainSp(carry && Number.isFinite(carry.sp) ? carry.sp : this.initSp, 'init', true);
     // a free (spCost 0) non-passive skill is available once per deployment
     if (this.spCost <= 0) this.charges = this.maxCharges;
-    if (this.spec.activateOnDeploy) this.activate('deploy');
+    if (this.spec.activateOnDeploy) {
+      this.activate('deploy');
+    }
   }
 
   _startPassive() {
@@ -333,12 +349,11 @@ export class SkillRuntime {
     if (changesRange(this.spec.targeting)) this.battle._refreshRange(this.unit);
   }
 
-  /** Add SP (fires the `spGain` hook). Ignored while a duration/ammo/toggle skill runs (its bar shows the skill). */
-  // ignoreLock is reserved for explicitly documented exceptions (黄沙罗盘), not ordinary SP gifts.
-  gainSp(amount, reason = 'time', silent = false, { ignoreLock = false } = {}) {
+  /** Add SP (fires the `spGain` hook). Ordinary recovery pauses during an active skill; explicit item effects may bypass that pause. */
+  gainSp(amount, reason = 'time', silent = false, { duringSkill = false, ignoreLock = false } = {}) {
     if (this.noSkill || this.kind === 'passive' || !(amount > 0)) return 0;
-    if (this.active && this.isTimed && reason !== 'init' && !ignoreLock) return 0;
-    // 阻回 (the operators' 凋亡 burst, attack/element.js): "停止并阻止任意形式的技力回复" — no SP of any kind (time, attack, hurt, gifts)
+    if (this.active && this.isTimed && reason !== 'init' && !duringSkill && !ignoreLock) return 0;
+    // 阻回 (the operators' 凋亡 burst, damage.js): "停止并阻止任意形式的技力回复" — no SP of any kind (time, attack, hurt, gifts)
     if (reason !== 'init' && !ignoreLock && this.unit.s.flags.noSp) return 0;
     let cost = this.spCost;
     if (this.charges >= this.maxCharges && this.sp >= cost) return 0;
@@ -355,7 +370,7 @@ export class SkillRuntime {
       if (this.charges >= this.maxCharges && this.sp >= cost) return 0;
     }
     if (cost <= 0) return 0; // free skills never recharge (see reset)
-    const before = this.spTotal;
+    const before = this.charges >= this.maxCharges ? this.maxCharges * cost : this.charges * cost + this.sp;
     this.sp += amt;
     // within 1e-9 of the cost is the cost (the timer tolerance of `timeLeft` below; PR #402): 300 time gains of 1/30 SP
     // add up to 9.999999999999975 in floating point, which held a 10-SP charge one tick
@@ -365,10 +380,10 @@ export class SkillRuntime {
       else this.sp = cost;
     }
     if (this.charges >= this.maxCharges) this.sp = cost;
-    // #657: only extra recovery, after hooks, charge rollover and the cap; never the mutable spGain request.
-    if (reason === 'bond' || reason === 'talent' || reason === 'skill') {
-      b.resourceNumber?.(this.unit, 'sp', this.spTotal - before, reason);
-    }
+    const after = this.charges >= this.maxCharges ? this.maxCharges * cost : this.charges * cost + this.sp;
+    const recovered = Math.max(0,after-before);
+    if (!silent && recovered > 0 && !['time','attack','hurt','init'].includes(reason))
+      b.fx('spRecovered',{id:this.unit.id,x:this.unit.x,y:this.unit.y,n:recovered});
     return amt;
   }
 
@@ -401,7 +416,7 @@ export class SkillRuntime {
     // natural SP recovery stops only under 阻回 (noSp; a running timed skill holds it too) — not while 晕眩 / 冻结 / 浮空
     // keep the unit from acting: PRTS 技能 "在阻回状态或技力条已满时，保留剩余冷却时间，计时暂停"; PRTS 异常效果 STUNNED
     // "无法攻击、释放技能、阻挡敌人类单位" says nothing of SP (community report #18: 洛洛's S2 self-stun froze her SP)
-    if (this.spType === 'time' && !(this.active && this.isTimed) && !u.s.flags.noSp && u.alive && u.deployed && !u.hidden) {
+    if (this.spType === 'time' && !(this.active && this.isTimed) && (this.maxCharges > 1 || this.battle.time >= (u.mem.skillCastUntil || 0)) && !u.s.flags.noSp && u.alive && u.deployed && !u.hidden) {
       const rate = u.s.spRecovery;
       if (rate > 0) this.gainSp(rate * dt, 'time');
     }
@@ -431,10 +446,10 @@ export class SkillRuntime {
     if (TICK_RULES.has(this.rule)) {
       if (this._tickRuleSatisfied()) this.activate(this.rule);
     } else if (this.rule !== 'TAKE_DAMAGE' && this.rule !== 'NEVER') {
-      // DEFAULT (and unknown rules) for units that cannot attack right now: check the initial range every tick;
+      // DEFAULT (and unknown rules): also check independently when a timed skill changes the attack range;
       // content trigger ranges are checked every tick for everyone (nothing may be in the unit's own range)
       const prof = u.profile;
-      if (prof && (prof.noAttack || (prof.noAttackUnlessSkill && !this.active))) {
+      if (prof && (prof.noAttack || (prof.noAttackUnlessSkill && !this.active) || (this._prospectiveRangeKeys() || typeof this.spec.hasTargets === 'function' || this.spec.triggerProfile || this.spec.targeting?.canHitFly))) {
         if (this._defaultCondition()) this.activate('DEFAULT');
       } else if (this.triggerRanges.length && !this.healSkill && this._extraTriggerSatisfied(false)) this.activate('DEFAULT');
     }
@@ -497,27 +512,51 @@ export class SkillRuntime {
     if (this.rule === 'ACTIVE_RANGE') return this._defaultCondition(this.triggerGrid ? this._triggerKeys() : null);
     // GDGLOW_SKILL_2 "全场存在可选目标时释放技能": a targetable enemy anywhere (heal skill: an ally that needs healing)
     if (this.rule === 'GDGLOW_SKILL_2') {
-      if (this.healSkill) return b.injuredAlliesInKeys(ALL_TILES, u, !!u.profile?.heal?.elementHealRatio).length > 0;
-      return b.enemies.some((e) => canTargetEnemy(u, e, TRIGGER_PROFILE)) || this._allyTargetIn(ALL_TILES);
+      if (this.healSkill) return b.injuredAlliesInKeys(allTiles(b), u, !!u.profile?.heal?.elementHealRatio).length > 0;
+      return b.enemies.some((e) => canTargetEnemy(u, e, TRIGGER_PROFILE)) || this._allyTargetIn(allTiles(b));
     }
     return false;
   }
 
+  _prospectiveRangeKeys() {
+    // Sustained range changes and non-attack casts are evaluated without first
+    // requiring an ordinary attack. Queued next-attack skills keep that requirement.
+    if (this.healSkill || (!this.isTimed && this.spec.attack) || this.kind === 'passive') return null;
+    const u = this.unit, tg = this.spec.targeting;
+    const grid = tg?.rangeGrid || (!this.isTimed ? u.def?.skill?.rangeGrid : null);
+    const extra = (tg?.rangeExtend || 0) + (this.spec.mods?.rangeExtend || 0);
+    if (!grid && !extra) return null;
+    // cached per input (checked every tick, twice): range arrays are replaced, never mutated (Battle._refreshRange)
+    const g = grid || u.rangeGrid || null, ext = (tg?.noRangeExtend ? 0 : u.s.rangeExtend) + extra;
+    const baseArr = u.baseRangeKeys || u.rangeKeys || null, dims = this.battle.grid;
+    const c = this._prosCache;
+    if (c && c.g === g && c.r === u.tileR && c.c === u.tileC && c.dir === u.dir && c.ext === ext && c.base === baseArr && c.dims === dims) return c.out;
+    const keys = absoluteRangeKeys(g || [[0,0]], u.tileR, u.tileC, u.dir, ext, dims);
+    const base = new Set(baseArr || []);
+    const out = keys.some(k => !base.has(k)) ? keys : null;
+    this._prosCache = { g, r: u.tileR, c: u.tileC, dir: u.dir, ext, base: baseArr, dims, out };
+    return out;
+  }
+
   /**
    * DEFAULT rule condition: an enemy (or injured ally for heal skills) inside the initial range (baseRangeKeys: own
-   * grid + permanent rangeExtend) — a registered ally target there too (`_allyTargetIn`: 铁钳号·原型机; not for heal
-   * skills) — or an enemy inside a content trigger range (addTriggerRange; not for heal skills).
-   * `range` (ACTIVE_RANGE): those absolute tile keys instead of the initial range.
+   * grid + permanent rangeExtend), or a timed attack skill's prospective range before activation.
+   * Content trigger ranges (addTriggerRange) also qualify; next-attack and healing skills retain their own rules.
    */
   _defaultCondition(range = null) {
     const b = this.battle;
     const u = this.unit;
     if (b.rangeChanged(u)) b._refreshRange(u);
-    const keys = range || u.baseRangeKeys || u.rangeKeys;
+    if (typeof this.spec.hasTargets === 'function') return !!this.spec.hasTargets({ battle: b, unit: u });
+    const baseKeys = u.baseRangeKeys || u.rangeKeys;
+    const candidateRange = this._prospectiveRangeKeys();
+    const prospective = this.spec.attack?.canAttack || (candidateRange && candidateRange.length > 100) ? null : candidateRange;
+    const keys = range || (prospective ? [...new Set([...(baseKeys || []), ...prospective])] : baseKeys);
     if (keys) {
-      if (this.healSkill) return b.injuredAlliesInKeys(keys, u, !!u.profile?.heal?.elementHealRatio).length > 0
-        || (this.triggerEnemies && b.enemiesInKeys(keys, u, TRIGGER_PROFILE).length > 0);
-      if (b.enemiesInKeys(keys, u, u.profile).length > 0 || this._allyTargetIn(keys)) return true;
+      if (this.healSkill) return b.injuredAlliesInKeys(keys, u, !!u.profile?.heal?.elementHealRatio).length > 0 || (this.triggerEnemies && b.enemiesInKeys(keys, u, TRIGGER_PROFILE).length > 0);
+      const air = this.spec.targeting?.canHitFly;
+      const profile = { ...u.profile, ...(air == null ? {} : { canHitFly: air, ...(air ? {groundOnly:false} : {}) }), ...this.spec.triggerProfile };
+      if (b.enemiesInKeys(keys, u, profile).length > 0 || this._allyTargetIn(keys)) return true;
     }
     if (!this.healSkill && u.profile?.fortress) {
       // The branch's own-tile melee range also satisfies the basic cast condition for unblockable fragments.
@@ -558,12 +597,16 @@ export class SkillRuntime {
     if (this.active && this.isTimed) return false;
     const u = this.unit;
     if (!u.alive || !u.deployed) return false;
+    if (reason !== 'deploy' && this.battle.time < (u.mem.skillCastUntil || 0)) return false;
+    let chargedCast = false;
     if (!free) {
       const wasFull = this.charges >= this.maxCharges;
+      chargedCast = this.chargeHold && wasFull;
       this.charges--;
       if (this.maxCharges === 1 || wasFull) this.sp = 0;
     }
     this.activations++;
+    u.stats.skillUses=(u.stats.skillUses||0)+1;
     this.lastStart = this.battle.time;
     const b = this.battle;
     if (this.manual) this.opReadyAt = b.time + AUTO_OP_COOLDOWN;
@@ -574,36 +617,54 @@ export class SkillRuntime {
       this.ammoMax = this.ammoLeft;
       this._applyMods();
     } else {
-      // instant / charges
+      // A one-shot effect explicitly marked `noAttack` is not a pending next attack. It must end after onStart;
+      // otherwise noAttack prevents updateAlly from ever reaching the attack that would clear `pending`.
       this.active = true;
-      this.pending = !!this.spec.attack;
+      this.pending = !!this.spec.attack && !this.spec.attack.noAttack;
       // (a targeting-only instant skill must still switch to its skill range for the pending attack)
       if (this.spec.mods || this.spec.flags || this.spec.targeting) this._applyMods();
     }
-    // 스킬 타격 시점 (the 맹약 season's timing rule, server/sim/skills.js): a one-shot cast with a fixed motion
-    // (shared/attackTiming.js IMPACT_CAST_SKILLS) resolves at its clip's impact frame; the motion holds the unit's attacks
-    const cast = !this.isTimed ? skillImpactTiming(u) : null;
-    b._ev(cast ? ['skill', u.id, 1, { cast: true }] : ['skill', u.id, 1]);
+    let cast = !this.isTimed ? skillImpactTiming(u) : null;
+    // custom rule skillMotionAspd: a cast with a fixed motion (IMPACT_CAST_SKILLS) plays at the unit's attack speed
+    // (ASPD / 100) like its attacks — the skills whose motion already follows the attack interval are not touched
+    const castSpeed = cast ? skillMotionSpeed(b, u) : 1;
+    if (castSpeed !== 1) cast = { ...cast, dur: cast.dur / castSpeed, hit: cast.hit / castSpeed };
+    b._ev(cast ? ['skill', u.id, 1, castSpeed !== 1 ? { cast: true, speed: castSpeed } : { cast: true }] : ['skill', u.id, 1]);
     u.skillAnimUntil = b.time + SKILL_ANIM_WINDOW;
+    // 蓄力: after the kit's onStart (it reads the stored charges to pick the charged effect) all the SP is spent
+    const spendAll = () => { if (chargedCast) { this.charges = 0; this.sp = 0; } };
+    const finishStart = () => {
+      this._call('onStart', { reason });
+      spendAll();
+      if (!this.isTimed && !this.pending) {
+        if (showsSkillArea(u)) u.mem.skillArea = {keys:skillAreaKeys(u).slice(),until:b.time+Math.max(.5,Number(this.spec.areaDuration)||0)};
+        this.end('instant');
+      }
+    };
+    if(b._hooks.skillActivating)b.emit('skillActivating',{unit:u,skill:this,reason});
+    this._call('onCastStart', {reason});
     if (cast) {
-      const seq = u.deploySeq, activation = this.activations;
-      u.mem.skillCastUntil = b.time + cast.dur;
-      u.mem.skillCastDuration = cast.dur;
-      if (u.mem.attackWindup) { delete u.mem.attackWindup; b._ev(['atkCancel', u.id]); }
-      u.skillAnimUntil = b.time + cast.dur;
-      b.after(cast.hit, () => {
-        if (!u.alive || !u.deployed || u.deploySeq !== seq || this.activations !== activation || !this.active) return;
-        if (u.s.flags.stun || u.s.flags.frozen || u.s.flags.sleep) { delete u.mem.skillCastUntil; this.end('interrupted'); return; }
+      const seq=u.deploySeq, activation=this.activations;
+      u.mem.skillCastUntil=b.time+cast.dur;
+      u.mem.skillCastDuration=cast.dur;
+      if(u.mem.attackWindup){delete u.mem.attackWindup;b._ev(['atkCancel',u.id]);}
+      u.skillAnimUntil=b.time+cast.dur;
+      b.after(cast.hit,()=>{
+        if(!u.alive || !u.deployed || u.deploySeq!==seq || this.activations!==activation || !this.active)return;
+        if(u.s.flags.stun || u.s.flags.frozen || u.s.flags.sleep){delete u.mem.skillCastUntil;this.end('interrupted');return;}
+        // The visual cast and its impact can be in different render frames. Name the impact before its damage.
         b._ev(['skillImpact', u.id]);
-        this._call('onStart', { reason });
-        if (!this.isTimed && !this.pending) this.end('instant');
-      }, { owner: u });
+        finishStart();
+      },{owner:u});
     } else this._call('onStart', { reason });
     if (b._hooks.skillStart) b.emit('skillStart', { unit: u, skill: this, reason });
+    // (a cast without a cast motion: after the skillStart handlers too — 卡涅利安 生命之餐 reads the stored charges there)
+    if (!cast) spendAll();
     // bullets added in skillStart (拉特兰's ×(1.05 + 0.015 × layers), 逃犯引渡手续, talents): the bar's full mark
     // (community report #35: the extra bullets sat above a full bar until fewer than the base count were left)
     if (this.active && this.ammoLeft > this.ammoMax) this.ammoMax = this.ammoLeft;
     if (!cast && !this.isTimed && !this.pending) {
+      if (showsSkillArea(u)) u.mem.skillArea = {keys:skillAreaKeys(u).slice(),until:b.time+Math.max(.5,Number(this.spec.areaDuration)||0)};
       this.end('instant');
       // an instant / charge skill with no attack of its own (no spec.attack: a throw, a heal, a buff, DP …) waits one
       // attack interval of its unit before it is cast again from the tick (GitHub #298: 引星棘刺 S1 度算浪波, an SP_FULL
