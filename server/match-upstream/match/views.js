@@ -150,7 +150,7 @@ export class MatchViews {
         ...this._avatarView(ps),
       })),
       fields: this.fields.map((f) => {
-        const v = { fieldId: f.fieldId, kind: f.kind, players: f.players.slice(), live: !!f.live };
+        const v = { fieldId: f.fieldId, kind: f.kind, players: f.players.slice(), live: !!f.live, endVotes: [...(f.endVotes || [])] };
         const pr = this._fieldProgress(f);
         if (pr) v.progress = pr;
         return v;

@@ -295,6 +295,7 @@ export class HeadlessJob {
     this.timeline = [timelineSample(battle)];
     this.every = Math.max(1, Math.round(TIMELINE_EVERY / TICK));
     this.cap = Math.ceil(HARD_CAP_SECONDS / TICK);
+    this.capReason = 'timeout';
     this.n = 0;
     this.crashed = false;
     this.done = false;
@@ -318,7 +319,7 @@ export class HeadlessJob {
         if (this.n % this.every === 0) this.timeline.push(timelineSample(b));
         if ((k & 15) === 0 && !b.finished && (replaying ? control.stop() : timed && now() - t0 >= budgetMs)) return false;
       }
-      if (!b.finished) b.forceEnd('timeout');
+      if (!b.finished) b.forceEnd(this.capReason);
     } catch (e) {
       this.crashed = true;
       if (this.onError) this.onError(e);
