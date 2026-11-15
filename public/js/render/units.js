@@ -3344,18 +3344,29 @@ export class DeviceView {
     const show = this.alive && (this.cannon || this.hp < this.maxHp - 0.5);
     this.hud.visible = show;
     if (show) {
-      const bw = clamp(p.s * 0.7, 24, 90), bh = clamp(p.s * 0.06, 3, 6);
+      // the enemy units' own bars (UnitView._updateHud), both styles: 설정「HP 바 표시 방식」 official — flat bars under
+      // the feet, OFFICIAL_BARS colours — else the framed bars over the head
+      const off = this.ctx.settings?.hpBarStyle === 'official';
+      const f = cam.project(this.x, this.y, this.z, this._feet || (this._feet = { x: 0, y: 0, s: 1 }));
+      const sc = f.s;
+      const bw = off ? sc * OFFICIAL_BARS.width : clamp(sc * UNIT.barWidth, 24, 96);
+      const bh = off ? Math.max(2.5, sc * OFFICIAL_BARS.hpH) : clamp(sc * 0.065, 3, 6);
       const x0 = p.x - bw / 2;
-      this.hpBg.position.set(x0 - 1, p.y); this.hpBg.width = bw + 2; this.hpBg.height = bh + 2;
+      const cy = off ? f.y + sc * OFFICIAL_BARS.belowFeet : p.y - 4;
+      this.hpBg.position.set(x0 - (off ? 0 : 1), cy); this.hpBg.width = bw + (off ? 0 : 2); this.hpBg.height = bh + (off ? 0 : 2);
+      this.hpBg.tint = off ? OFFICIAL_BARS.back : COLORS.hpBack; this.hpBg.alpha = off ? 0.55 : 1;
       this.hpGhost.visible = this.ghostHp > this.hp + 0.5;
-      this.hpGhost.position.set(x0, p.y); this.hpGhost.width = bw * clamp(this.ghostHp / this.maxHp, 0, 1); this.hpGhost.height = bh;
-      this.hpFill.position.set(x0, p.y); this.hpFill.width = bw * clamp(this.hp / this.maxHp, 0, 1); this.hpFill.height = bh;
+      this.hpGhost.position.set(x0, cy); this.hpGhost.width = bw * clamp(this.ghostHp / this.maxHp, 0, 1); this.hpGhost.height = bh;
+      this.hpFill.position.set(x0, cy); this.hpFill.width = bw * clamp(this.hp / this.maxHp, 0, 1); this.hpFill.height = bh;
+      if (this.cannon) this.hpFill.tint = off ? OFFICIAL_BARS.enemy : COLORS.hpEnemy;
       const showSp = this.spMax > 0;
       this.spBg.visible = this.spFill.visible = showSp;
       if (showSp) {
-        const sh = Math.max(2, bh * 0.6), sy = p.y + bh + 2;
-        this.spBg.position.set(x0 - 1, sy); this.spBg.width = bw + 2; this.spBg.height = sh + 2;
-        this.spFill.position.set(x0, sy); this.spFill.width = bw * clamp(this.sp / this.spMax, 0, 1); this.spFill.height = sh;
+        const spH = off ? bh : Math.max(2, bh * 0.55), sy = cy + bh / 2 + spH / 2 + (off ? 0 : 1.5);
+        this.spBg.position.set(x0 - (off ? 0 : 1), sy); this.spBg.width = bw + (off ? 0 : 2); this.spBg.height = spH + (off ? 0 : 2);
+        this.spBg.tint = off ? OFFICIAL_BARS.back : COLORS.hpBack; this.spBg.alpha = off ? 0.55 : 1;
+        this.spFill.position.set(x0, sy); this.spFill.width = bw * clamp(this.sp / this.spMax, 0, 1); this.spFill.height = spH;
+        this.spFill.tint = off ? OFFICIAL_BARS.sp : COLORS.sp;
       }
     }
     this.screen.top = p.y;

@@ -97,6 +97,9 @@ export async function startLaboratory(setup) {
     if(t==='g.labDummyStats')await syncLaboratoryDummy(match,fields.reset);
     return { t: 'ok' };
   };
+  // a 규정 laboratory's screens read the season's files (stage, chess, bands …): the page shows them as that version's
+  // set, as a 규정 room does (content.js showVersion); the lobby's own version set takes over again after it
+  if (reg) data.setContent({ id: `lab:${reg.id}`, values: new Map(Object.entries(raw).filter(([k, v]) => k !== 'assets' && v)), overlay: null, langs: [] });
   net.close();
   active = { match, previous };
   net.localSession = { request };
@@ -104,6 +107,8 @@ export async function startLaboratory(setup) {
   net._emit('status', net.snapshot());
   store.set({ me: { ...previous.me, playerId, name }, match: emptyMatch(),
     room: { code: setup.practice?'PRACTICE':'LAB', mode: setup.practice?'practice':'solo', laboratory: !setup.practice, practice:!!setup.practice, difficulty: setup.difficulty, hostId: playerId, inMatch: true, spectators: [],
+      // the season: the page keeps (content.js) — or below, shows — that season's files, not the 맹약 ones
+      ...(reg ? { version: reg.id } : {}),
       seats: [{ seat: 0, playerId, name, isBot: false, connected: true }], customExtensions },
     clock: { offset: 0, rtt: 0, synced: true }, chat: [], ticker: [], emotes: [] });
   store.patch('ui', { laboratorySetup: null });

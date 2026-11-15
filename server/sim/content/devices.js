@@ -267,7 +267,7 @@ function tickTurret(battle, u, dt) {
 const CANNON_KEY = 'trap_196_cnnon';
 // interval: SP 12 (1 SP/s; the owner's figures: HP 20000 / ATK 800 / DEF 200 / RES 0 / SP 12); flight: the shell's air time
 const CANNON_STATS = Object.freeze({ maxHp: 20000, atk: 800, def: 200, res: 0 });
-const CANNON = Object.freeze({ interval: 12, reach: 4, splash: 1.5, carry: 1.1, maxWeight: 3, flight: 0.8 });
+const CANNON = Object.freeze({ interval: 12, reach: 4, splash: 1.5, carry: 1.1, maxWeight: 3, flight: 0.5 });   // (flight: 4 tiles at the client's lobbed-shell speed 8)
 
 function startCannons(battle, st, devices) {
   for (const d of devices) {
@@ -308,7 +308,7 @@ function sendRider(battle, c, rider) {
 function fireCannon(battle, c) {
   // the shell leaves now (its rider aboard) and lands CANNON.flight later: the blast and the rider's arrival then
   c.shell = { at: battle.time + CANNON.flight, rider: cannonRider(battle, c) };
-  battle.fx('bombardShell', { x: c.tc, y: c.tr, id: c.unit?.id, r: CANNON.splash, t: CANNON.flight });
+  battle.fx('howitzer', { x: c.tc, y: c.tr, id: c.unit?.id, t: CANNON.flight });   // a lobbed shell from the barrel
 }
 
 function landCannon(battle, c) {
