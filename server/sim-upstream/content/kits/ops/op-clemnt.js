@@ -13,6 +13,7 @@ import { bodyInKeys, hitRect } from '../../../body.js';
 import { dirVec } from '../../../dir.js';
 import { COLS } from '../../../constants.js';
 import { hasHp } from '../../../attack.js';
+import { isFixedPost } from '../../../fixedPost.js';
 
 const S1 = 'skchr_clemnt_1', S2 = 'skchr_clemnt_2', S3 = 'skchr_clemnt_3';
 const GROUND = Object.freeze({ canHitFly: false, groundOnly: true });
@@ -25,7 +26,7 @@ const skillBb = (raw, id) => skillRec(raw, id)?.bb ?? {};
 const tile = (u) => [Math.round(u.y), Math.round(u.x)];
 const immunity = (e) => e.def?.raw?.stats?.otherImmunities ?? [];
 // No current mode enemy has the three named teleport immunities. Also honour explicit normalized flags for custom data.
-const cannotCarry = (e) => e.s.flags.selfBound || e.def?.immune?.has('exile') || e.def?.immune?.has('teleport')
+const cannotCarry = (e) => isFixedPost(e) || e.s.flags.selfBound || e.def?.immune?.has('exile') || e.def?.immune?.has('teleport')
   || immunity(e).some((s) => /teleport|transmit|exile/i.test(String(s)));
 
 /** Cabin's 1.1 × 1.1 collision square; huge bodies use the engine hit rectangle. */

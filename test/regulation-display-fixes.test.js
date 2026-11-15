@@ -121,3 +121,30 @@ test('诱导 (attract) respects otherImmunities: an immune fixed boss stays, a p
   assert.ok(!plain.boss.def.immune.has('attract'));
   assert.equal(plain.h.b.applyStatus(plain.boss, 'attract', { duration: 5, source: plain.h.b.allies()[0] }), true);
 });
+
+// 제보 2026-11-15: a 克莱门莎 S2 carriage carried 假想敌：茧 (安洁莉娜 S3 失重 brings it from weight 9 to the carriage's 8) —
+// owner's rule: nothing an operator does moves a fixed boss (server/sim*/fixedPost.js)
+test('a fixed boss (route only waits) refuses 诱导 / 恐惧 and every carry / teleport; a patrolling boss does not', async () => {
+  const { isFixedPost } = await import('../server/sim-upstream/fixedPost.js');
+  const { isFixedPost: covFixed } = await import('../server/sim/fixedPost.js');
+  setGameData(raw);
+  const data = new DataSource({ ...raw, chess: { ...raw.chess, t0: chessRec({ id: 't0', skill: null, stats: { maxHp: 1e6, atk: 0, def: 300, blockCnt: 0 } }) } }, null);
+  const fight = (wave, key) => {
+    const h = makeBattle({ data, content: 'full', autoFinish: false, kind: 'boss', timeLimit: 60, stageId: 'act3autochess_m01', waveTemplate: wave,
+      players: [{ playerId: 'pL', seat: 0, side: 'L', units: [{ uid: 1, kind: 'chess', chessId: 't0', row: 10, col: 3 }], bonds: {} }] });
+    h.runUntil(() => h.b.enemies.some((x) => x.defId === key && x.alive), 30);
+    return { h, e: h.b.enemies.find((x) => x.defId === key), u: h.b.allies()[0] };
+  };
+  // 假想敌：管 has no data immunity to 诱导: only the fixed-boss rule holds it
+  const pipe = fight('act3autochess_h07_03', 'enemy_9021_acduml');
+  assert.equal(isFixedPost(pipe.e), true);
+  assert.equal(pipe.h.b.applyStatus(pipe.e, 'attract', { duration: 3, source: pipe.u }), false);
+  assert.equal(pipe.h.b.applyStatus(pipe.e, 'fear', { duration: 3, source: pipe.u }), false);
+  const eel = fight('act3autochess_h07_10', 'enemy_9037_aceel');
+  assert.equal(isFixedPost(eel.e), false);
+  assert.equal(eel.h.b.applyStatus(eel.e, 'attract', { duration: 3, source: eel.u }), true);
+  // the 맹약 engine reads the same rule (its fixed bosses: a waiting route or a data moveSpeed ≤ 0.1)
+  assert.equal(covFixed({ side: 'enemy', isBoss: true, stationary: false, base: { moveSpeed: 0 } }), true);
+  assert.equal(covFixed({ side: 'enemy', isBoss: true, stationary: false, base: { moveSpeed: 1 } }), false);
+  assert.equal(covFixed({ side: 'enemy', isBoss: false, stationary: true, base: { moveSpeed: 0 } }), false);
+});
