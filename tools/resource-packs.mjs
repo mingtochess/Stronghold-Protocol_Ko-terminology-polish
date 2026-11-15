@@ -9,6 +9,11 @@ export function preservesIndex(before,after){
  return !!after&&typeof after==='object'&&!Array.isArray(after)&&Object.entries(before).every(([key,value])=>Object.hasOwn(after,key)&&preservesIndex(value,after[key]));
 }
 const sha=b=>createHash('sha256').update(b).digest('hex');
+// Union of a managed index: every installed leaf stays, the incoming index adds what it has on top.
+export function mergeIndex(before,after){
+ if(!before||typeof before!=='object'||Array.isArray(before)||!after||typeof after!=='object'||Array.isArray(after))return before===undefined?after:before;
+ const out={...after};for(const[k,v]of Object.entries(before))out[k]=Object.hasOwn(after,k)?mergeIndex(v,after[k]):v;return out;
+}
 export const managedIndexes=new Set(['/assets/local/fx/index.json','/assets/local/fx/textures.json']);
 export function resourcePath(root,path){const p=resolve(root,path.replace(/^\//,'')),rel=relative(resolve(root,'assets'),p);if(!path.startsWith('/assets/')||rel.startsWith('..')||isAbsolute(rel))throw Error('Unsafe asset path: '+path);return p;}
 export function packBases(pack){if(!/^[\w.-]+\/[\w.-]+$/.test(pack.repository)||!/^[a-f0-9]{40}$/.test(pack.commit))throw Error('Resource pack requires a repository and immutable commit');return[`https://raw.githubusercontent.com/${pack.repository}/${pack.commit}/public`,`https://cdn.jsdelivr.net/gh/${pack.repository}@${pack.commit}/public`];}
@@ -28,8 +33,8 @@ export async function installResourcePacks(root,packs,{sourceRoot=null,fetcher=f
   }};const results=await Promise.allSettled(Array.from({length:6},load));const failed=results.find(r=>r.status==='rejected');if(failed)throw failed.reason;
   // Validate every conflict before changing the installed tree. Index formatting may differ,
   // but published canonical indexes must preserve the entire merged installed content.
-  for(const s of staged){try{const old=await readFile(s.dest);if(managedIndexes.has(s.f.path)){if(!preservesIndex(JSON.parse(old),JSON.parse(s.bytes)))throw Error('Publish the complete merged index: '+s.f.path);}else if(sha(old)!==s.f.sha256)throw Error('Existing resource differs: '+s.f.path);}catch(e){if(e.code!=='ENOENT')throw e;}}
-  for(const s of staged){await mkdir(dirname(s.dest),{recursive:true});await copyFile(s.cache,s.dest);changes.push(s.f.path);}
+  for(const s of staged){try{const old=await readFile(s.dest);if(managedIndexes.has(s.f.path)){const a=JSON.parse(old),b=JSON.parse(s.bytes);if(!preservesIndex(a,b)){const m=mergeIndex(a,b);if(!preservesIndex(b,m))throw Error('Publish the complete merged index: '+s.f.path);s.merged=Buffer.from(JSON.stringify(m));}}else if(sha(old)!==s.f.sha256)throw Error('Existing resource differs: '+s.f.path);}catch(e){if(e.code!=='ENOENT')throw e;}}
+  for(const s of staged){await mkdir(dirname(s.dest),{recursive:true});if(s.merged)await writeFile(s.dest,s.merged);else await copyFile(s.cache,s.dest);changes.push(s.f.path);}
  }
  return changes;
 }
