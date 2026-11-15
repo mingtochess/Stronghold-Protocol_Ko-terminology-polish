@@ -310,6 +310,7 @@ export default {
           // (a per-attack copy while the skill runs: its targeting override makes effectiveProfile copy the profile)
           ctx.profile.atkScale = ol;
           ctx.profile.afterHit = olShock;
+          ctx.profile.strikeGap = 0.1;   // S2_Overload `_triggerDelta`: rounds go out one after another
         }, { owner: unit, priority: -100 });
       },
     };
