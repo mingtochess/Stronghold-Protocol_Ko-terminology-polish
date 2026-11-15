@@ -1,6 +1,7 @@
 
 
 
+import { itemShowStart, garrisonShowStart } from './showTags.js';
 import { equipmentCapacity } from '../../../shared/itemRules.js';
 import { t } from '../../../shared/i18n.js';
 
@@ -220,12 +221,12 @@ export function MorphGrantLine({ item, off = null, carried = null, mode = 'offic
 }
 
 /** An equipped item of the card: icon, name, effect — and for 变形同构体 / a bond item its pairing (`carried`: the wearer's items). */
-function ItemRow({ itemId, carried = null, off = null, mode = 'official', onUnequip = null, uid = null }) {
+function ItemRow({ itemId, showTag = null, carried = null, off = null, mode = 'official', onUnequip = null, uid = null }) {
   const it = data.lookup('items', itemId);
   const free = mode === 'plus' && !!it?.canGiveBond;
   return html`<div class="ditem">
     <${UnitThumb} kind="item" id=${itemId} size="sm" />
-    <div class="ditem__text"><b>${it?.name || itemId}</b>${free ? html`<span class="dtag" data-testid="morph-free">${t('不占装备格')}</span>` : null}<${RichText} text=${it?.descRaw || it?.desc || ''} class="ditem__desc" />
+    <div class="ditem__text"><b>${it?.name || itemId}</b>${free ? html`<span class="dtag" data-testid="morph-free">${t('不占装备格')}</span>` : null}<${RichText} text=${it?.descRaw || it?.desc || ''} tags=${{ values: showTag, start: itemShowStart(it) }} class="ditem__desc" />
       ${it?.canGiveBond ? html`<${MorphPairings} off=${off} carried=${carried || []} mode=${mode} />` : it?.giveBondId ? html`<${MorphGrantLine} item=${it} off=${off} carried=${carried} mode=${mode} />` : null}
       ${onUnequip && Number.isInteger(uid) ? html`<${Button} variant="secondary" size="sm" data-testid="unequip" onClick=${() => onUnequip(uid)}>${t('卸下')}<//>` : null}</div>
   </div>`;
@@ -314,7 +315,7 @@ export function garrisonTypeIconKey(garrison) {
 }
 
 /** The operator's own effect (特质, garrisons.json): trigger chip + description, compact. */
-function GarrisonBlock({ garrison, m }) {
+function GarrisonBlock({ garrison, m, tags = null }) {
   return html`<section class="dgarrison" aria-label="特质" data-garrison=${garrison.garrisonId || ''}>
     <div class="dgarrison__head">
       <span class="dgarrison__k">特质</span>
@@ -323,7 +324,7 @@ function GarrisonBlock({ garrison, m }) {
         ${garrison.eventTypeDesc || ''}
       </span>
     </div>
-    <${RichText} as="p" text=${garrison.descRaw || garrison.desc} class="dgarrison__text" />
+    <${RichText} as="p" text=${garrison.descRaw || garrison.desc} tags=${tags} class="dgarrison__text" />
   </section>`;
 }
 
@@ -424,7 +425,7 @@ export function ChessDetail({ chess, piece, unit, snapHp, editable, onSell, bond
         <${BondChips} bondIds=${bondIds} bonds=${bonds} off=${offBonds} onBond=${onBond} granted=${grantedIds} />
       </div>
     </div>`;
-  blocks.garrison = [garrison,...customTraits].filter(Boolean).map((g,i)=>html`<${GarrisonBlock} key=${`garrison-${i}`} garrison=${g} m=${m} />`);
+  blocks.garrison = [garrison,...customTraits].filter(Boolean).map((g,i)=>html`<${GarrisonBlock} key=${`garrison-${i}`} garrison=${g} m=${m} tags=${{ values: piece?.garrisonTags?.[g.garrisonId], start: garrisonShowStart(data.lookup('garrisons', g.garrisonId) || g) }} />`);
   blocks.trait = c.trait?.desc ? html`<p key="trait" class="dtrait"><${Icon} name="info" /><${RichText} text=${traitText(c, golden, lo)} /></p>` : null;
   blocks.stats = chessStatsBlock({ rec: fr, chess: c, live });
   blocks.skill = sk ? html`<${Section} key="skill" title="技能" micro="SKILL" class="dsec--skill">
@@ -455,7 +456,7 @@ export function ChessDetail({ chess, piece, unit, snapHp, editable, onSell, bond
   // (a 变形同构体 / bond item row shows its pairing against what this operator carries: ItemRow `carried`)
   const equipCap = equipmentCapacity(c); // per-form equipSlotNum (规程 “暴躁铁皮” 4 / 6), else 2
   blocks.equip = piece?.kind === 'chess' ? html`<${Section} key="equip" title="装备" micro=${`EQUIP ${items.length}/${equipCap}`} class="dsec--equip">
-      ${items.length ? items.map((it) => html`<${ItemRow} key=${it.uid} itemId=${it.id} carried=${items} off=${offBonds} />`) : html`<p class="t-dim dempty">${`拖拽装备至该干员以配发（最多 ${equipCap} 件）`}</p>`}
+      ${items.length ? items.map((it) => html`<${ItemRow} key=${it.uid} itemId=${it.id} showTag=${it.showTag} carried=${items} off=${offBonds} />`) : html`<p class="t-dim dempty">${`拖拽装备至该干员以配发（最多 ${equipCap} 件）`}</p>`}
     <//>`
     // no own piece (a teammate's unit, a bond popup's 变形同构体 row): what it carries, read-only
     : !piece && carried.length ? html`<${Section} key="equip" title="装备" micro=${`EQUIP ${carried.length}/${equipCap}`} class="dsec--equip">
