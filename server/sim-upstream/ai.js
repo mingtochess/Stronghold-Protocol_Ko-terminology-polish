@@ -43,7 +43,7 @@ import { straightClear } from './grid.js';
 import { moveFeared, endFear } from './fear.js';
 import { hypot, powi } from './detmath.js';
 import { PLUGIN_TIMES_MAX } from '../../shared/plugins/limits.js';
-import { attackWindup as clipWindup } from '../../shared/attackTiming.js';
+import { attackWindup as clipWindup, attackClipTiming as clipTiming } from '../../shared/attackTiming.js';
 
 // ---------------------------------------------------------------------------------------------------------------
 // profiles
@@ -912,7 +912,7 @@ function portalPickup(b, e) {
 export function attackStand(e, out = { wind: 0, rest: 0 }) {
   out.wind = 0; out.rest = 0;
   if (e.profile?.attackMoves ?? e.def?.attackMoves) return out;
-  const a = e.def?.attackAnim;
+  const a = clipTiming(e) || e.def?.attackAnim; // 맹약: the model's attack clip first (shared/attackTiming.js)
   if (!a || !(a.dur > 0)) { out.rest = ATTACK_PAUSE; return out; }
   const speed = clipSpeed(e, a);
   const hit = clipHit(a);
@@ -924,7 +924,8 @@ const STAND = { wind: 0, rest: 0 };
 /** The attack clip's strike frame (s into the clip); half the clip when the manifest names none. */
 const clipHit = (a) => (Number.isFinite(a.hit) ? Math.min(a.dur, Math.max(0, a.hit)) : a.dur / 2);
 /** The clip plays faster when the attacks come quicker than it. */
-const clipSpeed = (e, a) => { const iv = e.s.interval; return iv > 0 && iv < a.dur ? a.dur / iv : 1; };
+// 맹약 (server/sim/ai.js): match attackWindup and the renderer — attack clips never accelerate beyond 4×
+const clipSpeed = (e, a) => Math.max(1, Math.min(4, a.dur / Math.max(.08, e.s.interval)));
 
 /**
  * The damage frame of an enemy's normal attack: seconds from the start of its swing to the strike — its attack clip's
@@ -992,22 +993,30 @@ function enemyAttack(b, e, prevCd) {
   // `e.profile.canTarget(ally)`: the enemy's own target rule (只攻击地面单位, 不会攻击飞行单位 …; content/enemies/*.js),
   // applied to the candidates before the priority sort and the target count
   const own = e.profile && typeof e.profile.canTarget === 'function' ? e.profile.canTarget : null;
-  const wind = attackWindup(e);
-  if (e.atkCd > wind + 1e-9) { e.swing = false; e.swingTargets = null; return false; }   // the cooldown runs
+  // 맹약 시즌 공격 타이밍 (server/sim/ai.js enemyAttack): the swing starts once the cooldown is over and strikes at its
+  // clip's damage frame `attackWindup` later; the attack interval counts from the swing start. (규정's own rule started
+  // the swing inside the cooldown, so the strike landed as the cooldown ended — no wind-up was felt.)
+  void prevCd;
+  if (!e.swing && e.atkCd > 1e-9) { e.swingTargets = null; return false; }   // the cooldown runs
   // A swing locks the allies it had when it started. Losing every current target does not cut it.
   let targets;
   if (e.swing) {
     targets = e.swingTargets || [];
   } else {
     targets = attackTargets(b, e, radius, reach, own);
-    if (!targets.length) { e.swing = false; e.swingTargets = null; return false; }
-    e.swing = true;
+    if (!targets.length) { e.swingTargets = null; return false; }
+    const wind = attackWindup(e);
     e.swingTargets = targets.slice();
-    // ready before this tick (it walked with its cooldown over, or its swing was cut): the whole wind-up from now
-    if (prevCd < wind) e.atkCd = wind;
+    e.atkCd = e.s.interval;
+    if (wind > 0) {
+      e.swing = true;
+      e.swingUntil = b.time + wind;
+      b._ev(['atkStart', e.id, targets[0].id, wind, e.s.interval, false, undefined, e.profile?.deferHit ? (e.profile.shot || 'none')
+        : radius > 0 && !(e.blockedBy && targets[0] === e.blockedBy && radius < 1) ? 'enemy' : 'none']);
+    }
   }
   // the wind-up (GitHub #58): an unblocked ranged enemy stands through it (a 「不停止移动」 one walks on)
-  if (e.atkCd > 0) return !e.blockedBy && radius > 0 && !(e.profile?.attackMoves ?? def.attackMoves);
+  if (e.swing && b.time + 1e-9 < (e.swingUntil || 0)) return !e.blockedBy && radius > 0 && !(e.profile?.attackMoves ?? def.attackMoves);
   e.swing = false;
   const locked = targets.slice();
   e.swingTargets = null;
@@ -1079,7 +1088,7 @@ function enemyAttack(b, e, prevCd) {
     } else hit(t);
   }
   if (b._hooks.attack) b.emit('attack', { attacker: e, targets, targetDeployments, isSkill: false });
-  e.atkCd = e.s.interval;
+  // (the interval already runs from the swing start)
   // stands for the rest of its attack clip (attackStand; the wind-up was stood before the strike) — every enemy, blocked
   // or not: PRTS 状态机, an enemy's ATTACK / COMBAT state "攻击结束后回退到MOVE状态" and checks only 异常状态 every frame
   // (only a character's COMBAT "检测到不存在阻挡对象时强行切回IDLE状态"), so an enemy whose block ends after its strike — the
