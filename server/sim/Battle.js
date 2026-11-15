@@ -619,7 +619,8 @@ export class Battle {
 
   _anyEnemyAlive() {
     const list = this.enemies;
-    for (let i = 0; i < list.length; i++) if (list[i].alive) return true;
+    // (an enemy structure — 염괴포, content/devices.js — does not hold the field open)
+    for (let i = 0; i < list.length; i++) if (list[i].alive && !list[i].mem?.structure) return true;
     return false;
   }
 
@@ -1038,6 +1039,7 @@ export class Battle {
     e.lpr = def.lpr;
     e.mods = opts.mods ?? null;
     e.tag = opts.tag ?? null;
+    if (opts.displayKind) e.displayKind = opts.displayKind; // drawn as another kind (염괴포: the map's cannon model)
     e.bounty = opts.bounty ?? null;
     e.sourcePlayerId = opts.sourcePlayerId ?? null;
     e.ownerId = opts.ownerPlayerId ?? this._ownerForTile(start);

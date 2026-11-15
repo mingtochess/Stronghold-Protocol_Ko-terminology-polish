@@ -178,7 +178,8 @@ export class BattleLifecycle {
   /** Is any enemy still alive? (Checked every tick; a plain loop instead of a per-tick `some` closure.) */
   _anyEnemyAlive() {
     const list = this.enemies;
-    for (let i = 0; i < list.length; i++) if (list[i].alive) return true;
+    // (an enemy structure — 염괴포, content/devices.js — does not hold the field open)
+    for (let i = 0; i < list.length; i++) if (list[i].alive && !list[i].mem?.structure) return true;
     return false;
   }
 

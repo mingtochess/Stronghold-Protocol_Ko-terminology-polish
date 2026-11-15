@@ -41,7 +41,7 @@ export function unitInfo(u) {
   if (u._rateSent === undefined) u._rateSent = atkInterval;
   return {
     id: u.id,
-    kind: u.kind,
+    kind: u.displayKind ?? u.kind,
     side: u.side,
     ownerId: u.ownerId ?? null,
     defId: u.defId,

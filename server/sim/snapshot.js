@@ -37,7 +37,7 @@ export function unitInfo(u) {
   const d = u.def || {};
   return {
     id: u.id,
-    kind: u.kind,
+    kind: u.displayKind ?? u.kind,
     side: u.side,
     ownerId: u.ownerId ?? null,
     defId: u.defId,

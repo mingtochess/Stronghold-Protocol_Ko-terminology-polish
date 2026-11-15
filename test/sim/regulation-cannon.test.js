@@ -37,7 +37,7 @@ test('the cannon at (13,6) facing DOWN shells (9,6) every 6 s for 1200 physical 
 test('a light ground enemy beside the cannon rides the shell to the landing point', () => {
   const h = battle({ enemies: [{ key: 'test_enemy', time: 0, pos: { row: 13, col: 7 } }] });
   h.run(1);
-  const e = h.b.enemies.find((x) => x.defId === 'test_enemy' || x.key === 'test_enemy') || h.b.enemies[0];
+  const e = h.b.enemies.find((x) => String(x.defId).endsWith('test_enemy'));
   assert.ok(e, 'enemy spawned');
   e.x = 6.4; e.y = 13;   // next to the cannon (13,6): within 1.1
   h.run(5.5);
@@ -55,4 +55,44 @@ test('m09 隐匿模块 (w): an operator standing on it is hidden (隐匿)', () =
     players: [{ playerId: 'p1', seat: 0, side: 'L', units: [{ uid: 1, kind: 'chess', chessId: 'test_a', row: cell[0], col: cell[1] }], bonds: {} }] });
   h.step();
   assert.equal(h.unit(1).s.flags.stealth, true);
+});
+
+test('염괴포 is an enemy structure: HP 30000, DEF 3000, taunt -1, attackable and destroyable; not a kill, not a leak', () => {
+  const h = battle({});
+  h.step();
+  const cn = h.b.enemies.find((e) => e.defId === 'trap_196_cnnon');
+  assert.ok(cn, 'the cannon is an enemy unit');
+  assert.equal(cn.s.maxHp, 30000);
+  assert.equal(cn.s.def, 3000);
+  assert.equal(cn.s.res, 0);
+  assert.equal(cn.counted, false);
+  assert.equal(cn.mem.noLeak, true);
+  h.b.dealDamage({ source: null, target: cn, amount: 1e9, type: 'true' });
+  assert.equal(cn.alive, false, 'destroyed');
+});
+
+test('a destroyed 염괴포 sends its rider to the blast centre at once and fires no more', () => {
+  const h = battle({ enemies: [{ key: 'test_enemy', time: 0, pos: { row: 13, col: 7 } }],
+    units: [{ uid: 1, kind: 'chess', chessId: 'test_a', row: 9, col: 6 }] });
+  h.run(1);
+  const e = h.b.enemies.find((x) => String(x.defId).endsWith('test_enemy'));
+  const cn = h.b.enemies.find((x) => x.defId === 'trap_196_cnnon');
+  e.x = 6.4; e.y = 13;
+  h.b.dealDamage({ source: null, target: cn, amount: 1e9, type: 'true' });
+  h.step();
+  assert.ok(Math.abs(e.x - 6) < 1e-6 && Math.abs(e.y - 9) < 1e-6, `rider landed at ${e.x},${e.y}`);
+  const hp = h.unit(1).hp;
+  h.run(8);
+  assert.equal(h.unit(1).hp, hp, 'no shell after its destruction');
+});
+
+test('a field where only the 염괴포 is left ends cleared (the structure does not hold it open)', () => {
+  setGameData(raw);
+  const data = new DataSource({ ...raw, chess: { ...raw.chess, test_a: chessRec({ id: 'test_a', skill: null, hp: 100000 }) } }, null);
+  const h = makeBattle({ data, content: 'full', autoFinish: true, timeLimit: 30, stageId: 'act3autochess_m10',
+    players: [{ playerId: 'p1', seat: 0, side: 'L', units: [], bonds: {} }] });
+  h.run(3);
+  assert.equal(h.b.finished, true);
+  assert.equal(h.b.reason, 'cleared');
+  assert.equal(h.b.leakedCount ?? 0, 0);
 });

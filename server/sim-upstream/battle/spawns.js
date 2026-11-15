@@ -134,6 +134,7 @@ export class BattleSpawns {
     e.lpr = def.lpr;
     e.mods = opts.mods ?? null;
     e.tag = opts.tag ?? null;
+    if (opts.displayKind) e.displayKind = opts.displayKind; // drawn as another kind (a 규정 염괴포: the map's cannon model)
     e.bounty = opts.bounty ?? null;
     e.sourcePlayerId = opts.sourcePlayerId ?? null;
     e.ownerId = opts.ownerPlayerId ?? this._ownerForTile(start);

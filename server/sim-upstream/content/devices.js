@@ -284,29 +284,52 @@ function startCannons(battle, st, devices) {
     const [dr, dc] = DIR_VEC[d.dir ?? d.raw?.dir] ?? DIR_VEC.DOWN; // DIR_VEC (above): [dRow, dCol], UP = +row
     const tr = d.row + dr * CANNON.reach, tc = d.col + dc * CANNON.reach;
     if (!battle.grid.inRect(tr, tc)) continue; // its shells land on another field
-    const atk = num(d.raw?.stats?.atk ?? d.stats?.atk, 1200);
-    st.cannons.push({ row: d.row, col: d.col, tr, tc, atk, cd: CANNON.interval });
+    const stats = d.raw?.stats ?? d.stats ?? {};
+    const atk = num(stats.atk, 1200);
+    // 염괴포 (나무위키 창백한 바다로부터의 탈출 §5: 적 구조물, 체력 30000 / 방어력 3000 / 마법 저항 0, 도발 레벨 -1 「아군에게 잘
+    // 공격받지 않는다」): an enemy structure the operators can attack and destroy. It never moves, blocks or attacks normally,
+    // is neither a kill nor a leak (counted / noLeak) and does not hold the field open (mem.structure: lifecycle
+    // _anyEnemyAlive). The client draws it as the map's own cannon model with an HP bar (displayKind 'device').
+    const unit = battle.spawnEnemy(CANNON_KEY, {
+      def: { key: CANNON_KEY, name: d.name ?? d.raw?.name ?? '盐坨子炮', applyWay: 'NONE', notCountInTotal: true,
+        stats: { maxHp: num(stats.maxHp, 30000), atk, def: num(stats.def, 3000), res: num(stats.res, 0), moveSpeed: 0, bat: CANNON.interval,
+          aspd: 100, rangeRadius: 0, blockCnt: 0, massLevel: 99, lpr: 0, dmgType: 'none', motion: 'WALK', tauntLevel: -1,
+          immunities: { stun: true, frozen: true, silence: true, sleep: true } } },
+      pos: [d.row, d.col], countInTotal: false, displayKind: 'device',
+    });
+    if (unit) { unit.mem.noLeak = true; unit.mem.structure = true; } // (move speed 0: it stays on its tile)
+    st.cannons.push({ row: d.row, col: d.col, tr, tc, atk, cd: CANNON.interval, unit, landed: false });
   }
 }
 
+/** The passenger: one ground enemy of weight ≤ 3 within 1.1 of the cannon (not the cannon itself). */
+const cannonRider = (battle, c) => battle.enemiesInRadius(c.col, c.row, CANNON.carry, true)
+  .find((e) => e.alive && e !== c.unit && !e.mem?.structure && !e.isFlying && e.weight <= CANNON.maxWeight + 1e-9);
+
+function sendRider(battle, c, rider) {
+  if (!rider || !rider.alive) return;
+  const fromX = rider.x, fromY = rider.y;
+  rider.x = c.tc; rider.y = c.tr;
+  if (rider.route) rider.route.pts = null;
+  battle.fx('teleport', { x: rider.x, y: rider.y, fromX, fromY, id: rider.id, kind: 'cannon' });
+}
+
 function fireCannon(battle, c) {
-  // the passenger: one ground enemy of weight ≤ 3 next to the cannon
-  const rider = battle.enemiesInRadius(c.col, c.row, CANNON.carry, true)
-    .find((e) => e.alive && !e.isFlying && e.weight <= CANNON.maxWeight + 1e-9);
+  const rider = cannonRider(battle, c);
   battle.fx('cannonShot', { x: c.col, y: c.row, tx: c.tc, ty: c.tr });
   for (const a of battle.alliesInRadius(c.tc, c.tr, CANNON.splash)) {
     battle.dealDamage({ source: null, target: a, amount: c.atk, type: 'phys', tags: ['device', 'cannon'] });
   }
-  if (rider && rider.alive) {
-    const fromX = rider.x, fromY = rider.y;
-    rider.x = c.tc; rider.y = c.tr;
-    if (rider.route) rider.route.pts = null;
-    battle.fx('teleport', { x: rider.x, y: rider.y, fromX, fromY, id: rider.id, kind: 'cannon' });
-  }
+  sendRider(battle, c, rider);
 }
 
 function tickCannons(battle, st, dt) {
   for (const c of st.cannons) {
+    if (c.unit && !c.unit.alive) {
+      // 파괴: 탑승한 적은 즉시 폭심지로 전송된다 (나무위키 각주 1)
+      if (!c.landed) { c.landed = true; sendRider(battle, c, cannonRider(battle, c)); }
+      continue;
+    }
     c.cd -= dt;
     if (c.cd > 1e-9) continue;
     c.cd += CANNON.interval;
