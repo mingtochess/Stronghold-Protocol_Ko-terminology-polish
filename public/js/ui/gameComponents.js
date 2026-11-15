@@ -101,7 +101,7 @@ export const isGoldenPiece = (piece, chess) => !!(piece?.golden || chess?.isGold
  * @param {{ kind?: 'chess'|'item'|'token'|'enemy', id: string, golden?: boolean, size?: 'xs'|'sm'|'md'|'lg', tier?: number,
  *   showTier?: boolean, class?: string, dim?: boolean, badge?: any, title?: string }} props
  */
-export function UnitThumb({ rec = null, kind = 'chess', id, golden, size = 'md', tier, showTier = true, class: cls, dim = false, badge = null, title }) {
+export function UnitThumb({ rec = null, kind = 'chess', id, golden, size = 'md', tier, showTier = true, tierFrame = true, class: cls, dim = false, badge = null, title }) {
   const m = data.get('assets');
   let src = null;
   let name = '';
@@ -128,7 +128,7 @@ export function UnitThumb({ rec = null, kind = 'chess', id, golden, size = 'md',
     name = e?.name || '';
   }
   const glyph = [...(name || '?')][0] || '?';
-  return html`<span class=${cx('uthumb', `uthumb--${size}`, `uthumb--${kind}`, golden && 'is-golden', dim && 'is-dim', t && `uthumb--t${Math.max(1, Math.min(6, t | 0))}`, cls)}
+  return html`<span class=${cx('uthumb', `uthumb--${size}`, `uthumb--${kind}`, golden && 'is-golden', dim && 'is-dim', tierFrame && t && `uthumb--t${Math.max(1, Math.min(6, t | 0))}`, cls)}
       title=${title ?? name}>
     <span class="uthumb__art">
       <${Img} src=${src} fallback=${html`<span class="uthumb__glyph">${glyph}</span>`} />

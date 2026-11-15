@@ -80,7 +80,7 @@ function BondBannedAside(bond, model, banned) {
       const c = data.lookup('chess', id);
       const bonds = (Array.isArray(c?.bonds) ? c.bonds : []).filter((b) => nameOf.has(b));
       return html`<div key=${id} class="brief-bantip__op" data-chess=${id}>
-        <${UnitThumb} kind="chess" id=${id} size="xs" showTier=${false} />
+        <${UnitThumb} kind="chess" id=${id} size="xs" showTier=${false} tierFrame=${false} />
         <div class="brief-bantip__txt"><b>${c?.name || id}</b>
           <span>${bonds.map((b, i) => html`${i ? ' · ' : ''}<span class=${cx(b === bond.bondId && 'is-this')}>${nameOf.get(b)}</span>`)}</span></div>
       </div>`;
@@ -134,7 +134,7 @@ export function BannedOperators({ model }) {
   const { banned } = model;
   return html`<div class="brief-banned">
     <h3 class="brief-h"><span>本局禁用干员</span><${MicroLabel}>BANNED OPERATORS</${MicroLabel}><b class="num brief-banned__n">${banned.length}</b></h3>
-    ${banned.length ? html`${(model.bannedGroups?.length ? model.bannedGroups : [{bondId:'other',name:'기타',ids:banned}]).map(g=>html`<section class="brief-banned__group" key=${g.bondId}><h4>${g.bondId !== 'other' ? html`<${BondDisc} name=${g.name} icon=${bondIconUrl(data.get('assets'), g.bondId)} showName=${false} size="sm" />` : null}<span>${g.name}</span></h4><div class="brief-banned__grid">${g.ids.map(id=>html`<${UnitThumb} key=${id} kind="chess" id=${id} size="sm" dim=${false} />`)}</div></section>`)}` : html`<p class="t-dim">本局没有禁用干员</p>`}
+    ${banned.length ? html`${(model.bannedGroups?.length ? model.bannedGroups : [{bondId:'other',name:'기타',ids:banned}]).map(g=>html`<section class="brief-banned__group" key=${g.bondId}><h4>${g.bondId !== 'other' ? html`<${BondDisc} name=${g.name} icon=${bondIconUrl(data.get('assets'), g.bondId)} showName=${false} size="sm" />` : null}<span>${g.name}</span></h4><div class="brief-banned__grid">${g.ids.map(id=>html`<${UnitThumb} key=${id} kind="chess" id=${id} size="sm" dim=${false} showTier=${false} tierFrame=${false} />`)}</div></section>`)}` : html`<p class="t-dim">本局没有禁用干员</p>`}
   </div>`;
 }
 
