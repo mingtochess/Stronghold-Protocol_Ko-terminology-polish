@@ -2368,7 +2368,10 @@ export class UnitView {
     // official geometry (measured on the client's battle screens): the bars sit under the unit's feet, about a tile wide
     // (a fixed boss — one that does not walk — spans its body: OFFICIAL_BARS.fixedBossWidth; a walking boss = a leader)
     const fixedBoss = off && this.isBoss && this.fixedBoss;
-    const bw = off ? s * (fixedBoss ? OFFICIAL_BARS.fixedBossWidth : OFFICIAL_BARS.width) : clamp(s * (this.isBoss ? UNIT.bossBarWidth : UNIT.barWidth), 24, this.isBoss ? 260 : 96);
+    // a fixed boss's bar spans its body in both styles (OFFICIAL_BARS.fixedBossWidth tiles)
+    const bw = off ? s * (fixedBoss ? OFFICIAL_BARS.fixedBossWidth : OFFICIAL_BARS.width)
+      : this.isBoss && this.fixedBoss ? s * OFFICIAL_BARS.fixedBossWidth
+      : clamp(s * (this.isBoss ? UNIT.bossBarWidth : UNIT.barWidth), 24, this.isBoss ? 260 : 96);
     const bh = off ? Math.max(2.5, s * (fixedBoss ? OFFICIAL_BARS.leaderH : OFFICIAL_BARS.hpH)) : clamp(s * (this.isBoss ? 0.09 : 0.065), 3, this.isBoss ? 9 : 6);
     // a knocked-down operator's HUD is its redeploy ring alone, drawn at full strength over the greyed model
     this.hud.alpha = this.down ? this.fadeIn : this.dying > 0 ? 0 : alpha;
