@@ -570,6 +570,12 @@ export function stageDevices(stage, grid) {
     const t = grid?.[r]?.[c];
     // the 盐坨子炮 stands on the separator wall (rows 6 / 13), a cell the board does not draw: ground height there
     if (!t || (!t.drawn && kind !== 'cannon')) continue;
+    // a 盐坨子炮 shows only with the field it shells (4 tiles ahead, sim devices.js CANNON.reach): the row-6 pair aims at
+    // the boss field and stays hidden in a normal round's view, as the sim does not fire it there
+    if (kind === 'cannon') {
+      const dv = { UP: [1, 0], DOWN: [-1, 0], LEFT: [0, -1], RIGHT: [0, 1] }[d.dir] || [-1, 0];
+      if (!grid?.[r + dv[0] * 4]?.[c + dv[1] * 4]?.drawn) continue;
+    }
     out.push({ kind, r, c, dir: ['UP', 'DOWN', 'LEFT', 'RIGHT'].includes(d.dir) ? d.dir : 'UP', z0: t.drawn ? t.h : 0, key: d.key || null, alias: d.alias || null, rangeTiles: Array.isArray(d.rangeTiles) ? d.rangeTiles : null });
   }
   return out;

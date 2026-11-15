@@ -3803,5 +3803,8 @@
   "파괴되면 태우고 있던 적이 즉시 폭심지로 보내지고, 더는 포탄을 쏘지 않습니다. 기절·빙결·침묵·수면에 걸리지 않습니다": "When destroyed, its rider is sent to the blast centre at once and it fires no more. Immune to stun, freeze, silence and sleep",
   "가속 구역": "Acceleration Zone",
   "이 위에 선 지상 유닛(아군·적 모두)은 공격 속도 +{aspd}, 이동 속도 ×{move}": "Ground units standing on it (allies and enemies) get ATK speed +{aspd} and move speed ×{move}",
-  "구역을 벗어나면 효과가 사라집니다. 비행 유닛에게는 적용되지 않습니다": "The effect ends on leaving the zone. Flying units are unaffected"
+  "구역을 벗어나면 효과가 사라집니다. 비행 유닛에게는 적용되지 않습니다": "The effect ends on leaving the zone. Flying units are unaffected",
+  "다른 시즌의 방": "A room of another season",
+  "이 방은 {room} 시즌입니다. 참가하면 현재 {cur} 시즌에서 {room} 시즌으로 전환됩니다. 계속할까요?": "This room plays the {room} season. Joining switches you from the {cur} season to {room}. Continue?",
+  "전환하고 참가": "Switch and join"
 }
