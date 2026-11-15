@@ -68,7 +68,8 @@ const tokens = V('tokens.json').map((t) => {
 // ---- 3. enemies (incl. bosses) ----
 const enemies = V('enemies.json').map((e) => {
   const id = e.key; const a = assets.enemies?.[id]; const miss = [];
-  if (!a && !localSpine('enemy', id)) miss.push('all'); else { if (a && !a.icon) miss.push('icon'); if (!a?.spine && !a?.spineLocal && !localSpine('enemy', id)) miss.push('spine'); }
+  if (!a && !localSpine('enemy', id)) miss.push('all'); else { if (a && !a.icon) miss.push('icon'); // a declared spineLocal counts only when its files are published (the local-assets group): else the client draws a diamond
+    if (!a?.spine && !localSpine('enemy', id) && !(a?.spineLocal && localSpine('enemy', String(a.spineLocal.group || '').split('/').pop()))) miss.push('spine'); }
   if (!has(fxUnits, id)) miss.push('fx');
   if (!audioText.includes(id)) miss.push('sfx');
   return { id, miss };
