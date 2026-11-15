@@ -20,11 +20,12 @@
 //   活性源石 i  a unit on it (allies and ground enemies) gets a timed effect: damage true dmg/s, ATK + atk, ASPD +
 //              attack_speed for `duration` s from its last contact — an enemy keeps it after walking off; one effect
 //              per unit, its time starts again while the unit is on the tile; the tiles never switch off
-//   隐匿模块 w  规程 m09 tile_duel_grassland (PRTS 战场一览 #09 "位于其上的单位和敌人获得隐匿"): 隐匿 for every unit on it
 //   加速 z      规程 tile_speedup (PRTS 优化模块): an operator stepping on it gets ASPD +attack_speed (flat, official 25), an
 //              enemy move ×move_speed (official ×1.5), from stage.special.speedup; it lasts after leaving the tile.
-//              Flyers skip it (terrainFor). 草地 w (tile_duel_grassland, no blackboard) is plain
-//              ground [ASSUMED]
+//              Flyers skip it (terrainFor).
+//   隐匿 w      规程 tile_duel_grassland grants both sides' ground units stealth. Enemy blocking suppresses it;
+//              release restores it after stage.special.duelGrass.enemyStealthRestoreSec (fallback 0; the official
+//              0 is immediate). Leaving clears it.
 //   “双眼皮”   turrets (`trap_1104_aclasert`, band 机械援助 / `deviceOverrides` alias on): ranged arts shooter on its data
 //              range; ASPD + attack_speed_per_stack × L (≤ max_attack_speed), hits apply fragile 1 + damage_scale_per_stack
 //              × L (≤ max_damage_scale) for the text's duration; L = the owner's highest bond layers (live)
@@ -55,9 +56,9 @@ const num = (v, d = 0) => (typeof v === 'number' && Number.isFinite(v) ? v : (ty
 /** ASPD blackboard values: a fraction (|v| < 1, e.g. −0.6 / −0.05) is ×100 ASPD, otherwise flat (+20). */
 const aspdOf = (v) => (Math.abs(v) < 1 ? v * 100 : v);
 
-export const TERRAIN = Object.freeze({ mire: 1, smog: 2, deepsea: 3, infection: 4, speedup: 5, stealth: 6 });
-const TERRAIN_NAME = ['', 'mire', 'smog', 'deepsea', 'infection', 'speedup', 'stealth'];
-const BUFF = { 1: 'terrain:mire', 2: 'terrain:smog', 3: 'terrain:deepsea', 4: 'terrain:infection', 5: 'terrain:speedup', 6: 'terrain:stealth' };
+export const TERRAIN = Object.freeze({ mire: 1, smog: 2, deepsea: 3, infection: 4, speedup: 5, duelGrass: 6 });
+const TERRAIN_NAME = ['', 'mire', 'smog', 'deepsea', 'infection', 'speedup', 'duelGrass'];
+const BUFF = { 1: 'terrain:mire', 2: 'terrain:smog', 3: 'terrain:deepsea', 4: 'terrain:infection', 5: 'terrain:speedup', 6: 'terrain:duelGrass' };
 const AIRFLOW = 'terrain:airflow';
 const CRATE_KEY = 'trap_1105_accrate';
 const TURRET_KEY = 'trap_1104_aclasert';
@@ -411,6 +412,9 @@ function buildTerrain(battle, st) {
   const su = sp.speedup || {};
   // PRTS 优化模块: operators ASPD +attack_speed; enemies move ×move_speed (the blackboard multiplier, official ×1.5)
   st.speedup = { aspd: aspdOf(num(su.attack_speed, 25)), moveMul: num(su.move_speed, 1.5) };
+  // 规程 tile_duel_grassland. Official enemyStealthRestoreSec is 0 (restore on release). Other seasons omit the block.
+  const grass = sp.duelGrass || {};
+  st.duelGrass = { enemyStealthRestoreSec: num(grass.enemyStealthRestoreSec, 0) };
   // blowers
   for (const d of battle.stage?.devices || []) {
     if (d.role !== 'blower' || !isActive(battle, st, d)) continue;
@@ -453,9 +457,11 @@ function enterTerrain(battle, st, u, code) {
   m.mireStacks = 0;
   m.mireTriggers = 0;
   if (!code) return;
-  // 隐匿模块 (m09 w): 隐匿 for operators and enemies alike (PRTS 规程 战场一览 #09)
-  if (code === TERRAIN.smog || code === TERRAIN.stealth) battle.addBuff(u, { key: BUFF[code], flags: { stealth: true } });
-  else if (code === TERRAIN.deepsea) {
+  if (code === TERRAIN.smog) battle.addBuff(u, { key: BUFF[code], flags: { stealth: true } });
+  else if (code === TERRAIN.duelGrass) {
+    const restore = num(st.duelGrass?.enemyStealthRestoreSec, 0);
+    battle.addBuff(u, { key: BUFF[code], flags: { stealth: true }, data: { stealthRestore: restore } });
+  } else if (code === TERRAIN.deepsea) {
     const D = st.deepsea;
     battle.addBuff(u, { key: BUFF[code], mods: { aspd: D.aspd, moveMul: D.moveMul }, interval: 1, onTick: deepWaterDamage(battle, D.damage) });
   } else if (code === TERRAIN.speedup) {
@@ -570,9 +576,10 @@ function tickAirflowEnemy(battle, st, e) {
   else battle.removeBuff(e, AIRFLOW);
 }
 
-/** Apply terrain / airflow state to one unit now (deploy, spawn, every tick). */
+/** Apply terrain / airflow state to one unit now (deploy, spawn, every tick). Devices — the map's and a summon whose
+ * official entity type is 装置 (`mem.terrainImmune`: 望's 棋子, §37.205) — stand outside it. */
 function refreshUnit(battle, st, u) {
-  if (!u.alive || !u.deployed || u.kind === 'device') return;
+  if (!u.alive || !u.deployed || u.kind === 'device' || u.mem?.terrainImmune) return;
   if (st.hasTerrain) {
     enterTerrain(battle, st, u, terrainFor(battle, st, u));
     if (u.mem.terrain === TERRAIN.mire) tickMire(battle, st, u);
@@ -605,7 +612,7 @@ function ensureTick(battle, st) {
   }, { priority: 90 });
 }
 
-/** Terrain name under (r, c) for other content ('mire' | 'smog' | 'deepsea' | 'infection' | 'speedup' | null). */
+/** Terrain name under (r, c) for other content ('mire' | 'smog' | 'deepsea' | 'infection' | 'speedup' | 'duelGrass' | null). */
 export function terrainAt(battle, r, c) {
   const st = stateOf(battle);
   const code = st && r >= 0 && r < (battle.grid?.rows ?? ROWS) && c >= 0 && c < (battle.grid?.cols ?? COLS) ? st.terrain[r * (battle.grid?.cols ?? COLS) + c] : 0;

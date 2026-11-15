@@ -3,8 +3,8 @@ import {N_} from './i18n.js';
 // Shared enums & constants (server + browser). Pure ESM, no Node APIs.
 
 export const PROTOCOL_VERSION = 1;
-export const BASE_VERSION = '0.3.4';
-export const APP_VERSION = '0.3.4a';
+export const BASE_VERSION = '0.4.0';
+export const APP_VERSION = '0.4.0a';
 export const DEV_BUILD = /-dev$/.test(APP_VERSION);
 /**
  * The plugin API levels this build supports (DESIGN §32, shared/plugins/manifest.js): a manifest 2 states the level it
