@@ -91,11 +91,12 @@ export function attackCountdown(cd, dt) {
 }
 
 export function updateAlly(b, u, dt) {
+  // 맹약 시즌 규칙 (server/sim/ai.js updateAlly, the same body): 무장해제·행동 불가면 공격 없음, 독립 시전 스킬은 모션 끝까지,
+  // 증강 공격 중 정지, windupNeedsRange / allowEmptyAttack profiles
   if (u.atkCd > 0 && u.canAct) u.atkCd = attackCountdown(u.atkCd, dt);
   if (u.blocking.length) enforceBlockCapacity(b, u);
   if (!u.canAct || !u.profile) { cancelWindup(b, u); return; }
-  // a fixed-motion skill cast (skills.js, the 맹약 season's timing rule) owns its animation
-  if (b.time < (u.mem.skillCastUntil || 0)) return;
+  if(b.time < (u.mem.skillCastUntil || 0))return;
   // a rangeExtend change (buff added / expired) rebuilds the range — also for units that never attack (auras)
   if (b.rangeChanged(u)) b._refreshRange(u);
   const sk = u.skill;
@@ -103,20 +104,23 @@ export function updateAlly(b, u, dt) {
   if (prof.noAttack) { cancelWindup(b, u); return; }
   if (prof.noAttackUnlessSkill && !(sk && sk.active)) { cancelWindup(b, u); return; }
   if (u.s.flags.disarm) { cancelWindup(b, u); return; }
-  // 공격 타격 시점 (the 맹약 season's timing rule, server/sim/ai.js): an attack strikes at its clip's damage frame after
-  // the swing starts; the swing keeps its targets (a dead / untargetable one is replaced before the strike)
+  if (u.mem.augmentAttackUntil>b.time+1e-9) return;
   if (u.mem.attackWindup) {
     const pending = u.mem.attackWindup;
     if (pending.seq !== u.deploySeq) { cancelWindup(b, u); return; }
     if (pending.skillActive !== !!sk?.active) {
-      if (!!pending.profile.heal !== !!prof.heal) { cancelWindup(b, u); return; }
-      pending.profile = prof;
-      pending.skillActive = !!sk?.active;
+      // A stance/stat skill changes the pending hit, not its deadline or the attack cooldown.
+      if (!!pending.profile.heal !== !!prof.heal) { cancelWindup(b,u); return; }
+      pending.profile=prof;
+      pending.skillActive=!!sk?.active;
     }
     const candidates = acquireTargets(b, u, pending.profile);
     const previous = pending.targets;
-    let targets = previous.filter((t) => pending.profile.heal ? (t.alive && t.deployed && !t.hidden) : (b.isAllyTarget?.(t) ? t.alive && t.deployed && !t.hidden : canTargetEnemy(u, t, pending.profile)));
-    if (b.time + 1e-9 < pending.until) {
+    // Once an attack starts, walking outside its range does not cancel it.
+    // Death or loss of targetability still permits a replacement before impact.
+    let targets = previous.filter(t => pending.profile.heal ? (t.alive && t.deployed && !t.hidden) : (b.isAllyTarget?.(t) ? t.alive && t.deployed && !t.hidden : canTargetEnemy(u, t, pending.profile)) && (!pending.profile.windupNeedsRange || candidates.includes(t)));
+    // A replacement inherits the existing wind-up and hit deadline, without restarting Spine.
+    if (b.time + 1e-9 < pending.until || pending.profile.windupNeedsRange) {
       for (const t of candidates) {
         if (targets.length >= previous.length) break;
         if (!targets.includes(t)) targets.push(t);
@@ -124,21 +128,20 @@ export function updateAlly(b, u, dt) {
       if (targets.length && targets[0] !== previous[0]) b._ev(['atkRetarget', u.id, targets[0].id, !!pending.profile.allInRange]);
       pending.targets = targets;
     }
-    if (!targets.length) { cancelWindup(b, u); return; }
+    if (!targets.length && !pending.profile.allowEmptyAttack) { cancelWindup(b, u); return; }
     if (b.time + 1e-9 < pending.until) return;
     delete u.mem.attackWindup;
     performAttack(b, u, pending.profile, targets);
     return;
   }
-  if (u.atkCd > 0) return;
-  // (a 秘术师's `canAttack` is its own target rule: false = no valid target — 深靛's bound enemies, 维伊's marked ones)
-  if (prof.canAttack && !prof.canAttack(b, u)) { if (prof.storeEnergy) { u.trait.hadTarget = false; storeEnergy(b, u, prof); } return; }
+  if (u.atkCd > 1e-9) return;
+  if (prof.canAttack && !prof.canAttack(b, u)) { if (prof.storeEnergy) { u.trait.hadTarget = false; storeEnergy(b,u,prof); } return; }
   let targets = acquireTargets(b, u, prof);
   // A DEFAULT charged heal can replace this attack with an eligible ally even when no enemy exists.
   // Run after cooldown/control checks so silence, disarm and the exact attack cadence still apply (#406).
   if (!targets.length && sk?.triggerAllies && sk.onAboutToAttack()) {
     prof = effectiveProfile(u);
-    if (prof.noAttack || !u.alive) return;
+    if (prof.noAttack || !u.canAct || u.s.flags.disarm) return;
     targets = acquireTargets(b, u, prof);
   } else if (!targets.length) {
     // The enemy phase already ran. A target that was in range when this cooldown reached 0 (noteAttackCommit,
@@ -146,14 +149,14 @@ export function updateAlly(b, u, dt) {
     const committed = committedAttackTargets(b, u, prof);
     if (committed.length) targets = committed;
   }
-  if (!targets.length) { u.trait.hadTarget = false; storeEnergy(b, u, prof); return; }
+  if (!targets.length && !prof.allowEmptyAttack) { u.trait.hadTarget = false; storeEnergy(b, u, prof); return; }
   u.trait.hadTarget = true;
   if (sk && sk.onAboutToAttack()) {
+    if (u.atkCd > 1e-9 || b.time < (u.mem.skillCastUntil || 0)) return; // an independent cast owns its full animation
     prof = effectiveProfile(u);
-    if (prof.noAttack || !u.alive) return;
+    if (prof.noAttack || !u.canAct || u.s.flags.disarm) return;
     targets = acquireTargets(b, u, prof);
-    if (!targets.length) { storeEnergy(b, u, prof); return; }   // the cast left none (a range change): still this check
-    if (b.time < (u.mem.skillCastUntil || 0)) { u.atkCd = Math.max(u.atkCd, u.s.interval); return; } // a cast motion started
+    if (!targets.length && !prof.allowEmptyAttack) { storeEnergy(b,u,prof); return; }
   }
   const wind = clipWindup(u);
   if (wind > 0) {
@@ -166,6 +169,7 @@ export function updateAlly(b, u, dt) {
 /** An interrupted wind-up never strikes (the 맹약 season's server/sim/ai.js cancelWindup). */
 function cancelWindup(b, u) {
   if (!u.mem.attackWindup) return;
+  if (u.mem.attackWindup.profile?.refundWindupCooldown) u.atkCd = 0;
   delete u.mem.attackWindup;
   b._ev(['atkCancel', u.id]);
 }
