@@ -189,7 +189,7 @@ function spread(battle, unit, src, cd, scale) {
   const m = unit.mem;
   if (battle.time < (m.dminonSpreadAt ?? -Infinity) - 1e-9) return;
   m.dminonSpreadAt = battle.time + cd;
-  const tiles = absoluteRangeKeys(X5, roundHalfEven(src.y), roundHalfEven(src.x), 'RIGHT', 0);
+  const tiles = absoluteRangeKeys(X5, roundHalfEven(src.y), roundHalfEven(src.x), 'RIGHT', 0, src.battle?.grid);
   const own = m.dminonSpread ?? (m.dminonSpread = []);
   const before = own.length;
   for (const k of tiles) if (!own.includes(k)) own.push(k);
@@ -296,7 +296,7 @@ export default {
           // the field on screen (no gameplay part): his tiles every DOMAIN_FX_IV s, fading once he has left
           battle.every(DOMAIN_FX_IV, () => {
             if (!up(unit) || !unit.rangeKeys?.length) return;
-            const tiles = unit.rangeKeys.map((k) => [Math.floor(k / COLS), k % COLS]);
+            const tiles = unit.rangeKeys.map((k) => [Math.floor(k / battle.grid.cols), k % battle.grid.cols]);
             battle.fx('domain', { x: unit.x, y: unit.y, id: unit.id, key: `domain:${unit.id}`, tiles, dur: 1.5 * DOMAIN_FX_IV });
           }, { owner: unit, immediate: true });
           battle.on('tick', () => {

@@ -143,7 +143,7 @@ function mitm(_bb, chess) {
           for (const [dr, dc] of ORTHO) {
             const r = car.tileR + dr;
             const c = car.tileC + dc;
-            if (battle.grid.inRect(r, c)) keys.push(r * COLS + c);
+            if (battle.grid.inRect(r, c)) keys.push(r * battle.grid.cols + c);
           }
           const amount = unit.s.atk * num(sbb.aoe_damage_scale, 1);
           for (const e of battle.enemiesOnTiles(keys, unit, { canHitFly: true })) {

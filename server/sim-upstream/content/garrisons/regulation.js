@@ -61,7 +61,7 @@ function gridExcludesSelf(it) {
 
 function attackKeys(u) {
   if (u.rangeKeySet && u.rangeKeySet.size) return u.rangeKeySet;
-  return new Set(absoluteRangeKeys(u.rangeGrid, u.tileR, u.tileC, u.dir));
+  return new Set(absoluteRangeKeys(u.rangeGrid, u.tileR, u.tileC, u.dir, 0, u.battle?.grid));
 }
 
 /** Tile keys the effect watches, or null for the whole field. Death keeps tileR / tileC / dir (the body stays). */
@@ -74,8 +74,8 @@ function rangeKeySet(it) {
   if (mode === 'grid') {
     const grid = GRIDS[it.bbStr.range_id];
     if (!grid) return new Set();
-    const set = new Set(absoluteRangeKeys(grid, u.tileR, u.tileC, u.dir));
-    if (gridExcludesSelf(it)) set.delete(u.tileR * COLS + u.tileC);
+    const set = new Set(absoluteRangeKeys(grid, u.tileR, u.tileC, u.dir, 0, u.battle?.grid));
+    if (gridExcludesSelf(it)) set.delete(u.tileR * (u.battle?.grid?.cols ?? COLS) + u.tileC);
     return set;
   }
   return new Set();
@@ -140,7 +140,7 @@ function bondSteps(battle, it) {
 export function grantBondRange(battle, it) {
   const u = it.unit;
   const grid = GRIDS[it.bbStr.bond_range_id] || GRIDS['b-4'];
-  const keys = new Set(absoluteRangeKeys(grid, u.tileR, u.tileC, u.dir));
+  const keys = new Set(absoluteRangeKeys(grid, u.tileR, u.tileC, u.dir, 0, u.battle?.grid));
   const desc = (it.g && it.g.desc) || '';
   const targets = [];
   if (desc.includes('自身')) targets.push(u);
@@ -277,8 +277,8 @@ function summonTile(battle, ps, chessId) {
   const rec = S.chessRecord(chessId);
   const ranged = rec?.position === 'RANGED' || battle.data?.getChess?.(chessId)?.position === 'RANGED';
   let best = null;
-  for (let r = 0; r < ROWS; r++) {
-    for (let c = 0; c < COLS; c++) {
+  for (let r = 0; r < battle.grid.rows; r++) {
+    for (let c = 0; c < battle.grid.cols; c++) {
       if (!battle.onOwnBoard(ps, r, c)) continue;
       if (!battle.grid.inRect(r, c) || !battle.grid.canStand(r, c, { ranged })) continue;
       if (battle.unitAt(r, c)) continue;

@@ -43,7 +43,7 @@ function mberry(_bb, chess, def) {
         const a = ctx.target, d = ctx.dmg;
         if (!a || a.side !== 'ally' || !d || d.type !== 'element') return;
         const keys = unit.rangeKeySet || new Set(unit.rangeKeys || []);
-        if (!keys.has(a.tileR * COLS + a.tileC)) return;
+        if (!keys.has(a.tileR * battle.grid.cols + a.tileC)) return;
         const r = Math.max(0, Math.min(1, num(skillBbOf(chess, S2).ep_damage_resistance)));
         if (!(r > 0)) return;
         const prev = d.haroldCut || 0;

@@ -65,7 +65,7 @@ export default {
           d.cd = unit.s.interval;
           // Official S2 releases one drone (1 + attack@cnt = 1 at both ranks). The ramp lives on the drone, so a
           // pre-skill projectile that lands later cannot change it.
-          const f = unit.profile.funnel;
+          const f = unit.profile.funnel || { init: 0.2, delta: 0.15, max: 1.1 }; // (a profile without its own ramp: the trait's default, professions.js funnelMul)
           d.scale = d.target === d.lock.id ? Math.min(f.max, (d.scale ?? f.init) + f.delta) : f.init;
           d.target = d.lock.id;
           battle.fx('drone', { x: d.lock.x, y: d.lock.y, id: unit.id });

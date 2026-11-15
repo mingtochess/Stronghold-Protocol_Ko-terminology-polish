@@ -205,7 +205,7 @@ function kitArmor(ab) {
           }
           if (s !== 0) seen[u.id] = s;
         }
-        const edge = e.x < 0.2 || e.x > COLS - 1.2;
+        const edge = e.x < 0.2 || e.x > (b.grid?.cols ?? COLS) - 1.2;
         if (!a.slammed && ((a.passN ?? 0) >= stacks || edge)) {
           a.slammed = true;
           a.stopped = true;

@@ -597,8 +597,8 @@ function installLethania(battle, pid, effectId, members) {
     const R = battle.rect;
     const deathTile = tileKeyOf(anchor);
     if (deathTile < 0) return;
-    const row = Math.max(R.r0, Math.min(R.r1, Math.floor(deathTile / COLS)));
-    const col = Math.max(R.c0, Math.min(R.c1, deathTile % COLS));
+    const row = Math.max(R.r0, Math.min(R.r1, Math.floor(deathTile / battle.grid.cols)));
+    const col = Math.max(R.c0, Math.min(R.c1, deathTile % battle.grid.cols));
     // [ASSUMED] the note and the chorus are allied tokens built from the enemy record (they are not in tokens.json).
     // They appear at the death cell center, even on non-deployable floor, another pursuer, an ally, or a downed body.
     const u = battle.spawnToken(pid, id, row, col, {

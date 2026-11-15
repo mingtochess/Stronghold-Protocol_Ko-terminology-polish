@@ -184,7 +184,7 @@ export default {
           // [ASSUMED] its attack grid (plus permanent range extension), not the eagle's whole projectile path; the
           // operation cooldown and control checks stay the engine's.
           unit.skill.addTriggerRange(() => [{
-            keys: absoluteRangeKeys(grid, unit.tileR, unit.tileC, unit.dir, unit.s.baseRangeExtend || 0), profile: AIR,
+            keys: absoluteRangeKeys(grid, unit.tileR, unit.tileC, unit.dir, unit.s.baseRangeExtend || 0, unit.battle?.grid), profile: AIR,
           }]);
           // S3: every attack hits the enemies of the skill range on the target's line (his facing frame): the line of
           // the target's position; another enemy is on it when its body is (a huge one: any tile — body.js)

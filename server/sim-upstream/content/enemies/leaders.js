@@ -26,10 +26,10 @@ export const TRANSLATOR_CHANGE = 2;
 const TRANSLATOR_IMMUNE = Object.freeze(['stun', 'sleep', 'cold', 'freeze', 'levitate', 'fear']);
 
 /** “邪魔的利刃”'s 【国度】 on screen: the [r, c] of the 3×3 around (r, c) inside the field (its 'domain' fx). */
-function boxTiles(r, c) {
+function boxTiles(r, c, rows = ROWS, cols = COLS) {
   const out = [];
   for (let dr = -1; dr <= 1; dr++) {
-    for (let dc = -1; dc <= 1; dc++) if (r + dr >= 0 && r + dr < ROWS && c + dc >= 0 && c + dc < COLS) out.push([r + dr, c + dc]);
+    for (let dc = -1; dc <= 1; dc++) if (r + dr >= 0 && r + dr < rows && c + dc >= 0 && c + dc < cols) out.push([r + dr, c + dc]);
   }
   return out;
 }
@@ -308,7 +308,7 @@ function kitLeaderMisc(key, ab, e) {
         tick(b, e2) {
           const r = Math.round(e2.y), c = Math.round(e2.x);
           for (const u of alliesInTiles(b, r, c, 'box', 1)) auraBuff(b, u, 'ab:blackFog', 0.5, { aspd: T(ab, 'BlackFog.attack_speed') ?? 0 }, null, true);
-          b.fx('domain', { x: e2.x, y: e2.y, id: e2.id, key: `domain:${e2.id}`, tiles: boxTiles(r, c), dur: 0.75 });
+          b.fx('domain', { x: e2.x, y: e2.y, id: e2.id, key: `domain:${e2.id}`, tiles: boxTiles(r, c, b.grid.rows, b.grid.cols), dur: 0.75 });
         },
         hitOut(c, b, e2) {
           const t = c.target;
