@@ -1,6 +1,10 @@
 import {isRoomTitle,defaultRoomTitle} from '../shared/roomTitle.js';
-import {isGameplayMode,normalizeGameplayMode,gameplayExtensions,canSwitchPublicMode} from '../shared/gameplayModes.js';
-import {KITTED_CHARS} from './sim/content/kits/index.js';
+import {isGameplayMode,normalizeGameplayMode,gameplayExtensions,canSwitchPublicMode,AUGMENT_MODE_VALUES} from '../shared/gameplayModes.js';
+import {KITTED_CHARS as FORK_KITTED} from './sim/content/kits/index.js';
+import {KITTED_CHARS as REGULATION_KITTED} from './sim-upstream/content/kits/index.js';
+// 자선 operators with a kit in either engine: the 맹약 sim's and the 규정 (upstream) sim's, whose ported collab kits
+// (오블리비온스 / 마코토 …) exist only there
+const KITTED_CHARS = Object.freeze([...new Set([...FORK_KITTED, ...REGULATION_KITTED])]);
 
 // server/lobby.js — rooms, seats, host, AI seats, ready/start, reconnect, and room → Match wiring
 import { modeExtensionSelection, customExtensionCatalog, extensionSelectionShape, normalizeCustomExtensions, validateExtensionMinimums } from '../shared/customExtensions.js';
@@ -183,6 +187,8 @@ import { Match as DefaultMatch } from './match/Match.js';
 
 const VANILLA_KITTED = new Set(KITTED_CHARS);
 import { isContentHash } from '../shared/plugins/identity.js';
+import { DEFAULT_VERSION, versionById } from '../shared/versions.js';
+import { seasonExtensionCatalog, seasonExtensionSelection, validateSeasonExtensions } from '../shared/seasonExtensions.js';
 import { ruleOption } from '../shared/plugins/rules.js';
 import { msg, wireMessage } from '../shared/i18n.js';
 import { parseTestModeEnv, testModeGate, unrecognizedTestMode } from './testMode.js';
@@ -283,8 +289,14 @@ export class Room {
    * @param {number} now
    * @param {number} [spectatorCap] the host's cap (0…MAX_SPECTATOR_SEATS); defaults to MAX_SPECTATORS
    */
-  constructor(code, mode, difficulty, now, spectatorCap = MAX_SPECTATORS) {
+  constructor(code, mode, difficulty, now, spectatorCap = MAX_SPECTATORS, version = DEFAULT_VERSION) {
     this.code = code;
+    /** the season (official version, shared/versions.js) this room plays; DEFAULT_VERSION = 盟约 第二期下半 */
+    this.version = version;
+    /** a laddered season's official mode (规程's solo: 规程等级 1–20 / 极速模拟), else null */
+    this.modeId = null;
+    /** 「不限时」 on a timed solo season */
+    this.soloUnlimited = false;
     this.mode = mode;
     this.difficulty = difficulty;
     this.rerollLimit = 0;
@@ -353,6 +365,8 @@ export class Room {
 
   /** Does the room play a content set with gameplay plugins (its own cs; header "Gameplay plugins")? */
   get modded() { return !!this.content && this.content.vanilla === false; }
+  /** every member's page must load this room's content: gameplay plugins, or another season's data */
+  get needsContent() { return this.modded || this.version !== DEFAULT_VERSION; }
 
   /** @param {string} playerId @returns {Seat | null} */
   seatOf(playerId) {
@@ -378,6 +392,10 @@ export class Room {
       mode: this.mode,
       sync: this.sync === true,
       difficulty: this.difficulty,
+      // the season: omitted for the default one, so a default room.state keeps its keys
+      ...(this.version !== DEFAULT_VERSION ? { version: this.version } : {}),
+      ...(this.modeId ? { modeId: this.modeId } : {}),
+      ...(this.soloUnlimited === true ? { soloUnlimited: true } : {}),
       rerollLimit: this.rerollLimit,
       rerollsUsed: this.rerollsUsed,
       matchNo: this.matchCount,
@@ -395,9 +413,9 @@ export class Room {
       seats: this.seats.map((s) => (s
         ? { seat: s.seat, playerId: s.playerId, name: s.name, chatFaction:this.chatMembers.get(s.playerId)?.faction??null, isBot: s.isBot, ready: s.ready, connected: s.connected && !s.left,
           // a room with gameplay plugins (header "Gameplay plugins"): has this player's page loaded and checked its content?
-          ...(this.modded && !s.isBot ? { content: s.content || 'loading' } : {}) }
+          ...(this.needsContent && !s.isBot ? { content: s.content || 'loading' } : {}) }
         : null)),
-      spectators: this.spectators.map((s) => ({ playerId: s.playerId, name: s.name, connected: s.connected, ...(this.modded ? { content: s.content || 'loading' } : {}) })),
+      spectators: this.spectators.map((s) => ({ playerId: s.playerId, name: s.name, connected: s.connected, ...(this.needsContent ? { content: s.content || 'loading' } : {}) })),
       ...(this.content ? { content: this.content.trusted ? {...this.content, trusted:{...this.content.trusted, consent:Object.fromEntries(this.seats.filter(x => x && !x.isBot).map(x => [x.seat,x.consentCs === this.content.cs]))}} : this.content } : {}),
       // omitted when false so a normal room.state stays identical
       ...(this.test ? { test: true } : {}),
@@ -429,8 +447,12 @@ export class Lobby {
    *   plugins", "Gameplay plugins"); hosts: the match hosts a room with gameplay plugins runs its match in
    *   (server/match/host/index.js; none: such a match runs here, unit tests)
    */
-  constructor({ registry, log = noopLog, MatchClass = DefaultMatch, getData = defaultGetData, now = Date.now, seedFn, content = null, plugins = null, hosts = null, options = {} }) {
+  constructor({ registry, log = noopLog, MatchClass = DefaultMatch, getData = defaultGetData, now = Date.now, seedFn, content = null, plugins = null, hosts = null, versions = null, versionHosts = null, simPool = null, options = {} }) {
     this.registry = registry;
+    /** the seasons this server offers (server/versions.js), their match hosts, and the bot rehearsal pool */
+    this.versions = versions;
+    this.versionHosts = versionHosts;
+    this.simPool = simPool;
     /** the vanilla content set every room plays (header "Content identity"), or null */
     this.vanilla = content && isContentHash(content.cs) ? Object.freeze({ cs: content.cs, vanilla: true, plugins: Object.freeze([]) }) : null;
     /** the server's room sets — visual and content (header "The room's plugins", "Gameplay plugins"), or null */
@@ -699,6 +721,7 @@ export class Lobby {
       case 'room.setGameplayMode': return this.setGameplayMode(session,msg);
       case 'room.setCustomExtensions': return this.setCustomExtensions(session, msg);
       case 'room.setDifficulty': return this.setDifficulty(session, msg);
+      case 'room.proposeVersion': return this.proposeVersion(session, msg);
       case 'room.setAiPicksLast': return this.setAiPicksLast(session, msg);
       case 'room.addBot': return this.addBot(session);
       case 'room.removeBot': return this.removeBot(session, msg);
@@ -711,6 +734,8 @@ export class Lobby {
       case 'room.cancelReroll': return this.rerollSetup(session, msg, true);
       case 'room.skins': return this.skins(session, msg);
       case 'room.loadout': return this.loadout(session, msg);
+      case 'room.ownership': return this.ownership(session, msg);
+      case 'room.diy': return this.diy(session, msg);
       case 'room.spectate': return this.spectate(session, msg);
       case 'room.removeSpectator': return this.removeSpectator(session, msg);
       case 'room.setPlugins': return this.setPlugins(session, msg);
@@ -735,7 +760,7 @@ export class Lobby {
     seat.connected = false;
     // the page may come back as a new one (a reload): it loads and checks the room's content again (header "Gameplay
     // plugins") — and a room.contentReady of the page that went, still on the room's queue, no longer counts (seatGen)
-    if (room.modded) seat.content = null;
+    if (room.needsContent) seat.content = null;
     seat.contentGen = (seat.contentGen || 0) + 1;
     // a spectator's seat is kept like a player's (nothing to tell the match: it plays no field)
     if (room.match) {
@@ -785,7 +810,15 @@ export class Lobby {
   // room.* handlers
   // ---------------------------------------------------------------------------------------------------
 
-  create(session, { mode, difficulty, spectators, customExtensions, test, gameplayMode, title, titleLocale, isPublic, sync } = {}) {
+  create(session, { mode, difficulty: askedDifficulty, spectators, customExtensions, test, gameplayMode, title, titleLocale, isPublic, sync, version: askedVersion, modeId: askedMode, soloUnlimited } = {}) {
+    // the season (shared/versions.js): left out, the server's default
+    const version = askedVersion ?? this.defaultVersion();
+    if (!this.versionEnabled(version)) return fail(ERR.VERSION_UNKNOWN);
+    const seasonMode = mode === 'coop8' ? 'coop' : mode;
+    if (version !== DEFAULT_VERSION && mode === 'coop8' && versionById(version)?.family !== 'regulation') return fail(ERR.VERSION_UNSUPPORTED, `${version} has no coop8 rooms`);
+    if (!this.offered(version, seasonMode).length) return fail(ERR.VERSION_UNSUPPORTED, `${version} has no ${mode} rooms`);
+    if (!this.versionAvailable(version)) return fail(ERR.VERSION_UNSUPPORTED, 'the data of this version is not available');
+    let difficulty = askedDifficulty === undefined ? askedDifficulty : this.fallbackDifficulty(version, seasonMode, askedDifficulty);
     // 동기화 시뮬레이션: an alliance room (coop / coop8) with the sync rules (Match opts.sync)
     if(sync!==undefined&&(sync!==true||mode==='solo'))return fail(ERR.BAD_MSG);
     if(titleLocale!==undefined&&!['ko','en','ja','zh'].includes(titleLocale))return fail(ERR.BAD_MSG);
@@ -808,24 +841,30 @@ export class Lobby {
     }
     const code = this.genCode();
     if (!code) return fail(ERR.INTERNAL, 'no room code available');
-    const initialSelection=gameplayExtensions(customExtensions,this.safeData(),mode,gameplayMode);
-    const minimumErrors=validateExtensionMinimums(this.safeData(),initialSelection,{mode,difficulty});
+    const initialSelection=this.extSelection(version,customExtensions,mode,gameplayMode);
+    const minimumErrors=this.extErrors(version,initialSelection,{mode,difficulty,modeId:null});
     if(minimumErrors.length)return fail(ERR.BAD_MSG,minimumErrors.join(' '));
     if (cur) this.removeMember(cur, session.playerId);
     // Cooperative rooms always offer eight spectator seats; the legacy request field cannot disable them.
     // Solo rooms retain their existing single-player behavior.
     const cap = mode === 'solo' ? 0 : MAX_SPECTATOR_SEATS;
-    const room = new Room(code, mode, difficulty, this.now(), cap);
+    const room = new Room(code, mode, difficulty, this.now(), cap, version);
+    if (this.laddered(version, seasonMode)) {
+      room.modeId = this.ladderMode(version, seasonMode, room.difficulty, askedMode ?? null);
+      const m = this.versionModes(version, seasonMode).find((x) => x.id === room.modeId);
+      if (m) room.difficulty = DIFFICULTIES.includes(m.difficulty) ? m.difficulty : 'FUNNY';
+    }
+    if (mode === 'solo' && soloUnlimited === true && this.versionSoloTimed(version)) room.soloUnlimited = true;
     if(test===true&&!this.testEnabled)return fail(ERR.TEST_DISABLED);
     room.test=test===true;
-    room.customExtensionCatalog = customExtensionCatalog(this.safeData());
+    room.customExtensionCatalog = this.extCatalog(room.version);
     room.gameplayMode=normalizeGameplayMode(gameplayMode);
     room.sync=sync===true;
     room.titleLocale=titleLocale||'ko';room.title=title?.trim()||defaultRoomTitle(mode,session.name,room.titleLocale,room.sync);room.isPublic=isPublic===true;
-    room.savedCustomExtensions=modeExtensionSelection(normalizeCustomExtensions(customExtensions,this.safeData()),mode);
+    room.savedCustomExtensions=room.version!==DEFAULT_VERSION?seasonExtensionSelection(customExtensions,this.extData(room.version)):modeExtensionSelection(normalizeCustomExtensions(customExtensions,this.safeData()),mode);
     room.customExtensions = initialSelection;
     room.customFactions = room.customExtensions.bonds.includes('ursus') && !(room.customExtensions.disabledBonds||[]).includes('ursusShip');
-    room.content = this.vanilla;
+    room.content = this.baseContent(version);
     // the server owner's default plugins (plugins/config.json `default`; header "Gameplay plugins"): none — the original game
     const defaults = this.plugins?.defaults?.() || [];
     if (defaults.length) {
@@ -953,7 +992,7 @@ export class Lobby {
     this.dropReplay(room, session.playerId);
     const seat = room.seatOf(session.playerId);
     // a room with gameplay plugins: ready once the page has loaded and checked its content (header "Gameplay plugins")
-    if (ready && room.modded && seat.content !== 'ready') return fail(ERR.CONTENT_NOT_READY);
+    if (ready && room.needsContent && seat.content !== 'ready') return fail(ERR.CONTENT_NOT_READY);
     if (seat.ready !== ready) {
       seat.ready = ready;
       this.broadcastState(room);
@@ -973,7 +1012,7 @@ export class Lobby {
       hostName:r.seats.find(s=>s?.playerId===r.hostId)?.name||'방장',
       players:r.seats.filter(s=>s&&!s.isBot&&!s.left).length,
       capacity:r.seats.length,bots:r.seats.filter(s=>s?.isBot).length,
-      started:!!r.match,spectators:r.spectators.length,spectatorCap:r.spectatorCap,
+      started:!!r.match,spectators:r.spectators.length,spectatorCap:r.spectatorCap,version:r.version,
     })) };
   }
 
@@ -1005,13 +1044,13 @@ export class Lobby {
     if(room.match)return fail(ERR.ROOM_STARTED);
     if(!isGameplayMode(gameplayMode))return fail(ERR.BAD_MSG);
     if(!canSwitchPublicMode(room.gameplayMode,gameplayMode,room.isPublic))return fail(ERR.BAD_MSG,'공개 후에는 게임 모드를 변경할 수 없습니다.');
-    const selected=gameplayExtensions(room.savedCustomExtensions,this.safeData(),room.mode,gameplayMode);
-    const errors=validateExtensionMinimums(this.safeData(),selected,{mode:room.mode,difficulty:room.difficulty});
+    const selected=this.extSelection(room.version,room.savedCustomExtensions,room.mode,gameplayMode);
+    const errors=this.extErrors(room.version,selected,{mode:room.mode,difficulty:room.difficulty,modeId:room.modeId});
     if(errors.length)return fail(ERR.BAD_MSG,errors.join(' '));
     this.dropReplay(room,session.playerId);
     room.gameplayMode=gameplayMode;room.customExtensions=selected;
     room.customFactions=selected.bonds.includes('ursus')&&!(selected.disabledBonds||[]).includes('ursusShip');
-    for(const member of room.chatMembers.values())if((member.faction==='라이타니엔'&&!selected.bonds.includes('leithanien'))||(member.faction==='우르수스'&&!room.customFactions))member.faction=null;
+    if(room.version===DEFAULT_VERSION)for(const member of room.chatMembers.values())if((member.faction==='라이타니엔'&&!selected.bonds.includes('leithanien'))||(member.faction==='우르수스'&&!room.customFactions))member.faction=null;
     for(const seat of room.seats)if(seat&&!seat.isBot&&seat.playerId!==room.hostId)seat.ready=false;
     this.broadcastState(room);
     this.broadcastRoom(room,{t:'m.chatHistory',messages:room.chatHistory,factions:Object.fromEntries([...room.chatMembers].map(([id,m])=>[id,m.faction]))});
@@ -1025,17 +1064,18 @@ export class Lobby {
     if (room.match) return fail(ERR.ROOM_STARTED);
     if(room.gameplayMode!=='custom')return fail(ERR.BAD_MSG,'커스텀 모드에서만 설정을 변경할 수 있습니다.');
     if (!extensionSelectionShape(selection)) return fail(ERR.BAD_MSG);
-    let selected = normalizeCustomExtensions(selection, this.safeData());
+    const season = room.version !== DEFAULT_VERSION;
+    let selected = season ? seasonExtensionSelection(selection, this.extData(room.version)) : normalizeCustomExtensions(selection, this.safeData());
     if (Object.keys(selection).some(k => Array.isArray(selection[k])&&selection[k].some(id => !selected[k]?.includes(id)))) return fail(ERR.BAD_MSG);
-    selected=modeExtensionSelection(selected,room.mode);
-    const errors=validateExtensionMinimums(this.safeData(),selected,{mode:room.mode,difficulty:room.difficulty});
+    if (!season) selected=modeExtensionSelection(selected,room.mode);
+    const errors=this.extErrors(room.version,selected,{mode:room.mode,difficulty:room.difficulty,modeId:room.modeId});
     if(errors.length)return fail(ERR.BAD_MSG,errors.join(' '));
     this.dropReplay(room, session.playerId);
     room.savedCustomExtensions=structuredClone(selected);
-    room.customExtensions = modeExtensionSelection(selected,room.mode);
+    room.customExtensions = season ? selected : modeExtensionSelection(selected,room.mode);
     room.customFactions = selected.bonds.includes('ursus') && !(selected.disabledBonds||[]).includes('ursusShip');
-    if (!room.customExtensions.bonds.includes('leithanien')) for (const member of room.chatMembers.values()) if (member.faction === '라이타니엔') member.faction = null;
-    if (!room.customFactions) for (const member of room.chatMembers.values()) if (member.faction === '우르수스') member.faction = null;
+    if (!season && !room.customExtensions.bonds.includes('leithanien')) for (const member of room.chatMembers.values()) if (member.faction === '라이타니엔') member.faction = null;
+    if (!season && !room.customFactions) for (const member of room.chatMembers.values()) if (member.faction === '우르수스') member.faction = null;
     for (const s of room.seats) if (s && !s.isBot && s.playerId !== room.hostId) s.ready = false;
     this.broadcastState(room);
     this.broadcastRoom(room, {t:'m.chatHistory',messages:room.chatHistory,factions:Object.fromEntries([...room.chatMembers].map(([id,m])=>[id,m.faction]))});
@@ -1047,9 +1087,12 @@ export class Lobby {
     if (!room) return fail(ERR.NOT_IN_ROOM);
     if (room.hostId !== session.playerId) return fail(ERR.NOT_HOST);
     if (room.match) return fail(ERR.ROOM_STARTED);
-    const minimumErrors=validateExtensionMinimums(this.safeData(),room.customExtensions,{mode:room.mode,difficulty});
+    if (!this.offered(room.version, this.seasonMode(room)).includes(difficulty)) return fail(ERR.BAD_TARGET, 'not a mode of this version');
+    const minimumErrors=this.extErrors(room.version,room.customExtensions,{mode:room.mode,difficulty,modeId:null});
     if(minimumErrors.length)return fail(ERR.BAD_MSG,minimumErrors.join(' '));
     this.dropReplay(room, session.playerId);
+    const ladderId = this.laddered(room.version, this.seasonMode(room)) ? this.ladderMode(room.version, this.seasonMode(room), difficulty, null) : null;
+    if (room.modeId !== ladderId) { room.modeId = ladderId; for (const s of room.seats) if (s && !s.isBot && s.playerId !== room.hostId) s.ready = false; this.broadcastState(room); }
     // a plugin mode chosen (header "Gameplay plugins") carries its own difficulty: picking one leaves it
     if (room.difficulty !== difficulty || room.content?.modeId) {
       room.difficulty = difficulty;
@@ -1175,12 +1218,167 @@ export class Lobby {
    * difficulty (and leaves a plugin mode); a mode of the room's content set (content.modes, the room's type) becomes
    * content.modeId — its difficulty the room's. Like a difficulty change it un-readies the other humans.
    */
+  // ---------------------------------------------------------------------------------------------------
+  // Seasons (official versions; ported from upstream's lobby "Official versions")
+  // ---------------------------------------------------------------------------------------------------
+
+  /** The room mode a season's mode list is keyed by: 8인 연합 is a co-op room of the default season. @param {Room} room */
+  seasonMode(room) { return room.mode === 'coop8' ? 'coop' : room.mode; }
+
+  /**
+   * The server's default version (a room created without one, the settings outside a room). When the configured one's
+   * data failed to load: 第二期下半 if enabled, else the first enabled version that loads (server/versions.js welcome
+   * marks the same one the default).
+   */
+  defaultVersion() {
+    const v = this.versions;
+    const id = v?.defaultId ?? DEFAULT_VERSION;
+    if (!v || this.versionAvailable(id)) return id;
+    if (v.isEnabled(DEFAULT_VERSION)) return DEFAULT_VERSION;
+    return v.ids.find((x) => this.versionAvailable(x)) ?? id;
+  }
+
+  /** Does this server offer the version `id`? @param {unknown} id */
+  versionEnabled(id) { return this.versions ? this.versions.isEnabled(id) : id === DEFAULT_VERSION; }
+
+  /**
+   * Can a room play the enabled version `id` now? Another version's data loads on first use (a room of it loads it
+   * anyway); a failed load is remembered (server/versions.js available), and such a version is never offered again.
+   * @param {string} id
+   */
+  versionAvailable(id) { return id === DEFAULT_VERSION || typeof this.versions?.available !== 'function' || this.versions.available(id); }
+
+  /** A room's content base for a version: the vanilla content for 第二期下半, else the version's own. @param {string} v */
+  baseContent(v) {
+    if (v === DEFAULT_VERSION || !this.versions) return this.vanilla;
+    return this.versions.content(v) || null;
+  }
+
+  /**
+   * The difficulties a version offers a room mode (DIFFICULTIES for 第二期下半 / a server without versions).
+   * @param {string} v @param {string} mode @returns {readonly string[]}
+   */
+  offered(v, mode) {
+    if (!this.versions || v === DEFAULT_VERSION) return DIFFICULTIES;
+    return this.versions.offered(v, /** @type {'solo' | 'coop'} */ (mode));
+  }
+
+  /** The official modes of a version's room mode (versions.modesOf), [] without the service. */
+  versionModes(v, mode) { return this.versions?.modesOf?.(v, /** @type {'solo' | 'coop'} */ (mode)) ?? []; }
+
+  /** Does a room of this version and mode keep its own mode id (规程's solo ladder; versions.laddered)? */
+  laddered(v, mode) { return v !== DEFAULT_VERSION && !!this.versions?.laddered?.(v, /** @type {'solo' | 'coop'} */ (mode)); }
+
+  /**
+   * A laddered room's official mode: `asked` when the version offers it, else the first mode of `difficulty` (sortId
+   * order: 标准 → 规程等级1, 险境 → 规程等级5 …), else the first mode.
+   * @param {string} v @param {string} mode @param {string} difficulty @param {string | null} asked
+   */
+  ladderMode(v, mode, difficulty, asked) {
+    const list = this.versionModes(v, mode);
+    return list.find((m) => m.id === asked)?.id ?? list.find((m) => m.difficulty === difficulty)?.id ?? list[0]?.id ?? null;
+  }
+
+  /**
+   * Does this version's solo use the official per-round timers (`config.version.rules.soloTimed`)? 第二期下半, a server
+   * without the versions service, and a version whose data cannot be read: no.
+   * @param {string} id
+   */
+  versionSoloTimed(id) {
+    if (!id || id === DEFAULT_VERSION || !this.versions) return false;
+    try {
+      const data = this.versions.data(id);
+      return data?.config?.version?.rules?.soloTimed === true;
+    } catch (e) {
+      this.log.error(`[lobby] the solo timer of ${id} failed`, e);
+      return false;
+    }
+  }
+
+  /**
+   * `d`, or the difficulty the version offers instead: the highest below it, else its lowest (终极 → 绝境).
+   * @param {string} v @param {string} mode @param {string} d
+   */
+  fallbackDifficulty(v, mode, d) {
+    const offered = this.offered(v, mode);
+    if (!offered.length || offered.includes(d)) return d;
+    const below = DIFFICULTIES.slice(0, Math.max(0, DIFFICULTIES.indexOf(d))).reverse().find((x) => offered.includes(x));
+    return below || offered[0];
+  }
+
+  /**
+   * room.proposeVersion { version } (host, before the match): the room switches season at once. Upstream holds a vote;
+   * the fork's room already un-readies every other human on a change, as for the difficulty.
+   */
+  proposeVersion(session, { version }) {
+    const room = this.roomOf(session);
+    if (!room) return fail(ERR.NOT_IN_ROOM);
+    if (room.spectatorOf(session.playerId)) return fail(ERR.SPECTATOR);
+    if (room.hostId !== session.playerId) return fail(ERR.NOT_HOST);
+    if (room.match) return fail(ERR.ROOM_STARTED);
+    if (!this.versionEnabled(version)) return fail(ERR.VERSION_UNKNOWN);
+    if (room.version === version) return OK;
+    if (version !== DEFAULT_VERSION && room.mode === 'coop8' && versionById(version)?.family !== 'regulation') return fail(ERR.VERSION_UNSUPPORTED, `${version} has no coop8 rooms`);
+    if (!this.offered(version, this.seasonMode(room)).length) return fail(ERR.VERSION_UNSUPPORTED, `${version} has no ${room.mode} rooms`);
+    if (!this.versionAvailable(version)) return fail(ERR.VERSION_UNSUPPORTED, 'the data of this version is not available');
+    return this.applyVersion(room, version);
+  }
+
+  /**
+   * Switch the room to `version`: its difficulty and mode, its content (the season's base; the room's plugins are
+   * dropped), every member's page loading it, the other humans un-readied, the result replay and every human seat's
+   * stored settings dropped (another season reuses chess ids for other operators).
+   * @param {Room} room @param {string} version
+   */
+  applyVersion(room, version) {
+    const before = room.content;
+    const next = this.baseContent(version);
+    room.version = version;
+    if (room.mode !== 'solo' || !this.versionSoloTimed(version)) room.soloUnlimited = false;
+    const mode = this.seasonMode(room);
+    room.difficulty = this.fallbackDifficulty(version, mode, room.difficulty);
+    room.modeId = this.laddered(version, mode) ? this.ladderMode(version, mode, room.difficulty, room.modeId) : null;
+    room.content = next;
+    if (next !== before) { this.holdContent(next); this.releaseContent(before); }
+    room.replay = null;
+    // 커스텀 설정 follows the season: its own catalogue; a selection of the other season's ids is dropped
+    room.customExtensionCatalog = this.extCatalog(version);
+    room.savedCustomExtensions = version !== DEFAULT_VERSION ? seasonExtensionSelection(room.savedCustomExtensions, this.extData(version))
+      : modeExtensionSelection(normalizeCustomExtensions(room.savedCustomExtensions, this.safeData()), room.mode);
+    room.customExtensions = this.extSelection(version, room.savedCustomExtensions, room.mode, room.gameplayMode);
+    room.customFactions = false;
+    for (const s of [...room.seats, ...room.spectators]) if (s && !s.isBot) { s.content = null; s.consentCs = null; }
+    for (const s of room.seats) {
+      if (!s || s.isBot) continue;
+      if (s.playerId !== room.hostId) s.ready = false;
+      s.loadout = null; s.ops = null; s.notOwned = null; s.diy = null;
+      s.loadoutCs = null; s.notOwnedCs = null; s.diyCs = null;
+    }
+    this.log.info(`[lobby] ${room.code} version → ${version}`);
+    this.broadcastState(room);
+    return OK;
+  }
+
   setMode(session, { modeId }) {
     const room = this.roomOf(session);
     if (!room) return fail(ERR.NOT_IN_ROOM);
     if (room.hostId !== session.playerId) return fail(ERR.NOT_HOST);
     if (room.match) return fail(ERR.ROOM_STARTED);
-    const official = DIFFICULTIES.find((d) => modeIdFor(room.mode, d) === modeId);
+    // a laddered season (规程's solo): any official mode of it; the difficulty follows the mode
+    const laddered = this.laddered(room.version, this.seasonMode(room));
+    const ladder = laddered ? this.versionModes(room.version, this.seasonMode(room)).find((m) => m.id === modeId) : null;
+    if (ladder) {
+      const d = DIFFICULTIES.includes(ladder.difficulty) ? ladder.difficulty : 'FUNNY';
+      if (room.modeId === ladder.id && room.difficulty === d && !room.content?.modeId) return OK;
+      room.modeId = ladder.id;
+      room.difficulty = d;
+      if (room.content?.modeId) { const rest = { ...room.content }; delete rest.modeId; room.content = Object.freeze(rest); }
+      this.dropReplay(room, session.playerId);
+      for (const s of room.seats) if (s && !s.isBot && s.playerId !== room.hostId) s.ready = false;
+      this.broadcastState(room);
+      return OK;
+    }
+    const official = laddered ? undefined : DIFFICULTIES.find((d) => modeIdFor(room.mode, d) === modeId);
     let difficulty = room.difficulty;
     let content = room.content;
     if (official) {
@@ -1214,7 +1412,7 @@ export class Lobby {
   contentReady(session, { cs, ok }, ctx = null) {
     const room = this.roomOf(session);
     if (!room) return fail(ERR.NOT_IN_ROOM);
-    if (!room.modded || room.content.cs !== cs) return OK;
+    if (!room.needsContent || room.content?.cs !== cs) return OK;
     if (!session.connected) return OK;
     const seat = room.seatOf(session.playerId) || room.spectatorOf(session.playerId);
     if (!seat) return OK;
@@ -1326,7 +1524,7 @@ export class Lobby {
     if (room.hostId !== session.playerId) return fail(ERR.NOT_HOST);
     if (room.test && !this.testEnabled) return fail(ERR.TEST_DISABLED);
     if (room.match) return fail(ERR.ROOM_STARTED);
-    const minimumErrors=validateExtensionMinimums(this.safeData(),room.customExtensions,{mode:room.mode,difficulty:room.difficulty});
+    const minimumErrors=this.extErrors(room.version,room.customExtensions,{mode:room.mode,difficulty:room.difficulty,modeId:room.modeId});
     if(minimumErrors.length)return fail(ERR.BAD_MSG,minimumErrors.join(' '));
     const humans = room.activeHumans();
     if (room.content?.trusted && humans.some(s => s.consentCs !== room.content.cs)) return fail(ERR.PLUGIN_CONSENT);
@@ -1334,7 +1532,7 @@ export class Lobby {
       if (s.playerId !== room.hostId && (!s.connected || !s.ready)) return fail(ERR.NOT_READY);
     }
     // a room with gameplay plugins starts once every player's page has loaded and checked its content (the host's too)
-    if (room.modded && humans.some((s) => s.content !== 'ready')) return fail(ERR.CONTENT_NOT_READY);
+    if (room.needsContent && humans.some((s) => s.content !== 'ready')) return fail(ERR.CONTENT_NOT_READY);
     const bots = room.seats.filter((s) => s && s.isBot);
     if (humans.length < 1 || (room.mode === 'solo' && (humans.length !== 1 || bots.length > 0))) {
       return fail(ERR.BAD_MSG, 'invalid seat configuration');
@@ -1483,6 +1681,15 @@ export class Lobby {
         if (d) return d;
       } catch (e) { this.log.error(`[lobby] ${room.code} content data failed`, e); }
     }
+    const v = room ? room.version : DEFAULT_VERSION;
+    if (v !== DEFAULT_VERSION) {
+      try {
+        const d = this.versions?.data(v);
+        if (d) return d;
+        this.warnOnce(`[lobby] the data of ${v} is not available`);
+      } catch (e) { this.log.error(`[lobby] ${room?.code ?? '----'} the data of ${v} failed`, e); }
+      return Object.freeze({});
+    }
     return this.safeData();
   }
 
@@ -1567,6 +1774,10 @@ export class Lobby {
       // Catalogue metadata, never part of a room or match; omitted when no loaded plugin publishes a notice.
       if (this.plugins?.hasNotices?.()) info.content.notices = true;
     }
+    // the seasons (shared/versions.js): only when the server offers more than the default one
+    let versions = null;
+    try { versions = this.versions?.welcome?.() || null; } catch (e) { this.log.error('[lobby] the versions list failed', e); }
+    if (versions) info.versions = versions;
     // Omitted when the switch is off, so a welcome from a normal server stays identical.
     if (this.testEnabled === true) info.testMode = true;
     // 점검 안내 (server/maintenance.js): only while one is set
@@ -1593,6 +1804,12 @@ export class Lobby {
   /** @param {Room} room @param {string | null} [key] per-network limit key of the starter */
   startMatch(room, key = null, replacedCtx = null) {
     if(room.test && !this.testEnabled)return fail(ERR.TEST_DISABLED);
+    // another season's match runs in that season's match host: every module singleton here holds the default data
+    const versioned = room.version !== DEFAULT_VERSION;
+    if (versioned && !(room.modded ? this.hosts : this.versionHosts) && this.MatchClass === DefaultMatch) {
+      this.log.error(`[lobby] ${room.code} has no match host for ${room.version}`);
+      return fail(ERR.INTERNAL, 'no match host for this version');
+    }
     const host = room.seatOf(room.hostId);
     if (host) host.ready = true;
     // the room's data: its content set's in a room with gameplay plugins (header "Gameplay plugins")
@@ -1631,7 +1848,7 @@ export class Lobby {
         gameplayMode: room.gameplayMode,
         customExtensions: structuredClone(room.customExtensions),
         // a plugin mode the host chose (header "Gameplay plugins"), else the official mode of the difficulty
-        modeId: room.content?.modeId || modeIdFor(room.mode, room.difficulty),
+        modeId: room.content?.modeId || room.modeId || modeIdFor(room.mode, room.difficulty),
         // 「AI 队友最后选择」 (GitHub #338): fixed for the match
         aiPicksLast: room.mode !== 'solo' && room.aiPicksLast === true,
         seats,
@@ -1649,7 +1866,10 @@ export class Lobby {
         // replay names the art), and with gameplay plugins a b.result must name the room's cs (header "Gameplay plugins")
         ...(room.content ? { cs: room.content.cs } : {}),
         ...(room.content?.vs ? { vs: room.content.vs } : {}),
-        ...(modded ? { requireCs: true } : {}),
+        ...(modded || versioned ? { requireCs: true } : {}),
+        ...(versioned ? { version: room.version } : {}),
+        ...(room.mode === 'solo' && room.soloUnlimited === true ? { soloUnlimited: true } : {}),
+        ...(!modded && !versioned && this.simPool ? { simPool: this.simPool } : {}),
         // The list the lobby just checked the picks with (kittedFor). Vanilla rooms omit it: setDiy stays on
         // KITTED_CHARS, and the worker payload / test journal of a normal match do not grow a key.
         ...(modded ? { kitted: this.kittedFor(room) } : {}),
@@ -1662,7 +1882,9 @@ export class Lobby {
         onEnd: (summary) => this.onMatchEnd(room, ctx, summary),
       };
       // a room with gameplay plugins plays in its content set's match host; every other room here, as always
-      const match = modded && this.hosts ? this.hosts.create(room.content.cs, opts) : new this.MatchClass(opts);
+      const match = modded && this.hosts ? this.hosts.create(room.content.cs, opts)
+        : versioned && this.versionHosts ? this.versionHosts.create(room.content.cs, opts)
+          : new this.MatchClass(opts);
       match.onSetupRerolled=()=>{room.rerollsUsed++;this.broadcastState(room);};
       ctx.match = match;
       if (replacedCtx) this.disposeMatchCtx(replacedCtx);
@@ -1876,8 +2098,10 @@ export class Lobby {
     const seat = room?.seatOf(session.playerId) || spectator;
     if (!seat || seat.isBot || seat.left) return fail(ERR.NOT_IN_ROOM);
     const selecting = msg.t === 'g.chatFaction';
-    if (selecting && msg.faction === '라이타니엔' && !room.customExtensions.bonds.includes('leithanien')) return fail(ERR.BAD_MSG);
-    if (selecting && msg.faction === '우르수스' && !room.customFactions) return fail(ERR.BAD_MSG);
+    // another season (규정): 우르수스 / 라이타니엔 are its official bonds, always selectable there
+    const season = room.version !== DEFAULT_VERSION;
+    if (selecting && msg.faction === '라이타니엔' && !season && !room.customExtensions.bonds.includes('leithanien')) return fail(ERR.BAD_MSG);
+    if (selecting && msg.faction === '우르수스' && !season && !room.customFactions) return fail(ERR.BAD_MSG);
     const text = selecting ? (msg.faction === null ? '진영 선택 취소' : chatFaction(msg.faction) ? `진영 선택: ${msg.faction}` : '') : normalizeChatText(msg.text);
     if (!text) return fail(ERR.BAD_MSG);
     const member = room.chatMembers.get(session.playerId) || {faction:null,lastChatAt:-Infinity,lastFactionAt:-Infinity};
@@ -1965,6 +2189,28 @@ export class Lobby {
     ctx.disposed = true;
     ctx.live = false;
     try { ctx.match?.dispose?.(); } catch (e) { this.log.error('[lobby] match.dispose threw', e); }
+  }
+
+  /** The tables 커스텀 설정 reads for a season: the default season's (getData), else that version's data. */
+  extData(version) {
+    if (version === DEFAULT_VERSION || !this.versions) return this.safeData();
+    try { return this.versions.data(version) || this.safeData(); } catch { return this.safeData(); }
+  }
+
+  /** The room's effective selection for a gameplay mode (another season: its own categories, classic = none). */
+  extSelection(version, saved, mode, gameplayMode) {
+    if (version === DEFAULT_VERSION) return gameplayExtensions(saved, this.safeData(), mode, gameplayMode);
+    const gm = normalizeGameplayMode(gameplayMode);
+    return seasonExtensionSelection(gm === 'custom' ? saved : gm === 'augment' ? { rules: ['augments'], ruleValues: { ...AUGMENT_MODE_VALUES } } : {}, this.extData(version));
+  }
+
+  extErrors(version, selection, { mode, difficulty, modeId }) {
+    if (version === DEFAULT_VERSION) return validateExtensionMinimums(this.safeData(), selection, { mode, difficulty });
+    return validateSeasonExtensions(this.extData(version), selection, { mode: mode === 'solo' ? 'solo' : 'coop', difficulty, modeId });
+  }
+
+  extCatalog(version) {
+    return version === DEFAULT_VERSION ? customExtensionCatalog(this.safeData()) : seasonExtensionCatalog(this.extData(version));
   }
 
   safeData() {

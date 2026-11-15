@@ -114,13 +114,13 @@ export function ChessCardView({ slot, idx, priv, frozen = false, reason = null, 
   const prog = mergeProgress(priv, slot.id, (id) => data.lookup('chess', id));
   const hint = mergeHint(priv, slot.id);
   const willMerge = !!hint;
-  const bonds = (Array.isArray(c?.bonds) ? c.bonds : []).filter(b=>b!=='ursusShip' || store.get().match.public?.customFactions);
+  const bonds = (Array.isArray(c?.bonds) ? c.bonds : []).filter(b=>b!=='ursusShip' || store.get().match.public?.customFactions || !!data.get('config')?.version);
   const disabled = !!reason;
   const lo = c ? chessLoadout(c, priv?.loadout, LOOKUPS.getChess, {ops:priv?.ops ?? null,effects:data.get('effects')}) : null;
   const mod=lo?.module && !lo.module.none ? lo.module : null;
   const tap = () => { if (onTap) onTap(idx); else if (!disabled) onBuy(idx); else onDetail(slot.id, 'chess', hint); };
   const name = c?.name || t('干员');
-  const card = html`<button type="button" class=${cx('scard', `scard--t${tier}`, favorite && 'is-favorite', recruit && 'is-recruit', frozen && 'is-frozen', disabled && 'is-disabled', willMerge && 'is-merge', armed && 'is-armed')}
+  const card = html`<button type="button" data-shop-slot=${idx} class=${cx('scard', `scard--t${tier}`, favorite && 'is-favorite', recruit && 'is-recruit', frozen && 'is-frozen', disabled && 'is-disabled', willMerge && 'is-merge', armed && 'is-armed')}
       data-shop-slot=${free ? undefined : idx} aria-keyshortcuts=${free ? undefined : hotkeyLabelOf('buy')}
       title=${free || reason ? undefined : t('购买鼠标指向的商品 · {key}', { key: hotkeyLabelOf('buy') })}
       onClick=${tap} onContextMenu=${(e) => { e.preventDefault(); onDetail(slot.id, 'chess', hint); }}
@@ -173,7 +173,7 @@ export function ItemCardView({ slot, idx, frozen = false, reason = null, free = 
   const m = data.get('assets');
   const disabled = !!reason;
   const tap = () => { if (onTap) onTap(idx); else if (!disabled) onBuy(idx); else onDetail(slot.id, 'item'); };
-  const card = html`<button type="button" class=${cx('scard', 'scard--item', isFavorite('item',slot.id) && 'is-favorite', frozen && 'is-frozen', disabled && 'is-disabled', armed && 'is-armed')}
+  const card = html`<button type="button" data-shop-slot=${idx} class=${cx('scard', 'scard--item', isFavorite('item',slot.id) && 'is-favorite', frozen && 'is-frozen', disabled && 'is-disabled', armed && 'is-armed')}
       data-shop-slot=${free ? undefined : idx} aria-keyshortcuts=${free ? undefined : hotkeyLabelOf('buy')}
       title=${free || reason ? undefined : t('购买鼠标指向的商品 · {key}', { key: hotkeyLabelOf('buy') })}
       onClick=${tap} onContextMenu=${(e) => { e.preventDefault(); onDetail(slot.id, 'item'); }}
@@ -294,7 +294,7 @@ export function RewardCards({ offer, priv, editable, onPick, onDetail, onLater, 
       ${offer.slots.map((s, i) => {
         if (!s || s.sold) return html`<div key=${`rw${i}`} class=${cx('scard', 'scard--sold', s && s.kind === 'item' && 'scard--item')}><span class="scard__soldtxt"><span>已选择</span></span></div>`;
         const kind = s.kind === 'item' ? 'item' : 'chess';
-        const reason = shopBlockReason('reward', { priv, editable, slot: s, ...LOOKUPS });
+        const reason = shopBlockReason('reward', { config: data.get('config'), priv, editable, slot: s, ...LOOKUPS });
         const props = { slot: { ...s, price: 0 }, idx: i, free: true, reason, armed: armed === armKey('r', i, s), onBuy: onPick, onDetail,
           onTap: (idx) => onTap('r', idx, s, kind, reason, onPick) };
         return kind === 'item' ? html`<${ItemCard} key=${`rw${i}:${s.id}`} ...${props} />` : html`<${ChessCard} key=${`rw${i}:${s.id}`} priv=${priv} offBonds=${offBonds} ...${props} />`;
@@ -315,7 +315,7 @@ export function ShopBar(props) {
   return store.get().match.public?.laboratory ? html`<${LaboratoryBar} ...${props}/>` : html`<${RegularShopBar} ...${props}/>`;
 }
 function RegularShopBar({ priv, editable, collapsed, refreshBusy = false, onCollapse, onBuy, onLevel, onRefresh, onFreeze, onDetail, onDetailClose, onRefuse, barRef,
-  reward = null, onReward, onRewardLater, onArm = null, offBonds = null }) {
+  reward = null, onReward, onRewardLater, onArm = null, offBonds = null, command = null }) {
   const preferences = useSettings();
   const keyLabel = action => hotkeyLabel(preferences.keys[action]);
   const shop = priv?.shop || {};
@@ -327,9 +327,9 @@ function RegularShopBar({ priv, editable, collapsed, refreshBusy = false, onColl
   const frozen = !!shop.frozen;
   const funds = Number(priv?.funds) || 0;
   const remaining = Math.max(0, (priv?.deployCap ?? 8) - (priv?.deployCount ?? 0));
-  const lvReason = shopBlockReason('levelUp', { priv, editable });
-  const refReason = shopBlockReason('refresh', { priv, editable });
-  const frzReason = editable ? null : shopBlockReason('freeze', { priv, editable });
+  const lvReason = shopBlockReason('levelUp', { config: data.get('config'), priv, editable });
+  const refReason = shopBlockReason('refresh', { config: data.get('config'), priv, editable });
+  const frzReason = editable ? null : shopBlockReason('freeze', { config: data.get('config'), priv, editable });
   const free = Number(shop.freeRefreshes) || 0;
   const showReward = !!(reward && Array.isArray(reward.slots) && reward.slots.length);
 
@@ -367,6 +367,7 @@ function RegularShopBar({ priv, editable, collapsed, refreshBusy = false, onColl
 
   if (collapsed) {
     return html`<div class="shopbar-tab" ref=${barRef}>
+      ${command ? html`<div class="shopbar__command">${command}</div>` : null}
       <div class="shopbar-tab__funds"><${CoinGlyph} /><b class="num">${store.get().match.public?.practice?'∞':funds}</b></div>
       <button type="button" class="shopbar-tab__btn" onClick=${() => onCollapse(false)}><${Icon} name="chevronLeft" />展开商店 <kbd>${keyLabel('collapseShop')}</kbd></button>
     </div>`;
@@ -374,6 +375,7 @@ function RegularShopBar({ priv, editable, collapsed, refreshBusy = false, onColl
 
   return html`<section style=${shopSpriteVars()} class=${cx('shopbar', frozen && 'is-frozen', !editable && 'is-locked', showReward && 'has-reward', armed && 'has-armed', preferences.shopItemLeft && 'shopbar--item-left')} ref=${barRef} aria-label="调度中心">
     <div class="shopbar__tools">
+      ${command ? html`<div class="shopbar__command">${command}</div>` : null}
       <span class="shopbar__remain">剩余可放置角色：<b class=${cx('num', remaining === 0 && 't-orange')}>${remaining}</b></span>
       <${FavoritesButton}/>
       <button type="button" class=${cx('toolbtn', 'toolbtn--ice', 'obtn', frozen && 'is-on')} disabled=${!!frzReason} onClick=${onFreeze}
@@ -400,7 +402,7 @@ function RegularShopBar({ priv, editable, collapsed, refreshBusy = false, onColl
         ${chessSlots.map(({ s, i }) => {
           if (!s) return html`<${EmptyCard} key=${`e${i}`} />`;
           if (s.sold) return html`<${SoldCard} key=${`s${i}`} />`;
-          const reason = shopBlockReason('buy', { priv, editable, slot: s, ...LOOKUPS });
+          const reason = shopBlockReason('buy', { config: data.get('config'), priv, editable, slot: s, ...LOOKUPS });
           return html`<${ChessCard} key=${`c${i}:${s.id}`} slot=${s} idx=${i} priv=${priv} frozen=${slotFrozen(s, frozen)} onBuy=${onBuy} onDetail=${onDetail} offBonds=${offBonds}
               reason=${reason} armed=${armed === armKey('c', i, s)} onTap=${editable ? (idx) => tapCard('c', idx, s, 'chess', reason, onBuy) : null} />`;
         })}
@@ -410,7 +412,7 @@ function RegularShopBar({ priv, editable, collapsed, refreshBusy = false, onColl
           ? itemSlots.map(({ s, i }) => {
             if (!s) return html`<${EmptyCard} key=${`ie${i}`} item=${true} />`;
             if (s.sold) return html`<${SoldCard} key=${`is${i}`} item=${true} />`;
-            const reason = shopBlockReason('buy', { priv, editable, slot: s, ...LOOKUPS });
+            const reason = shopBlockReason('buy', { config: data.get('config'), priv, editable, slot: s, ...LOOKUPS });
             return html`<${ItemCard} key=${`i${i}:${s.id}`} slot=${s} idx=${i} frozen=${slotFrozen(s, frozen)} onBuy=${onBuy} onDetail=${onDetail} reason=${reason}
               armed=${armed === armKey('i', i, s)} onTap=${editable ? (idx) => tapCard('i', idx, s, 'item', reason, onBuy) : null} />`;
           })

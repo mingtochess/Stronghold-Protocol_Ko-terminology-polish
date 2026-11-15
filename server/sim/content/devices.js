@@ -44,9 +44,9 @@ const aspdOf = (v) => (Math.abs(v) < 1 ? v * 100 : v);
 
 // thicket (덤불, the fork's custom 설원 battlefield, tile_custom_thicket): 隐匿 for every unit on it — the operators deployed
 // there and the enemies walking in (the owner's design, not an official tile)
-export const TERRAIN = Object.freeze({ mire: 1, smog: 2, deepsea: 3, infection: 4, thicket: 5 });
-const TERRAIN_NAME = ['', 'mire', 'smog', 'deepsea', 'infection', 'thicket'];
-const BUFF = { 1: 'terrain:mire', 2: 'terrain:smog', 3: 'terrain:deepsea', 4: 'terrain:infection', 5: 'terrain:thicket' };
+export const TERRAIN = Object.freeze({ mire: 1, smog: 2, deepsea: 3, infection: 4, thicket: 5, speedup: 6 });
+const TERRAIN_NAME = ['', 'mire', 'smog', 'deepsea', 'infection', 'thicket', 'speedup'];
+const BUFF = { 1: 'terrain:mire', 2: 'terrain:smog', 3: 'terrain:deepsea', 4: 'terrain:infection', 5: 'terrain:thicket', 6: 'terrain:speedup' };
 const AIRFLOW = 'terrain:airflow';
 const CRATE_KEY = 'trap_1105_accrate';
 const TURRET_KEY = 'trap_1104_aclasert';
@@ -261,6 +261,82 @@ function tickTurret(battle, u, dt) {
   T.cd = u.s.interval;
 }
 
+// ---------------------------------------------------------------------------------------------------------------
+// 盐坨子炮 (규정 m10)
+
+const CANNON_KEY = 'trap_196_cnnon';
+// interval: SP 12 (1 SP/s; the owner's figures: HP 20000 / ATK 800 / DEF 200 / RES 0 / SP 12); flight: the shell's air time
+const CANNON_STATS = Object.freeze({ maxHp: 20000, atk: 800, def: 200, res: 0 });
+const CANNON = Object.freeze({ interval: 12, reach: 4, splash: 1.5, carry: 1.1, maxWeight: 3, flight: 4 / 14 });   // (flight: 4 tiles at the drawn shell's speed, arrow 14)
+
+function startCannons(battle, st, devices) {
+  for (const d of devices) {
+    if (d.key !== CANNON_KEY || !isActive(battle, st, d)) continue;
+    const [dr, dc] = DIR_VEC[d.dir ?? d.raw?.dir] ?? DIR_VEC.DOWN; // DIR_VEC (above): [dRow, dCol], UP = +row
+    const tr = d.row + dr * CANNON.reach, tc = d.col + dc * CANNON.reach;
+    if (!battle.grid.inRect(tr, tc)) continue; // its shells land on another field
+    const stats = CANNON_STATS;   // (the owner's figures over the stage's 30000 / 1200 / 3000 / 6 s)
+    const atk = stats.atk;
+    // 염괴포 (나무위키 창백한 바다로부터의 탈출 §5: 적 구조물, 체력 30000 / 방어력 3000 / 마법 저항 0, 도발 레벨 -1 「아군에게 잘
+    // 공격받지 않는다」): an enemy structure the operators can attack and destroy. It never moves, blocks or attacks normally,
+    // is neither a kill nor a leak (counted / noLeak) and does not hold the field open (mem.structure: lifecycle
+    // _anyEnemyAlive). The client draws it as the map's own cannon model with an HP bar (displayKind 'device').
+    const unit = battle.spawnEnemy(CANNON_KEY, {
+      def: { key: CANNON_KEY, name: d.name ?? d.raw?.name ?? '盐坨子炮', applyWay: 'NONE', notCountInTotal: true,
+        stats: { maxHp: stats.maxHp, atk, def: stats.def, res: stats.res, moveSpeed: 0, bat: CANNON.interval,
+          aspd: 100, rangeRadius: 0, blockCnt: 0, massLevel: 99, lpr: 0, dmgType: 'none', motion: 'WALK', tauntLevel: -1,
+          immunities: { stun: true, frozen: true, silence: true, sleep: true } } },
+      pos: [d.row, d.col], countInTotal: false, displayKind: 'device',
+    });
+    if (unit) { unit.mem.noLeak = true; unit.mem.structure = true; unit.devSp = { sp: 0, max: CANNON.interval }; } // (move speed 0: it stays on its tile)
+    st.cannons.push({ row: d.row, col: d.col, tr, tc, atk, cd: CANNON.interval, unit, landed: false });
+  }
+}
+
+/** The passenger: one ground enemy of weight ≤ 3 within 1.1 of the cannon (not the cannon itself). */
+const cannonRider = (battle, c) => battle.enemiesInRadius(c.col, c.row, CANNON.carry, true)
+  .find((e) => e.alive && e !== c.unit && !e.mem?.structure && !e.isFlying && e.weight <= CANNON.maxWeight + 1e-9);
+
+function sendRider(battle, c, rider) {
+  if (!rider || !rider.alive) return;
+  const fromX = rider.x, fromY = rider.y;
+  rider.x = c.tc; rider.y = c.tr;
+  if (rider.route) rider.route.pts = null;
+  battle.fx('teleport', { x: rider.x, y: rider.y, fromX, fromY, id: rider.id, kind: 'cannon' });
+}
+
+function fireCannon(battle, c) {
+  // the shell leaves now (its rider aboard) and lands CANNON.flight later: the blast and the rider's arrival then
+  c.shell = { at: battle.time + CANNON.flight, rider: cannonRider(battle, c) };
+  battle.fx('howitzer', { x: c.tc, y: c.tr, id: c.unit?.id, t: CANNON.flight });   // a lobbed shell from the barrel
+}
+
+function landCannon(battle, c) {
+  const { rider } = c.shell; c.shell = null;
+  battle.fx('bombard', { x: c.tc, y: c.tr, r: CANNON.splash, kind: 'cannon' });
+  for (const a of battle.alliesInRadius(c.tc, c.tr, CANNON.splash)) {
+    battle.dealDamage(null, a, { amount: c.atk, type: 'phys', tags: ['device', 'cannon'] });
+  }
+  sendRider(battle, c, rider);
+}
+
+function tickCannons(battle, st, dt) {
+  for (const c of st.cannons) {
+    if (c.unit && !c.unit.alive) {
+      // 파괴: 탑승한 적은 즉시 폭심지로 전송된다 (나무위키 각주 1)
+      if (c.shell && battle.time >= c.shell.at - 1e-9) landCannon(battle, c);   // a shell in the air still lands
+      if (!c.landed) { c.landed = true; sendRider(battle, c, cannonRider(battle, c)); }
+      continue;
+    }
+    if (c.shell && battle.time >= c.shell.at - 1e-9) landCannon(battle, c);
+    c.cd -= dt;
+    if (c.unit?.devSp) c.unit.devSp.sp = Math.max(0, Math.min(CANNON.interval, CANNON.interval - c.cd));
+    if (c.cd > 1e-9) continue;
+    c.cd += CANNON.interval;
+    fireCannon(battle, c);
+  }
+}
+
 /** Activate “双眼皮” turrets on this field (all known aliases by default; idempotent). Returns the turret units. */
 export function activateTurrets(battle, { aliases = null } = {}) {
   const st = stateOf(battle);
@@ -290,6 +366,10 @@ function buildTerrain(battle, st) {
   }
   st.hasTerrain = any;
   const sp = battle.stage?.special || {};
+  // 규정 tile_speedup (a 규정 map in the custom settings): ASPD +attack_speed, move ×move_speed (official 25 / 1.5)
+  const su = sp.speedup || {};
+  // PRTS 优化模块: operators ASPD +attack_speed; enemies move ×move_speed (the blackboard multiplier, official ×1.5)
+  st.speedup = { aspd: aspdOf(num(su.attack_speed, 25)), moveMul: num(su.move_speed, 1.5) };
   const devSkill = (role) => (battle.stage?.devices || []).find((d) => d.role === role)?.raw?.skill?.bb ?? null;
   // mire
   const m = sp.mire || {};
@@ -355,7 +435,8 @@ function enterTerrain(battle, st, u, code) {
   const m = u.mem;
   if (m.terrain === code) return;
   // leaving a tile ends its effect — except 活性源石's, which runs out on its own (touchInfection)
-  if (m.terrain && m.terrain !== TERRAIN.infection) battle.removeBuff(u, BUFF[m.terrain]);
+  // and 优化模块's (speedup), which lasts for good once gained (PRTS 优化模块: "加成持续时间无限，离开地块后依旧可生效")
+  if (m.terrain && m.terrain !== TERRAIN.infection && m.terrain !== TERRAIN.speedup) battle.removeBuff(u, BUFF[m.terrain]);
   m.terrain = code;
   m.terrainSince = battle.time;
   m.mireStacks = 0;
@@ -365,6 +446,14 @@ function enterTerrain(battle, st, u, code) {
   else if (code === TERRAIN.deepsea) {
     const D = st.deepsea;
     battle.addBuff(u, { key: BUFF[code], mods: { aspd: D.aspd, moveMul: D.moveMul }, interval: 1, onTick: deepWaterDamage(battle, D.damage) });
+  }
+  else if (code === TERRAIN.speedup) {
+    // one lasting bonus: an operator (not a device) ASPD, an enemy move speed; other units nothing (PRTS 优化模块)
+    const S = st.speedup;
+    if (!u.findBuff(BUFF[code]) && u.kind !== 'device' && !u.mem?.structure) {
+      if (u.side === 'ally') battle.addBuff(u, { key: BUFF[code], persist: true, mods: { aspd: S.aspd } });
+      else if (u.side === 'enemy') battle.addBuff(u, { key: BUFF[code], persist: true, mods: { moveMul: S.moveMul } });
+    }
   }
   // mire layers are applied by tickMire, 活性源石 by touchInfection (every tick on the tile)
 }
@@ -484,7 +573,7 @@ function refreshUnit(battle, st, u) {
 
 function ensureTick(battle, st) {
   if (st.ticking) return;
-  if (!st.hasTerrain && !st.flow.size && !st.turrets.size) return;
+  if (!st.hasTerrain && !st.flow.size && !st.turrets.size && !st.cannons.length) return;
   st.ticking = true;
   battle.on('tick', ({ dt }) => {
     if (st.hasTerrain || st.flow.size) {
@@ -492,6 +581,7 @@ function ensureTick(battle, st) {
       for (const e of battle.enemies) refreshUnit(battle, st, e);
     }
     for (const u of st.turrets.values()) tickTurret(battle, u, dt);
+    if (st.started && st.cannons.length) tickCannons(battle, st, dt);
   });
   // a unit that (re)deploys / spawns starts fresh (death drops its buffs) and gets its tile's terrain at once: smog
   // must already hide an operator from the first enemy shot of the battle. A 【移动】 (ctx.move: 乌尔比安 S3,
@@ -523,6 +613,7 @@ export function install(battle) {
     hasTerrain: false,
     flow: new Map(),
     turrets: new Map(),
+    cannons: [],
     platformOn: new Set(),
     platformOff: new Set(),
     crateOff: new Set(),
@@ -580,6 +671,7 @@ export function install(battle) {
     }
     // “双眼皮” turrets switched on (band 机械援助 / overrides)
     for (const d of devices) if ((d.key === TURRET_KEY || d.role === 'turret') && isActive(battle, st, d)) spawnTurret(battle, st, d);
+    startCannons(battle, st, devices);
     ensureTick(battle, st);
   }, { priority: 50 });
 }

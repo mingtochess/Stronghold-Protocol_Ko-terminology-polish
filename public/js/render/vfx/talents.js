@@ -76,6 +76,14 @@ export function activeTalentKeys(idx, unitKey, { rec = null } = {}) {
   return out;
 }
 
+/**
+ * Units whose talent aura acts on the units of their own tile, so the loops it plays on its targets (`at: 'targets'`,
+ * otherwise never drawn: bindable 'targets-only') play on the owner, where the targets stand: 淤困之茧 (enemy_9036_acweb,
+ * Talents/Bundling — acweb[bundling] on the bound operator: enemy_acweb_01 / _02, the cocoon; the unit has no Spine).
+ * [ASSUMED] the cocoon shows while it stands, also when its operator has left the tile.
+ */
+export const TARGETS_ON_OWN_TILE = new Set(['enemy_9036_acweb']);
+
 /** The equipped skill index of a unit view's info (a 自选 pick's, else its own). */
 const skillIndexOf = (info) => (Number.isInteger(info?.diy?.skillIndex) ? info.diy.skillIndex : Number.isInteger(info?.skillIndex) ? info.skillIndex : null);
 
@@ -103,6 +111,8 @@ export function talentBindings(idx, unitKey, { info = null, rec = null } = {}) {
       if (Array.isArray(n.skills) && n.skills.length && !(sk != null && n.skills.includes(sk))) return;
       const uses = nodeUses(t, i);
       const plan = planUses(idx, emptyPlan(unitKey, key), uses, { mode: null, abilities: t.abilities });
+      // an aura whose targets stand on the owner's own tile: their loops play on the owner (TARGETS_ON_OWN_TILE)
+      if (TARGETS_ON_OWN_TILE.has(unitKey)) for (const e of plan.targets.splice(0)) { delete e.at; e.hold = 'skill'; plan.loop.push(e); }
       out.push({
         id: `t:${key}#${i}`, source: 'talent', key, kind: null, node: n.node ?? null, class: n.class ?? null, ability: n.ability ?? null,
         when: n.when ?? null, mode: typeof n.mode === 'string' ? n.mode : null, modes: null, skills: n.skills ?? null,

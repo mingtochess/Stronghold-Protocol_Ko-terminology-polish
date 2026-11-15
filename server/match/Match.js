@@ -1,4 +1,8 @@
-import { recruitCandidates, checkRecruitPicks } from '../../shared/recruitPick.js';
+import { Match as UpstreamMatch } from '../match-upstream/Match.js';
+import { applySeasonExtensions, seasonExtensionSelection } from '../../shared/seasonExtensions.js';
+import { versionById } from '../../shared/versions.js';
+import { withCoopEight } from '../../shared/cooperativeEight.js';
+import { recruitCandidates, checkRecruitPicks, defaultRecruitPicks, RECRUIT_PICKS } from '../../shared/recruitPick.js';
 /** 선발 선택 time when config.timers.recruitPick is not set (seconds). */
 const RECRUIT_PICK_SECONDS = 30;
 import {normalizeGameplayMode,gameplayExtensions} from '../../shared/gameplayModes.js';
@@ -310,6 +314,18 @@ export class Match {
 
   /** @param {object} opts see MATCH INTERFACE above */
   constructor(opts) {
+    // 규정(规程) seasons play upstream's whole match (server/match-upstream/: 선택자편, 핵심 맹약 그룹, 전략 명령 …); this
+    // class is the 맹약 seasons'. A subclass (the match host's ContentMatch, a test's) gets the upstream match too.
+    if (versionById(opts?.version)?.family === 'regulation' || opts?.data?.config?.version?.family === 'regulation') {
+      // 커스텀 설정 of that season (shared/seasonExtensions.js): plain filters of its own tables, before the match reads them
+      // (the room's selection: custom, or 증강 모드's preset — the lobby keeps it in season form)
+      const gm = normalizeGameplayMode(opts?.gameplayMode);
+      const sel = gm === 'custom' || gm === 'augment' ? seasonExtensionSelection(opts?.customExtensions, opts?.data) : null;
+      let up = sel ? { ...opts, data: applySeasonExtensions(opts.data, sel), seasonExtensions: sel } : opts;
+      // 8인 협동: the upstream match seats any number in co-op; the shared boss pool counts up to 8 alive players
+      if (up.mode === 'coop8') up = { ...up, data: withCoopEight(up.data) };
+      return new UpstreamMatch(up);
+    }
     if (!opts || !Array.isArray(opts.seats) || opts.seats.length === 0) throw new TypeError('Match: seats required');
     if (typeof opts.send !== 'function' || typeof opts.broadcast !== 'function' || typeof opts.onEnd !== 'function') {
       throw new TypeError('Match: send/broadcast/onEnd callbacks required');
@@ -1037,7 +1053,7 @@ export class Match {
     if(this.augments.enabled)view.augments=this.augments.privateView(ps);
     // 선발 (shared/recruitPick.js): the picked recruits; during 선발 선택 also the candidates and whether this player is done
     view.selectedRecruits = ps.recruitPicks ? [...ps.recruitPicks] : [];
-    if (this.phase === PHASE.RECRUIT_PICK) view.recruit = { candidates: this.recruitCandidatesOf(ps), ready: !!ps.recruitReady };
+    if (this.phase === PHASE.RECRUIT_PICK) view.recruit = { candidates: this.recruitCandidatesOf(ps), banned: this.recruitBannedOf(ps), ready: !!ps.recruitReady };
     const json = JSON.stringify(view);
     if (!force && json === ps._lastPriv) return;
     ps._lastPriv = json;
@@ -1730,6 +1746,7 @@ if (this.test === true) {
   kickBot(ps) {
     if (!ps.botControlled || this.ended) return;
     if (this.phase === PHASE.INFO_CHECK && !ps.infoReady) { ps.infoReady = true; this.markPublic(); this.maybeEndInfo(); }
+    else if (this.phase === PHASE.RECRUIT_PICK && !ps.recruitReady) { this._applyRecruit(ps, this._recruitDefault(ps)); this.markPublic(); if (this.order.every((p) => p.recruitReady || !p.alive || p.left)) this.later(0, () => { if (this.phase === PHASE.RECRUIT_PICK) this.finishRecruitPick(); }); }
     else if (this.phase === PHASE.BAND_DRAFT && this.draftTurn() === ps.playerId) this.scheduleBandBot();
     else if (this.phase === PHASE.SP_DRAFT && this.spTurn() === ps.playerId) this.scheduleSpBot();
     else if (this.phase === PHASE.PREP && ps.alive && !ps.ready) this.scheduleBotPrep(ps, 0);
@@ -1979,15 +1996,63 @@ if (this.test === true) {
   // ===================================================================================================
   // RECRUIT_PICK (선발 선택, shared/recruitPick.js): each player picks ≤ 2 per tier from their own candidates
 
-  /** The candidates of a player (loadout `selected` entries), [] for a bot or a banned / unknown operator. */
+  /**
+   * The candidates of a player (loadout `selected` entries), as 규정 선택자편: a banned operator stays listed but grey
+   * (recruitBannedOf). A bot has no loadout and is given candidates (botRecruitCandidates).
+   */
   recruitCandidatesOf(ps) {
-    if (!ps || ps.isBot) return [];
-    return recruitCandidates(ps.loadout, (id) => this.gd.chess(id)).filter((id) => !this.bannedChess?.includes(id) && !this.customExtensions?.bannedOperators?.includes(id));
+    if (!ps) return [];
+    if (ps.isBot) return this.botRecruitCandidates(ps);
+    return recruitCandidates(ps.loadout, (id) => this.gd.chess(id));
+  }
+
+  /** Candidates of `ps` that cannot be brought: a banned operator (every bond off) or one the custom rules exclude. */
+  recruitBannedOf(ps) {
+    return this.recruitCandidatesOf(ps).filter((id) => this.bannedChess?.includes(id) || this.customExtensions?.bannedOperators?.includes(id));
+  }
+
+  /**
+   * 규정 synthesizeBotRoster: a bot's candidates — per tier the optional recruits ranked by active bonds, then id
+   * (deterministic), one per operator identity, up to RECRUIT_PICKS.
+   */
+  botRecruitCandidates(ps) {
+    if (ps._botRecruits) return ps._botRecruits;
+    const off = new Set([...(this.disabledBonds || []), ...(this.staticInactiveBonds || [])]);
+    const banned = new Set([...(this.bannedChess || []), ...(this.customExtensions?.bannedOperators || [])]);
+    const out = [];
+    for (const tier of [5, 6]) {
+      const list = [...this.gd.visibleChess].map((id) => this.gd.chess(id))
+        .filter((c) => c && c.optionalRecruit && !c.recruitPrototype && !c.isGolden && c.tier === tier && !banned.has(c.chessId))
+        .map((c) => ({ id: c.chessId, n: (c.bonds || []).filter((b) => b !== 'emptyShip' && !off.has(b)).length }))
+        .sort((a, b) => b.n - a.n || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+      const picked = [];
+      for (const { id } of list) {
+        if (picked.length >= RECRUIT_PICKS) break;
+        if (checkRecruitPicks([...out, ...picked, id], [...out, ...picked, id], (x) => this.gd.chess(x)).ok) picked.push(id);
+      }
+      out.push(...picked);
+    }
+    return (ps._botRecruits = out);
+  }
+
+  _recruitDefault(ps) {
+    return defaultRecruitPicks(this.recruitCandidatesOf(ps), (id) => this.gd.chess(id), this.recruitBannedOf(ps));
+  }
+
+  /** Fix a seat's picks (once, as g.diyBring) and mark it done. */
+  _applyRecruit(ps, picks) {
+    ps.recruitPicks = new Set(picks);
+    ps.recruitReady = true;
+    this.markPrivate(ps);
   }
 
   enterRecruitPick() {
-    for (const ps of this.order) { ps.recruitPicks = new Set(); ps.recruitReady = !ps.alive || !!ps.autoplay || this.recruitCandidatesOf(ps).length === 0; }
-    // nobody has a candidate: no phase at all
+    for (const ps of this.order) {
+      ps.recruitPicks = new Set(); ps.recruitReady = false;
+      // bot-controlled seats confirm immediately with their default
+      if (!ps.alive || ps.botControlled || ps.autoplay || this.recruitCandidatesOf(ps).length === 0) this._applyRecruit(ps, ps.alive ? this._recruitDefault(ps) : []);
+    }
+    // nobody has a choice: no phase at all
     if (this.order.every((ps) => ps.recruitReady)) { this.enterBattleCheck(); return; }
     this.phase = PHASE.RECRUIT_PICK;
     const secs = Number(this.gd.config.timers?.recruitPick) > 0 ? Number(this.gd.config.timers.recruitPick) : RECRUIT_PICK_SECONDS;
@@ -1996,22 +2061,24 @@ if (this.test === true) {
     this.markPublic();
   }
 
+  /** g.recruitPick { picks, ready }: as 규정 g.diyBring, one confirmation; a banned candidate refuses the list. */
   recruitPick(ps, { picks, ready }) {
     if (this.phase !== PHASE.RECRUIT_PICK) return fail(ERR.WRONG_PHASE);
-    if (ps.recruitReady && !ready) ps.recruitReady = false;
-    const r = checkRecruitPicks(picks, this.recruitCandidatesOf(ps), (id) => this.gd.chess(id));
+    if (ps.recruitReady) return fail(ERR.ALREADY);
+    const banned = new Set(this.recruitBannedOf(ps));
+    const allowed = this.recruitCandidatesOf(ps).filter((id) => !banned.has(id));
+    const r = checkRecruitPicks(picks, allowed, (id) => this.gd.chess(id));
     if (!r.ok) return fail(ERR.BAD_TARGET, r.detail);
-    ps.recruitPicks = new Set(r.picks);
-    ps.recruitReady = !!ready;
-    this.markPrivate(ps);
+    if (!ready) return OK;
+    this._applyRecruit(ps, r.picks);
     this.markPublic();
-    if (this.order.every((p) => p.recruitReady || !p.alive || p.isBot || p.left)) this.later(0, () => { if (this.phase === PHASE.RECRUIT_PICK) this.finishRecruitPick(); });
+    if (this.order.every((p) => p.recruitReady || !p.alive || p.left)) this.later(0, () => { if (this.phase === PHASE.RECRUIT_PICK) this.finishRecruitPick(); });
     return OK;
   }
 
   finishRecruitPick() {
     if (this.phase !== PHASE.RECRUIT_PICK) return;
-    for (const ps of this.order) { ps.recruitReady = true; this.markPrivate(ps); }
+    for (const ps of this.order) if (!ps.recruitReady) this._applyRecruit(ps, ps.alive ? this._recruitDefault(ps) : []);
     this.enterBattleCheck();
   }
 

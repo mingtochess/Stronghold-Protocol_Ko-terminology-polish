@@ -1,4 +1,6 @@
 // Captured from each matching Arknights map asset in the current v0.2.4a renderer; regenerated 2026-10-11.
+// 규정 (act3autochess_*): the prep camera of the native maps, 2026-11-14; the files come from the resource repository
+// (content/custom/resource-origin.json), not this one.
 export const MAP_PREVIEWS = {
   "act1autochess_m01": "/previews/maps/act1autochess_m01.jpg?v=024a-20261011",
   "act1autochess_m02": "/previews/maps/act1autochess_m02.jpg?v=024a-20261011",
@@ -11,7 +13,17 @@ export const MAP_PREVIEWS = {
   "act2autochess_m02": "/previews/maps/act2autochess_m02.jpg?v=024a-20261011",
   "act2autochess_m03": "/previews/maps/act2autochess_m03.jpg?v=024a-20261011",
   "act2autochess_m04": "/previews/maps/act2autochess_m04.jpg?v=024a-20261011",
-  "custom_snowfield": "/previews/maps/custom_snowfield.jpg?v=20261029b"
+  "custom_snowfield": "/previews/maps/custom_snowfield.jpg?v=20261029b",
+  "act3autochess_m01": "/assets/previews/maps/act3autochess_m01.jpg",
+  "act3autochess_m02": "/assets/previews/maps/act3autochess_m02.jpg",
+  "act3autochess_m03": "/assets/previews/maps/act3autochess_m03.jpg",
+  "act3autochess_m04": "/assets/previews/maps/act3autochess_m04.jpg",
+  "act3autochess_m05": "/assets/previews/maps/act3autochess_m05.jpg",
+  "act3autochess_m06": "/assets/previews/maps/act3autochess_m06.jpg",
+  "act3autochess_m09": "/assets/previews/maps/act3autochess_m09.jpg",
+  "act3autochess_m10": "/assets/previews/maps/act3autochess_m10.jpg",
+  "act3autochess_m11": "/assets/previews/maps/act3autochess_m11.jpg",
+  "act3autochess_m12": "/assets/previews/maps/act3autochess_m12.jpg"
 };
 
 /** The captured map image of a stage id (its base id for a co-op / eight-player variant), or null. */

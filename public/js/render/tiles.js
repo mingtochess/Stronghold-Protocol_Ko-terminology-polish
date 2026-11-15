@@ -193,19 +193,6 @@ export function stripeBands(r, c, inset = 0.05, phase = 0, step = RANGE_STRIPE.s
   return out;
 }
 
-/** 设置 접근성「타일 표시 방식」 기본: the earlier light stripes over a range's fill (the 2D board only). */
-function drawLegacyStripes(g, cam, r, c, z, inset, lw, p) {
-  const a = 0.5 - inset, x0 = c - a, x1 = c + a, y0 = r - a, y1 = r + a, step = 0.2;
-  g.lineStyle(lw, 0xffc27a, 0.55, 0.5);
-  for (let d = (x0 - y1) + step / 2; d < x1 - y0; d += step) {
-    const xa = Math.max(x0, y0 + d), xb = Math.min(x1, y1 + d);
-    if (xb - xa <= 1e-4) continue;
-    cam.project(xa, xa - d, z, p); g.moveTo(p.x, p.y);
-    cam.project(xb, xb - d, z, p); g.lineTo(p.x, p.y);
-  }
-  g.lineStyle(0);
-}
-
 function drawStripes(g, cam, r, c, z, inset, phase, p, color = RANGE_STRIPE.color) {
   g.lineStyle(0);
   for (const band of stripeBands(r, c, inset, phase)) {
@@ -656,7 +643,7 @@ export class TileField {
         g.beginFill(style.color, style.fill);
         g.drawPolygon(pts);
         g.endFill();
-        if (style.stripes && !style.stripeColor && !this.external) drawLegacyStripes(g, cam, r, c, z, inset, Math.max(1.5, sc * 0.05), p);
+        // (the simple display draws a range as its fill alone: no stripes over it)
       }
     }
   }

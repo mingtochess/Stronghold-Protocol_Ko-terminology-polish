@@ -358,6 +358,8 @@ export function renderInfo(u) {
     // tap hands them to the detail card (a teammate's unit shows its owner's skill / module)
     skillIndex: Number.isInteger(u.skillIndex) ? u.skillIndex : undefined,
     skillId:u.skillId,skillName:u.skillName,skillDescription:u.skillDescription,skillDuration:u.skillDuration,skillNextAttack:!!u.skillNextAttack,rangeGrid:u.rangeGrid,skillZoneGrid:u.skillZoneGrid,omnidirectional:!!u.omnidirectional,fixedFacing:!!u.fixedFacing,
+    // a boss whose route only waits (snapshot unitInfo `fixed`: 규정 假想敌：茧 / 械 / 管 …): the fixed boss's HP bar (units.js fixedBoss)
+    fixed: u.fixed === true ? true : undefined,
     skin: typeof u.skin === 'string' && u.skin ? u.skin : null,
     skinId: u.skinId, charId: u.charId,
     profession:u.profession,subProf:u.subProf,attackType:u.attackType,
@@ -709,6 +711,8 @@ export async function createFieldView(host, options = {}) {
   setupCleanup.push(() => pluginFx.destroy());
   const wiring = new FxWiring(ofx, {
     gameTime: () => interp.renderT,
+    // a tile's top (render/vfx/wiring.js: effects laid on map tiles, 【悲惨之雨】's field)
+    heightAt,
     speed: projSpeed,
     // the index unit of a battle unit: the drawn operator (a stand-in's, a 自选 pick's), the chess' operator, the enemy / token
     unitKey: (info) => {
@@ -1740,9 +1744,9 @@ export async function createFieldView(host, options = {}) {
       }
     }
     // the drop target (p.target, highlighted) is the tile under the pointer
-    if (p.target && p.target.area !== 'temp') {
-      const r = p.target.area === 'board' ? p.target.row : GEO.HAND_ROW;
-      const c = p.target.area === 'board' ? p.target.col : p.target.idx;
+    if (p.target && (p.target.area !== 'temp' || p.legal)) {
+      const r = p.target.area === 'board' ? p.target.row : p.target.area === 'temp' ? GEO.TEMP_ROW : GEO.HAND_ROW;
+      const c = p.target.area === 'board' ? p.target.col : p.target.area === 'temp' ? GEO.TEMP_C0 + p.target.idx : p.target.idx;
       // (a legal target shows the official marks alone — the green wash and the range — no frame of its own)
       if (p.legal && settings.tileMarkStyle === 'official') clearHl('dragTarget'); else drawHighlight([[r, c]], p.legal ? 'target' : 'illegal', 'dragTarget');
     } else clearHl('dragTarget');
@@ -1752,9 +1756,10 @@ export async function createFieldView(host, options = {}) {
     if (!dragState) return;
     const v = dragState.view;
     const t = p.target;
-    if (t && (t.area === 'board' || t.area === 'hand')) {
-      const row = t.area === 'board' ? t.row : GEO.HAND_ROW, col = t.area === 'board' ? t.col : t.idx;
-      const w = boardWorld(row, col, t.area === 'hand');
+    if (t && (t.area === 'board' || t.area === 'hand' || t.area === 'temp')) {
+      const row = t.area === 'board' ? t.row : t.area === 'temp' ? GEO.TEMP_ROW : GEO.HAND_ROW;
+      const col = t.area === 'board' ? t.col : t.area === 'temp' ? GEO.TEMP_C0 + t.idx : t.idx;
+      const w = boardWorld(row, col, t.area !== 'board');
       v._tween = { fx: v.x, fy: v.y, fz: v.z, tx: w.x, ty: w.y, tz: w.z, t: 0 };
       pending.set(dragState.key, { t: performance.now(), view: v, board: t.area === 'board' ? { row, col } : null });
     } else {
@@ -2653,6 +2658,13 @@ export async function createFieldView(host, options = {}) {
       // overlap neighbouring tiles (and newly bought bench units), so they can
       // redirect a destructive shortcut to a different operator.
       return pieceAt(p.x, p.y)?.uid ?? null;
+    },
+    /** The board tile under a client point (board, bench and temp rows; null off the board or under another element). */
+    tileAtClientPoint(clientX, clientY) {
+      if (destroyed || !Number.isFinite(clientX) || !Number.isFinite(clientY) || document.elementFromPoint(clientX, clientY) !== canvas) return null;
+      const p = canvasPoint({ clientX, clientY });
+      const t = pickBoardTile(p.x, p.y);
+      return t ? { row: t.row, col: t.col } : null;
     },
     pieceScreenRect(uid) {
       let v = views.get('p:' + uid);

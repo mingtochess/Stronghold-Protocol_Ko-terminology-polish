@@ -1,5 +1,5 @@
 import { t as tr } from '../../../shared/i18n.js';
-import { RANDOM_BAND_ID } from '../../../shared/randomBand.js';
+import { isRandomBand } from '../../../shared/randomBand.js';
 // Shared in-match building blocks (Preact + htm): data hook, images with fallbacks, rich text,
 // unit thumbnails, LP tower, coin badge, official UI sprites. Styles: css/screens/game*.css.
 
@@ -101,7 +101,7 @@ export const isGoldenPiece = (piece, chess) => !!(piece?.golden || chess?.isGold
  * @param {{ kind?: 'chess'|'item'|'token'|'enemy', id: string, golden?: boolean, size?: 'xs'|'sm'|'md'|'lg', tier?: number,
  *   showTier?: boolean, class?: string, dim?: boolean, badge?: any, title?: string }} props
  */
-export function UnitThumb({ rec = null, kind = 'chess', id, golden, size = 'md', tier, showTier = true, class: cls, dim = false, badge = null, title }) {
+export function UnitThumb({ rec = null, kind = 'chess', id, golden, size = 'md', tier, showTier = true, tierFrame = true, class: cls, dim = false, badge = null, title }) {
   const m = data.get('assets');
   let src = null;
   let name = '';
@@ -128,7 +128,7 @@ export function UnitThumb({ rec = null, kind = 'chess', id, golden, size = 'md',
     name = e?.name || '';
   }
   const glyph = [...(name || '?')][0] || '?';
-  return html`<span class=${cx('uthumb', `uthumb--${size}`, `uthumb--${kind}`, golden && 'is-golden', dim && 'is-dim', t && `uthumb--t${Math.max(1, Math.min(6, t | 0))}`, cls)}
+  return html`<span class=${cx('uthumb', `uthumb--${size}`, `uthumb--${kind}`, golden && 'is-golden', dim && 'is-dim', tierFrame && t && `uthumb--t${Math.max(1, Math.min(6, t | 0))}`, cls)}
       title=${title ?? name}>
     <span class="uthumb__art">
       <${Img} src=${src} fallback=${html`<span class="uthumb__glyph">${glyph}</span>`} />
@@ -229,7 +229,7 @@ export function BondGlyph({ bondId, class: cls }) {
 /** Band (strategy) icon. */
 export function BandIcon({ bandId, class: cls, size = 'md' }) {
   const b = data.lookup('bands', bandId);
-  if(bandId===RANDOM_BAND_ID)return html`<span class=${cx('bandicon',`bandicon--${size}`,cls)} title="랜덤 전략"><svg viewBox="0 0 64 64" aria-hidden="true" width="100%" height="100%"><rect x="9" y="9" width="46" height="46" rx="6" fill="#102620" stroke="#68e1bf" stroke-width="3"/>${[[21,21],[43,21],[32,32],[21,43],[43,43]].map(([cx,cy])=>html`<circle cx=${cx} cy=${cy} r="3.5" fill="#68e1bf"/>`)}</svg></span>`;
+  if(isRandomBand(bandId,(id)=>data.lookup('bands',id)))return html`<span class=${cx('bandicon',`bandicon--${size}`,cls)} title="랜덤 전략"><svg viewBox="0 0 64 64" aria-hidden="true" width="100%" height="100%"><rect x="9" y="9" width="46" height="46" rx="6" fill="#102620" stroke="#68e1bf" stroke-width="3"/>${[[21,21],[43,21],[32,32],[21,43],[43,43]].map(([cx,cy])=>html`<circle cx=${cx} cy=${cy} r="3.5" fill="#68e1bf"/>`)}</svg></span>`;
   return html`<span class=${cx('bandicon', `bandicon--${size}`, cls)} title=${b?.name || ''}>
     <${Img} src=${bandIconUrl(data.get('assets'), bandId)} fallback=${html`<span class="bandicon__txt">${[...(b?.name || '?')][0]}</span>`} />
   </span>`;

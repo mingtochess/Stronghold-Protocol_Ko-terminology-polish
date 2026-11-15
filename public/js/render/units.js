@@ -259,6 +259,10 @@ const ICE_TOKENS = new Set(['token_10058_sbell2_icetgt']);
  *  its effects: 乌尔比安's 方向, 塑心's 迷狂牢笼, 贝洛内's 牵绊, 予愿安洁莉娜's “一会儿见！”) draws no fallback diamond either.
  *  ICE_TOKENS keep their deliberate ice diamond. */
 const isBodylessToken = (id) => typeof id === 'string' && id.startsWith('token_') && !ICE_TOKENS.has(id);
+/** Enemies whose official prefab has no Spine and draws itself through its effects (tools/assets/versions.mjs
+ *  NO_SPINE_ENEMIES): 淤困之茧's cocoon is its Bundling loops (render/vfx/talents.js TARGETS_ON_OWN_TILE). The diamond
+ *  shows only while the official effects are off. */
+const FX_BODY_ENEMIES = new Set(['enemy_9036_acweb']);
 /**
  * Units that never show an HP bar: 琳琅诗怀雅's 香槟炸弹 — PRTS 香槟炸弹 备注 "即使自身生命值未满，模型下方也不会显示生命值槽"
  * (the owner's report of 2026-10-08, 「香槟会掉血，会被治疗」: the bar showed every change). Only the bar: its HP, the
@@ -692,7 +696,7 @@ export class UnitView {
     this.fixedFacing = (this.isEnemy && FIXED_FACING[info.defId]) || 0;
     this.hudDx = (this.isEnemy && BOSS_HUD_DX[info.defId]) || 0;
     // a boss that does not walk (move speed ≤ 0.1: 盐风主教昆图斯, 假想敌：胄 …) — its official HP bar spans its body
-    { const ms = Number((ctx.lookupDef ? ctx.lookupDef(info) : null)?.stats?.moveSpeed); this.fixedBoss = this.isBoss && Number.isFinite(ms) && ms <= 0.1; }
+    { const ms = Number((ctx.lookupDef ? ctx.lookupDef(info) : null)?.stats?.moveSpeed); this.fixedBoss = this.isBoss && ((Number.isFinite(ms) && ms <= 0.1) || info.fixed === true); }
     // enemies: the official prefab's size factor (1 for operators, summons and enemies at the standard size)
     this.modelK = this.isEnemy ? Number(info.modelScale)>0?Number(info.modelScale):enemyModelScale(ctx.lookupDef ? ctx.lookupDef(info) : null) : 1;
     this.isToken = info.kind === 'token';
@@ -2247,7 +2251,7 @@ export class UnitView {
     }
     // the diamond is only needed while no model shows (a cross-fade keeps whatever diamond was already up); a token the
     // official client draws with no model at all shows its effects only
-    if (!spineShown && this._noBody) this.fallback.visible = false;
+    if (!spineShown && (this._noBody || (FX_BODY_ENEMIES.has(this.info.defId) && !!(this.ctx.officialFor?.(this))))) this.fallback.visible = false;
     else if (!spineShown) this._ensurePicture();
     if (!spineShown || this.swapT < 1) {
       const size = s * UNIT.diamond * (this.isBoss ? 1.5 : 1);
@@ -2364,7 +2368,10 @@ export class UnitView {
     // official geometry (measured on the client's battle screens): the bars sit under the unit's feet, about a tile wide
     // (a fixed boss — one that does not walk — spans its body: OFFICIAL_BARS.fixedBossWidth; a walking boss = a leader)
     const fixedBoss = off && this.isBoss && this.fixedBoss;
-    const bw = off ? s * (fixedBoss ? OFFICIAL_BARS.fixedBossWidth : OFFICIAL_BARS.width) : clamp(s * (this.isBoss ? UNIT.bossBarWidth : UNIT.barWidth), 24, this.isBoss ? 260 : 96);
+    // a fixed boss's bar spans its body in both styles (OFFICIAL_BARS.fixedBossWidth tiles)
+    const bw = off ? s * (fixedBoss ? OFFICIAL_BARS.fixedBossWidth : OFFICIAL_BARS.width)
+      : this.isBoss && this.fixedBoss ? s * OFFICIAL_BARS.fixedBossWidth
+      : clamp(s * (this.isBoss ? UNIT.bossBarWidth : UNIT.barWidth), 24, this.isBoss ? 260 : 96);
     const bh = off ? Math.max(2.5, s * (fixedBoss ? OFFICIAL_BARS.leaderH : OFFICIAL_BARS.hpH)) : clamp(s * (this.isBoss ? 0.09 : 0.065), 3, this.isBoss ? 9 : 6);
     // a knocked-down operator's HUD is its redeploy ring alone, drawn at full strength over the greyed model
     this.hud.alpha = this.down ? this.fadeIn : this.dying > 0 ? 0 : alpha;
@@ -2375,7 +2382,9 @@ export class UnitView {
     if(this.noteText){this.noteText.visible=showBars&&this.noteStacks>0;this.noteText.scale.set(clamp(s/90,.65,1));this.noteText.position.set(x0-1+18*clamp(s/90,.65,1),cy-3);this.noteIcon.visible=this.noteText.visible;this.noteIcon.width=this.noteIcon.height=16*clamp(s/90,.65,1);this.noteIcon.position.set(x0-1,cy-3);}
     // HP
     this.hpBg.visible = this.hpFill.visible = showHp;
-    this.hpGhost.visible = showHp && !off && this.ghostHp > this.hp + .5;
+    // the white trail of lost HP (both bar styles)
+    this.hpGhost.visible = showHp && this.ghostHp > this.hp + .5;
+    this.hpGhost.tint = 0xffffff;
     if (showHp) {
       const k = this.maxHp > 0 ? clamp(this.hp / this.maxHp, 0, 1) : 0;
       const g = this.maxHp > 0 ? clamp(this.ghostHp / this.maxHp, 0, 1) : 0;
@@ -3262,6 +3271,8 @@ export class DeviceView {
     this.info = { ...info };
     this.id = info.id; this.uid = null;
     this.isEnemy = false;
+    // 규정 염괴포: the map draws its own cannon model; the unit only adds the enemy-style HP and SP bars
+    this.cannon = info.defId === 'trap_196_cnnon';
     this.spec = deviceBoxOf(info.defId) || GENERIC_DEVICE;
     this.turret = this.spec === DEVICE_BOX.turret;
     this.x = Number(info.x) || 0; this.y = Number(info.y) || 0; this.z = 0;
@@ -3272,13 +3283,17 @@ export class DeviceView {
     this.screen = { x: 0, y: 0, s: 1, top: 0 };
     this.placed = false;
     this._headTiles = this.spec.height + 0.2;
-    this.box = ctx.createBox ? ctx.createBox(this.spec) : null;
+    this.box = !this.cannon && ctx.createBox ? ctx.createBox(this.spec) : null;
+    this.sp = 0; this.spMax = 0; this.ghostHp = this.hp;
     this.gfx = new P.Graphics();       // fallback body (no tile field) and the turret head
     ctx.layers.units.addChild(this.gfx);
     this.hud = new P.Container();
     ctx.layers.bars.addChild(this.hud);
     this.hpBg = bar(P, this.hud, COLORS.hpBack, 1);
-    this.hpFill = bar(P, this.hud, this.turret ? COLORS.hpAlly : 0xe0b877);
+    this.hpGhost = bar(P, this.hud, 0xffffff, 0.9);
+    this.hpFill = bar(P, this.hud, this.turret ? COLORS.hpAlly : this.cannon ? COLORS.hpEnemy : 0xe0b877);
+    this.spBg = bar(P, this.hud, COLORS.hpBack, 1);
+    this.spFill = bar(P, this.hud, COLORS.sp);
     this.camVersion = -1;
   }
   sync(s) {
@@ -3286,6 +3301,7 @@ export class DeviceView {
     this.x = s.x; this.y = s.y; this.z = groundZ(this.ctx, s.x, s.y);
     if (s.maxHp > 0) this.maxHp = s.maxHp;
     this.hp = clamp(s.hp, 0, this.maxHp); this.flags = s.flags | 0;
+    this.sp = Number(s.sp) || 0; this.spMax = Number(s.spMax) || 0;
   }
   setWorld(x, y, z = 0) { this.x = x; this.y = y; this.z = z; }
   onAttack(target) {
@@ -3323,19 +3339,42 @@ export class DeviceView {
       this.camVersion = cam.version;
       this._lastShake = !!shake;
       g.clear();
-      if (!this.box) drawCrate(g, cam, this.x + shake, this.y, this.z, size, height, 1);
+      if (!this.box && !this.cannon) drawCrate(g, cam, this.x + shake, this.y, this.z, size, height, 1);
       if (this.turret && height > 0.05) this._drawHead(g, cam, dt, height, k);
     }
     g.zIndex = zKey + 0.001;
     g.alpha = k;
     const p = cam.project(this.x, this.y, this.z + spec.height + 0.35, this.screen);
     this.placed = true;
-    const show = this.alive && this.hp < this.maxHp - 0.5;
+    // (the white trail of lost HP catches up over 0.3 s, as on the units)
+    this.ghostHp = this.ghostHp > this.hp ? Math.max(this.hp, this.ghostHp - Math.max(1, this.ghostHp - this.hp) * Math.min(1, dt / 0.3)) : this.hp;
+    const show = this.alive && (this.cannon || this.hp < this.maxHp - 0.5);
     this.hud.visible = show;
     if (show) {
-      const bw = clamp(p.s * 0.7, 24, 90), bh = clamp(p.s * 0.06, 3, 6);
-      this.hpBg.position.set(p.x - bw / 2 - 1, p.y); this.hpBg.width = bw + 2; this.hpBg.height = bh + 2;
-      this.hpFill.position.set(p.x - bw / 2, p.y); this.hpFill.width = bw * clamp(this.hp / this.maxHp, 0, 1); this.hpFill.height = bh;
+      // the enemy units' own bars (UnitView._updateHud), both styles: 설정「HP 바 표시 방식」 official — flat bars under
+      // the feet, OFFICIAL_BARS colours — else the framed bars over the head
+      const off = this.ctx.settings?.hpBarStyle === 'official';
+      const f = cam.project(this.x, this.y, this.z, this._feet || (this._feet = { x: 0, y: 0, s: 1 }));
+      const sc = f.s;
+      const bw = off ? sc * OFFICIAL_BARS.width : clamp(sc * UNIT.barWidth, 24, 96);
+      const bh = off ? Math.max(2.5, sc * OFFICIAL_BARS.hpH) : clamp(sc * 0.065, 3, 6);
+      const x0 = p.x - bw / 2;
+      const cy = off ? f.y + sc * OFFICIAL_BARS.belowFeet : p.y - 4;
+      this.hpBg.position.set(x0 - (off ? 0 : 1), cy); this.hpBg.width = bw + (off ? 0 : 2); this.hpBg.height = bh + (off ? 0 : 2);
+      this.hpBg.tint = off ? OFFICIAL_BARS.back : COLORS.hpBack; this.hpBg.alpha = off ? 0.55 : 1;
+      this.hpGhost.visible = this.ghostHp > this.hp + 0.5;
+      this.hpGhost.position.set(x0, cy); this.hpGhost.width = bw * clamp(this.ghostHp / this.maxHp, 0, 1); this.hpGhost.height = bh;
+      this.hpFill.position.set(x0, cy); this.hpFill.width = bw * clamp(this.hp / this.maxHp, 0, 1); this.hpFill.height = bh;
+      if (this.cannon) this.hpFill.tint = off ? OFFICIAL_BARS.enemy : COLORS.hpEnemy;
+      const showSp = this.spMax > 0;
+      this.spBg.visible = this.spFill.visible = showSp;
+      if (showSp) {
+        const spH = off ? bh : Math.max(2, bh * 0.55), sy = cy + bh / 2 + spH / 2 + (off ? 0 : 1.5);
+        this.spBg.position.set(x0 - (off ? 0 : 1), sy); this.spBg.width = bw + (off ? 0 : 2); this.spBg.height = spH + (off ? 0 : 2);
+        this.spBg.tint = off ? OFFICIAL_BARS.back : COLORS.hpBack; this.spBg.alpha = off ? 0.55 : 1;
+        this.spFill.position.set(x0, sy); this.spFill.width = bw * clamp(this.sp / this.spMax, 0, 1); this.spFill.height = spH;
+        this.spFill.tint = off ? OFFICIAL_BARS.sp : COLORS.sp;
+      }
     }
     this.screen.top = p.y;
   }

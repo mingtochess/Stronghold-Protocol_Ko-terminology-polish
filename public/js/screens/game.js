@@ -135,6 +135,8 @@ import { phaseMode, phaseBanner, isCombatPhase, showDeadPill, isBossPhase, place
 import { toast } from '../ui/toasts.js';
 import { LoadoutButton } from './loadout.js';
 import { BriefingScreen } from './briefing.js';
+import { DiyCheckScreen } from './diyCheck.js';
+import { CommandPanel } from '../ui/commandPanel.js';
 import { BandDraftScreen } from './bandDraft.js';
 import { RecruitPickScreen } from './recruitPick.js';
 import { ResultScreen } from './settle.js';
@@ -195,6 +197,7 @@ export function GameScreen() {
   else if (mode === 'briefing') body = html`<${BriefingScreen} />`;
   else if (mode === 'draft') body = html`<${BandDraftScreen} />`;
   else if (mode === 'recruit') body = html`<${RecruitPickScreen} />`;
+  else if (mode === 'diy') body = html`<${DiyCheckScreen} />`;
   else body = html`<${MatchScreen} />`;
   return html`${body}
     ${(away || autoplay) && !hasResult && mode !== 'result' && !ended ? html`<${AwayOverlay} />` : null}
@@ -403,7 +406,7 @@ function MatchScreen() {
   // prep (user playtest #5 item 7: legality and the legal-tile highlights read THOSE tiles, like the server)
   const deployField = deployFieldOf(pub, myId);
   const placeCtx = useMemo(() => placementContext({
-    priv, stage: gd.stage(pub?.stageId), editable, field: deployField,
+    priv, stage: gd.stage(pub?.stageId), editable, field: deployField, config: data.get('config'),
     getChess: gd.chess, getToken: gd.token, getItem: gd.item, getEffect: gd.effect, backups: gd.backups, morphMode,
   }), [priv, pub?.stageId, editable, gd.ready, deployField, morphMode]);
   live.current = { pub, priv, field, view, editable, hasPersonalChoice, placeCtx, watching, watchWho, watchingOther, home, myId, alive, spectator, detail, drawer, bondOpen, emoteOpen, settingsOpen, exitOpen, drag, facing, sel, selBusy, pen, collapsedNow: collapsed, localDone: false, canPause: false, paused };
@@ -1510,7 +1513,7 @@ function MatchScreen() {
         if (act !== 'escape') e.preventDefault();
         if (act === 'ready') {
           audio.sfx('error', { volume: 0.5 });
-          toast(shopBlockReason('ready', { priv: L.priv, editable: true }), 'warn');
+          toast(shopBlockReason('ready', { config: data.get('config'), priv: L.priv, editable: true }), 'warn');
         }
         return; // ChoiceOverlay handles Escape without cancelling the server's pending choice.
       }
@@ -1537,7 +1540,7 @@ function MatchScreen() {
       e.preventDefault(); // a focused HUD button must not also activate (Space) — see shortcutFor
       if (act === 'ready' && e.target instanceof HTMLElement && e.target.closest('button, [role="button"]')) e.target.blur();
       if (act === 'ready') {
-        const refused = !L.priv.ready ? shopBlockReason('ready', { priv: L.priv, editable: true }) : null;
+        const refused = !L.priv.ready ? shopBlockReason('ready', { config: data.get('config'), priv: L.priv, editable: true }) : null;
         // the temp overflow row blocks it: say why (the button shows it too — user playtest #3 item 3)
         if (refused) { audio.sfx('error', { volume: 0.5 }); toast(tempReadyReason(L.priv) || refused, 'warn'); return; }
         toggleReady(!L.priv.ready);
@@ -1550,7 +1553,7 @@ function MatchScreen() {
         if (!card || !barRef.current?.contains(card)) return;
         const idx = Number(card.dataset.shopSlot);
         if (!Number.isInteger(idx) || idx < 0) return;
-        const reason = shopBlockReason('buy', { priv: L.priv, editable: L.editable, slot: L.priv.shop?.slots?.[idx] });
+        const reason = shopBlockReason('buy', { config: data.get('config'), priv: L.priv, editable: L.editable, slot: L.priv.shop?.slots?.[idx] });
         if (reason) { toast(reason, 'warn'); audio.sfx('error', { volume: 0.5 }); return; }
         await buy(idx);
         return;
@@ -1565,7 +1568,7 @@ function MatchScreen() {
         else if (act === 'sell' && available?.sell != null) await sellOwnPiece(uid);
         return;
       }
-      const reason = shopBlockReason(act, { priv: L.priv, editable: L.editable });
+      const reason = shopBlockReason(act, { config: data.get('config'), priv: L.priv, editable: L.editable });
       if (reason) { audio.sfx('error', { volume: 0.5 }); return; }
       if (act === 'refresh') actions.refresh();
       else if (act === 'freeze') actions.freeze();
@@ -1645,6 +1648,8 @@ function MatchScreen() {
   const ufShown = !!(selEntry && editable && !facing && !drag && showPrep && ufGeo);
   // the temp overflow row holds pieces (user playtest #3 item 3): framed and labelled on the own prep board
   const temp = tempInfo(priv);
+  const equipHand = data.get('config')?.version?.rules?.equipHand === true;
+  // 규정's equipment row has no label of its own: only the hidden overflow warning, when something waits there
   const tempNotice = temp.count > 0 && !!view && viewKind !== 'loading' && showPrep && alive && !pen && !sp;
   // the ready button shows why it is refused under it (ui/hud.js ReadyToggle): the effects column moves down a line
   const readyWhy = phase === PHASE.PREP && alive && !priv?.ready && (hasPersonalChoice || temp.count > 0);
@@ -1720,7 +1725,7 @@ function MatchScreen() {
     <div class="gm__field" ref=${hostRef} onContextMenu=${(e) => e.preventDefault()}></div>
     ${pub?.laboratory&&myDone?html`<div class="lab-complete-notice" role="status"><span>전투 종료</span><${LaboratoryRestartButton}/></div>`:null}
     ${viewKind === 'loading' ? html`<div class="gm__loading"><${Spinner} label="LOADING FIELD" /></div>` : null}
-    ${tempNotice ? html`<${TempRowNotice} view=${view} count=${temp.count} items=${temp.items} label=${!drag && !facing}
+    ${tempNotice ? html`<${TempRowNotice} equipHand=${equipHand} view=${view} count=${temp.count} items=${temp.items} label=${!drag && !facing}
       ready=${phase === PHASE.PREP && !!priv?.ready} />` : null}
 
     <div class="gm__hud" ref=${hudElRef}>
@@ -1754,7 +1759,7 @@ function MatchScreen() {
         self=${Number.isFinite(priv?.lp) ? { lp: priv.lp, pending: liveLpNow.pending, unite: liveLpNow.unite, left: liveLpNow.left } : null}
         observe=${cc ? { canObserve: (p) => observeTarget(p, pub, myId, { observing: watchingOther, ownDone: localDone }), observing: watchingOther, onBack: alive ? backHome : null } : null} />
 
-      <div class="gm__effects"><${EffectsList} augmentsOnly=${true} pub=${pub} ownerId=${strip.ownerId||myId}/><${EffectsList} pub=${pub} ownerId=${strip.ownerId||myId} effects=${watchingOther && field ? (field.effects ?? null) : priv?.effects} /></div>
+      <div class="gm__effects">${!watchingOther && !showShop ? html`<${CommandPanel} priv=${priv} editable=${editable} getView=${() => live.current.view} />` : null}<${EffectsList} augmentsOnly=${true} pub=${pub} ownerId=${strip.ownerId||myId}/><${EffectsList} pub=${pub} ownerId=${strip.ownerId||myId} hideBand=${!watchingOther && !!priv?.command} effects=${watchingOther && field ? (field.effects ?? null) : priv?.effects} /></div>
 
       ${watchingOther && !combat && !prepLayers.length ? html`<div class="gm__watching" role="status">
         <${GIcon} name="eye" /><span data-i18n-ctx="watching">正在查看 <b>${watchedName}</b>的阵地（只读）</span>
@@ -1768,7 +1773,8 @@ function MatchScreen() {
         onDetailClose=${() => setDetail((d) => (d?.kind === 'chess' || d?.kind === 'item' ? null : d))}
         onRefuse=${(reason) => { toast(reason, 'warn'); audio.sfx('error', { volume: 0.5 }); }}
         reward=${phase === PHASE.PREP && !rewardMin ? priv?.shop?.rewardOffer || null : null}
-        onReward=${(i) => actions.reward(i)} onRewardLater=${() => setRewardMin(true)} onArm=${setArmedCard} />` : null}
+        onReward=${(i) => actions.reward(i)} onRewardLater=${() => setRewardMin(true)} onArm=${setArmedCard}
+        command=${priv?.command ? html`<${CommandPanel} priv=${priv} editable=${editable} getView=${() => live.current.view} />` : null} />` : null}
 
       ${phase === PHASE.PREP && priv?.shop?.rewardOffer ? html`<${RewardOverlay} priv=${priv} minimized=${rewardMin || barCollapsed}
         onMinimize=${(m) => { setRewardMin(m); if (!m) setCollapsed(false); }} />` : null}

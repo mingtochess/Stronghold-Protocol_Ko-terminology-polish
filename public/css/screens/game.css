@@ -409,33 +409,7 @@
 .bslot { flex-shrink: 0; position: relative; display: flex; flex-direction: column; align-items: center; width: .74rem; }
 .bslot .bond { --disc: .52rem; }
 .bslot .bond__name { font-size: .14rem; font-weight: 500; text-shadow: 0 1px 3px #000, 0 0 6px #000; }
-/* The official HUD bond (autochess_hud_bond_item, 83×84 reference px = --u each): the 80 px board ring and the 36 px icon
-   centred 9 px above the item's centre, the 42×25 stack matte 8 px below it, the 14 px name 36 px below */
-.hbond { --u: .0092rem; position: relative; width: calc(83 * var(--u)); height: calc(96 * var(--u)); padding: 0; border: 0; background: none;
-  color: inherit; font: inherit; cursor: pointer; display: block; }
-.hbond__board { position: absolute; left: calc(1.5 * var(--u)); top: calc(-7 * var(--u)); width: calc(80 * var(--u)); height: calc(80 * var(--u));
-  transition: transform var(--t-fast) var(--ease-out); }
-.hbond:hover .hbond__board { transform: scale(1.06); }
-.hbond__ring { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
-/* the board sprites keep their native sizes (the rings 65 px, a completed bond's filled disc 77 px): stretched into one box the
-   filled discs came out smaller than the rings */
-.hbond.is-full .hbond__ring { transform: scale(1.1846); }
-.hbond__ring--css { inset: 12%; border-radius: 50%; border: calc(4 * var(--u)) solid rgba(var(--ink-rgb, 255, 255, 255), .35); background: var(--surf-3, #263330); }
-.hbond.is-full .hbond__ring--css { background: var(--mint-500); border-color: var(--mint-400); }
-.hbond__icon { position: absolute; left: 27.5%; top: 27.5%; width: 45%; height: 45%; object-fit: contain; pointer-events: none;
-  filter: brightness(0) invert(.9); }
-.hbond.is-full .hbond__icon { filter: brightness(0); }
-.hbond__glyph { display: grid; place-items: center; font-weight: 900; font-size: calc(30 * var(--u)); color: var(--ink-hi, #e6e6e6); filter: none; }
-.hbond.is-full .hbond__glyph { color: #000; }
-.hbond.is-disabled .hbond__board { filter: grayscale(1) brightness(.6); }
-.hbond .hbond__num { position: absolute; left: calc(20.5 * var(--u)); top: calc(37.5 * var(--u)); bottom: auto; transform: none;
-  width: calc(42 * var(--u)); height: calc(25 * var(--u)); display: grid; place-items: center; font-size: calc(16 * var(--u)); font-weight: 600;
-  color: var(--ink-hi, #fff); text-shadow: none; background: var(--surf-0, #000) center / 100% 100% no-repeat; }
-.hbond .hbond__num.has-matte { background-color: transparent; }
-.hbond .hbond__name { position: absolute; left: 50%; top: calc(62 * var(--u)); transform: translateX(-50%); max-width: calc(96 * var(--u));
-  overflow: hidden; text-overflow: ellipsis; color: var(--ink-hi, #fff); }
-.hbond.is-open .hbond__board { filter: drop-shadow(0 0 calc(5 * var(--u)) rgba(198, 255, 240, .9)); }
-.hbond .bond__ban { top: calc(-6 * var(--u)); right: calc(4 * var(--u)); width: calc(22 * var(--u)); height: calc(22 * var(--u)); }
+/* .hbond (the official HUD bond item) lives in css/components.css: the briefing draws it too */
 .bslot__count {
   position: absolute; top: -.04rem; right: .02rem; font-size: .13rem; font-weight: 700; color: var(--text-hi);
   background: rgba(var(--shade-rgb),.92); border: 1px solid var(--line-2); padding: 0 .04rem; line-height: 1.35;
@@ -1039,14 +1013,101 @@
 .tov__row.is-dead { opacity: .5; }
 .tov__who { display: flex; align-items: center; gap: .08rem; min-width: 0; }
 .tov__name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-hi); font-size: calc(.15 * var(--t)); }
-.tov__bonds { display: flex; flex-wrap: wrap; gap: .06rem; }
-.tov__bond { display: inline-flex; flex-direction: column; align-items: center; min-width: .5rem; color: var(--text-lo); font-size: calc(.12 * var(--t)); }
-.tov__bond .bglyph { width: .34rem; height: .34rem; }
-.tov__bond b { color: var(--text-hi); font-size: calc(.14 * var(--t)); line-height: 1; }
-.tov__bond small { font-size: calc(.11 * var(--t)); white-space: nowrap; }
-.tov__bond.is-on b { color: var(--mint-400); }
-.tov__bond:not(.is-on) { opacity: .6; }
+.tov__bonds { display: flex; flex-wrap: wrap; gap: .04rem .02rem; align-items: flex-start; }
+/* the battle bond list's item (bondStrip.js HudBond + count, .bslot): only the active bonds */
+.tov__bond.bslot { width: .7rem; }
 .tov__lineup { display: flex; flex-wrap: wrap; gap: .04rem; }
 .tov__items { position: absolute; right: 1px; bottom: 1px; min-width: .14rem; padding: 0 .02rem; background: rgba(0,0,0,.75); color: #fff; font-size: .1rem; text-align: center; }
 .tov__none { color: var(--text-dim); font-size: calc(.13 * var(--t)); }
 @media (max-width: 560px) { .tov__row { grid-template-columns: 1fr; } }
+
+/* 규정 단독 브리핑: 핵심 맹약 그룹 선택 (screens/briefing.js BondGroupPicker) */
+.brief-groups { margin-bottom: 12px; }
+.brief-groups__hint { margin: 2px 0 8px; font-size: 12px; }
+.brief-groups__row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.brief-group { display: flex; flex-direction: column; gap: 8px; padding: 10px 12px; text-align: left; color: inherit; font: inherit;
+  background: rgba(var(--dim-rgb, 0, 0, 0), .35); border: 1px solid var(--line-2); cursor: pointer; }
+.brief-group:disabled { cursor: default; }
+.brief-group.is-on { border-color: var(--mint-400, #5fd3b6); box-shadow: inset 0 0 0 1px var(--mint-400, #5fd3b6); }
+.brief-group__label { font-weight: 700; letter-spacing: .08em; }
+.brief-group { position: relative; }
+.brief-group__bonds { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px 6px; justify-items: center; }
+.brief-group__mark { position: absolute; top: 8px; right: 10px; color: var(--mint-400, #5fd3b6); }
+.brief-group__bond { display: inline-flex; flex-direction: column; align-items: center; }
+@media (max-width: 560px) { .brief-groups__row { grid-template-columns: 1fr; } }
+
+/* 전략 명령 (규정 시즌, ui/commandPanel.js): a folded button above the shop that opens the command's card */
+  background: rgba(10, 22, 20, .88); border: 1px solid var(--mint-400, #5fd3b6); cursor: pointer; }
+.cmdp__desc { font-size: 13px; line-height: 1.5; }
+.cmdp__meta { display: flex; flex-wrap: wrap; gap: 10px; font-size: 12px; color: var(--text-2, #9fb7b0); }
+.cmdp__why { color: #f09a8a; }
+.cmdp__acts, .cmdp__draft { display: grid; gap: 6px; }
+.cmdp__targets { display: flex; flex-wrap: wrap; gap: 6px; max-height: 160px; overflow: auto; }
+.cmdp__card { display: flex; justify-content: space-between; gap: 8px; padding: 8px; text-align: left; color: inherit; font: inherit; font-size: 13px;
+  background: rgba(var(--dim-rgb, 0, 0, 0), .35); border: 1px solid var(--line-2); cursor: pointer; }
+.cmdp__card:hover { border-color: var(--mint-400, #5fd3b6); }
+/* short screens (phones in landscape): the command dialog text and the bond groups stay compact */
+@media (max-height: 500px) {
+  .cmdp__desc, .cmdp__card { font-size: 10px; line-height: 1.4; }
+  .cmdp__meta { font-size: 10px; }
+  .brief-groups { margin-bottom: 6px; }
+  .brief-groups__hint { display: none; }
+  .brief-group { padding: 5px 8px; gap: 4px; }
+  .brief-group__label { font-size: 11px; }
+  .brief-group__bond { font-size: 10px; gap: 2px; }
+}
+
+/* ---- 전략 명령 (규정, ui/commandPanel.js): in the effects column, above the effect icons ------------------------- */
+.gm__effects .cmdx { display: flex; flex-direction: column; align-items: flex-end; gap: .08rem; margin-bottom: .08rem; }
+.cmdx__info { position: relative; width: .5rem; height: .36rem; display: grid; place-items: center; padding: 0; color: var(--mint-400);
+  background: rgba(var(--shade-rgb),.85); border: 1px solid var(--line-2); cursor: pointer; }
+.cmdx__info .icon { width: .24rem; height: .24rem; }
+.cmdx__info:hover { border-color: var(--mint-400); }
+.cmdx__info.is-pending { border-color: #f0c35a; animation: cmdx-pulse 1.2s ease-in-out infinite; }
+.cmdx__badge { position: absolute; right: -.06rem; top: -.06rem; width: .18rem; height: .18rem; border-radius: 50%; display: grid; place-items: center;
+  background: #e0524a; color: #fff; font-size: .12rem; font-weight: 700; }
+.cmdx__tile { padding: 0; cursor: default; touch-action: none; }
+.cmdx__tile.is-usable { cursor: grab; border-color: #f0c35a; box-shadow: 0 0 .06rem rgba(240,195,90,.9), 0 0 .16rem rgba(240,195,90,.55);
+  animation: cmdx-glow 1.6s ease-in-out infinite; }
+.cmdx__tile.is-aiming { outline: 2px solid #f0c35a; outline-offset: 2px; }
+.cmdx__tile.is-dragging { opacity: .45; cursor: grabbing; }
+.cmdx__tile:disabled { opacity: .8; }
+.cmdx__tile { position: relative; }
+/* 쿨타임(남은 라운드) / 남은 사용 횟수 */
+.cmdx__tile.is-spent img { filter: grayscale(1) brightness(.55); }
+.cmdx__state { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); min-width: .3rem; padding: 0 .04rem; text-align: center;
+  font-size: .2rem; font-weight: 800; line-height: 1.1; color: #fff; text-shadow: 0 0 2px #000, 0 0 4px #000; pointer-events: none; }
+.cmdx__state:not(.is-cd) { left: auto; top: .02rem; right: .02rem; transform: none; font-size: .14rem; color: #f0c35a; }
+.cmdx__state.is-out { color: #ff6a6a; }
+.cmdx__ghost { position: fixed; z-index: 60; width: .56rem; height: .56rem; margin: -.28rem 0 0 -.28rem; pointer-events: none; display: grid; place-items: center;
+  background: rgba(var(--shade-rgb),.9); border: 1px solid #f0c35a; box-shadow: 0 0 .16rem rgba(240,195,90,.7); }
+.cmdx__ghost img { width: 86%; height: 86%; object-fit: contain; }
+/* 명령 대상 선택 안내: 아이콘 옆이 아니라 화면 위쪽 가운데 (상점 바·효과 목록 어느 쪽에서 눌러도 같은 자리) */
+.cmdx__hint { position: fixed; top: .9rem; left: 50%; transform: translateX(-50%); z-index: 60; max-width: min(6rem, calc(100vw - .32rem));
+  padding: .08rem .2rem; font-size: .16rem; font-weight: 700; text-align: center; white-space: normal; pointer-events: none;
+  color: #1d1400; background: #f0c35a; box-shadow: 0 .04rem .14rem rgba(0,0,0,.45); }
+.scard.is-cmd-target { outline: 3px solid #f0c35a; outline-offset: -3px; box-shadow: 0 0 .18rem rgba(240,195,90,.7); }
+.cmdx-dlg__how { margin-top: .08rem; font-size: .14rem; }
+@keyframes cmdx-glow { 0%, 100% { box-shadow: 0 0 .05rem rgba(240,195,90,.8), 0 0 .12rem rgba(240,195,90,.4); } 50% { box-shadow: 0 0 .09rem rgba(240,195,90,1), 0 0 .24rem rgba(240,195,90,.7); } }
+@keyframes cmdx-pulse { 0%, 100% { box-shadow: none; } 50% { box-shadow: 0 0 .14rem rgba(240,195,90,.8); } }
+@media (prefers-reduced-motion: reduce) { .cmdx__tile.is-usable, .cmdx__info.is-pending { animation: none; } }
+
+/* 규정: a command choice (“追随者们” etc.) is forced: the dialog opens at once and has no close */
+.cmdx-pick__lead { margin: 0 0 .12rem; font-size: .15rem; }
+.cmdx-pick__cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(2.6rem, 1fr)); gap: .12rem; }
+.cmdx-pick__card { display: flex; align-items: flex-start; gap: .12rem; padding: .14rem; text-align: left; color: var(--text-hi);
+  background: rgba(var(--shade-rgb), .9); border: 2px solid var(--line-2); cursor: pointer; }
+.cmdx-pick__card:hover:not(:disabled), .cmdx-pick__card:focus-visible { border-color: #f0c35a; box-shadow: 0 0 .12rem rgba(240,195,90,.5); }
+.cmdx-pick__icon { flex: 0 0 .72rem; width: .72rem; height: .72rem; display: grid; place-items: center; background: rgba(0,0,0,.35); border: 1px solid var(--line-2); }
+.cmdx-pick__icon img { width: 100%; height: 100%; object-fit: contain; }
+.cmdx-pick__body { display: flex; flex-direction: column; gap: .04rem; min-width: 0; }
+.cmdx-pick__name { font-size: .2rem; color: #f0c35a; }
+.cmdx-pick__meta { font-size: .13rem; color: var(--text-md); }
+.cmdx-pick__body p { margin: 0; font-size: .15rem; line-height: 1.45; }
+
+/* 규정 command drag: a gold arrow from the command tile to the pointer */
+.cmdx__arrow { position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: 60; pointer-events: none; overflow: visible; }
+.cmdx__arrow line { stroke: #f0c35a; stroke-width: 5; stroke-linecap: round; stroke-dasharray: 14 8; filter: drop-shadow(0 0 4px rgba(240,195,90,.8)); animation: cmdx-march .5s linear infinite; }
+.cmdx__arrow polygon, .cmdx__arrow circle { fill: #f0c35a; filter: drop-shadow(0 0 4px rgba(240,195,90,.8)); }
+@keyframes cmdx-march { to { stroke-dashoffset: -22; } }
+@media (prefers-reduced-motion: reduce) { .cmdx__arrow line { animation: none; } }

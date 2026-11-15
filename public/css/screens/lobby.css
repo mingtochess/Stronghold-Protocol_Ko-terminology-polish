@@ -304,7 +304,7 @@
 @media(max-width:1000px){.lab-panel{height:540px}.lab-panel:last-of-type{height:430px}}@media(max-width:600px){.lab-panel,.lab-panel:last-of-type{height:420px}.lab-selection-detail{flex-basis:115px}}
 .lab-map-grid{grid-auto-rows:max-content}.lab-map-card{min-height:0}.lab-choice .bandicon img{width:100%;height:100%;object-fit:contain}.lab-choice .bandicon{display:inline-grid;place-items:center;overflow:hidden;background:var(--surf-2, var(--th-surf1, #111b16))}
 /* Only the selection boxes scroll; the laboratory page itself stays fixed. */
-.lab-screen{height:calc(100 * var(--ui-dvh, 1dvh));overflow:hidden;display:flex;flex-direction:column}.lab-screen>.topbar{flex-shrink:0}.lab-screen__body{flex:1;min-height:0;overflow:hidden;box-sizing:border-box;padding:24px}.lab-screen .lab-setup--cards{height:100%;min-height:0;grid-template-rows:minmax(0,1fr) auto;gap:18px}.lab-screen .lab-panel{height:100%;min-height:0}.lab-start{position:static;padding:12px 18px}.lab-screen .lab-map-grid{min-height:0}.lab-screen .lab-choice-grid{min-height:0}
+.lab-screen{height:calc(100 * var(--ui-dvh, 1dvh));overflow:hidden;display:flex;flex-direction:column}.lab-screen>.topbar{flex-shrink:0;z-index:var(--z-banner, 40)}.lab-screen__body{flex:1;min-height:0;overflow:hidden;box-sizing:border-box;padding:24px}.lab-screen .lab-setup--cards{height:100%;min-height:0;grid-template-rows:minmax(0,1fr) auto;gap:18px}.lab-screen .lab-panel{height:100%;min-height:0}.lab-start{position:static;padding:12px 18px}.lab-screen .lab-map-grid{min-height:0}.lab-screen .lab-choice-grid{min-height:0}
 @media(max-width:1000px){.lab-screen .lab-setup--cards{grid-template-rows:minmax(0,1fr) minmax(0,1fr) auto}.lab-screen .lab-panel:last-of-type{height:100%}.lab-selection-detail{flex-basis:100px}}
 @media(max-width:600px){.lab-screen__body{padding:8px}.lab-screen .lab-setup--cards{grid-template-rows:repeat(3,minmax(0,1fr)) auto;gap:6px}.lab-screen .lab-panel{padding:8px}.lab-panel .section-label{margin-bottom:6px}.lab-selection-detail{display:none}.lab-choice{min-height:42px}.lab-choice>img,.lab-choice .bandicon{width:30px;height:30px}.lab-start small{font-size:10px}.lab-start>div{gap:8px}.lab-kind{margin-bottom:6px}.lab-kind button{padding:5px}}
 /* Setup actions stay in one row, with equal large buttons. */
@@ -368,6 +368,11 @@
 .public-rooms__filters input { accent-color:var(--mint-400); }
 .public-rooms { display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px; }
 .public-room { --bk-c:var(--line-3);display:flex;flex-direction:column;gap:12px;min-width:0;padding:14px;box-sizing:border-box; }
+/* the room's season (the join switches the page to it), on the top edge of the card */
+.public-room { position:relative;margin-top:10px; }
+.public-room__season { position:absolute;top:0;left:50%;transform:translate(-50%,-50%);padding:2px 14px;border:1px solid var(--line-3);background:var(--bg-1, #15181a);
+  color:var(--mint, #4ed8af);font-size:12px;font-weight:700;letter-spacing:.08em;white-space:nowrap;z-index:1; }
+.public-room[data-season="regulation"] .public-room__season { color:#ff5a4f;border-color:rgba(255,90,79,.65); }
 .public-room:hover { border-color:var(--line-3); }
 .public-room__host { display:flex;align-items:baseline;justify-content:space-between;gap:10px;width:100%;min-width:0; }
 .public-room__host strong { overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:16px; }
@@ -530,3 +535,17 @@ html:not([lang="ko"]) .mode-cards .mode-card--lab .mode-card__name{font-size:.24
 .lobby-quick .mode-card__text { min-width: 0; }
 .lobby-quick .public-rooms-entry .public-rooms-entry__total { margin: 0 0 0 auto; align-self: center; }
 .lobby-quick .mode-card__desc { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+/* 규정 등급: ‹ level › stepper in the difficulty tabs' style */
+.diff-tabs.diff-tabs--ladder { grid-template-columns: auto minmax(0, 1fr) auto; }
+.diff-tabs--ladder .diff-step { min-width: 3em; font-size: 1.3em; justify-content: center; }
+.diff-tabs--ladder .diff-step:disabled { opacity: .35; cursor: default; }
+.diff-tabs--ladder .diff-step__cur { justify-content: center; cursor: default; }
+
+/* 규정 (beta): a mode the season does not support yet stays visible, greyed out */
+.mode-card.is-disabled { opacity: .42; filter: grayscale(.8); cursor: not-allowed; }
+.mode-card.is-disabled .mode-card__controls { pointer-events: none; }
+.mode-card__sizes button:disabled { opacity: .35; cursor: not-allowed; }
+
+/* the season frame: 맹약 mint, 규정 red — a 동기화 room too (after .is-sync: its purple tint stays, the frame is the season) */
+.public-room[data-season="covenant"] { border:1px solid var(--mint, #4ed8af); --bk-c:var(--mint, #4ed8af); }
+.public-room[data-season="regulation"] { border:1px solid #ff5a4f; --bk-c:#ff5a4f; }

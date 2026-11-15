@@ -2642,7 +2642,8 @@ def projectile_entries(shared, proj_roots, eff, keys, out=None):
         key = pk(key)
         if key is None or key in projectiles or depth > 3:
             return
-        entry = {'main': None, 'lifeTime': None, 'movement': None, 'behaviours': []}
+        # Per-record marker: add-only runs can retain legacy records in the same index.
+        entry = {'rolesVersion': 1, 'main': None, 'lifeTime': None, 'movement': None, 'behaviours': []}
         projectiles[key] = entry
         strings, stack = set(), [proj_roots[key]]
         while stack:
@@ -2985,6 +2986,8 @@ def crawl_units(ab_root, cabs, unit_ids, gd, eff, enemy_idx, token_idx, log):
                     projectile(x)
             code = uid.split('_', 2)[2] if uid.startswith('char_') else None
             sids = set(gd['skills'].get(uid, [])) | set((gd.get('tokenSkills') or {}).get(uid, []))
+            overrides = (gd.get('skillOverrides') or {}).get(uid) or {}
+            sids.update(overrides.values())
             if code:
                 sids |= {k for k in skill_roots if k.startswith(f'skchr_{code}_')}
             sids = {skill(sid) for sid in sorted(sids)} - {None}
@@ -2995,6 +2998,13 @@ def crawl_units(ab_root, cabs, unit_ids, gd, eff, enemy_idx, token_idx, log):
                     skills[sid]['mode'] = names.index(f's{m.group(1)}')
                     skills[sid]['modeBy'] = 'name'
             u['skills'] = {sid: skills[sid] for sid in sorted(sids) if sid in skills}
+            # character_table.skills[].overridePrefabKey is an operator-local art override (e.g. 万顷 S1).
+            # Keep it local: a shared skcom_* id must never change another operator's skill presentation.
+            for alias, target in overrides.items():
+                target = skill_key(target)
+                if target in skills:
+                    u['skills'][alias] = skills[target]
+                    u.setdefault('skillAliases', {})[alias] = target
             # an enemy's own skills (their nodes in its prefab; keys like `1` repeat across enemies: not in index.skills)
             for key, entry in sorted(enemy_skills(env, found_skills).items()):
                 u['skills'].setdefault(key, entry)
@@ -3162,10 +3172,22 @@ def game_data(root):
             if sid:
                 skills.setdefault(cid, set()).add(sid)
     return {'chars': chars, 'skills': {k: sorted(v) for k, v in skills.items()}, 'enemies': sorted(enemies), 'tokens': toks,
+            'skillOverrides': skill_overrides(chars, char_table),
             'tokenSkills': token_skills,
             'talentKeys': talent_keys(chars + toks, char_table,
                                       load_excel('battle_equip_table.json'), load_excel('uniequip_table.json')),
             'enemyTalentKeys': {k: enemy_talent_prefixes(v) for k, v in enemies.items() if isinstance(v, dict)}}
+
+
+def skill_overrides(ids, char_table):
+    """Official per-operator prefab overrides, keyed as the runtime's skillIdsOf (lowercase, no [rank] suffix)."""
+    out = {}
+    for uid in ids:
+        for row in (char_table.get(uid) or {}).get('skills') or []:
+            if row.get('skillId') and row.get('overridePrefabKey'):
+                alias = re.sub(r'\[\d+\]$', '', row['skillId'].lower())
+                out.setdefault(uid, {})[alias] = row['overridePrefabKey'].lower()
+    return out
 
 
 def talent_keys(ids, char_table, equip_table, uniequip_table):
@@ -3235,7 +3257,7 @@ def _read_json(path):
 
 
 def export_fx(ab_root, out_root, manifest, log, selection='sample', keys=None, jobs=None, root=None, fx_manifest=None,
-              texture_format='webp'):
+              texture_format='webp', add_only=False):
     """The fx run (extract.py --only fx): writes <out_root>/fx/** and `fx_manifest` (default <root>/data/local-fx.json:
     the groups FX_GROUPS, every file); returns the number of files written. `manifest` (the groups of
     data/local-assets.json) gets nothing: extract.py drops the fx groups an earlier run left there (ran_groups). A
@@ -3248,6 +3270,9 @@ def export_fx(ab_root, out_root, manifest, log, selection='sample', keys=None, j
     jobs = max(1, jobs or min(8, os.cpu_count() or 2))
     out = Path(out_root) / FX_SUB
     out.mkdir(parents=True, exist_ok=True)
+    previous = _read_json(out / 'index.json') if add_only else None
+    if add_only and previous and (previous.get('format') != 'fx-index' or previous.get('version') != INDEX_VERSION):
+        raise ValueError('--fx-add-only requires a current fx index')
     timings = {}
 
     t0 = time.time()
@@ -3264,6 +3289,8 @@ def export_fx(ab_root, out_root, manifest, log, selection='sample', keys=None, j
         unit_ids = list(FX_SAMPLE_UNITS)
     else:
         unit_ids = gd['chars'] + gd['enemies'] + gd['tokens']
+    if add_only:
+        unit_ids = [uid for uid in unit_ids if uid not in ((previous or {}).get('units') or {})]
     enemy_idx = container_index(ab_root, (ENEMY_GLOB,), root / '.cache/fx/enemies.json', jobs, log) \
         if any(u.startswith('enemy_') for u in unit_ids) else {}
     token_idx = container_index(ab_root, (TOKEN_GLOB,), root / '.cache/fx/tokens.json', jobs, log) \
@@ -3281,6 +3308,8 @@ def export_fx(ab_root, out_root, manifest, log, selection='sample', keys=None, j
     for k in missing:
         log(f'  skip (no such effect prefab in this client) {k}')
     wanted -= set(missing)
+    existing_prefabs = set((previous or {}).get('prefabs') or {})
+    wanted -= existing_prefabs
 
     # -- descriptors, textures, meshes; then the keys the exported behaviours name (variants by facing, chained
     #    effects), until nothing new is named
@@ -3305,7 +3334,7 @@ def export_fx(ab_root, out_root, manifest, log, selection='sample', keys=None, j
                 for line in lines:
                     log(line)
             named = {r for e in entries.values() for r in e.get('refs', [])}
-            todo = {k for k in named if k in eff and k not in done}
+            todo = {k for k in named if k in eff and k not in done and k not in existing_prefabs}
     timings['prefabs'] = time.time() - t0
 
     summaries = {k: {f: v[f] for f in ('file', 'bundle', 'nodes', 'particleSystems', 'liveParticles', 'duration', 'looping', 'refs',
@@ -3320,14 +3349,20 @@ def export_fx(ab_root, out_root, manifest, log, selection='sample', keys=None, j
         'fx/mesh': {k: {'path': url(v['file']), 'kind': 'FxMesh', 'verts': v['verts']} for k, v in meshes.items()},
     }
     tex_all, set_name = dict(textures), 'keys' if keys else selection
-    prev = _read_json(out / 'index.json') if keys else None
+    prev = previous if add_only else _read_json(out / 'index.json') if keys else None
     if isinstance(prev, dict) and prev.get('format') == 'fx-index' and prev.get('version') == INDEX_VERSION:
         # a --fx-keys run: these prefabs replace their earlier copies; the earlier set's units, skills, prefabs stay
-        units, projectiles, skills, skins = (prev.get(x) or {} for x in ('units', 'projectiles', 'skills', 'skins'))
+        if add_only:
+            units, projectiles, skills, skins = ({**v, **(prev.get(k) or {})} for k, v in
+                                               zip(('units', 'projectiles', 'skills', 'skins'), (units, projectiles, skills, skins)))
+        else:
+            units, projectiles, skills, skins = (prev.get(x) or {} for x in ('units', 'projectiles', 'skills', 'skins'))
         summaries = {**(prev.get('prefabs') or {}), **summaries}
-        tex_all = {**((_read_json(out / 'textures.json') or {}).get('textures') or {}), **textures}
+        old_textures = (_read_json(out / 'textures.json') or {}).get('textures') or {}
+        tex_all = {**textures, **old_textures} if add_only else {**old_textures, **textures}
         old_groups = (_read_json(fx_manifest) or {}).get('groups') or {}
-        groups = {g: {**(old_groups.get(g) or {}), **v} for g, v in groups.items()}
+        groups = {g: ({**v, **(old_groups.get(g) or {})} if add_only else {**(old_groups.get(g) or {}), **v})
+                  for g, v in groups.items()}
         set_name = prev.get('set') or set_name
     groups = {'fx': {'index': {'path': url('index.json'), 'kind': 'FxIndex', 'version': INDEX_VERSION, 'set': set_name,
                                'prefabs': len(summaries)},
@@ -3348,7 +3383,7 @@ def export_fx(ab_root, out_root, manifest, log, selection='sample', keys=None, j
                                           'client': client_version(ab_root), 'set': set_name, 'count': count,
                                           'groups': groups}, ensure_ascii=False, separators=(',', ':')).encode('utf-8'))
     total = 3 + len(entries) + len(meshes) + sum(1 + (1 if v.get('half') else 0) for v in textures.values())
-    if not keys:                                              # a full set: drop files an earlier run left behind
+    if not keys and not add_only:                             # a full set: drop files an earlier run left behind
         keep = {out / 'index.json', out / 'textures.json'} | {out / v['file'] for v in entries.values()}
         keep |= {out / v['file'] for v in meshes.values()} | {out / v['file'] for v in textures.values()}
         keep |= {out / v['half'] for v in textures.values() if v.get('half')}

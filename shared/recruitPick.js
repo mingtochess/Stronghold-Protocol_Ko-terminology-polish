@@ -16,7 +16,8 @@ export function recruitCandidates(loadout, getChess) {
   for (const [id, e] of Object.entries(loadout || {})) {
     if (!e || e.selected !== true) continue;
     const c = getChess(id);
-    if (c && c.optionalRecruit && RECRUIT_TIERS.includes(c.tier)) out.push(id);
+    // no prototype (예비 오퍼레이터 / 앰버 그룹 …) is a 선발 candidate
+    if (c && c.optionalRecruit && !c.recruitPrototype && RECRUIT_TIERS.includes(c.tier)) out.push(id);
   }
   return out.sort((a, b) => (getChess(a).tier - getChess(b).tier) || (a < b ? -1 : a > b ? 1 : 0));
 }
@@ -38,4 +39,18 @@ export function checkRecruitPicks(picks, candidates, getChess) {
     seen.add(key); ids.add(id);
   }
   return { ok: true, picks: [...ids] };
+}
+
+/**
+ * 규정 선택자편 default (shared/diyBring.js defaultDiyBring): the first legal candidates of each tier, in candidate
+ * order, up to RECRUIT_PICKS — what a player who does not confirm takes into the match.
+ * @param {string[]} candidates @param {(id: string) => any} getChess @param {Iterable<string>} [banned]
+ */
+export function defaultRecruitPicks(candidates, getChess, banned = []) {
+  const off = new Set(banned), out = [];
+  for (const id of candidates || []) {
+    if (off.has(id)) continue;
+    if (checkRecruitPicks([...out, id], candidates, getChess).ok) out.push(id);
+  }
+  return out;
 }

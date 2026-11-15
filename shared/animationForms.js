@@ -45,7 +45,15 @@ const MAKOTO=Object.freeze({
  makoto_exit_s3b:{change:'Doll_Skill_3_P2_SwitchOut',sequence:['Doll_Skill_3_P2_SwitchOut'],roles:makotoRoles('Idle')},
  makoto_total:{change:'Skill_AllOutAttack_Loop',sequence:['Skill_AllOutAttack_Loop','Skill_AllOutAttack_End'],roles:makotoRoles('Idle')},
 });
+// 假想敌：械 (enm_pfb_36.ab, fx/index.json modes Default / WithArmor): the A_ set bare, the B_ set with its armor pair; its
+// one skill (SommonSquad, slot 0) plays Skill_1 of the set it is in
+const MECH_SKILL = (set) => Object.freeze({ begin: null, loop: `${set}_Skill_1`, end: null, index: 0, idle: null });
+const MECH_ARMOR = Object.freeze({ armor: Object.freeze({ change: null, roles: Object.freeze({
+  idle: 'B_Idle', deploy: 'B_Idle', die: 'B_Die', move: null, attack: loop('B_Attack', 'attackAny'),
+  skill: MECH_SKILL('B'), skills: Object.freeze({ 0: MECH_SKILL('B') }) }) }) });
 export const FORMS = Object.freeze({
+  enemy_9029_acfnc: MECH_ARMOR,
+  enemy_9029_acfnc_2: MECH_ARMOR,
  char_4217_makoto:MAKOTO,
   ['token_10030_mlyss_wtrman']: Object.freeze({
     Default: Object.freeze({ roles: { ...clipSet('Idle_1', null, 'Stun', 'Attack'), deploy: 'Start', stun: loop('Stun') } }),

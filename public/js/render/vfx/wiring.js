@@ -64,6 +64,37 @@ import { UF } from '../../../../shared/constants.js';
 
 /** Battle seconds a non-oneshot cast effect lasts without its end event. */
 export const CAST_LOOP_S = 0.6;
+// 규정 sim statuses (server/sim-upstream/content/regulation-bosses.js, buffs marked visible) → the official effects the
+// client plays on the unit while it holds them: 假想敌：茧's 【悲惨之雨】 (acspider_2's AcidRain: its debuff on the unit).
+export const REGULATION_STATUS = Object.freeze({
+  'reg:acid': Object.freeze(['enemy_acspider_debuff_01']),
+  // 假想敌：茧's 伪装 (Talents/Evade: acspider[evade-ticker] → enemy_acspider_buff_mask_01 on itself)
+  'reg:evade': Object.freeze(['enemy_acspider_buff_mask_01']),
+});
+// 규정 bosses' official hits on the units their moves trample (sim fx 'regHit' `kind`, display only): 假想敌：铳's
+// 【最终之罚】 charge (skill 3: achunt_line_damage → enemy_achunt_chain_hit on its targets) and the “碎铳之簧” of 【末日布道】
+// (MoveToHunter Talents/2: actrpa_s_1[damage] → enemy_actrpa_skill_a_hit)
+export const REGULATION_HITS = Object.freeze({ finalPenance: 'enemy_achunt_chain_hit', springChase: 'enemy_actrpa_skill_a_hit' });
+// effects played where something ends (sim fx `kind` → keys at its point): 阿利斯泰尔's 【莫非王土】 animating a piece of
+// equipment (store / storeA: enemy_vtlionk_s2 ON_BUFF_START on the piece — its three layers), 矩兽's 失控 blast at its death
+// (Talents/OutOfControll ON_OWNER_FINISH)
+export const REGULATION_POINT_FX = Object.freeze({
+  equipDie: Object.freeze(['enemy_vtlionk_skill_02_trap_die_01', 'enemy_vtlionk_skill_02_trap_die_02', 'enemy_vtlionk_skill_02_trap_die_03']),
+  beastOutOfControl: Object.freeze(['enemy_dyjsfg_skill_02_range_02']),
+});
+// “余音”'s mode switch (Talents/1 / 2 switchMode → enemy_acdums_switch on itself)
+export const ECHO_SWITCH = 'enemy_acdums_switch';
+// the keys above, preloaded with the unit that brings them (keysFor)
+const REGULATION_PRELOAD = Object.freeze({
+  enemy_9035_acspider: ['enemy_acspider_buff_mask_01'],
+  enemy_9017_achunt: [REGULATION_HITS.finalPenance], enemy_9018_actrpa: [REGULATION_HITS.springChase],
+  enemy_9032_aclionk: REGULATION_POINT_FX.equipDie, enemy_2124_dyjsfg: REGULATION_POINT_FX.beastOutOfControl,
+  enemy_9023_acdums: [ECHO_SWITCH],
+});
+// 【悲惨之雨】's field: enemy_acspider_debuff_ground_01 (a one-tile ground decal: its bace / ground meshes 0.92 / 1 tile)
+// on every tile of the field the sim's 'acidRain' fx names, for its duration — the rain covers the field, whoever stands
+// on it (user report 2026-11-15)
+export const ACID_RAIN_GROUND = 'enemy_acspider_debuff_ground_01';
 // Confirmed in each enemy's death/attack projectile, not inferred from the zone colour.
 const ENEMY_ZONES = Object.freeze({
   enemy_1267_nhpbr: ['pollution', 'projectile_enemy_nhpbr_polluted', 'toTargetOnStart'],
@@ -355,6 +386,7 @@ export class FxWiring {
     this.projectileKeys = new WeakMap();
     this.bombardAims = new Map();
     this.chenWaves = new Map();
+    this.acidRains = [];   // 【悲惨之雨】 fields: { handles, until (ofx battle time), owner id }
     this.northernFx = new NorthernFx(this);
     this.windFx = new WindFx(this);
     this.clemntFx = new ClemntFx(this);
@@ -536,6 +568,9 @@ export class FxWiring {
       }
       const zone = ENEMY_ZONES[this.unitKeyOf(v)];
       if (zone) for (const k of this.idx.projectiles?.[zone[1]]?.[zone[2]] || []) keys.add(k);
+      // the 【悲惨之雨】 status effects (REGULATION_STATUS) land on the allies of the 茧 that casts it
+      if (this.unitKeyOf(v) === 'enemy_9035_acspider_2') { for (const k of REGULATION_STATUS['reg:acid']) keys.add(k); keys.add(ACID_RAIN_GROUND); }
+      for (const k of REGULATION_PRELOAD[String(this.unitKeyOf(v) || '').replace(/_\d+$/, '')] || []) keys.add(k);
       if (u.startEffect) keys.add(u.startEffect);
       if (u.deadEffect) keys.add(u.deadEffect);
     }
@@ -1742,6 +1777,15 @@ export class FxWiring {
     if (!this.ofx.active) return false;
     if (prev && prev.alive) return true;
     // 보호막 / 쉴드: the unit's own prefab where it has one; a 쉴드 without one takes the generic loop, a 보호막 nothing
+    const reg = REGULATION_STATUS[name];
+    if (reg) {
+      // every prefab of the status, held as one loop (syncStatuses checks the slot's `alive`)
+      const hs = reg.filter((k) => this.ofx.lib.has(k)).map((k) => this.playOn(k, v, { follow: true, loop: true, important: true, depthOwner: v })).filter(Boolean);
+      if (!hs.length) return false;
+      const h = { get alive() { return hs.some((x) => x.alive); }, stop() { for (const x of hs) x.stop(); } };
+      this.loops.set(slot, h);
+      return true;
+    }
     const own = name === 'shield' || name === 'barrier' ? this.ownShieldKey(v) : undefined;
     const key = own || (name === 'shield' && own === undefined ? this.statusKey(name) : name === 'shield' || name === 'barrier' ? null : this.statusKey(name));
     if (!key) return false;
@@ -1775,6 +1819,8 @@ export class FxWiring {
 
   /** Resolve the official prefab of a standard status; custom debuffs have no entry. */
   statusKey(name) {
+    const reg=REGULATION_STATUS[name];
+    if(reg){const k=reg.find((x)=>this.ofx.lib.has(x));return k||null;}
     const key=this.idx?.generic?.status?.[name==='invuln'?'invulnerable':name];
     return key&&this.ofx.lib.has(lc(key))?lc(key):null;
   }
@@ -1851,6 +1897,7 @@ export class FxWiring {
     for (const v of all) if (v.prep) this.release(v);
     const list = all.filter(v => !v.prep && this.hasOfficialUnit(v));
     for(const v of list)this.syncStatuses(v);
+    this._syncAcidRains();
     this.skills.sync(list);
     this.talents.sync(list);
     this.funnels.sync(list);
@@ -1884,6 +1931,10 @@ export class FxWiring {
       for(const id of extra.targets||[]){const target=this.view(id);if(target)for(const key of p?.onHit||[])this.playOn(key,target,{flipFrom:owner});}
       return true;
     }
+    if(kind==='acidRain')return this._acidRain(extra,owner);
+    if(kind==='regHit'){const key=REGULATION_HITS[extra?.kind],t=this.view(extra?.target);return !!(key&&t&&this.playOn(key,t));}
+    if((kind==='equipDie'||kind==='regBurst')&&REGULATION_POINT_FX[kind==='equipDie'?'equipDie':extra?.kind])return this._pointFx(REGULATION_POINT_FX[kind==='equipDie'?'equipDie':extra.kind],x,y);
+    if(kind==='phase'&&/^echo_/.test(extra?.kind||'')&&extra?.from&&owner&&this.unitKeyOf(owner)==='enemy_9023_acdums')return !!this.playOn(ECHO_SWITCH,owner);
     if(kind==='sakikoNoteHit')return this.noteFx.hit(x,y,extra,owner);
     if(kind==='sakikoNoteSound')return true;
     if(this.kitProjectileFx.simFx(kind,x,y,extra,owner))return true;
@@ -2035,6 +2086,44 @@ export class FxWiring {
   }
 
   /** Battle reset. */
+  /** Effects at a map point (a unit that is going away: REGULATION_POINT_FX), on its tile's top. */
+  _pointFx(keys, x, y) {
+    if (!this.ofx.active || !Number.isFinite(x) || !Number.isFinite(y)) return false;
+    const z = Number((this.opts.heightAt || (() => 0))(Math.round(y), Math.round(x))) || 0;
+    let any = false;
+    for (const key of keys) if (this.ofx.lib.has(key) && this.ofx.spawn(key, { pos: [x - 10, y - 9, -z], groundZ: -z, rootRot: [0, 0, 0, 1] }, { important: true })) any = true;
+    return any;
+  }
+
+  /** 【悲惨之雨】 (sim fx 'acidRain': `tiles` = r, c pairs of the field, `dur` battle seconds): the ground decal on each. */
+  _acidRain(extra, owner) {
+    if (!this.ofx.active || !this.ofx.lib.has(ACID_RAIN_GROUND)) return false;
+    const t = Array.isArray(extra?.tiles) ? extra.tiles : [], dur = Number(extra?.dur) || 0;
+    if (!(dur > 0) || t.length < 2) return false;
+    const heightAt = this.opts.heightAt || (() => 0), handles = [];
+    for (let i = 0; i + 1 < t.length; i += 2) {
+      const r = Number(t[i]), c = Number(t[i + 1]);
+      if (!Number.isFinite(r) || !Number.isFinite(c)) continue;
+      const z = Number(heightAt(r, c)) || 0;
+      const h = this.ofx.spawn(ACID_RAIN_GROUND, { pos: [c - 10, r - 9, -z], groundZ: -z, rootRot: [0, 0, 0, 1] }, { loop: true, important: i === 0, owner });
+      if (h) handles.push(h);
+    }
+    if (!handles.length) return false;
+    this.acidRains.push({ handles, until: this.ofx.time + dur, owner: extra?.id ?? null });
+    return true;
+  }
+
+  /** Stops a rain at its end or when its 茧 is gone (the sim cancels the rain with it). */
+  _syncAcidRains() {
+    if (!this.acidRains.length) return;
+    this.acidRains = this.acidRains.filter((rain) => {
+      const owner = rain.owner != null ? this.view(rain.owner) : null;
+      const over = this.ofx.time >= rain.until || (rain.owner != null && (!owner || owner.alive === false));
+      if (over) for (const h of rain.handles) h.stop();
+      return !over;
+    });
+  }
+
   clear() {
     for (const wall of this.walls) wall.kill();
     this.walls.clear();
@@ -2047,6 +2136,7 @@ export class FxWiring {
     this.noteFx.clear();
     this.kitProjectileFx.clear();
     for(const wave of this.chenWaves.values())wave.handle.stop();this.chenWaves.clear();
+    for(const rain of this.acidRains)for(const h of rain.handles)h.stop();this.acidRains=[];
     this.loops.clear();
     this.statusSeen.clear();
     this.melee.clear();

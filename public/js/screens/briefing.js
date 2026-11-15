@@ -9,14 +9,16 @@ import { ChatPanel } from '../ui/chat.js';
 
 import { useState } from '../../vendor/hooks.module.js';
 import { html, Button, Icon, MicroLabel } from '../ui/components.js';
-import { useGameData, Img, RichText } from '../ui/gameComponents.js';
+import { HudBond } from '../ui/bondStrip.js';
+import { useGameData, Img, RichText, BondGlyph } from '../ui/gameComponents.js';
 import { StepHeader, ExitModal } from '../ui/matchChrome.js';
 import { MatchInfo, matchInfoModel } from '../ui/matchInfo.js';
 import { LoadoutButton } from '../ui/loadoutEntry.js';
 import { SetupReroll } from '../ui/setupReroll.js';
 import { actions } from '../ui/gameActions.js';
 import { factionTypes, sortedPlayers, phaseTotalSeconds } from '../ui/gameLogic.js';
-import { enemyIconUrl, factionIconUrl } from '../ui/assetUrls.js';
+import { enemyIconUrl, factionIconUrl, bondIconUrl } from '../ui/assetUrls.js';
+import { matchData as data } from '../data.js';
 import { useStore } from '../store.js';
 import { mapPreviewUrl } from '../ui/mapPreviews.js';
 
@@ -41,8 +43,10 @@ export function BriefingScreen() {
   const mode = gd.config?.modes?.[pub.modeId];
   const info = matchInfoModel(pub, { bonds: gd.list('bonds'), chess: gd.chess, mode });
 
+  // 규정 단독: the core-bond group must be picked before the briefing ends
+  const needGroup = !!(solo && Array.isArray(pub.bondChoice?.groups) && pub.bondChoice.picked == null);
   const ready = async () => {
-    if (busy || me?.ready) return;
+    if (busy || me?.ready || needGroup) return;
     setBusy(true);
     await actions.infoReady(pub.setupRevision ?? 0);
     setBusy(false);
@@ -58,6 +62,7 @@ export function BriefingScreen() {
         <${BriefingOverview} pub=${pub} />
       </section>
       <section class="brief__right">
+        <${BondGroupPicker} pub=${pub} canPick=${!!me && !me.ready} />
         <${MatchInfo} model=${info} />
       </section>
     </main>
@@ -70,10 +75,41 @@ export function BriefingScreen() {
         <span class="brief-ready__pips">${players.map((p) => html`<i key=${p.playerId} class=${cx(p.ready && 'on', p.playerId === myId && 'me')} title=${p.name}><${Icon} name="user" /></i>`)}</span>
       </div>
       <${Button} variant="primary" size="xl" icon=${me?.ready ? 'check' : me ? 'play' : 'eye'} active=${!!me?.ready} loading=${busy}
-        disabled=${!!me?.ready || !me || !!pub.rerollVote} onClick=${ready}>${me?.ready ? '已就绪' : me ? '准备就绪' : '观战中'}<//>
+        disabled=${!!me?.ready || !me || !!pub.rerollVote || needGroup} title=${needGroup ? t('핵심 맹약 그룹을 먼저 고르세요') : null} onClick=${ready}>${me?.ready ? '已就绪' : me ? '准备就绪' : '观战中'}<//>
     </footer>
     ${solo ? null : html`<${ChatPanel} />`}
     <${ExitModal} open=${exit} onClose=${() => setExit(false)} solo=${solo} />
+  </div>`;
+}
+
+/**
+ * 규정 단독: the two groups of core bonds the match drew (pub.bondChoice); the player plays the one picked and the other
+ * is banned (g.bondGroup). Unpicked at the end of the briefing, the first group plays.
+ */
+function BondGroupPicker({ pub, canPick }) {
+  const gd = useGameData();
+  const [busy, setBusy] = useState(false);
+  const choice = pub?.bondChoice;
+  if (!choice || !Array.isArray(choice.groups)) return null;
+  const pick = async (idx) => {
+    if (busy || !canPick || choice.picked === idx) return;
+    setBusy(true);
+    await actions.bondGroup(idx, pub.setupRevision ?? 0);
+    setBusy(false);
+  };
+  return html`<div class="brief-groups" data-testid="bond-groups">
+    <h3 class="brief-h"><span>${t('핵심 맹약 그룹 선택')}</span><${MicroLabel}>CORE BOND GROUP<//></h3>
+    <p class="t-dim brief-groups__hint">${t('고른 그룹의 핵심 맹약만 이번 시뮬레이션에 등장합니다. 그룹을 골라야 시작할 수 있습니다.')}</p>
+    <div class="brief-groups__row">
+      ${choice.groups.map((g, idx) => html`<button key=${idx} type="button" class=${cx('brief-group', choice.picked === idx && 'is-on')}
+          aria-pressed=${choice.picked === idx} disabled=${busy || !canPick} onClick=${() => pick(idx)}>
+        <span class="brief-group__label">${t('그룹')} ${idx === 0 ? 'A' : 'B'}</span>
+        <span class="brief-group__bonds">${g.map((b) => html`<span key=${b} class="brief-group__bond brief-bond">${/* the bond rows' own item (bondStrip.js HudBond) */''}<${HudBond} name=${gd.bond?.(b)?.name || b} icon=${bondIconUrl(data.get('assets'), b)}
+          thresholds=${Number(gd.bond?.(b)?.thresholds?.[0]) || 1} tier=${choice.picked === idx ? Number(gd.bond?.(b)?.thresholds?.[0]) || 1 : 0}
+          active=${choice.picked === idx} disabled=${choice.picked != null && choice.picked !== idx} steps=${false} /></span>`)}</span>
+        ${choice.picked === idx ? html`<span class="brief-group__mark"><${Icon} name="check" /></span>` : null}
+      </button>`)}
+    </div>
   </div>`;
 }
 

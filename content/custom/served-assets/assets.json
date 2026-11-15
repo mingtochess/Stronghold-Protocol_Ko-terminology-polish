@@ -1,0 +1,370 @@
+{
+ "description": "게임 저장소 public/assets 에 남아 있던 감정 표현·리타니엔 전략 이미지 (에셋 저장소로 이전, 2026-11-15)",
+ "files": [
+  {
+   "path": "/assets/custom/leithanien/witchking-npc-strategy.png",
+   "bytes": 2247126,
+   "sha256": "9cacd01e29f3aad81d51544ee5c2d476129ac81f25e8d570d0e33e43920c448d"
+  },
+  {
+   "path": "/assets/emotes/a0.webp",
+   "bytes": 74346,
+   "sha256": "c4ae0221af4e68c4be997d974ba883961605afd077ccac04714e1e9e9dcf0cc5"
+  },
+  {
+   "path": "/assets/emotes/a5.webp",
+   "bytes": 77120,
+   "sha256": "c48596659cab0a30dbca2a4658f5e7f62c1c71b674d45325a447c99c6b09d90c"
+  },
+  {
+   "path": "/assets/emotes/b0.webp",
+   "bytes": 866054,
+   "sha256": "e8989d7eefb47085a53e27a6b5ca7d08061efb3358106b3b1f7f5a55c7fb9fa8"
+  },
+  {
+   "path": "/assets/emotes/b2.webp",
+   "bytes": 451218,
+   "sha256": "f18ceabda630c4853ed31c23c81bff91b031b0e2774a2af2de4007dfcb78aa62"
+  },
+  {
+   "path": "/assets/emotes/b3.webp",
+   "bytes": 235796,
+   "sha256": "587f0d3e7444011358de10a172aa6d8755ed2be8060e11f9771ea8019b6218ac"
+  },
+  {
+   "path": "/assets/emotes/b4.webp",
+   "bytes": 157960,
+   "sha256": "5a9cc7d34348e61e2ac401e5a00187515995f8dc919bfcc3b81233f1a309734a"
+  },
+  {
+   "path": "/assets/emotes/c0.webp",
+   "bytes": 12118,
+   "sha256": "7a89b83ea1d01d634dd6077439574699474ba59288c4081725047a8c76fb0021"
+  },
+  {
+   "path": "/assets/emotes/c10.webp",
+   "bytes": 14320,
+   "sha256": "de2c7deabf023b4e535a34ed8cfcab634a6f7a90cb56e344c2158adb3efbcabc"
+  },
+  {
+   "path": "/assets/emotes/c11.webp",
+   "bytes": 12292,
+   "sha256": "8d83c9d8bf3e9212334c054357acd58fa3e1124c0f167c88e486fc596ccec669"
+  },
+  {
+   "path": "/assets/emotes/c13.webp",
+   "bytes": 13290,
+   "sha256": "6c97464532dc0277acda7a2281e0f9d5d6e143b92df4a83b95d1edaa4f9c2405"
+  },
+  {
+   "path": "/assets/emotes/c14.webp",
+   "bytes": 12074,
+   "sha256": "ac2f94544030b64405483f08edf015f053989fb03328a579af164786d55390e1"
+  },
+  {
+   "path": "/assets/emotes/c2.webp",
+   "bytes": 17030,
+   "sha256": "ac8a639440b8779bec7fd93d29f91a96fd9572df8111c1f825a83e85cbfaf97d"
+  },
+  {
+   "path": "/assets/emotes/c3.webp",
+   "bytes": 15836,
+   "sha256": "7ff0f2bf1cd8a1186f943c3750d17bbe2c2dfebdd3dccd8878f74bf64715d683"
+  },
+  {
+   "path": "/assets/emotes/c4.webp",
+   "bytes": 14548,
+   "sha256": "7f48b8420dac67aa8087176d22fad9f0faf083833ebee9fa66c72c6dc1008718"
+  },
+  {
+   "path": "/assets/emotes/c5.webp",
+   "bytes": 15206,
+   "sha256": "9c31d3925e147c8222a7ea28631e0f6c102f337e6d7cd4f804e68aacdd060695"
+  },
+  {
+   "path": "/assets/emotes/c6.webp",
+   "bytes": 12724,
+   "sha256": "f50d2dc648e0687ac2bc90ced7f8c6d1d602b039ec479ada4ee06e6480d3ec2a"
+  },
+  {
+   "path": "/assets/emotes/c8.webp",
+   "bytes": 18272,
+   "sha256": "39523ed77d46ab7a42ab50aac8a8daadad1cfb79d77426c0d1b1526a2c7f17f5"
+  },
+  {
+   "path": "/assets/emotes/c9.webp",
+   "bytes": 14376,
+   "sha256": "f3fe30b8d4b278800cab41b0c07c2cf4daf0df7c6ae382ed60098b6d24bc3ae8"
+  },
+  {
+   "path": "/assets/emotes/d0.webp",
+   "bytes": 56190,
+   "sha256": "aff7124ceeae4df1192121b35681f308c89a937797180222a2b25a093db5da85"
+  },
+  {
+   "path": "/assets/emotes/e0.webp",
+   "bytes": 23648,
+   "sha256": "dc93e092eb7c30ad1fb76e278c399bdfb2d2023cd46fc074eb5c5c5e9b8a6c40"
+  },
+  {
+   "path": "/assets/emotes/e1.webp",
+   "bytes": 22126,
+   "sha256": "edec8109af52e708ea5fb753520f16ae8ef51416d4c52f70019dd96ce1e9e67c"
+  },
+  {
+   "path": "/assets/emotes/e10.webp",
+   "bytes": 22426,
+   "sha256": "809ce0badf7c6cbd8822eec9ff02e54569a068425d9ca95dd306e4b588d3f348"
+  },
+  {
+   "path": "/assets/emotes/e3.webp",
+   "bytes": 22016,
+   "sha256": "fa77b942e598c67ec79bc68fba7bbf1a58647157154ef8d186a89d091a62038c"
+  },
+  {
+   "path": "/assets/emotes/e4.webp",
+   "bytes": 26736,
+   "sha256": "309869e4300c5753712b960b1ac4f79ea0c5c513ecd42789e3e235921058f3e7"
+  },
+  {
+   "path": "/assets/emotes/e5.webp",
+   "bytes": 21490,
+   "sha256": "be7d91513214df2aa3f5b7d0f3d163ce5b72009240ea3bc5cda111472cbd913f"
+  },
+  {
+   "path": "/assets/emotes/e6.webp",
+   "bytes": 24980,
+   "sha256": "383e206c1bc6afea4707e262cabe9eadf155b847ba1303b4c7555a10d5844ca5"
+  },
+  {
+   "path": "/assets/emotes/e7.webp",
+   "bytes": 28184,
+   "sha256": "6adf076eb2eac7e552bf21b59d979e6096c91d08ab95ce3f05c9e80a426f8713"
+  },
+  {
+   "path": "/assets/emotes/e8.webp",
+   "bytes": 24858,
+   "sha256": "fd9d2b456259469386ac66ea8751f39adafe8b1ade707820b587566bb45d1455"
+  },
+  {
+   "path": "/assets/emotes/e9.webp",
+   "bytes": 22496,
+   "sha256": "3b7a6e4451eab64606b77cc6da54c4c9e00a1b82da2e4e44dad48d175f1119bc"
+  },
+  {
+   "path": "/assets/emotes/f0.webp",
+   "bytes": 5400,
+   "sha256": "5160f8db41a0b053db4752f4fb12642559a5c49d0c7950e540c8e09f6638ae5d"
+  },
+  {
+   "path": "/assets/emotes/f2.webp",
+   "bytes": 9490,
+   "sha256": "f80b86a1f5a81242c430281910eafba15db6768a37fe3770f0fce252c0468223"
+  },
+  {
+   "path": "/assets/emotes/f3.webp",
+   "bytes": 9230,
+   "sha256": "ed3ea5ee0d9c80f68f6c97c18789990838bbab5811d902f094a3f7d37637a0dd"
+  },
+  {
+   "path": "/assets/emotes/f4.webp",
+   "bytes": 9190,
+   "sha256": "ff457a1438b49d8b1eb8a0b9b2b9fc7aa4e6456358a755a9091a92ef2f26ea35"
+  },
+  {
+   "path": "/assets/emotes/g4.webp",
+   "bytes": 7106,
+   "sha256": "516236f3ad3246fb66e4cf6c760dc1181c2ccf0a6f71e719b637b552edcd8aac"
+  },
+  {
+   "path": "/assets/emotes/g5.webp",
+   "bytes": 9478,
+   "sha256": "aa48255659c710990ae46e4030012aeba3bc44f8a0bf81b6f70d231ed4a922ab"
+  },
+  {
+   "path": "/assets/emotes/h1.webp",
+   "bytes": 79066,
+   "sha256": "34695c1ae5fa3a8033014b08a92cdf3cbdeeeee4ada75bb32d5ff54cebe1ee8f"
+  },
+  {
+   "path": "/assets/emotes/original/basic_2/pic_call_battle.png",
+   "bytes": 29414,
+   "sha256": "b40d1369d1a9e673125e39a2a2a7499a05baf2151855d326ec853b3b2a7b779c"
+  },
+  {
+   "path": "/assets/emotes/original/basic_2/pic_dying_battle.png",
+   "bytes": 26791,
+   "sha256": "1c199b487c7159d20416cba47283e9dd62fe89df81f849226e599c2135f4e9bf"
+  },
+  {
+   "path": "/assets/emotes/original/basic_2/pic_noproblem_battle.png",
+   "bytes": 27471,
+   "sha256": "4278a91b63bcfe6d2fa9b4cd1ea861a6f5b5e76bec6bb9cb57d02e1901fdd90c"
+  },
+  {
+   "path": "/assets/emotes/original/basic_2/pic_playingcool_battle.png",
+   "bytes": 27083,
+   "sha256": "8fe527d735de167a24875b5095596d870a3bbbc111d491e87098a208201a4b51"
+  },
+  {
+   "path": "/assets/emotes/original/basic_2/pic_respect_battle.png",
+   "bytes": 27204,
+   "sha256": "c5224be89f9b9f88effdb6740ccd7699457f503face1fb3b2dd1d0b850e9dcc8"
+  },
+  {
+   "path": "/assets/emotes/original/basic_2/pic_sad_battle.png",
+   "bytes": 28250,
+   "sha256": "a9eb37a08210966640ec38e5eb369bfaad51ecba8523a053901cfc228fefc692"
+  },
+  {
+   "path": "/assets/emotes/original/foolamiya/pic_foolamiya_01_battle.png",
+   "bytes": 23617,
+   "sha256": "d94c83d1d64753666c7aa996c3ea8a79673574637c301dda4b76661ebc25f09f"
+  },
+  {
+   "path": "/assets/emotes/original/foolamiya/pic_foolamiya_02_battle.png",
+   "bytes": 23098,
+   "sha256": "70188f9a5d24242ce16ef87268019ba5599b8efc96ff8ef9bb8461885518d25c"
+  },
+  {
+   "path": "/assets/emotes/original/foolamiya/pic_foolamiya_03_battle.png",
+   "bytes": 24007,
+   "sha256": "3a10804d859794cf1cefb57ecf3ebcf3bb8181178c5a245c5281958204a699f3"
+  },
+  {
+   "path": "/assets/emotes/original/foolamiya/pic_foolamiya_04_battle.png",
+   "bytes": 23665,
+   "sha256": "fa061cb1c295a8f5ca6ebc1bffa5cd5fe0c956fcb7b2a9437b7b159d06345836"
+  },
+  {
+   "path": "/assets/emotes/original/foolamiya/pic_foolamiya_05_battle.png",
+   "bytes": 24619,
+   "sha256": "8597bf11f798531d6f61e76c01acb911905b7adaa01a3b7c96311c4ce7d09782"
+  },
+  {
+   "path": "/assets/emotes/original/foolamiya/pic_foolamiya_06_battle.png",
+   "bytes": 24115,
+   "sha256": "208e1ca58d51b1d956976c8883894e35b47d71e3dc432c888a5e68c6ccb051e4"
+  },
+  {
+   "path": "/assets/emotes/original/fooldoctor/pic_fooldoctor_01_battle.png",
+   "bytes": 21076,
+   "sha256": "7b24f385878d0846e741a38ea2c06006921bd995310c9d8bf588cef79439b063"
+  },
+  {
+   "path": "/assets/emotes/original/fooldoctor/pic_fooldoctor_02_battle.png",
+   "bytes": 20915,
+   "sha256": "176164bfeed06bc005cee508cad13224dab1392ea46a44ec46ba98f44e9583f2"
+  },
+  {
+   "path": "/assets/emotes/original/fooldoctor/pic_fooldoctor_04_battle.png",
+   "bytes": 19293,
+   "sha256": "a1969c9e394491d7c2fc598ad65b4dfeb9e89027d5857d19c0c21d2f5da7bb70"
+  },
+  {
+   "path": "/assets/emotes/original/fooldoctor/pic_fooldoctor_05_battle.png",
+   "bytes": 22380,
+   "sha256": "ab7909b6dd5ea751ac7b64111cb5d13db4a557b61e83fe509b4d1faa2bf37aec"
+  },
+  {
+   "path": "/assets/emotes/original/fooldoctor/pic_fooldoctor_06_battle.png",
+   "bytes": 20484,
+   "sha256": "0202eb932f3b3c01f9242779c438853c389e5864a883a4c6990e02f53dbeab7b"
+  },
+  {
+   "path": "/assets/emotes/original/fooldoctor/pic_fooldoctor_08_battle.png",
+   "bytes": 19931,
+   "sha256": "54a1edd871a80038f6eac960c7cb136d33090c066104cbef9c217a5d90300e7b"
+  },
+  {
+   "path": "/assets/emotes/original/foolwisdel/pic_foolwisdel_01_battle.png",
+   "bytes": 23060,
+   "sha256": "486c2bd368a3b708d68e56d9a6f86a7d03cbdef9e3e72e29d969e8c295701586"
+  },
+  {
+   "path": "/assets/emotes/original/foolwisdel/pic_foolwisdel_02_battle.png",
+   "bytes": 23782,
+   "sha256": "7501db652709ccbe051a39a2051d425aff180bfacb5a8403ab719752aaee636a"
+  },
+  {
+   "path": "/assets/emotes/original/foolwisdel/pic_foolwisdel_03_battle.png",
+   "bytes": 23235,
+   "sha256": "0595b3fabd1eca57256d76632b5d200884ddd94697cbb76bf6b5f89edc035013"
+  },
+  {
+   "path": "/assets/emotes/original/foolwisdel/pic_foolwisdel_04_battle.png",
+   "bytes": 22806,
+   "sha256": "373a4fd2bc8c2f05bcd91f6bbb5b6534f41b92c227cbf83b102ccd32b0301cd5"
+  },
+  {
+   "path": "/assets/emotes/original/foolwisdel/pic_foolwisdel_05_battle.png",
+   "bytes": 22617,
+   "sha256": "b3337f7d45ede27810ae50a2ac21d810d9c85c413e73d697f327cc35b905b682"
+  },
+  {
+   "path": "/assets/emotes/original/foolwisdel/pic_foolwisdel_06_battle.png",
+   "bytes": 23061,
+   "sha256": "a62b11360cb6cd106a75cab0a6f5fe10ae5bd0e04113247aec5396b8a413aab3"
+  },
+  {
+   "path": "/assets/emotes/original/pic_cooperate_battle.png",
+   "bytes": 26832,
+   "sha256": "dffa617f14db6592edbdd787df20f9ecb1b00dc6de30aba8ac28f64f710169d8"
+  },
+  {
+   "path": "/assets/emotes/original/pic_happy_battle.png",
+   "bytes": 27165,
+   "sha256": "a6fac59bb7f19f3a9b0f436c0b43c4d3c8a9909d6e5baa3f01c59ab0f05dd8ec"
+  },
+  {
+   "path": "/assets/emotes/original/pic_scared_battle.png",
+   "bytes": 26056,
+   "sha256": "273a256cb3e9c687a73a1eb69466464fa1088c12f246364a49ecb531d996e626"
+  },
+  {
+   "path": "/assets/emotes/original/pic_sorry_battle.png",
+   "bytes": 27672,
+   "sha256": "70ce7d3e315a056e3862492c8b0457cf41a128affc8e75b83466f7c7bdecd10a"
+  },
+  {
+   "path": "/assets/emotes/original/pic_thanks_battle.png",
+   "bytes": 27338,
+   "sha256": "6b6a6c202cf92e9accdc511c68a64cfedc9ee90fdff46efc746adbff5ac6e3d9"
+  },
+  {
+   "path": "/assets/emotes/original/pic_thinking_battle.png",
+   "bytes": 27945,
+   "sha256": "7e9455e282b5b12556bb361ba4906c68536b113968d2fc42d23d06eb16715279"
+  },
+  {
+   "path": "/assets/emotes/original/slug/pic_bye_battle.png",
+   "bytes": 8878,
+   "sha256": "932abe86920aefcf3e4c48884d71cbf5614adb604a4e4cbd183f64284069913c"
+  },
+  {
+   "path": "/assets/emotes/original/slug/pic_distrust_battle.png",
+   "bytes": 11185,
+   "sha256": "2203679e3a0ab2fe69b3a72660fc6716004223bfe02622d982cefdc6d6180ca9"
+  },
+  {
+   "path": "/assets/emotes/original/slug/pic_nice_work_battle.png",
+   "bytes": 9272,
+   "sha256": "85acfd41bac4621494b2cc73fe0fd52fe81a4d7cc25047c72eef2e160e8290ff"
+  },
+  {
+   "path": "/assets/emotes/original/slug/pic_sorry_battle.png",
+   "bytes": 10882,
+   "sha256": "7717e7c845a1bfa8000705f277d1511d8f3a9ec1e19f1dd62e4ee1dd65e4d5ba"
+  },
+  {
+   "path": "/assets/emotes/original/slug/pic_thanks_battle.png",
+   "bytes": 9287,
+   "sha256": "8e0ca940dccfc925df6a228d93c4ad59932aefb80ee0f776ecb4c039fb8273d5"
+  },
+  {
+   "path": "/assets/emotes/original/slug/pic_very_soon_battle.png",
+   "bytes": 10154,
+   "sha256": "970294610938eb6c2458dfa34b27d5f2b89356da18f48ca835e7d0f31a375255"
+  }
+ ]
+}

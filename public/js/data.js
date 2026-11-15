@@ -1,4 +1,11 @@
 import {languageFetch} from './i18n/languagePack.js';
+import { withCoopEight } from '../../shared/cooperativeEight.js';
+let coopEightMemo = null;
+/** withCoopEight of the loaded season tables, rebuilt only when a table changes. */
+function coopEightOf(config, stages) {
+  if (coopEightMemo?.config !== config || coopEightMemo?.stages !== stages) coopEightMemo = { config, stages, value: withCoopEight({ config, stages }) };
+  return coopEightMemo.value;
+}
 import {withRandomBands} from '../../shared/randomBand.js';
 import {withLaboratoryDummy} from '../../shared/laboratoryDummy.js';
 import {store} from './store.js';
@@ -530,6 +537,9 @@ export const matchData = {
   get(name) {
     const raw = data.get(name), pub = store.get().match?.public;
     if (!raw || !pub || !['chess','bonds','items','bands','bosses','stages','config','enemies'].includes(name)) return raw;
+    // another season's data (규정): the fork's custom factions / extensions are 맹약-only (its ursusShip / leithanienShip are official bonds there)
+    // its 8인 협동 (shared/cooperativeEight.js withCoopEight): the same joined stages and rules as the server's
+    if (data.get('config')?.version) return pub.mode === 'coop8' && (name === 'stages' || name === 'config') ? coopEightOf(data.get('config'), data.get('stages') || {})[name] : raw;
     const selection={bonds:pub.customFactions?['ursus']:[],stages:[],...pub.customExtensions};
     const names=['chess','bonds','items','bands','bosses','stages','config','enemies'];
     const all=Object.fromEntries(names.map(k=>[k,data.get(k)||{}]));

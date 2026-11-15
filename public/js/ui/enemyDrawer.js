@@ -95,7 +95,7 @@ function InfoTab({ pub, priv, onChess, bandId = null, bandOwner = null }) {
         ${perBond.get(b.bondId) ? html`<span class="ibond__ban num" title="该盟约中被禁用的干员数"><${Icon} name="user" />${perBond.get(b.bondId)}</span>` : null}
       </span>`) : html`<span class="t-dim">本局没有禁用盟约</span>`}
     </div>
-    ${bannedGroups.map(g => html`<section class="brief-banned__group" key=${g.bondId}><h4><${BondGlyph} bondId=${g.bondId} /><span>${g.name}</span></h4><div class="ibanned">${g.ids.map(id => html`<button key=${id} type="button" class="ibanned__one" onClick=${() => onChess(id)}><${UnitThumb} kind="chess" id=${id} size="sm" dim=${false} /></button>`)}</div></section>`)}
+    ${bannedGroups.map(g => html`<section class="brief-banned__group" key=${g.bondId}><h4><${BondGlyph} bondId=${g.bondId} /><span>${g.name}</span></h4><div class="ibanned">${g.ids.map(id => html`<button key=${id} type="button" class="ibanned__one" onClick=${() => onChess(id)}><${UnitThumb} kind="chess" id=${id} size="sm" dim=${false} showTier=${false} tierFrame=${false} /></button>`)}</div></section>`)}
   </div>`;
 }
 

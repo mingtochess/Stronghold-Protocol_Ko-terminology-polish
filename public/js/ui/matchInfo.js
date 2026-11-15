@@ -20,6 +20,7 @@ import { html, Button, Icon, MicroLabel, BondDisc, Tooltip, Modal } from './comp
 import { UnitThumb } from './gameComponents.js';
 import { bannedPerBond, disabledBondSets, briefingBondTip } from './gameLogic.js';
 import { bondIconUrl } from './assetUrls.js';
+import { HudBond } from './bondStrip.js';
 import { matchData as data } from '../data.js';
 
 const cx = (...p) => p.flat().filter(Boolean).join(' ');
@@ -42,7 +43,7 @@ export function matchInfoModel(pub, { bonds = [], chess = () => null, mode = nul
   const sets = disabledBondSets(pub, mode?.inactiveBondIds);
   const stateOf = (id) => (sets.off.has(id) ? 'off' : sets.drawn.has(id) ? 'drawn' : null);
   const list = (Array.isArray(bonds) ? bonds : []).filter((b) => !!b && typeof b === 'object' && typeof b.bondId === 'string')
-    .filter(b => b.bondId !== 'ursusShip' || pub?.customFactions === true)
+    .filter(b => b.bondId !== 'ursusShip' || pub?.customFactions === true || !!data.get('config')?.version)
     .sort((a, b) => (a.bondOrder ?? 0) - (b.bondOrder ?? 0) || (a.identifier ?? 0) - (b.identifier ?? 0));
   const tierOf = (id) => chess(id)?.tier ?? 0;
   const banned = (Array.isArray(pub?.bannedChess) ? pub.bannedChess : []).filter((id) => typeof id === 'string' && !!chess(id) && !chess(id).optionalRecruit)
@@ -79,7 +80,7 @@ function BondBannedAside(bond, model, banned) {
       const c = data.lookup('chess', id);
       const bonds = (Array.isArray(c?.bonds) ? c.bonds : []).filter((b) => nameOf.has(b));
       return html`<div key=${id} class="brief-bantip__op" data-chess=${id}>
-        <${UnitThumb} kind="chess" id=${id} size="xs" showTier=${false} />
+        <${UnitThumb} kind="chess" id=${id} size="xs" showTier=${false} tierFrame=${false} />
         <div class="brief-bantip__txt"><b>${c?.name || id}</b>
           <span>${bonds.map((b, i) => html`${i ? ' · ' : ''}<span class=${cx(b === bond.bondId && 'is-this')}>${nameOf.get(b)}</span>`)}</span></div>
       </div>`;
@@ -106,8 +107,9 @@ export function MatchBondRow({ title, micro, bonds, model }) {
         return html`<${Tooltip} key=${b.bondId} text=${briefingBondTip(b.name, state, bannedN)}
           aside=${bannedN > 0 ? BondBannedAside(b, model, banned) : null}>
           <div class=${cx('brief-bond', off && 'is-off', state === 'drawn' && 'is-incomplete', !off && bannedN > 0 && 'is-partial')} data-bond=${b.bondId}>
-            <${BondDisc} name=${b.name} icon=${bondIconUrl(m, b.bondId)} active=${!off} disabled=${off} tier=${off ? 0 : (b.thresholds?.length || 1)}
-              maxTier=${Math.max(1, b.thresholds?.length || 1)} size="md" />
+            ${/* the official autochess HUD bond item (board ring + icon + name, bondStrip.js HudBond), as in battle */ ''}
+            <${HudBond} name=${b.name} icon=${bondIconUrl(m, b.bondId)} thresholds=${Number(b.thresholds?.[0]) || 1} tier=${off ? 0 : Number(b.thresholds?.[0]) || 1}
+              active=${!off} disabled=${off} steps=${false} />
             ${bannedN > 0 ? html`<span class="brief-bond__ban num"><${Icon} name="user" />${bannedN}</span>` : null}
           </div>
         <//>`;
@@ -132,7 +134,7 @@ export function BannedOperators({ model }) {
   const { banned } = model;
   return html`<div class="brief-banned">
     <h3 class="brief-h"><span>本局禁用干员</span><${MicroLabel}>BANNED OPERATORS</${MicroLabel}><b class="num brief-banned__n">${banned.length}</b></h3>
-    ${banned.length ? html`${(model.bannedGroups?.length ? model.bannedGroups : [{bondId:'other',name:'기타',ids:banned}]).map(g=>html`<section class="brief-banned__group" key=${g.bondId}><h4>${g.bondId !== 'other' ? html`<${BondDisc} name=${g.name} icon=${bondIconUrl(data.get('assets'), g.bondId)} showName=${false} size="sm" />` : null}<span>${g.name}</span></h4><div class="brief-banned__grid">${g.ids.map(id=>html`<${UnitThumb} key=${id} kind="chess" id=${id} size="sm" dim=${false} />`)}</div></section>`)}` : html`<p class="t-dim">本局没有禁用干员</p>`}
+    ${banned.length ? html`${(model.bannedGroups?.length ? model.bannedGroups : [{bondId:'other',name:'기타',ids:banned}]).map(g=>html`<section class="brief-banned__group" key=${g.bondId}><h4>${g.bondId !== 'other' ? html`<${BondDisc} name=${g.name} icon=${bondIconUrl(data.get('assets'), g.bondId)} showName=${false} size="sm" />` : null}<span>${g.name}</span></h4><div class="brief-banned__grid">${g.ids.map(id=>html`<${UnitThumb} key=${id} kind="chess" id=${id} size="sm" dim=${false} showTier=${false} tierFrame=${false} />`)}</div></section>`)}` : html`<p class="t-dim">本局没有禁用干员</p>`}
   </div>`;
 }
 

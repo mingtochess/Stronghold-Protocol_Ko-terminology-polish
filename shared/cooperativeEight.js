@@ -33,3 +33,20 @@ export function eightUniteRoutes(routes){
   return {...route,start:shift(start),end,checkpoints:[...points.map(shift),shift(end),start,...points]};
  });
 }
+
+/**
+ * Another season's data (규정) in an 8-seat co-op: config.coop8 (the 맹약 8인 rules: 4 helpers on the joined field,
+ * 9 reward cards, no random bans, cheaper communication items), the boss pool counting up to 8 alive, and the joined
+ * stage of every battlefield. The 맹약 season builds the same in shared/customExtensions.js.
+ */
+const coopEightCache = new WeakMap();
+export function withCoopEight(data) {
+  if (!data?.config) return data;
+  if (coopEightCache.has(data)) return coopEightCache.get(data);
+  const cfg = data.config, stages = data.stages || {};
+  const joined = Object.fromEntries(Object.values(stages).filter((s) => s && !s.coopEightStage).map((s) => { const four = eightUniteStage(s); return [four.id, four]; }));
+  const out = { ...data, stages: { ...stages, ...joined }, config: { ...cfg, coop8: true,
+    unite: { ...(cfg.unite || {}), maxHelpers: 4 }, bossHpScale: { ...(cfg.bossHpScale || {}), aliveFull: 8 } } };
+  coopEightCache.set(data, out);
+  return out;
+}

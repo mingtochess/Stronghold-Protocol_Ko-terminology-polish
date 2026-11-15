@@ -1,0 +1,111 @@
+{
+ "description": "규정(act3autochess) 보스·기믹 소환 적 Spine 7종(aclts·acltm·acpara·acrefd·acblk·achest·acrefm): 공개 미러 isHarryh/Ark-Models@b799ffe8ee30bbb1b04f3c551234edfab8d5549a 원본. assets.json spineLocal(공식 클라이언트 추출 메타데이터)과 애니메이션·타격 시점·이벤트·텍스처 일치 확인",
+ "source": "https://github.com/isHarryh/Ark-Models/tree/b799ffe8ee30bbb1b04f3c551234edfab8d5549a/models_enemies",
+ "files": [
+  {
+   "path": "/assets/local/spine/enemy/enemy_9025_aclts/enemy_9025_aclts.atlas",
+   "bytes": 819,
+   "sha256": "b0008ac44752b8b67bf19f8961854eb2c547535a3506e8e4d37e1c965ad6e90b"
+  },
+  {
+   "path": "/assets/local/spine/enemy/enemy_9025_aclts/enemy_9025_aclts.png",
+   "bytes": 27527,
+   "sha256": "677081084d8e1e17dfbe2e40009f793603e29194db137c64c61adfc1854ac3f1"
+  },
+  {
+   "path": "/assets/local/spine/enemy/enemy_9025_aclts/enemy_9025_aclts.skel",
+   "bytes": 17297,
+   "sha256": "d7efbdfd8c4152390667a310dd982d551214c51c7d4fff5e7cd2184749c82808"
+  },
+  {
+   "path": "/assets/local/spine/enemy/enemy_9026_acltm/enemy_9026_acltm.atlas",
+   "bytes": 1124,
+   "sha256": "1050601495dc55d05ac92242846575671f7a214de9467eca4091d6cbca202573"
+  },
+  {
+   "path": "/assets/local/spine/enemy/enemy_9026_acltm/enemy_9026_acltm.png",
+   "bytes": 68949,
+   "sha256": "061011b3055a763ea52f6a3fdd210152f6d8fe3b2e9509355d7dd6879b7ca8b7"
+  },
+  {
+   "path": "/assets/local/spine/enemy/enemy_9026_acltm/enemy_9026_acltm.skel",
+   "bytes": 30694,
+   "sha256": "4e3a49aa9a3ad0f71ee5fb2f7ac79c85a0f41f585d64faad2392c31c55173c5f"
+  },
+  {
+   "path": "/assets/local/spine/enemy/enemy_9030_acpara/enemy_9030_acpara.atlas",
+   "bytes": 3580,
+   "sha256": "609aa073005c516984690b70baf7e9ca7cdcebbf545f8b2eb030f1dc46e01554"
+  },
+  {
+   "path": "/assets/local/spine/enemy/enemy_9030_acpara/enemy_9030_acpara.png",
+   "bytes": 106691,
+   "sha256": "13be84d315becd53eeb5ed8b450ec9b9db46b161d5e823186e9106b32f7df74c"
+  },
+  {
+   "path": "/assets/local/spine/enemy/enemy_9030_acpara/enemy_9030_acpara.skel",
+   "bytes": 77433,
+   "sha256": "38cdc63df116eae3559827a152e49bcb0ae7d3ed050d9feaad83772b421abd09"
+  },
+  {
+   "path": "/assets/local/spine/enemy/enemy_9031_acrefd/enemy_9031_acrefd.atlas",
+   "bytes": 1272,
+   "sha256": "84f52e41c4aaca0d3e9e6c07a7ebcc5dab0bf39506ab563ae17cfffda73b788c"
+  },
+  {
+   "path": "/assets/local/spine/enemy/enemy_9031_acrefd/enemy_9031_acrefd.png",
+   "bytes": 41549,
+   "sha256": "a9a72df3660e3ad74066fd2396715e8930cdfb54d7b8e2ce73a8a11bf38907cf"
+  },
+  {
+   "path": "/assets/local/spine/enemy/enemy_9031_acrefd/enemy_9031_acrefd.skel",
+   "bytes": 20271,
+   "sha256": "c4251939619d8995fe8e37164efa52e63f78db0ba2a4cc54fdef339013354171"
+  },
+  {
+   "path": "/assets/local/spine/enemy/enemy_9034_acblk/enemy_9034_acblk.atlas",
+   "bytes": 2378,
+   "sha256": "1a35b2eac3fbbf9d1839a3d473f251d7b32026e1f49a8e13b4e6cb9ac7bd6b89"
+  },
+  {
+   "path": "/assets/local/spine/enemy/enemy_9034_acblk/enemy_9034_acblk.png",
+   "bytes": 93942,
+   "sha256": "23197ad2055c50dc2ab4ca775b1f968a2849ab4fa4e77776ccb509ab87ebb5ec"
+  },
+  {
+   "path": "/assets/local/spine/enemy/enemy_9034_acblk/enemy_9034_acblk.skel",
+   "bytes": 93466,
+   "sha256": "9f3312481367ff1f633a3723da41218206b654d2b7128b9f0751f99741459812"
+  },
+  {
+   "path": "/assets/local/spine/enemy/enemy_9038_achest/enemy_9038_achest.atlas",
+   "bytes": 1229,
+   "sha256": "03452b72e10b7f436ce41b4c2a3967d3c172397097f57fc5600bdc76133d0d43"
+  },
+  {
+   "path": "/assets/local/spine/enemy/enemy_9038_achest/enemy_9038_achest.png",
+   "bytes": 43865,
+   "sha256": "0dc76eef2a4607a1ba5fdcc88a1fa53c46a8b3294b502d0f07928c2cbd456fe8"
+  },
+  {
+   "path": "/assets/local/spine/enemy/enemy_9038_achest/enemy_9038_achest.skel",
+   "bytes": 4986,
+   "sha256": "a1318acfba0dc25662099a615e8c6a9f1ef2fa9995a34a9ea305eea551430de9"
+  },
+  {
+   "path": "/assets/local/spine/enemy/enemy_9039_acrefm/enemy_9039_acrefm.atlas",
+   "bytes": 1409,
+   "sha256": "8c639a65c01ddc22840c7430e68de9e0e8ca02b91f150f4f26d1e056ed2d7f04"
+  },
+  {
+   "path": "/assets/local/spine/enemy/enemy_9039_acrefm/enemy_9039_acrefm.png",
+   "bytes": 60714,
+   "sha256": "4acf697c9636c1f6289ece267bc3d5cc86e773e9d5e27e8fc496eea3f61dfba6"
+  },
+  {
+   "path": "/assets/local/spine/enemy/enemy_9039_acrefm/enemy_9039_acrefm.skel",
+   "bytes": 22232,
+   "sha256": "b511d0d042564a71f302f0f90de5783d1f4cf58df87111f534aeb2a02df1f2d0"
+  }
+ ]
+}

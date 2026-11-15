@@ -1,4 +1,5 @@
 import {attachAttackTimings} from '../../../shared/attackTiming.js';
+import { versionById } from '../../../shared/versions.js';
 // Browser/Worker engine loader. Workers receive data and never fetch it (DESIGN §32.11).
 export const SIM_DATA_FILES = Object.freeze(['chess', 'enemies', 'tokens', 'stages', 'waves', 'bonds', 'items', 'garrisons', 'bands', 'effects', 'assets', 'backups']);
 
@@ -22,7 +23,16 @@ function deepFreeze(root) {
  */
 let loadedScripts = false, loadedTraits = false, traitInstaller = null;
 export async function loadBrowserSim({ base = '/sim/', dataBase = '/data/', fetchFn = (...a) => globalThis.fetch(...a), data = null, cs = null, bounds = null,
-  scripts = [], hashInput = null, nativeVerified = false, deferScripts = false, traitRuntimeVerified = null, reuse = null, reuseOwner = null } = {}) {
+  scripts = [], hashInput = null, nativeVerified = false, deferScripts = false, traitRuntimeVerified = null, reuse = null, reuseOwner = null, version = null } = {}) {
+  // a 규정(规程) season's battles run upstream's simulation (server/sim-upstream/, served at /sim-upstream/), as on the server
+  // (also when only the data says so: a 규정 set's config, or the page's own data when it already holds a 규정 set — a
+  // 규정 battle on the 맹약 engine finds no 규정 kit and plays every such operator as a bare data skill)
+  const cfgOf = (c) => (c && typeof c === 'object' ? c : null);
+  let reusedConfig = null;
+  try { reusedConfig = !data && typeof reuse === 'function' ? cfgOf(reuse('config')) : null; } catch { reusedConfig = null; }
+  const family = versionById(version)?.family ?? cfgOf(data?.config)?.version?.family ?? reusedConfig?.version?.family ?? null;
+  if (base === '/sim/' && family === 'regulation') base = '/sim-upstream/';
+  if (!version && family === 'regulation') version = cfgOf(data?.config)?.version?.id ?? reusedConfig?.version?.id ?? null;
   const original = typeof reuse === 'function' && typeof reuseOwner === 'function' ? () => reuseOwner() === null : null;
   const release=globalThis.__SP_RELEASE || new URL(import.meta.url).searchParams.get('release');
   const pin = value => { if(!release || /^file:/.test(String(value)))return value;const u=new URL(value,globalThis.location.href);if(u.origin===globalThis.location.origin)u.searchParams.set('release',release);return u.href;};
@@ -48,6 +58,12 @@ export async function loadBrowserSim({ base = '/sim/', dataBase = '/data/', fetc
   if (missing.length) throw new Error(`simulation data unavailable: ${missing.join(', ')}`);
   const raw = {};
   SIM_DATA_FILES.forEach((n, i) => { raw[n] = files[i]; });
+  // the season tag (config.version): createBattleFromSpec refuses a spec whose `version` is not the loaded data's, so a
+  // 규정 content set without it failed every battle start and the server took each field over ("plugin not responding")
+  // (the content set's whole config when it carries one — the sim reads its season / modes / rules as the server does)
+  if (data?.config && typeof data.config === 'object') raw.config = structuredClone(data.config);
+  else if (reusedConfig?.version?.family === 'regulation') raw.config = structuredClone(reusedConfig);
+  else if (version && versionById(version)) raw.config = { version: { id: version, family: versionById(version).family } };
   // A prior simulation may have frozen these records. Clone only their outer timing targets;
   // preserve the shared authored trees and the local authoritative animation timing extension.
   const timingCopy = records => records && Object.isFrozen(records)
@@ -57,6 +73,7 @@ export async function loadBrowserSim({ base = '/sim/', dataBase = '/data/', fetc
   attachAttackTimings(raw,raw.assets);
   if(raw.backups?.units)attachAttackTimings({chess:raw.backups.units},raw.assets);
   deepFreeze(raw);
+  globalThis.__SP_SIM_BASE = base;   // the /data.js stand-in reads this engine's data (server/http/static.js DATA_SHIM_JS)
   simdata.setSimData(raw);
   if (typeof support.setGameData === 'function') support.setGameData(null); // re-read through the injected data
   await installSimBounds(base, raw, data ? bounds : undefined);

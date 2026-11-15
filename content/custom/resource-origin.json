@@ -1,9 +1,9 @@
 {
   "repository": "moring-m/Stronghold-Protocol_Ko_Arca_assets",
-  "commit": "9448a1576e07440f94e483f501d3eec478533c94",
+  "commit": "96f2e5ad5a6b8ce7db19aed6b08ace41e8b55b68",
   "baseUrls": [
-    "https://raw.githubusercontent.com/moring-m/Stronghold-Protocol_Ko_Arca_assets/9448a1576e07440f94e483f501d3eec478533c94/public",
-    "https://cdn.jsdelivr.net/gh/moring-m/Stronghold-Protocol_Ko_Arca_assets@9448a1576e07440f94e483f501d3eec478533c94/public"
+    "https://raw.githubusercontent.com/moring-m/Stronghold-Protocol_Ko_Arca_assets/96f2e5ad5a6b8ce7db19aed6b08ace41e8b55b68/public",
+    "https://cdn.jsdelivr.net/gh/moring-m/Stronghold-Protocol_Ko_Arca_assets@96f2e5ad5a6b8ce7db19aed6b08ace41e8b55b68/public"
   ],
   "fallbackToServer": false,
   "packs": [
@@ -12,6 +12,36 @@
       "repository": "moring-m/Stronghold-Protocol_Ko_Arca_assets",
       "commit": "ed607c846868f44b03eea3b1c14235cf4eb7c7cd",
       "manifest": "content/custom/northern/assets.json"
+    },
+    {
+      "name": "skins-20261115",
+      "repository": "moring-m/Stronghold-Protocol_Ko_Arca_assets",
+      "commit": "9a6fec0349b4a0c160c89c869a1a0092e028d94d",
+      "manifest": "content/custom/skins-20261115/assets.json"
+    },
+    {
+      "name": "served-assets",
+      "repository": "moring-m/Stronghold-Protocol_Ko_Arca_assets",
+      "commit": "cc3752961fee8fb6d60cfd5bdddb7f2f52a0342c",
+      "manifest": "content/custom/served-assets/assets.json"
+    },
+    {
+      "name": "regulation-enemies-20261115",
+      "repository": "moring-m/Stronghold-Protocol_Ko_Arca_assets",
+      "commit": "23205e4e1a2e6421cba1ddaf8967bac8ef6cfc35",
+      "manifest": "content/custom/regulation-enemies/assets.json"
+    },
+    {
+      "name": "regulation-fx-20261115",
+      "repository": "moring-m/Stronghold-Protocol_Ko_Arca_assets",
+      "commit": "b38ad9497c5e1c5f2a17c9cf119f445e6608b3d4",
+      "manifest": "content/custom/regulation-fx-20261115/assets.json"
+    },
+    {
+      "name": "regulation-enemies-20261115b",
+      "repository": "moring-m/Stronghold-Protocol_Ko_Arca_assets",
+      "commit": "befd8f4910c92e6a2fafba70b878968ab42f9fff",
+      "manifest": "content/custom/regulation-enemies-2/assets.json"
     }
   ]
 }

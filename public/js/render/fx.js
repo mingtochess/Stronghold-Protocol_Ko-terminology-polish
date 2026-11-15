@@ -174,7 +174,7 @@ export const FX_KINDS = Object.freeze({
   // blasts
   aoe: { a: 'blast', c: 0xffb35c }, explode: { a: 'blast', c: 0xff7a33 }, explosion: { a: 'blast', c: 0xff7a33 },
   // `pt`: always at the event's (x, y) (its `id` is the shooter); `heavy`: debris + scorch
-  bombard: { a: 'blast', c: 0xffa04a, r: 1.5, pt: true, heavy: true }, bombardAim: { a: 'none' }, bombardShell: { a: 'shell', c: 0xff5a3a, r: 1.5, pt: true },
+  bombard: { a: 'blast', c: 0xffa04a, r: 1.5, pt: true, heavy: true }, bombardAim: { a: 'none' }, bombardShell: { a: 'shell', c: 0xff5a3a, r: 1.5, pt: true }, howitzer: { a: 'howitzer', c: 0xff8a3d, pt: true },
   airstrike: { a: 'blast', c: 0xff8a3d, r: 1.5, heavy: true }, splash: { a: 'blast', c: 0xffc27a },
   scorchBurst: { a: 'blast', c: 0xff6a2a }, champagneBomb: { a: 'blast', c: 0xffd27a }, shockBlast: { a: 'blast', c: 0x9fd4ff, smoke: 0x1c2630 },
   frostNova: { a: 'blast', c: 0x9fe6ff, smoke: 0x1c2630 }, sunBurst: { a: 'blast', c: 0xffe28a }, meltdown: { a: 'blast', c: 0xff5a2a, r: 1.5, heavy: true },
@@ -1868,6 +1868,17 @@ export class FxSystem {
         if (r >= 12) { this.flashScreen(col, 0.5); break; }
         if (kind === 'bombard') { this._touchLocks(ex.id ?? ex.src ?? null); this._landed(ex.id ?? ex.src ?? null, at.x, at.y, r); }
         this.explosion(at.x, at.y, at.z, r, col, { smoke: spec.smoke, heavy: !!spec.heavy, tiles: ex.tiles ? tilesAround(at.x, at.y, r, ex.tiles) : null });
+        break;
+      }
+      case 'howitzer': {
+        // 규정 염괴포: 로사(char_197_poca)'s simple basic attack — the siegesniper shell of an 'arrow' (projectileStyle.js) —
+        // from its barrel to the landing tile
+        const src = this._viewOf(ex.id ?? ex.src);
+        if (src) {
+          const shooter = Object.create(src);
+          shooter.info = { ...src.info, charId: 'char_197_poca', subProf: 'siegesniper' }; shooter.isEnemy = false;
+          this._attack(shooter, { id: -1, x: at.x, y: at.y, info: {}, alive: true, isEnemy: false, _headTiles: 0.01 }, 'arrow');
+        }
         break;
       }
       case 'shell': {

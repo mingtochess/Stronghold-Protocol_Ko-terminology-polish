@@ -1,5 +1,6 @@
 import {RichText} from '../ui/gameComponents.js';
 import {lang}from'../i18n/i18n.js';
+import { betaNoticePending, clearBetaNotice } from '../ui/betaNotice.js';
 import {PublicRoomsScreen} from './publicRooms.js';
 import { confirmDialog } from "../ui/components.js";
 import { openStats } from '../ui/statsEntry.js';
@@ -33,8 +34,10 @@ import { net, identity } from '../net.js';
 import { store, useStore, shallowEqual, loadPref, savePref } from '../store.js';
 import { getConfig, getMode, getStage, useData } from '../data.js';
 import { loadCustomExtensionPrefs } from '../ui/customExtensionPrefs.js';
+import { lobbyVersion, setLobbyVersion, DEFAULT_VERSION, ladderModes } from '../versions.js';
 
 /** Official mode texts (activity_table act2autochess.modeDataDict), fallback when config.json is absent. */
+
 export const MODE_TEXT = {
   single: {
     FUNNY: { code: 'AC-1', desc: '时长较短的模拟训练', effects: ['可以快速完成作战', '常规奖励'] },
@@ -249,11 +252,14 @@ function TipsPanel() {
   </div>`;
 }
 
-function ModeCard({ card, selected, onSelect, coopSize=4, onCoopSize, publicOn, onPublicChange, full=false }) {
+function ModeCard({ card, selected, onSelect, coopSize=4, onCoopSize, publicOn, onPublicChange, full=false, disabled=false, no8=false }) {
+  if(no8&&coopSize===8)coopSize=4;
+  // 규정 (beta): modes it does not support stay visible but cannot be picked
+  if(disabled){onSelect=()=>{};selected=false;}
   if(card.id==='coop'&&coopSize===8)card={...card,desc:'최대 8명의 박사가 오퍼레이터 풀을 공유하며 함께 전투합니다.',points:['박사 1–8명 · 빈자리는 AI 팀원으로','협력방어 최대 4명']};
   if(card.id==='sync'&&coopSize===8)card={...card,points:['박사 1–8명 · HP 공유','연합 방어 없음 · HP 감소 상한 × 인원']};
   const sized=card.id==='coop'||card.id==='sync';
-  return html`<div class="mode-card-tip"><div role="button" tabindex="0" class=${`mode-card brackets${['laboratory','practice'].includes(card.id)&&!full?' mode-card--lab':''}${selected ? ' is-selected' : ''}`} onClick=${() => onSelect(sized&&coopSize===8?card.id+'8':card.id)} onKeyDown=${e=>{if(e.target===e.currentTarget&&['Enter',' '].includes(e.key)){e.preventDefault();onSelect(sized&&coopSize===8?card.id+'8':card.id);}}}
+  return html`<div class="mode-card-tip"><div role="button" tabindex="0" class=${`mode-card brackets${['laboratory','practice'].includes(card.id)&&!full?' mode-card--lab':''}${selected ? ' is-selected' : ''}${disabled ? ' is-disabled' : ''}`} aria-disabled=${disabled ? 'true' : undefined} title=${disabled ? t('규정 시즌(베타)에서는 아직 사용할 수 없습니다') : undefined} onClick=${() => onSelect(sized&&coopSize===8?card.id+'8':card.id)} onKeyDown=${e=>{if(e.target===e.currentTarget&&['Enter',' '].includes(e.key)){e.preventDefault();onSelect(sized&&coopSize===8?card.id+'8':card.id);}}}
       aria-pressed=${selected ? 'true' : 'false'}>
     <span class="mode-card__bg" aria-hidden="true"></span>
     <span class="mode-card__icon"><${Icon} name=${card.icon} /></span>
@@ -265,7 +271,7 @@ function ModeCard({ card, selected, onSelect, coopSize=4, onCoopSize, publicOn, 
     </span>
     <span class="mode-card__check" aria-hidden="true"><${Icon} name="check" />已选定</span>
     ${sized?html`<div class="mode-card__controls">
-      <span class="mode-card__sizes" role="group" aria-label="협동 인원">${[4,8].map(n=>html`<button type="button" aria-pressed=${coopSize===n} onClick=${e=>{e.stopPropagation();onCoopSize(n);}}>${t('{0}인',[n])}</button>`)}</span>
+      <span class="mode-card__sizes" role="group" aria-label="협동 인원">${[4,8].map(n=>html`<button type="button" aria-pressed=${coopSize===n} disabled=${no8&&n===8} title=${no8&&n===8?t('규정 시즌(베타)에서는 아직 사용할 수 없습니다'):undefined} onClick=${e=>{e.stopPropagation();if(no8&&n===8)return;onCoopSize(n);}}>${t('{0}인',[n])}</button>`)}</span>
       <label class="mode-card__spectate mode-card__public create-box__check" onClick=${e=>e.stopPropagation()} onKeyDown=${e=>e.stopPropagation()}>
         <input type="checkbox" role="switch" class="ui-switch" aria-label="공개" checked=${publicOn} onChange=${e=>onPublicChange(!!e.currentTarget.checked)}/><${Icon} name="users"/><span>공개</span>
       </label>
@@ -328,6 +334,28 @@ export function LobbyScreen() {
 
   const pickMode = (m) => { setRoomMode(m); savePref('lobby.mode', m); };
   const pickDifficulty = (d) => { setDifficulty(d); savePref('lobby.difficulty', d); };
+  // 시즌 (welcome.versions): the default 맹약 season, or another one; only solo and 4-seat co-op rooms play another season
+  const versions = useStore((s) => s.versions);
+  const season = useStore((s) => lobbyVersion(s));
+  // (실험실·연습실 run the season locally: laboratory.js picks its data, match and engine)
+  const seasonModes = ['solo', 'coop', 'laboratory', 'practice'];
+  // 8인 협동 is a 규정 co-op room too (server/lobby.js create)
+  const seasonBase = (mode) => (mode === 'coop8' ? 'coop' : mode);
+  const seasonFor = (mode) => (seasonModes.includes(seasonBase(mode)) ? season : DEFAULT_VERSION);
+  // a 규정 season (chosen on the title screen) plays solo and 4-seat co-op rooms only
+  const regSeason = season !== DEFAULT_VERSION;
+  // 규정 is a beta: say so once per page session when the lobby opens on it
+  // 규정 베타 안내: 닉네임 입력 화면에서 접속한 직후의 로비에서만 (ui/betaNotice.js)
+  // 플래그는 규정 로비가 처음 열릴 때 바로 소진한다: 시뮬레이션 뒤 대기실로 돌아오는 로비는 다시 띄우지 않는다.
+  const [betaOpen, setBetaOpen] = useState(() => { const on = regSeason && betaNoticePending(); if (on) clearBetaNotice(); return on; });
+  useEffect(() => { if (regSeason && betaNoticePending()) { clearBetaNotice(); setBetaOpen(true); } }, [regSeason]);
+  const closeBeta = () => { setBetaOpen(false); clearBetaNotice(); };
+  useEffect(() => { if (regSeason && !seasonModes.includes(seasonBase(roomMode))) pickMode('coop'); }, [regSeason, roomMode]);
+  // a laddered season picks its difficulty by 규정 등급 only
+  const ladder = regSeason && ['solo','coop'].includes(seasonBase(roomMode)) ? ladderModes(getConfig(), seasonBase(roomMode)) : null;
+  const [ladderPick, setLadderPick] = useState(() => loadPref('lobby.ladder', null));
+  const ladderMode = ladder ? (ladder.find((m) => m.id === ladderPick) || ladder[0]) : null;
+  const pickLadder = (id) => { setLadderPick(id); savePref('lobby.ladder', id); };
 
   const run = async (kind, fn) => {
     if (inFlight.current) return;
@@ -342,7 +370,9 @@ export function LobbyScreen() {
   const create = () => ['laboratory','practice'].includes(roomMode) ? store.patch('ui', { laboratorySetup: { difficulty,practice:roomMode==='practice' } }) : run('create',()=>net.request('room.create',{
     // 동기화 시뮬레이션: an alliance room (4 / 8 seats) with the sync rules
     mode:syncMode(roomMode)?roomMode.replace('sync','coop'):roomMode,difficulty,gameplayMode:'custom',titleLocale:lang,
-    customExtensions:loadCustomExtensionPrefs(),
+    ...(seasonFor(roomMode)!==DEFAULT_VERSION?{version:seasonFor(roomMode)}:{}),
+    ...(ladderMode?{modeId:ladderMode.id,difficulty:DIFFICULTIES.includes(ladderMode.difficulty)?ladderMode.difficulty:difficulty}:{}),
+    customExtensions:loadCustomExtensionPrefs(seasonFor(roomMode)),
     ...(syncMode(roomMode)?{sync:true}:{}),
     ...(['coop','coop8','sync','sync8'].includes(roomMode)?{isPublic:publicOn,spectators:MAX_SPECTATOR_SEATS}:{})
   }));
@@ -409,7 +439,12 @@ export function LobbyScreen() {
       </div>
 `;
   if(publicOpen)return html`<${PublicRoomsScreen} onCounts=${setPublicRoomCount} headerLeft=${headerLeft(()=>setPublicOpen(false))} headerRight=${headerRight} onJoin=${join} onSpectate=${spectate}/>${sweepOpen?html`<${SweepReport} onClose=${()=>setSweepOpen(false)}/>`:null}`;
-  return html`<div class="screen lobby-screen">
+  const betaNotice = html`<${Modal} open=${betaOpen} onClose=${closeBeta} title=${t('규정 시즌 베타 안내')} micro="BETA" class="beta-dlg"
+    actions=${html`<${Button} variant="primary" data-autofocus onClick=${closeBeta}>${t('확인')}<//>`}>
+    <p>${t('규정 시즌은 현재 베타 버전입니다. 일부 기능·리소스·번역이 완성되지 않았고, 동작이 바뀌거나 오류가 있을 수 있습니다.')}</p>
+    <p class="t-dim">${t('동기화 시뮬레이션은 아직 사용할 수 없습니다. 문제를 발견하면 알려 주세요.')}</p>
+  <//>`;
+  return html`<div class="screen lobby-screen">${betaNotice}
     <header class="topbar app-topbar">
       ${headerLeft(backToTitle)}
       <div class="topbar__center">
@@ -424,7 +459,7 @@ export function LobbyScreen() {
         <div class="section-label lg-label lg-label--modes"><span class="section-label__idx num">01</span>模拟方式<${MicroLabel}>MODE<//></div>
         <div class="lg-modes">
         <div class="mode-cards mode-cards--main">
-          ${MODE_CARDS.filter((c) => MAIN_MODES.includes(c.id)).map((c) => html`<${ModeCard} key=${c.id} card=${c} selected=${roomMode === c.id || roomMode===c.id+'8'} onSelect=${pickMode} coopSize=${coopSize} onCoopSize=${n=>{setCoopSize(n);pickMode((c.id==='sync'?'sync':'coop')+(n===8?'8':''));}} publicOn=${publicOn} onPublicChange=${on=>{setPublicOn(on);savePref('lobby.publicOn',on);}} />`)}
+          ${MODE_CARDS.filter((c) => MAIN_MODES.includes(c.id)).map((c) => html`<${ModeCard} key=${c.id} card=${c} disabled=${regSeason && !seasonModes.includes(c.id)} selected=${roomMode === c.id || roomMode===c.id+'8'} onSelect=${pickMode} coopSize=${coopSize} onCoopSize=${n=>{setCoopSize(n);pickMode((c.id==='sync'?'sync':'coop')+(n===8?'8':''));}} publicOn=${publicOn} onPublicChange=${on=>{setPublicOn(on);savePref('lobby.publicOn',on);}} />`)}
         </div>
 
         </div>
@@ -453,12 +488,15 @@ export function LobbyScreen() {
         <div class="lobby-quick lg-quick">
           <button type="button" class="public-rooms-entry mode-card brackets" onClick=${()=>setPublicOpen(true)}><span class="mode-card__bg" aria-hidden="true"></span><span class="mode-card__icon"><${Icon} name="users"/></span><span class="mode-card__text"><${MicroLabel}>PUBLIC ROOMS<//><span class="mode-card__name">탐색</span><span class="mode-card__desc">공개된 연합 방에 참가하거나 관전합니다.</span></span><span class="public-rooms-entry__total"><span class="public-rooms-entry__count" aria-label="참가 가능한 방 수">${conn.status==='online'&&publicRoomCount!==null?publicRoomCount.joinable:'—'}</span><span class="public-rooms-entry__all" aria-label="전체 방 수">/${conn.status==='online'&&publicRoomCount!==null?publicRoomCount.total:'—'}</span></span></button>
           <div class="lobby-quick__labs">
-          ${MODE_CARDS.filter((c) => !MAIN_MODES.includes(c.id)).map((c) => html`<${ModeCard} key=${c.id} full=${true} card=${c} selected=${roomMode === c.id || roomMode===c.id+'8'} onSelect=${pickMode} coopSize=${coopSize} onCoopSize=${n=>{setCoopSize(n);pickMode((c.id==='sync'?'sync':'coop')+(n===8?'8':''));}} publicOn=${publicOn} onPublicChange=${on=>{setPublicOn(on);savePref('lobby.publicOn',on);}} />`)}
+          ${MODE_CARDS.filter((c) => !MAIN_MODES.includes(c.id)).map((c) => html`<${ModeCard} key=${c.id} full=${true} card=${c} disabled=${regSeason && !seasonModes.includes(c.id)} selected=${roomMode === c.id || roomMode===c.id+'8'} onSelect=${pickMode} coopSize=${coopSize} onCoopSize=${n=>{setCoopSize(n);pickMode((c.id==='sync'?'sync':'coop')+(n===8?'8':''));}} publicOn=${publicOn} onPublicChange=${on=>{setPublicOn(on);savePref('lobby.publicOn',on);}} />`)}
           </div>
         </div>
         <div class="lg-diff">
-        <div class="diff-tabs" role="radiogroup" aria-label="난이도">
-          ${DIFFICULTIES.map((d) => html`<button key=${d} type="button" role="radio" aria-checked=${difficulty === d} class=${`diff-tab${difficulty === d ? ' is-selected' : ''}`} style=${`--d-color:${DIFFICULTY_COLORS[d]}`} onClick=${() => pickDifficulty(d)}><${DifficultyIcon} difficulty=${d} class="diff-tab__glyph" /><span>${t(DIFFICULTY_NAMES[d]||'').replace(/\s*시뮬레이션$/,'')}</span></button>`)}
+        <div class=${`diff-tabs${ladder ? ' diff-tabs--ladder' : ''}`} role="radiogroup" aria-label="난이도">
+          ${ladder ? (() => { const i = Math.max(0, ladder.indexOf(ladderMode)); const step = (d) => pickLadder(ladder[Math.min(ladder.length - 1, Math.max(0, i + d))].id); const m = ladderMode;
+            return html`<button type="button" class="diff-tab diff-step" aria-label=${t('이전 등급')} disabled=${i <= 0} onClick=${() => step(-1)}>‹</button>
+              <div class="diff-tab is-selected diff-step__cur" role="status" style=${`--d-color:${DIFFICULTY_COLORS[m.difficulty] || DIFFICULTY_COLORS.NORMAL}`}>${DIFFICULTIES.includes(m.difficulty) ? html`<${DifficultyIcon} difficulty=${m.difficulty} class="diff-tab__glyph" />` : null}<span>${t(m.name || m.id)}</span></div>
+              <button type="button" class="diff-tab diff-step" aria-label=${t('다음 등급')} disabled=${i >= ladder.length - 1} onClick=${() => step(1)}>›</button>`; })() : DIFFICULTIES.map((d) => html`<button key=${d} type="button" role="radio" aria-checked=${difficulty === d} class=${`diff-tab${difficulty === d ? ' is-selected' : ''}`} style=${`--d-color:${DIFFICULTY_COLORS[d]}`} onClick=${() => pickDifficulty(d)}><${DifficultyIcon} difficulty=${d} class="diff-tab__glyph" /><span>${t(DIFFICULTY_NAMES[d]||'').replace(/\s*시뮬레이션$/,'')}</span></button>`)}
         </div>
 
         <div class="create-box">
