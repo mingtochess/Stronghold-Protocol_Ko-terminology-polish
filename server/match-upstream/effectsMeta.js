@@ -51,7 +51,7 @@ import { msg, dn } from '../../shared/i18n.js';
 import { onGiftTicker } from './botEmotes.js';
 import { previewContext } from './preview.js';
 import { deriveSeed } from '../sim-upstream/rng.js';
-import { commandMetaHandler, openSkillChangeDraft } from './bandCommands.js';
+import { commandMetaHandler, commonCommandHandler, openSkillChangeDraft } from './bandCommands.js';
 
 export const HOOKS = Object.freeze([
   'onRoundStart', 'onIncome', 'onPrepStart', 'onPrepEnd', 'onGain', 'onSold', 'onRefresh', 'onPrice', 'onBuy',
@@ -259,7 +259,8 @@ export class EffectDispatcher {
       // 2b. 커스텀 공통 적용 전략 (config.customRules.commonBands): every player also runs these strategies' effects
       for (const bandId of this.m.gd.config.customRules?.commonBands || []) {
         const key = `band:${bandId}`;
-        const h = reg.get(key) ?? reg.get(`band:${this.m.gd.band(bandId)?.effectRef}`);
+        // a 规程 command strategy runs its passive command row (commonCommandHandler); others their strategy effects
+        const h = commonCommandHandler(ps, bandId) ?? reg.get(key) ?? reg.get(`band:${this.m.gd.band(bandId)?.effectRef}`);
         if (h) this._call(ps, key, h, hook, { kind: 'band', key, bandId, band: this.m.gd.band(bandId), common: true }, ev);
       }
       // 3. bonds
@@ -506,6 +507,8 @@ export function makeCtx(m, ps, source, hook, ev = null, preview = null) {
   const rng = preview?.rng ?? m.rngMeta;
   // The roll helpers only read pools/data; shadow their RNG receiver without replacing the live match stream.
   const rolls = preview ? Object.assign(Object.create(m), { rngMeta: rng }) : m;
+  // a common strategy (customRules.commonBands) keeps its own counters, apart from the player's own copy of it
+  const counterKey = (k) => (source?.kind === 'band' && source.common ? `common:${source.bandId}:${k}` : k);
   const view = (p) => (p ? ps.pieceView(p) : null);
   // the piece whose per-round counters a handler reads: an owned one, or the handler's own source copy that a merge
   // consumed during this refresh dispatch — it still witnessed the refresh (EffectDispatcher._garrisons, GitHub #627)
@@ -586,9 +589,9 @@ export function makeCtx(m, ps, source, hook, ev = null, preview = null) {
     shopSlots: () => ps.shop.slots.map((s) => (s ? { kind: s.kind, id: s.id, basePrice: s.basePrice, sold: !!s.sold, frozen: !!s.frozen } : null)),
 
     // ---- counters (player scope, persistent)
-    counter: (k) => (Number.isFinite(ps.counters[k]) ? ps.counters[k] : 0),
-    setCounter: (k, v) => { if (typeof k === 'string' && Number.isFinite(v)) ps.counters[k] = v; return ps.counters[k] ?? 0; },
-    incCounter: (k, n = 1) => { if (typeof k !== 'string' || !Number.isFinite(n)) return 0; ps.counters[k] = (Number.isFinite(ps.counters[k]) ? ps.counters[k] : 0) + n; return ps.counters[k]; },
+    counter: (k) => (Number.isFinite(ps.counters[counterKey(k)]) ? ps.counters[counterKey(k)] : 0),
+    setCounter: (k, v) => { if (typeof k === 'string' && Number.isFinite(v)) ps.counters[counterKey(k)] = v; return ps.counters[counterKey(k)] ?? 0; },
+    incCounter: (k, n = 1) => { if (typeof k !== 'string' || !Number.isFinite(n)) return 0; const key = counterKey(k); ps.counters[key] = (Number.isFinite(ps.counters[key]) ? ps.counters[key] : 0) + n; return ps.counters[key]; },
     /** Per-piece counter of the current round (0 in a new round / for a new piece, an elite merged this round included —
      *  PlayerState.pieceRoundCount). */
     pieceCounter: (uid, k) => { const p = counted(uid); return p ? ps.pieceRoundCount(p, k) : 0; },

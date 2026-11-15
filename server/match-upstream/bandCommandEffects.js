@@ -9,6 +9,8 @@ const buffs = (s, key) => s.buffs.filter(b => b.key === key).map(paramsOf);
 const stateOf = (ps, s) => ps.command.records[s.effectId];
 const roundCount = (ps, key) => ps.round[`command:${key}`] || 0;
 const bump = (ps, key) => (ps.round[`command:${key}`] = roundCount(ps, key) + 1);
+// a common strategy's passive row (customRules.commonBands, commonCommandHandler) counts apart from the player's own command
+const ck = (common, key) => (common ? `common:${common}:${key}` : key);
 const replace = (ps, ctx, slot, id) => ctx.setShopSlot(slot, { kind: 'chess', id, frozen: ps.shop.frozen });
 
 /** Non-mutating plan creation. Only seeded rolls occur here; apply executes after the command's payment. */
@@ -137,23 +139,31 @@ export function commandPlan(ps, skill, target, ctx) {
   return null;
 }
 
+/**
+ * Passive parts of the live command row. `common` is the strategy id when the row is a common strategy's
+ * (customRules.commonBands): only the row's own buffs run then — the player-wide command state (marks, chests,
+ * discounts, cost, the opening strategy's draft) belongs to the player's own command.
+ */
 export const commandPassive = {
-  onBattleResult(ps, s, ctx, ev) {
+  onBattleResult(ps, s, ctx, ev, common = null) {
+    if (common) return;
     reconcileCommandChests(ps, ev.result);
     reconcileCommandChests(ps, ev.unite?.perPlayer?.[ps.playerId]);
   },
-  onPrepStart(ps, s, ctx) {
+  onPrepStart(ps, s, ctx, ev, common = null) {
     for (const p of buffs(s, 'prep_start_random_equip_in_round')) if (ctx.round === p.round) {
       // [ASSUMED] Normal equipment pool at exactly the current shop tier (official text).
       const id = ctx.rollItem({ tier: ps.shop.level });
       if (id) ctx.grantItem(id);
     }
     // The original strategy keeps opening its draft after a chosen command replaces the current row.
+    if (common) return;
     for (const b of ps.gd.band(ps.bandId).buffs || []) if (b.key === 'gain_band_skill_from_pool_in_prep') {
       openSkillChangeDraft(ps, paramsOf(b).choice_event, ctx);
     }
   },
-  onPrepEnd(ps, s, ctx) {
+  onPrepEnd(ps, s, ctx, ev, common = null) {
+    if (common) return;
     for (const p of buffs(s, 'skill_cost_round_grow_reset_on_use')) {
       const st = stateOf(ps, s); st.currentCost = Math.max(0, st.currentCost - p.delta);
     }
@@ -167,49 +177,50 @@ export const commandPassive = {
       m.prepApplied = true;
     }
   },
-  onGain(ps, s, ctx, ev) {
+  onGain(ps, s, ctx, ev, common = null) {
     if (ev.kind !== 'chess') return;
     for (const p of buffs(s, 'gain_bond_cnt_shop_up_discount')) {
       if (!matches(ps, ev.piece.id, p.bond)) continue;
       // [ASSUMED] The gain counter starts anew at each shop level; a gain includes rewards and grants.
-      const key = `command:discount:${ps.shop.level}`;
+      const key = ck(common, `command:discount:${ps.shop.level}`);
       ps.counters[key] = (ps.counters[key] || 0) + 1;
       if (ps.counters[key] === p.count) ps.shop.upgradePrice = Math.max(0, ps.shop.upgradePrice - p.value);
     }
   },
-  onPrice(ps, s, ctx, ev) {
-    if (ev.kind === 'item') {
+  onPrice(ps, s, ctx, ev, common = null) {
+    if (ev.kind === 'item' && !common) {
       const discount = (ps.commandDiscounts || []).filter(d => d.remaining > 0).reduce((sum, d) => sum + d.amount, 0);
       ctx.modifyPrice(-discount);
     }
   },
-  onBuy(ps, s, ctx, ev) {
+  onBuy(ps, s, ctx, ev, common = null) {
     if (ev.kind === 'item') {
+      if (common) return;
       for (const d of ps.commandDiscounts || []) if (d.remaining > 0) d.remaining--;
       return;
     }
-    for (const p of buffs(s, 'skill_cost_reduce_on_buy_bond')) if (matches(ps, ev.slot.id, p.bond)) {
+    if (!common) for (const p of buffs(s, 'skill_cost_reduce_on_buy_bond')) if (matches(ps, ev.slot.id, p.bond)) {
       const st = stateOf(ps, s); st.currentCost = Math.max(0, st.currentCost - p.count);
     }
     for (const p of buffs(s, 'buy_bond_char_cnt_gain_equip')) if (matches(ps, ev.slot.id, p.bond)) {
-      const key = `command:buy:${s.effectId}`;
+      const key = ck(common, `command:buy:${s.effectId}`);
       ps.counters[key] = (ps.counters[key] || 0) + 1;
       if (ps.counters[key] % p.count === 0) for (let i = 0; i < p.count2; i++) {
         const id = ctx.rollItem({ maxTier: ps.shop.level }); if (id) ctx.grantItem(id);
       }
     }
   },
-  onRefresh(ps, s, ctx) {
+  onRefresh(ps, s, ctx, ev, common = null) {
     for (const p of buffs(s, 'n_round_refresh_cnt_gain_coin')) {
       if (ps.m.round % p.round === 0 && ps.round.refreshes <= p.refresh_count) ctx.addFunds(p.coin, 'command');
     }
   },
-  onMerge(ps, s, ctx, ev) {
+  onMerge(ps, s, ctx, ev, common = null) {
     if (ev.kind === 'chess') for (const p of buffs(s, 'promote_char_extra_award')) {
-      if (bump(ps, 'promote') <= p.n) for (let i = 0; i < p.count; i++) ps.pushRewardOffer('command');
+      if (bump(ps, ck(common, 'promote')) <= p.n) for (let i = 0; i < p.count; i++) ps.pushRewardOffer('command');
     }
     if (ev.kind === 'item') for (const p of buffs(s, 'promote_equip_extra_award')) {
-      if (bump(ps, 'equip') > p.n) continue;
+      if (bump(ps, ck(common, 'equip')) > p.n) continue;
       const ids = [];
       // [ASSUMED] Normal equipment up to shop tier + 1; draw distinct entries for the free offer.
       for (let i = 0; i < p.count; i++) {
@@ -218,12 +229,12 @@ export const commandPassive = {
       for (let i = 0; i < p.select_count && ids.length; i++) ctx.offerItems(ids);
     }
   },
-  onSold(ps, s, ctx, ev) {
+  onSold(ps, s, ctx, ev, common = null) {
     for (const p of buffs(s, 'sell_char_swap_shop_char')) {
-      if (ps.gd.isGolden(ev.piece.id) || roundCount(ps, 'swap') > 0) continue;
+      if (ps.gd.isGolden(ev.piece.id) || roundCount(ps, ck(common, 'swap')) > 0) continue;
       const slots = ctx.rng.shuffle(slotsOf(ps)).slice(0, p.count);
       if (!slots.length) continue;
-      bump(ps, 'swap');
+      bump(ps, ck(common, 'swap'));
       for (const i of slots) {
         const id = ps.shop.slots[i].id;
         replace(ps, ctx, i, ev.piece.id);

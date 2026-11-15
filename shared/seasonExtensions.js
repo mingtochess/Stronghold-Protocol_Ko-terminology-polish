@@ -36,6 +36,14 @@ export function seasonExtensionCatalog(raw = {}) {
   const out = {};
   for (const [k, v] of Object.entries(full)) out[k] = SEASON_EXTENSION_CATEGORIES.includes(k) || BAN_KEYS.includes(k) ? v : [];
   out.rules = (full.rules || []).filter((r) => SEASON_RULES.includes(r.id));
+  // 공통 적용 전략: a 规程 strategy whose effect is an ACTIVE command (its button: one per player) or the command draft
+  // (gain_band_skill_from_pool_in_prep) cannot run for everyone — only passive rows run as a common strategy
+  // (server/match-upstream/bandCommands.js commonCommandHandler), so the others are not offered
+  out.commonBands = (out.commonBands || []).filter((e) => {
+    const b = raw.bands?.[e.id];
+    if (!b?.skills?.length) return true;
+    return b.skills[0].type === 'PASSIVE' && !(b.buffs || []).some((x) => x.key === 'gain_band_skill_from_pool_in_prep');
+  });
   return out;
 }
 

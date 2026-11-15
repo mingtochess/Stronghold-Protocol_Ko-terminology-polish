@@ -34,9 +34,16 @@ export function commandBondOverrides(ps) {
   return overrides;
 }
 
-export const keepsFunds = ps => ps.command
+export const keepsFunds = ps => (ps.command
   ? !!commandSkill(ps)?.buffs.some(b => b.key === 'coin_carry_over')
-  : ps.gd.leftoverKeptBands.includes(ps.bandId);
+  : ps.gd.leftoverKeptBands.includes(ps.bandId))
+  // a common strategy's (customRules.commonBands) reached passive row keeps them too (read only: no row advance here)
+  || (ps.gd.config?.customRules?.commonBands || []).some((id) => {
+    const band = ps.gd.band(id);
+    if (!band?.skills?.length) return ps.gd.leftoverKeptBands.includes(id);
+    const row = skillRows(ps).find(r => r.effectId === ps.commonCommandRows?.[id]) || band.skills[0];
+    return row.type === 'PASSIVE' && row.buffs.some(b => b.key === 'coin_carry_over');
+  });
 
 function activate(ps, skill) {
   const c = ps.command;
@@ -45,6 +52,55 @@ function activate(ps, skill) {
   const state = c.records[skill.effectId];
   if (state.round !== ps.m.round) { state.round = ps.m.round; state.used = 0; }
   ps.dirty();
+}
+
+/** Whether `s`'s upgrade condition (its `next` row) holds now. */
+function rowUnlocked(ps, s) {
+  const [a, b] = s.unlockParam || [];
+  return s.unlockType === 'band_skill_load_by_round' ? ps.m.round >= Number(a)
+    : s.unlockType === 'band_skill_load_by_shop_lv' ? ps.shop.level >= Number(a)
+    : s.unlockType === 'band_skill_load_by_coin_cost' ? ps.stats.gold >= Number(a)
+    : s.unlockType === 'band_skill_load_by_bond_act_count' ? (ps.bonds[a]?.count || 0) >= Number(b) : false;
+}
+
+/**
+ * The command row a common strategy (customRules.commonBands) runs for `ps`: its first row, upgraded by the same
+ * conditions as an own command (monotonic: the reached row is kept in ps.commonCommandRows). Only a PASSIVE row runs —
+ * an ACTIVE command is used through the player's own strategy button (one command per player), so a common
+ * strategy contributes its passive rows only. Advancing happens on dispatch (a state transition), never in views.
+ * @returns {any|null}
+ */
+export function commonCommandRow(ps, bandId) {
+  const band = ps.gd.band(bandId);
+  if (!band?.skills?.length) return null;
+  const rows = skillRows(ps);
+  const reached = ps.commonCommandRows?.[bandId];
+  let s = (reached && rows.find(r => r.effectId === reached)) || band.skills[0];
+  for (let n = 0; n < 74 && s?.next && rowUnlocked(ps, s); n++) {
+    const next = rows.find(r => r.effectId === s.next);
+    if (!next) break;
+    s = next;
+  }
+  if (s.effectId !== reached) (ps.commonCommandRows ||= {})[bandId] = s.effectId;
+  return s.type === 'PASSIVE' ? s : null;
+}
+
+/** Prep hooks of a common strategy's passive command row (the row's own buffs; see commandPassive's `common`). */
+export function commonCommandHandler(ps, bandId) {
+  const band = ps.gd.band(bandId);
+  if (!band?.skills?.length) return null;
+  const out = {};
+  const hooks = new Set(Object.keys(commandPassive));
+  for (const row of skillRows(ps)) if (band.skills.some(r => r.effectId === row.effectId) || row.effectId === ps.commonCommandRows?.[bandId]) {
+    for (const hook of Object.keys(bandMetaHandler(bandId, row) || {})) hooks.add(hook);
+  }
+  for (const hook of hooks) out[hook] = (ctx, ev) => {
+    const s = commonCommandRow(ps, bandId);
+    if (!s) return;
+    bandMetaHandler(bandId, s)?.[hook]?.(ctx, ev);
+    commandPassive[hook]?.(ps, s, ctx, ev, bandId);
+  };
+  return out;
 }
 
 /** Called by state transitions, never by views. Upgrades are monotonic, including bond-count unlocks. */
@@ -58,12 +114,7 @@ export function syncCommand(ps) {
   for (let n = 0; n < 74; n++) {
     const s = commandSkill(ps);
     if (!s?.next) break;
-    const [a, b] = s.unlockParam;
-    const unlocked = s.unlockType === 'band_skill_load_by_round' ? ps.m.round >= Number(a)
-      : s.unlockType === 'band_skill_load_by_shop_lv' ? ps.shop.level >= Number(a)
-      : s.unlockType === 'band_skill_load_by_coin_cost' ? ps.stats.gold >= Number(a)
-      : s.unlockType === 'band_skill_load_by_bond_act_count' ? (ps.bonds[a]?.count || 0) >= Number(b) : false;
-    if (!unlocked) break;
+    if (!rowUnlocked(ps, s)) break;
     const next = skillRows(ps).find(row => row.effectId === s.next);
     if (!next) break;
     const old = ps.command.records[s.effectId];
