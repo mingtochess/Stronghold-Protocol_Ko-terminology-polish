@@ -41,6 +41,8 @@ export async function installHostedResources(directory=root,configPath=resolve(d
  const packs=await resolveResourcePacks(directory,config),additions=await installResourcePacks(directory,packs,{sourceRoot:packSourceRoot});
  const catalogPath=resolve(directory,'public/vendor/browser-resources.json'),catalog=await read(catalogPath),entries=new Map(catalog.files.map(f=>[f.path,f]));
  for(const p of packs)for(const f of p.files)entries.set(f.path,{...entries.get(f.path),...f,local:true,sources:[f.path]});
+ // A merged FX index differs from any single pack's bytes: list what is installed.
+ for(const rel of ['/assets/local/fx/index.json','/assets/local/fx/textures.json'])if(entries.has(rel)){try{const b=await readFile(safe(resolve(directory,'public'),rel));entries.set(rel,{...entries.get(rel),bytes:b.length,sha256:hash(b)});}catch(e){if(e.code!=='ENOENT')throw e;}}
  catalog.files=[...entries.values()];catalog.version=hash(JSON.stringify(catalog.files)).slice(0,20);await writeFile(catalogPath,JSON.stringify(catalog));
  return {files:inventory.files,bytes:inventory.bytes,costumeResources:result.resources,packResources:additions.length};
 }
