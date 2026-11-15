@@ -26,7 +26,7 @@ export class BattleBlocking {
   _checkBlock(e) {
     if (e.blockedBy || e.hidden || !e.alive) return !!e.blockedBy;
     const f = e.s.flags;
-    if (f.unblockable || f.levitate || f.fear || f.sleep) return false;
+    if (f.unblockable || f.levitate || f.fear || f.sleep || this.time < (e.mem?.displacedUntil ?? -Infinity)) return false;
     const r0 = Math.round(e.y), c0 = Math.round(e.x);
     const w = e.blockWeight ?? 1;
     let u = null, bd = Infinity;

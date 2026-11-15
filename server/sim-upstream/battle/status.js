@@ -12,6 +12,8 @@ import { stampFear } from '../fear.js';
 export class BattleStatus {
   addBuff(unit, b) {
     if (!unit || (!unit.alive && !b.allowDead)) return null;
+    // Bard immunity is a branch trait, including inspiration from summons and HP/DEF auras.
+    if (unit.mem?.noInspire && (b.status === 'inspire' || b.key === 'inspire' || b.key?.startsWith('inspire:') || b.key?.endsWith(':inspire'))) return null;
     const buff = makeBuff(b);
     const list = unit.buffs;
     let idx = -1;
@@ -63,13 +65,13 @@ export class BattleStatus {
 
   removeBuff(unit, keyOrBuff) {
     if (!unit) return 0;
-    // [ASSUMED] API contract (DESIGN §35.5): snapshot reverse-order matches; buffs added by callbacks wait.
-    // onRemove can synchronously remove another buff, so locate each survivor in the current list.
-    const matches = unit.buffs.filter((b) => b === keyOrBuff || b.key === keyOrBuff).reverse();
+    // Removal callbacks may synchronously remove another matching buff. Snapshot
+    // identities, then locate survivors; additions wait until the next call.
+    const matches = unit.buffs.filter(b => b === keyOrBuff || b.key === keyOrBuff).reverse();
     let n = 0;
     for (const b of matches) {
-      const i = unit.buffs.indexOf(b);
-      if (i >= 0) { this._removeBuffAt(unit, i, true); n++; }
+      const i=unit.buffs.indexOf(b);
+      if(i>=0){this._removeBuffAt(unit,i,true);n++;}
     }
     return n;
   }
@@ -98,6 +100,7 @@ export class BattleStatus {
       for (let i = 0, n = units.length; i < n; i++) { // units created by onTick handlers start ticking next tick
         const u = units[i];
         if (!u.alive || u.removed) continue;
+        if(u.deployed&&!u.hidden)u.stats.activeTime=(u.stats.activeTime||0)+dt;
         if (u.buffs.length) {
           const src = u.buffs;
           let m = 0;
@@ -177,6 +180,7 @@ export class BattleStatus {
     const src = opts.source;
     if (src && src.side && src.side !== target.side && target.s.flags.invulnerable && target.s.flags.untargetable) return false;
     if (!opts.ignoreSelect && target.s.flags.liftoff && evadesGround(src, target)) return false;
+    if(key==='aspdDown' && target.profile?.attackSpeedDebuffImmune && (opts.value ?? -30)<0)return false;
     const tpl = STATUS[key] || { flags: { [key]: true } };
     let duration = opts.duration == null ? Infinity : Number(opts.duration);
     let value = opts.value;
@@ -217,17 +221,7 @@ export class BattleStatus {
         ...(spans.length ? { resistApplied: true } : {}),
       });
       if (!target.alive) return false;
-      // 友方寒冷 — every cold on an enemy: the operators', summons', items', the 谢拉格 wind's — "始终需要两两一对产生友方冻结"
-      // (PRTS 术语释义 寒冷; 异常效果 COLD "在特定条件下转变为冻结"): the pair BECOMES the 冻结, so neither cold is left and a
-      // later single cold on the frozen enemy is a 寒冷 that needs its own partner. Until 0.2.0 the older cold stayed on,
-      // extended to the freeze's length, so any cold before it ran out froze again: the 谢拉格 wind alone (every 25 s,
-      // 20 + 0.1 × layers s of cold) froze an enemy for the rest of the battle from 51 layers on — wherever it stood —
-      // and never below (community reports of 2026-10-06 「谢拉格盟约冰冻时间没有随层数正确成长」, 「…被在无法被任何干员攻击
-      // 到的地方永控」). A 敌方 cold (on an operator) keeps the old rule: PRTS 「…施加的敌方寒冷会变为敌方冻结」 names no pairing.
-      if (froze && target.side === 'enemy') {
-        this.removeBuff(target, 'cold');
-        return true;
-      }
+      if (froze && target.side === 'enemy') { this.removeBuff(target, 'cold'); return true; }
     }
     const source = opts.source ?? null;
     let entered = true;

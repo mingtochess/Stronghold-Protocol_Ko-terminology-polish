@@ -191,7 +191,7 @@ export class BattleQueries {
    * overlaps one of its tiles (body.js bodyInRange), an ally on one of them.
    */
   unitsInGrid(unit, grid, { side = null, extend = 0 } = {}) {
-    const keys = absoluteRangeKeys(grid || unit.rangeGrid || [[0, 0]], Math.round(unit.y), Math.round(unit.x), unit.dir, extend);
+    const keys = absoluteRangeKeys(grid || unit.rangeGrid || [[0, 0]], Math.round(unit.y), Math.round(unit.x), unit.dir, extend, unit.battle?.grid);
     const want = side ?? (unit.side === 'ally' ? 'enemy' : 'ally');
     const set = new Set(keys);
     const out = [];
@@ -205,9 +205,9 @@ export class BattleQueries {
   }
 
   /** Allies inside `unit`'s current range (for auras) — not the 孤立 ones ("无法被同阵营选中": 炎佑), `unit` aside. */
-  alliesInGrid(unit) {
+  alliesInGrid(unit, { includeDevices = false } = {}) {
     const set = unit.rangeKeySet || new Set(unit.rangeKeys || []);
-    return this.allyUnits.filter((a) => a.alive && a.deployed && !a.hidden && a.kind !== 'device' && set.has(a.tileR * this.grid.cols + a.tileC) && this.allySelectable(a, unit));
+    return this.allyUnits.filter((a) => a.alive && a.deployed && !a.hidden && (includeDevices || a.kind !== 'device') && set.has(a.tileR * this.grid.cols + a.tileC) && this.allySelectable(a, unit));
   }
 
   /**
@@ -221,8 +221,8 @@ export class BattleQueries {
   }
 
   /** Deployed allies (no devices) an ability of ally `by` may select: allies(ownerId) without the 孤立 ones. */
-  alliesFor(by, ownerId = null) {
-    return this.allies(ownerId).filter((a) => this.allySelectable(a, by));
+  alliesFor(by, ownerId = null, { includeDevices = false } = {}) {
+    return this.allies(ownerId, { includeDevices }).filter((a) => this.allySelectable(a, by));
   }
 
   /**
@@ -256,7 +256,7 @@ export class BattleQueries {
     let n = 0;
     for (const e of out) {
       const f = e.s.flags;
-      if (f.untargetable || (f.stealth && enemyStealthed(e))) continue;
+      if (f.invulnerable || f.untargetable || (f.stealth && enemyStealthed(e))) continue;
       out[n++] = e;
     }
     out.length = n;
@@ -295,8 +295,8 @@ export class BattleQueries {
   }
 
   /** Alive deployed allies (ops + tokens), optionally of one player. */
-  allies(ownerId = null) {
-    return this.allyUnits.filter((a) => a.alive && a.deployed && a.kind !== 'device' && (ownerId == null || a.ownerId === ownerId));
+  allies(ownerId = null, { includeDevices = false } = {}) {
+    return this.allyUnits.filter((a) => a.alive && a.deployed && (includeDevices || a.kind !== 'device') && (ownerId == null || a.ownerId === ownerId));
   }
 
   aliveEnemies() { return this.enemies.filter((e) => e.alive); }

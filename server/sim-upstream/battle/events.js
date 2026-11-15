@@ -5,7 +5,8 @@
 import { bondTimerView } from '../content/bonds/timers.js';
 import { EVENT_BUFFER_CAP } from '../constants.js';
 import { elementView } from '../attack.js';
-import { unitInfo, snapshotUnits, ammoView, wolfView, negView, moteView, coinView, mysticView, layerView, chargeView } from '../snapshot.js';
+import { unitInfo, snapshotUnits, ammoView, wolfView, negView, moteView, coinView, mysticView, layerView, chargeView, storedEnergy } from '../snapshot.js';
+import { visibleSkillAreaKeys } from '../skillArea.js';
 
 export class BattleEvents {
   fx(kind, params = {}) {
@@ -22,6 +23,7 @@ export class BattleEvents {
 
   _ev(tuple) {
     if (!this.recordEvents) return;
+    if (tuple[0] === 'dmg') tuple = [...tuple.slice(0,4), {...tuple[4], displayId: ++this._damageDisplaySeq}];
     this._evq.push(tuple);
     if (this._evq.length > EVENT_BUFFER_CAP) this._evq.splice(0, this._evq.length - EVENT_BUFFER_CAP / 2);
   }
@@ -101,6 +103,8 @@ export class BattleEvents {
       fieldId: this.fieldId,
       t: Math.round(this.time * 1000) / 1000,
       units: snapshotUnits(this.units, this.time),
+      ...(this.flags.augments?{corrosionStacks:Object.fromEntries(this.enemies.filter(u=>u.alive&&u.deployed&&!u.hidden&&u.mem.augmentCorrosion>0).map(u=>[u.id,u.mem.augmentCorrosion]))}:{}),
+      noteStacks: Object.fromEntries(this.enemies.filter(u=>u.alive&&u.deployed&&!u.hidden&&u.mem.leithanienStacks>0).map(u=>[u.id,u.mem.leithanienStacks])),
       dp: this.players.length ? Math.floor(this.players[0].dp) : 0,
       killed: this.killed,
       total: this.total,
@@ -120,7 +124,7 @@ export class BattleEvents {
       (down || (down = [])).push([u.id, r2(u.respawnAt), r2(Math.max(0, u.respawnAt - u.deathAt)), this._downState(u), ...this.restTile(u)]);
     }
     if (down) snap.down = down;
-    let elem = null, ammo = null, wolves = null, neg = null, motes = null, energy = null, stand = null, standCut = null, face = null;
+    let elem = null, ammo = null, wolves = null, neg = null, energy = null, stand = null, standCut = null, face = null;
     let listed = null;   // the ids in snap.units, built for the first enemy with a cut to report
     for (const u of this.units) {
       if (u.side === 'enemy' && u.atkStandCutAt >= 0) {
@@ -128,41 +132,58 @@ export class BattleEvents {
         if (cutAt <= snap.t && (listed || (listed = new Set(snap.units.map((x) => x[0])))).has(u.id)) (standCut || (standCut = [])).push([u.id, cutAt]);
       }
       if (!u.alive || !u.deployed || u.hidden) continue;
-      if (u.mem.publishFacing) (face || (face = [])).push([u.id, u.facing]);
+      if (u.mem.publishFacing) (face || (face = [])).push([u.id,u.facing]);
       const until = Math.round(u.atkStandUntil * 1000) / 1000;
       if (u.side === 'enemy' && !u.s.flags.fear && !u.s.flags.stun && Number.isFinite(until) && until > snap.t) {
         (stand || (stand = [])).push([u.id, until]);
       }
+      const v = elementView(u, this.time);
+      // (규정: the bond timers and 원소 motes of its own bonds, server/sim-upstream content)
       const timers = bondTimerView(u, this.time);
       if (timers.length) (snap.bondTimers || (snap.bondTimers = [])).push([u.id, timers]);
-      const v = elementView(u, this.time);
-      if (v) (elem || (elem = [])).push([u.id, v[0], v[1], v[2], v[3]]);
-      const am = ammoView(u);
-      if (am) (ammo || (ammo = [])).push([u.id, am[0], am[1]]);
-      const wv = wolfView(u);
-      if (wv) (wolves || (wolves = [])).push([u.id, wv[0], wv[1]]);
-      const ng = negView(u);
-      if (ng) (neg || (neg = [])).push([u.id, ng]);
       const mo = moteView(u);
-      if (mo) (motes || (motes = [])).push([u.id, mo[0], mo[1]]);
-      const purse = coinView(u);
-      if (purse) (snap.coins || (snap.coins = [])).push([u.id, ...purse]);
-      const en = mysticView(u);
-      if (en) (energy || (energy = [])).push([u.id, en[0], en[1]]);
-      const ly = layerView(u);
-      if (ly) (snap.layers || (snap.layers = [])).push([u.id, ly]);
-      const ch = chargeView(u);
-    if (motes) snap.motes = motes;
-      if (ch) (snap.charges || (snap.charges = [])).push([u.id, ch[0], ch[1]]);
+      if (mo) (snap.motes || (snap.motes = [])).push([u.id, mo[0], mo[1]]);
+      if (v) (elem || (elem = [])).push([u.id, v[0], v[1], v[2], v[3], r2(u.elem[v[0]] || 0)]);
     }
     if (elem) snap.elem = elem;
-    if (ammo) snap.ammo = ammo;
-    if (wolves) snap.wolves = wolves;
-    if (neg) snap.neg = neg;
-    if (energy) snap.energy = energy;
-    if (stand) snap.stand = stand;
-    if (standCut) snap.standCut = standCut;
-    if (face) snap.face = face;
+    const energies=this.allyUnits.filter(u=>u.alive&&u.deployed&&!u.hidden).map(u=>{const count=mysticView(u) || (u.profile?.storeEnergy && u.profile?.energyCount ? [storedEnergy(u),u.profile.storeMax??3] : null);return count ? [u.id,...count] : null;}).filter(Boolean);
+    if(energies.length)snap.energy=energies;
+    const ammoList = this.units.filter(u => u.alive && u.deployed && !u.hidden && u.skill?.active && u.skill.kind === 'ammo')
+      .map(u => [u.id, Math.max(0, u.skill.ammoLeft), Math.max(1, u.skill.ammoMax || u.skill.ammo || 0, u.skill.ammoLeft)]);
+    if (ammoList.length) snap.ammo = ammoList;
+    // the HP bar's 보호막: untyped shields only (a magic- / physical-only 屏障 — buff shieldType — shows no HP-bar segment)
+    const shields = this.units.filter(u => u.alive && u.deployed && !u.hidden && u.s.shield > 0)
+      .map(u => [u.id, Math.ceil(u.buffs.reduce((n, b) => n + (b.shield > 0 && !b.shieldType ? b.shield : 0), 0)), 1]);
+    // ([id, the HP-bar amount, 1 = a 보호막 of any type is up — the unit's own 보호막 effect shows])
+    if (shields.length) snap.shields = shields;
+    const modelScales=this.units.filter(u=>u.alive&&u.deployed&&!u.hidden&&Number.isFinite(u.mem.visualScale)).map(u=>[u.id,u.mem.visualScale]);
+    if(modelScales.length)snap.modelScales=modelScales;
+    const attackRanges=this.units.filter(u=>u.alive&&u.deployed&&!u.hidden&&Number.isFinite(u.mem.attackRangeRadius)).map(u=>[u.id,u.mem.attackRangeRadius]);
+    if(attackRanges.length)snap.attackRanges=attackRanges;
+    // Cosmetic pace: Lancer's authored run uses a 1 tile/s reference.
+    // Dividing by its .25 tile/s initial crawl made full charge play at 13.5x.
+    const moveRates = this.units.filter(u=>u.side==='enemy' && u.alive && u.deployed && !u.hidden && u.base.moveSpeed>0)
+      .map(u=>[u.id,Math.max(0,u.s.moveSpeed/(u.defId==='enemy_1072_dlancer'?1:u.base.moveSpeed))]).filter(([,rate])=>Math.abs(rate-1)>1e-6);
+    if(moveRates.length) snap.moveRates=moveRates;
+    const shifts = this.units.filter(u=>u.alive && u.mem.visualShift && this.time-u.mem.visualShift[4]<u.mem.visualShift[5]+.2)
+      .map(u=>[u.id,...u.mem.visualShift]);
+    if(shifts.length) snap.shifts=shifts;
+    snap.sakikoNotes = this.allyUnits.filter(u=>u.alive&&u.deployed&&!u.hidden).flatMap(u=>(u.mem.sakikoNotes||[]).map(n=>[u.id,n.id,r2(n.x),r2(n.y),n.type,n.projectile]));
+    snap.skillRanges = this.allyUnits.flatMap(u=>{const keys=visibleSkillAreaKeys(u,this.time);return keys ? [[u.id,keys.map(k=>[Math.floor(k/this.grid.cols),k%this.grid.cols])]] : [];});
+    snap.snow = this.allyUnits.filter(u=>u.alive&&u.deployed&&u.mem.snow instanceof Map).map(u=>[u.id,[...u.mem.snow].map(([k,n])=>[Math.floor(k/this.grid.cols),k%this.grid.cols,n])]);
+    snap.airHeights = this.units.filter(u=>u.alive && u.deployed && !u.hidden && (u.s.flags.levitate || u.s.flags.float)).map(u=>[u.id,0.35]);
+    snap.states = this.units.filter(u => u.alive && u.deployed && !u.hidden).map(u => [u.id,
+      [...new Set(u.buffs.filter(b => b.visible).map(b => b.key))]]);
+    if (stand) snap.stand=stand;
+    if (standCut) snap.standCut=standCut;
+    const wolfList=this.units.map(u=>[u.id,wolfView(u)]).filter(([,w])=>w).map(([id,w])=>[id,...w]);
+    if(wolfList.length)snap.wolves=wolfList;
+    const negList=this.units.map(u=>[u.id,negView(u)]).filter(([,n])=>n);
+    if(negList.length)snap.neg=negList;
+    const coinList = this.units.filter(u => u.alive && u.deployed && !u.hidden).map(u => [u.id, coinView(u)]).filter(([,c]) => c).map(([id,c]) => [id,...c]);
+    if (coinList.length) snap.coins = coinList;
+    for(const u of this.units){if(!u.alive||!u.deployed||u.hidden)continue;const ly=layerView(u);if(ly)(snap.layers||(snap.layers=[])).push([u.id,ly]);const ch=chargeView(u);if(ch)(snap.charges||(snap.charges=[])).push([u.id,...ch]);}
+    if(face)snap.face=face;
     return snap;
   }
 

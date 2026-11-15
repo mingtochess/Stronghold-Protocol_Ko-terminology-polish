@@ -3,6 +3,7 @@
 // / forced / cleared finishes and the BattleResult.
 // Installed on Battle.prototype by server/sim/Battle.js (a method container: never instantiated; `this` is the battle).
 
+import { combatMetrics } from '../../../shared/combatStats.js';
 import { FORCED_EXIT, MAX_BATTLE_TIME } from '../constants.js';
 import { noteAttackCommit, updateAlly, updateEnemy } from '../ai.js';
 
@@ -11,15 +12,8 @@ export class BattleLifecycle {
     if (this.started) return;
     this.started = true;
     this._safe(() => this._spawnStageDevices(), 'stageDevices');
-    // PRTS 卫戍协议/帮助 §作战阶段: "按从上到下>从左到右的顺序部署。优先部署干员，随后为召唤物（如果有）", noted "自卫戍协议：
-    // 盟约 下半（2026/3/14）起，部署顺序由“从左到右>从下到上”更改为“从上到下>从左到右”" — a scanning order: down each column
-    // (top first), the columns from left to right; act 1's along each row, the rows from the bottom. It is the order PRTS
-    // gives the 阿戈尔 devour ("从最先部署（更靠左和靠上的）的【阿戈尔】干员开始", content/bonds/core.js egirOrder) and the one
-    // act-2 videos show. Per player the operators, left column first, top to bottom within a column (the mirrored right
-    // boss side from its own left, i.e. the highest field column — PRTS "部署顺序…左右镜像", research 01 §4.3), then the
-    // summon pieces in the same order. Until 0.1.3 the top row came first (row-major). [ASSUMED] On a shared field (联防,
-    // boss) the players' fields deploy at the same time (PRTS: one unit after another with a fixed delay, from the battle
-    // start), so the i-th operators of all players come in together (in `players` order), then the summons likewise
+    // Deploy column by column from the player-facing left, top to bottom.
+    // Each player's i-th operator deploys together; summons follow operators.
     const seq0 = this._deploySeq;
     const rowBottomUp = this.data.raw?.config?.version?.rules?.deployOrder === 'rowBottomUp';
     const lists = this.players.map((ps) => ps.units.filter((u) => u.kind === 'op' || u.kind === 'token').slice().sort((a, b) => {
@@ -32,27 +26,35 @@ export class BattleLifecycle {
     // (_startDeploying: a board piece content brings in during this deployment — a tactician's 流形 / 狼群 comes with
     // its owner's deploy — takes its 联防 carry on that first deployment too)
     this._startDeploying = true;
+    let deploymentIndex = 0;
     for (const kind of ['op', 'token']) {
       const per = lists.map((l) => l.filter((u) => u.kind === kind && !u.deferDeploy));
       const n = Math.max(0, ...per.map((l) => l.length));
-      for (let i = 0; i < n; i++) for (const l of per) if (l[i]) this._safe(() => this._deploy(l[i], { initial: true }), 'initialDeploy', l[i]);
-    }
-    this._startDeploying = false;
-    // 仇恨 (targeting.js sortAllyTargets: the later deployed is attacked first): every summon that came in during the
-    // initial deployment — also one an operator's deploy brought along (a tactician's 援军, a start-of-battle summon)
-    // — ranks after all the operators (of every player on the field [ASSUMED]), in the order it came
-    const summons = this.allyUnits.filter((u) => u.kind === 'token' && u.alive && u.deployed && u.deploySeq > seq0).sort((a, b) => a.deploySeq - b.deploySeq);
-    for (const t of summons) t.aggroSeq = ++this._deploySeq;
-    // 联防 (PRTS 卫戍协议/帮助 "部署完成后…上一阶段为退场状态的干员强制退场"): an operator knocked out at the end of its
-    // own combat is withdrawn right after the deployment — down on its tile, its redeploy timer starting now (re-read
-    // after battleStart below; DESIGN §5.5). Its HP ratio is the end-of-phase one (0, as after kill()) until it
-    // redeploys at full HP.
-    for (const u of this.allyUnits) {
-      if (u.kind === 'op' && u.alive && u.carry && u.carry.down === true) {
-        this._safe(() => { u.hp = 0; this.retreat(u, { reason: FORCED_EXIT }); }, 'forcedExit', u);
+      for (let i = 0; i < n; i++, deploymentIndex++) for (const l of per) if (l[i]) {
+        const unit = l[i], delay = deploymentIndex * Math.max(0, Number(this.flags.deploymentInterval) || 0);
+        const deploy = () => { this._startDeploying=true; this._safe(() => this._deploy(unit,{initial:true}), 'initialDeploy',unit); this._startDeploying=false;
+          if(unit.kind==='op' && unit.deployed && unit.carry?.down){unit.hp=0;this.retreat(unit,{reason:FORCED_EXIT});} };
+        if (delay > 0) this.after(delay, deploy); else deploy();
       }
     }
-    this.emit('battleStart', {});
+    this._startDeploying = false;
+    const finishDeployment = () => {
+      this._initialDeploymentPending = false;
+      // 仇恨 (targeting.js sortAllyTargets: the later deployed is attacked first): every summon that came in during the
+      // initial deployment — also one an operator's deploy brought along (a tactician's 援军, a start-of-battle summon)
+      // — ranks after all the operators (of every player on the field [ASSUMED]), in the order it came
+      const summons = this.allyUnits.filter((u) => u.kind === 'token' && u.alive && u.deployed && u.deploySeq > seq0).sort((a, b) => a.deploySeq - b.deploySeq);
+      for (const t of summons) t.aggroSeq = ++this._deploySeq;
+      // 联防 (PRTS 卫戍协议/帮助 "部署完成后…上一阶段为退场状态的干员强制退场"): an operator knocked out at the end of its
+      // own combat is withdrawn right after the deployment — down on its tile, its redeploy timer starting now (re-read
+      // after battleStart below; DESIGN §5.5). Its HP ratio is the end-of-phase one (0, as after kill()) until it
+      // redeploys at full HP.
+      for (const u of this.allyUnits) {
+        if (u.kind === 'op' && u.alive && u.carry && u.carry.down === true) {
+          this._safe(() => { u.hp = 0; this.retreat(u, { reason: FORCED_EXIT }); }, 'forcedExit', u);
+        }
+      }
+      this.emit('battleStart', {});
     // 联防 restores the previous phase's state after all opening effects have established the new stats. In
     // particular, Egir rebuilds devour attributes without charging carried targets for its opening damage again.
     // Keep fractional HP: a legal survivor below 1% (or below 1 HP after max-HP changes) must not be healed by carry.
@@ -62,12 +64,23 @@ export class BattleLifecycle {
       if (u.kind === 'op' && Number.isFinite(cs.hpPct) && cs.hpPct > 0) u.hp = u.s.maxHp * Math.min(1, cs.hpPct);
       if (Number.isFinite(cs.sp) && u.skill) u.skill.setSpTotal(cs.sp);
     }
-    // redeploy-time effects that start with the battle (机变 征召 "所有干员的再部署时间-50%", added by a battleStart
-    // handler) cover the operators forced out above too: their timer is re-read with them, as a later knock-out's is
-    for (const u of this.allyUnits) {
-      if (u.kind !== 'op' || u.alive || u.removed || u.removeReason !== FORCED_EXIT) continue;
-      u.respawnAt = u.deathAt + Math.max(0, u.base.respawnTime * u.persist.redeployMul * u.s.redeployMul);
+
+      // redeploy-time effects that start with the battle (机变 征召 "所有干员的再部署时间-50%", added by a battleStart
+      // handler) cover the operators forced out above too: their timer is re-read with them, as a later knock-out's is
+      for (const u of this.allyUnits) {
+        if (u.kind !== 'op' || u.alive || u.removed || u.removeReason !== FORCED_EXIT) continue;
+        u.respawnAt = u.deathAt + Math.max(0, u.base.respawnTime * u.persist.redeployMul * u.s.redeployMul);
+      }
+    };
+    const deploymentDelay = Math.max(0, deploymentIndex - 1) * Math.max(0, Number(this.flags.deploymentInterval) || 0);
+    this._initialDeploymentPending = deploymentDelay > 0;
+    if (deploymentDelay > 0) {
+      // Preserve wave spacing; overdue spawns must not all arrive together as
+      // soon as the initial roster finishes deploying.
+      for (const spawn of this._pending) spawn.time += deploymentDelay;
+      this.after(deploymentDelay, finishDeployment);
     }
+    else finishDeployment();
   }
 
   step() {
@@ -183,7 +196,7 @@ export class BattleLifecycle {
     return false;
   }
 
-  _timeout() {
+  _timeout(includePending = false) {
     // Remaining non-boss enemies on the field count as leaked (DESIGN §5.5). Spawns that never happened before the
     // limit are dropped: they are removed from `total` and reported in `result().unspawned` (not leaks). A content-made
     // neutral (`mem.noLeak`: 隐德来希's 心烛, which follows its original) is never a leak — it is in no spawn schedule, so
@@ -191,6 +204,26 @@ export class BattleLifecycle {
     for (const e of this.enemies) {
       if (!e.alive || e.isBoss || e.mem.noLeak) continue;
       this._recordLeak(e, true);
+    }
+    // Manual surrender bills scheduled enemies too, without spawning them or
+    // triggering their deployment hooks, summons, or attack effects.
+    if (includePending) {
+      for (const p of this._pending) {
+        const owner = p.ownerPlayerId ?? this._ownerForTile(p.pos ?? this._routeFor(p.routeIndex, p.route)?.start);
+        const pp = this._pp(owner);
+        const def = this.data.getEnemy(p.enemyKey);
+        if (pp) {
+          // (동기화: a shared enemy that never came out is a leak of it on this field — Match sync.js)
+          const syncKey = this.syncPools && p.syncKey ? p.syncKey : null;
+          if (syncKey && !this.syncLeaks.some((l) => l.key === syncKey)) this.syncLeaks.push({ key: syncKey, lpr: def?.lpr ?? 1 });
+          pp.leaked.push({enemyKey:p.enemyKey,mods:p.mods ?? null,lpr:(def?.lpr ?? 1),sourcePlayerId:p.sourcePlayerId ?? owner,tag:p.tag ?? null,counted:!!p.counted,spawned:false,...(syncKey?{syncKey}:null)});
+          if (p.counted) pp.perfect=false;
+          if (p.inTotal) pp.leakedInTotal++;
+        }
+        if (p.counted) this.leakedCount++;
+        if (p.inTotal) this.leakedInTotal++;
+      }
+      this._pending=[];
     }
     this.unspawned = [];
     for (const p of this._pending) {
@@ -211,12 +244,20 @@ export class BattleLifecycle {
     this._endReq = null;
     if (!this.started) this.start();
     if (this.finished) return;
-    if (reason === 'timeout') this._timeout();
-    else this._finish('forced');
+    if (reason === 'timeout' || reason === 'surrender') this._timeout(reason === 'surrender');
+    else this._finish(reason === 'cleared' && this.sharedBoss ? 'cleared' : 'forced');
+  }
+
+  confirmBossDefeat() {
+    if (!this.sharedBoss) return;
+    this.sharedBoss.hp = 0;
+    this._bossSync();
   }
 
   _finish(reason) {
     if (this.finished) return;
+    // The server confirmed the shared boss died; local HP may still lag its acknowledgement.
+    if (reason === 'cleared' || this.sharedBoss?.hp <= 0) this.confirmBossDefeat();
     this.finished = true;
     this.reason = reason;
     this._endReq = null;
@@ -237,8 +278,7 @@ export class BattleLifecycle {
       const pp = this._perPlayer[ps.playerId];
       pp.perfect = !pp.leaked.some((l) => l.counted !== false);
       // the HUD capsule's numerator of this field (DESIGN §14): this player's own scheduled enemies resolved — knocked
-      // down or leaked (`counted` keeps the LP / 完美作战 reading, runtime splits and summons included — a 联防 field
-      // tags its runtime spawns `uniteRuntime`, spawns.js, which only its billing reads)
+      // down or leaked (`counted` keeps the LP / 完美作战 reading, runtime splits and summons included)
       pp.resolved = Math.min(pp.total, pp.killedInTotal + pp.leakedInTotal);
       // Actual enemy deaths credited to this player's operators / summons, independent of the enemy's wave owner.
       // Sum the full unit list before compactBattleResult caps unitStats (long fights may spawn many summons).
@@ -253,10 +293,17 @@ export class BattleLifecycle {
         sp: u.skill && !u.skill.noSkill ? Math.round(u.skill.spTotal * 100) / 100 : 0,
         skillActive: !!(u.skill && u.skill.active && u.skill.kind !== 'passive'),
         alive: !!u.alive,
+        ...(u.mem.egirDevourProcessed ? { egirDevour: {
+          processed: true,
+          atkFinal: u.mem.egirDevourMods?.atkFinal ?? u.mem.egirDevourMods?.atkFlat ?? 0,
+          blockCnt: u.mem.egirDevourMods?.blockCnt || 0,
+          revives: u.mem.egirRevives || 0,
+          revived: !!u.mem.egirRevived,
+        } } : {}),
       }));
       pp.unitStats = ps.units.map((u) => ({
         id: u.id, uid: u.uid, defId: u.defId, name: u.name, kind: u.kind,
-        dmg: Math.round(u.stats.dmg), kills: u.stats.kills, heal: Math.round(u.stats.heal), taken: Math.round(u.stats.taken), attacks: u.stats.attacks,
+        ...combatMetrics(u.stats),
       }));
       perPlayer[ps.playerId] = pp;
     }

@@ -31,12 +31,12 @@ export class BattleSpawns {
         time: Math.max(0, fin(s.time, 0)) + i * interval, enemyKey: s.enemyKey, routeIndex: s.routeIndex ?? 0, route: s.route ?? null,
         mods: s.mods ?? null, sourcePlayerId: s.sourcePlayerId ?? null, bounty: s.bounty ?? null, tag: s.tag ?? null,
         ownerPlayerId: s.ownerPlayerId ?? null, pos: s.pos ?? null, seq: ++this._spawnSeq, countInTotal: s.countInTotal,
+        syncKey: s.syncKey != null ? `${s.syncKey}.${i}` : null,
       };
       p.counted = p.countInTotal ?? (!(def && def.notCountInTotal) && p.tag !== 'boss' && p.tag !== 'part');
       // inTotal: the enemies THIS STAGE scheduled that count — the HUD capsule's own set (DESIGN §14 "顶栏胶囊"). A
       // runtime spawn (a split child, a summon, a part, a form change) is never in it, so the capsule's denominator stays
-      // the stage's own enemies while `counted` keeps counting them all. What a 联防 field adds on top is about billing
-      // only (`uniteRuntime` in spawnEnemy): it moves no counter.
+      // the stage's own enemies while `counted` (LP, 破坏完美作战 and the kill counters) keeps counting them all.
       p.inTotal = !!p.counted;
       if (precount && p.inTotal) {
         this.total++;
@@ -50,6 +50,7 @@ export class BattleSpawns {
   }
 
   _processSpawns() {
+    if (this._initialDeploymentPending) return;
     const now = this.time + 1e-9;
     while (this._pending.length && this._pending[0].time <= now) { // loop-cap: pending spawn queue
       const p = this._pending.shift();
@@ -102,6 +103,7 @@ export class BattleSpawns {
         res: Math.max(0, fin(st.res, def.res)), moveSpeed: Math.max(0, fin(st.moveSpeed, def.moveSpeed)),
         bat: Math.max(0.1, fin(st.bat, def.bat)), aspd: fin(st.aspd, def.aspd) || def.aspd,
         rangeRadius: Math.max(0, fin(st.rangeRadius, def.rangeRadius)), massLevel: fin(st.massLevel, def.massLevel),
+        epResistance: fin(st.elementRes, def.epResistance), epDamageResistance: fin(st.elementDmgRes, def.epDamageResistance),
         lpr: fin(st.lpr, def.lpr), blockCnt: Math.max(1, fin(st.blockCnt, def.blockCnt)) };
     }
     const route = opts.route ? normalizeRoute(opts.route) : this._routeFor(opts.routeIndex ?? 0);
@@ -118,6 +120,7 @@ export class BattleSpawns {
     const bossStats = (this.kind === 'boss' || this.kind === 'hidden') && (opts.tag === 'boss' || opts.tag === 'part');
     const percent = (id) => rulePct(rules, bossStats ? id.replace(/^enemy/, 'boss') : id);
     const e = new Unit({
+      battle: this, // (맹약: every unit reads its battle — the grid size of a 37-column field)
       id: ++this._idSeq, side: 'enemy', kind: 'enemy', def, defId: def.key ?? enemyKey, name: def.name,
       x: start[1], y: start[0], motion: def.motion,
       base: {
@@ -151,7 +154,7 @@ export class BattleSpawns {
     // every enemy profile starts with the same fields (stable object shapes keep the hot loop's property reads fast);
     // `dmgType` null = the data's (content may arm a data-unarmed enemy: ai.js enemyAttack); `blockFree` = its 索敌不受阻挡
     // 影响 (content: 自制投石机 — targeting.js canTargetAlly / sortAllyTargets, ai.js attackTargets)
-    e.profile = { noAttack: def.dmgType === 'none', maxTargets: 1, atkScale: 1, dmgType: null, blockFree: false };
+    e.profile = { noAttack: !!def.raw?.laboratoryDummy || def.dmgType === 'none', maxTargets: 1, atkScale: 1, dmgType: null, blockFree: false };
     e.route = { legs: route ? compileRoute(route, this.rect) : [], legIdx: 0, pts: null, ptIdx: 0, suffix: null, version: -1, waitLeft: null };
     if (!e.route.legs.length) {
       const end = this.grid.specialTiles('end')[0];
@@ -180,12 +183,17 @@ export class BattleSpawns {
       e.isBoss = true;
       if (this.sharedBoss) { e.bossPool = this.sharedBoss; this._syncBossHp(e); }
     }
+    e.syncKey = typeof opts.syncKey === 'string' && !e.bossPool ? opts.syncKey : null; // 동기화 시뮬레이션
     e.hp = e.bossPool ? e.hp : e.s.maxHp;
     this.units.push(e);
     this.enemies.push(e);
     this._ev(['spawn', unitInfo(e)]);
     if (this._hooks.deploy) this.emit('deploy', { unit: e, initial: false });
     if (this._hooks.enemySpawn) this.emit('enemySpawn', { enemy: e });
+    if (this.syncPools && e.syncKey && e.alive && !e.bossPool) {
+      const pool = this.syncPools.get(e.syncKey, e.s.maxHp);
+      if (pool) { e.bossPool = pool; this._syncBossHp(e); }
+    }
     return e;
   }
 
@@ -202,14 +210,15 @@ export class BattleSpawns {
   _syncBossHp(e) {
     const pool = e.bossPool;
     if (!pool) return;
-    if (Number.isFinite(pool.maxHp) && pool.maxHp > 0 && e.base.maxHp !== pool.maxHp) { e.base.maxHp = pool.maxHp; e.markDirty(); }
+    // (a synced enemy keeps its own max HP — its buffs may change it — and shows the pool's ratio)
+    if (!e.syncKey && Number.isFinite(pool.maxHp) && pool.maxHp > 0 && e.base.maxHp !== pool.maxHp) { e.base.maxHp = pool.maxHp; e.markDirty(); }
     // a broken pool (NaN hp) must not leak NaN into the unit: show it full until the pool is sane again
     const ratio = pool.maxHp > 0 ? (Number.isFinite(pool.hp) ? Math.max(0, pool.hp) / pool.maxHp : 1) : 0;
     e.hp = e.s.maxHp * Math.min(1, ratio);
   }
 
   _bossSync() {
-    if (!this.sharedBoss) return;
+    if (!this.sharedBoss && !this.syncPools) return;
     for (const e of this.enemies) if (e.alive && e.bossPool) {
       this._syncBossHp(e);
       if (e.bossPool.hp <= 0) this.kill(e, null);

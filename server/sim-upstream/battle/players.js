@@ -155,7 +155,7 @@ export class BattlePlayers {
     // fills a 自选 slot with its pick (simdata getDiy: the slot's identity, the operator's body, skill and module);
     // `potential` (潜能 1–6, 0.2.2) composes the def at it (never a stand-in's); `skin` (docs/SKINS.md) is the
     // appearance the owning player chose and rides through to the unit, so every client draws that model (never a rule)
-    const lo = { skillIndex: inp.skillIndex ?? null, moduleId: inp.moduleId ?? null };
+    const lo = { ...(inp.skinId ? { skinId: inp.skinId } : {}), skillIndex: inp.skillIndex ?? null, moduleId: inp.moduleId ?? null };
     if (inp.standIn === true) lo.standIn = true;
     if (inp.diy && typeof inp.diy === 'object') lo.diy = inp.diy;
     if (inp.standIn !== true && isPotential(inp.potential)) lo.potential = inp.potential;
@@ -164,6 +164,7 @@ export class BattlePlayers {
     // a DIY slot has no body of its own (甄选干员): it fights only as a 自选 piece (its `diy` pick)
     if (def.raw?.isDiy && !def.diyFor) { this.log(`自选 slot ${inp.chessId} without a pick`); return null; }
     const u = this._makeAlly(ps, def, 'op', r, c, { uid: inp.uid, dir, skin: inp.skin });
+      u.placementOrder = Number.isFinite(inp.placementOrder) ? inp.placementOrder : null;
     if (inp.commandReserveFor != null) {
       u.commandReserveFor = inp.commandReserveFor;
       u.deferDeploy = true;
@@ -175,7 +176,7 @@ export class BattlePlayers {
     u.carry = inp.carryState ?? null;
     // 练度 (自持有, 0.2.2): the owned operator's ×ATK / ×DEF / ×max HP (units.js Πmul) — never a 补位 stand-in's nor a
     // prototype 自选 pick's (another character than the one the player owns)
-    if (isCultivate(inp.cultivate) && !def.standInFor && !def.raw?.diyProto) {
+    if (isCultivate(inp.cultivate) && !def.standInFor && !def.raw?.diyProto && !def.raw?.recruitPrototype && !def.raw?.recruitReserve) {
       const mul = typeof this.data.cultivateMul === 'function' ? this.data.cultivateMul(inp.cultivate) : null;
       if (mul) { u.cultivate = inp.cultivate; u.cultMul = Object.freeze({ ...mul }); u.markDirty(); }
     }
@@ -203,7 +204,7 @@ export class BattlePlayers {
       respawnTime: original.respawnTime * rulePct(rules, 'allyRedeploy'), spRecovery: original.spRecovery * rulePct(rules, 'allySpRecovery') };
     const u = new Unit({
       id: ++this._idSeq, side: 'ally', kind, def, defId: def.id, name: def.name, ownerId: ps ? ps.playerId : null,
-      uid: extra.uid ?? null, ownerUnit: extra.ownerUnit ?? null, skin: extra.skin ?? null, x: c, y: r, tileR: r, tileC: c,
+      battle: this, uid: extra.uid ?? null, ownerUnit: extra.ownerUnit ?? null, skin: extra.skin ?? null, x: c, y: r, tileR: r, tileC: c,
       dir: extra.dir != null ? normDir(extra.dir) : extra.facing != null ? normDir(extra.facing) : ps ? ps.dir : 'RIGHT',
       base: {
         maxHp: st.maxHp, atk: st.atk, def: st.def, res: st.res, aspd: st.aspd, bat: st.bat, blockCnt: st.blockCnt,
@@ -260,6 +261,8 @@ export class BattlePlayers {
     }
     u.kit = kit || {};
     u.profile = resolveProfile(u.def, u.kit.trait || null);
+    if (u.def.raw?.noHeal) u.profile.noHeal = true;
+    if (u.profile.sub === 'bard') u.mem.noInspire = true;
     if (u.def.untargetable) this.addBuff(u, { key: 'trait:untargetable', flags: { untargetable: true }, persist: true, allowDead: true });
     // abnormal effects a summon holds (tokens.json `abnormal`, PRTS; user playtest #6 item 18): 禁疗 — no heal reaches it;
     // 孤立 ("无法被同阵营选中") — no ally heal or ally selection (auras over a range) reaches it

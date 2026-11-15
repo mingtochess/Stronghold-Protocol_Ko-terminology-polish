@@ -59,7 +59,7 @@ export class BattleDisplacement {
    * client action can pass `keepFacing: false`. Pulls use the same display rule; raw displacements remain unmarked.
    * Returns the tiles moved.
    */
-  push(e, force, { from = null, dir = null, fixed = false, fixedAngle = false, inward = false, effect = false, keepFacing = true } = {}) {
+  push(e, force, { from = null, dir = null, fixed = false, fixedAngle = false, inward = false, effect = false, keepFacing = true, keepDir = false } = {}) {
     if (!this._displaceable(e)) { this._staticForce(e, force, false); return 0; }
     let level = this.forceLevel(e, force);
     const fx0 = fin(from?.x, e.x), fy0 = fin(from?.y, e.y);
@@ -71,7 +71,10 @@ export class BattleDisplacement {
       ux = dirX / dl; uy = dirY / dl;
       if (from && !fixed && (d < PUSH_DIRECTIONAL_MIN_DIST || (!fixedAngle && vx * ux + vy * uy < d * Math.SQRT1_2))) {
         level -= 2;
-        if (d > 1e-6) { ux = vx / d; uy = vy / d; }
+        // behind the pusher (dot < 0): 野鬃 keeps the attack direction (keepDir). Everyone else, and her
+        // forward-hemisphere / too-close targets, become radial.
+        const behind = vx * ux + vy * uy < 0;
+        if (!(keepDir && behind) && d > 1e-6) { ux = vx / d; uy = vy / d; }
       }
     } else if (d > 1e-6) { ux = vx / d; uy = vy / d; }
     else if (!inward && from && Array.isArray(from.fwd)) { ux = from.fwd[1]; uy = from.fwd[0]; }
@@ -194,6 +197,7 @@ export class BattleDisplacement {
     const eff = Math.min(fin(distance, 0), 2 * this.grid.cols);
     if (!(eff > 0)) return 0;
     const ux = dxv / len, uy = dyv / len;
+    const fromX = e.x, fromY = e.y;
     let moved = 0;
     const stepLen = 0.1;
     while (moved + 1e-9 < eff) { // loop-cap: distance capped at 2*COLS, step 0.1
@@ -211,7 +215,9 @@ export class BattleDisplacement {
       e.atkStandUntil = -Infinity;
       if (e.route) e.route.pts = null;
       // `dur` (game s): the 失衡 the push / pull gives — the client's slide takes that long (render/units.js slideTo)
-      this.fx('displace', { x: e.x, y: e.y, id: e.id, ...(dur > 0 ? { dur } : {}), ...(keepFacing ? { keepFacing: true } : {}) });
+      this.fx('displace',{x:e.x,y:e.y,id:e.id,...(dur>0?{dur}:{}),...(keepFacing?{keepFacing:true}:{})});
+      if(e.mem.attackWindup){delete e.mem.attackWindup;this._ev(['atkCancel',e.id]);}
+      e.moving=false;
     }
     return moved;
   }

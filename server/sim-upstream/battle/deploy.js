@@ -27,6 +27,7 @@ export class BattleDeploy {
     // "倒地干员所在地块视为可部署，但所有我方单位在此处的部署行为将被阻止" (PRTS 卫戍协议/帮助 §作战阶段 单位部署)
     if (this.downOn(R0, C0, u)) { this.log(`a knocked-out operator lies on ${R0},${C0}; ${u} not deployed`); return false; }
     const first = u.deploySeq === 0;
+    if(!first)u.stats.redeploys=(u.stats.redeploys||0)+1;
     u.alive = true;
     u.deployed = true;
     u.removed = false;
@@ -41,8 +42,7 @@ export class BattleDeploy {
     // Its deploySeq remains the identity of this actual deployment for scheduled effects and redeploy checks.
     u.aggroSeq = preBattleAggroSeq ?? u.deploySeq;
     u.deployedAt = this.time;
-    // 배치 모션 (the 맹약 season's timing rule): the deploy clip's length before the unit acts
-    u.deployRemaining = Math.max(0, ((u.dir === 'UP' && u.def.attackTiming?.back) || u.def.attackTiming?.front)?.deploy || 0);
+    u.deployRemaining = Math.max(0,((u.dir === 'UP' && u.def.attackTiming?.back) || u.def.attackTiming?.front)?.deploy || 0);
     u.deployUntil = this.time + u.deployRemaining;
     u.atkCd = 0;
     u.lastAttackAt = -Infinity;
@@ -63,14 +63,11 @@ export class BattleDeploy {
     const sk = u.skill;
     // "自动操作具有3s冷却，在完成一次操作或作战开始时部署的单位将进入冷却" (PRTS 卫戍协议/帮助; skills.js)
     if (initial) sk.opReadyAt = this.time + this.flags.startOpCooldown;
-    // keepSp (突袭 "保留技力"): the SP / charges before the jump — not for a skill that costs no SP (spCost 0, the
-    // deploy-timed skills), which reset() just re-armed as at every deployment: the retreat ended it, so its snapshot
-    // holds 0 charges, and writing that back took the charge 伊内丝 S3's deploy hook casts with (community report:
-    // 伊内丝激活突袭瞬移以后3技能被吞; those with activateOnDeploy run already, skipped by `!sk.active`)
-    if (keepSp && !sk.noSkill && sk.kind !== 'passive' && !sk.active && sk.spCost > 0) {
+    if (keepSp && !sk.noSkill && sk.kind !== 'passive' && !sk.active && !sk.spec.activateOnDeploy) {
       sk.charges = Math.max(0, Math.min(sk.maxCharges, Math.floor(fin(keepSp.charges, 0))));
       sk.sp = Math.max(0, Math.min(sk.spCost, fin(keepSp.sp, 0)));
       if (sk.charges >= sk.maxCharges) sk.sp = sk.spCost;
+      if (keepSp.addInitialSp) sk.setSpTotal(sk.spTotal + sk.initSp);
     }
     if (first) this._ev(['spawn', unitInfo(u)]);
     this._ev(['deploy', u.id]);
@@ -111,11 +108,13 @@ export class BattleDeploy {
     this._cutAttackStand(unit);
     unit.alive = false;
     unit.removeReason = reason;
+    if(reason==='killed')unit.stats.deaths=(unit.stats.deaths||0)+1;
     unit.deployed = false;
     unit.deathAt = this.time;
     // while the removal bookkeeping runs, a skill onEnd handler must not redeploy the unit (it would come back
     // alive but without its tile in _occ, its buffs wiped and a respawn timer pending) — redeploy from `death` instead
     unit._removing = true;
+    delete unit.mem.skillCastUntil;
     if (unit.skill && unit.skill.active) {
       this._safe(() => unit.skill.end('death'), 'skill.end', unit);
       unit.skill.active = false;
@@ -159,7 +158,11 @@ export class BattleDeploy {
           if (pp) pp.killedInTotal++;
         }
         if (killer) killer.stats.kills++;
-        if (unit.bounty && unit.bounty.coins > 0) this.addCoins(this._bountyPayee(unit, killer), unit.bounty.coins);
+        // (a synced bounty pays every player from the match once its shared HP is gone: Match sync.js)
+        if (unit.bounty && unit.bounty.coins > 0 && !(this.syncPools && unit.syncKey)) {
+          const payee = killer && killer.side === 'ally' && killer.ownerId != null ? killer.ownerId : (unit.bounty.ownerPlayerId ?? unit.ownerId);
+          this.addCoins(payee, unit.bounty.coins, [unit.x,unit.y]);
+        }
       }
     }
     // the reason ('killed' | 'retreat' | 'expired' | …) lets the client keep the knock-down sound for real knock-outs
@@ -202,7 +205,7 @@ export class BattleDeploy {
    *   keepSp      keep the SP / charges the unit had (保留技力): restored before the `deploy` hook fires
    * Returns true when the unit was deployed (full HP, `deploy {initial:false}` fires).
    */
-  redeploy(unit, { free = true, tile = null, keepSp = false } = {}) {
+  redeploy(unit, { free = true, tile = null, keepSp = false, addInitialSp = false } = {}) {
     if (!unit || unit.side !== 'ally' || unit.alive || unit.removed) return false;
     let at = null;
     if (tile != null) {
@@ -225,7 +228,7 @@ export class BattleDeploy {
       ps.dp = Math.max(0, ps.dp - cost); // paid before `deploy` fires (handlers see the new DP)
     }
     const sk = unit.skill;
-    const keep = keepSp && sk && !sk.noSkill && sk.kind !== 'passive' ? { sp: sk.sp, charges: sk.charges } : null;
+    const keep = keepSp && sk && !sk.noSkill && sk.kind !== 'passive' ? { sp: sk.sp, charges: sk.charges, addInitialSp } : null;
     if (this._deploy(unit, { initial: false, tile: at, keepSp: keep })) return true;
     if (paid > 0 && ps) ps.dp = Math.min(this.flags.dpMax, ps.dp + paid);
     return false;
@@ -263,6 +266,8 @@ export class BattleDeploy {
   }
 
   _recordLeak(e, timeout) {
+    // 동기화 시뮬레이션 (맹약 server/sim/Battle.js): a shared enemy leaks once for the whole team
+    if (this.syncPools && e.syncKey && !this.syncLeaks.some((l) => l.key === e.syncKey)) this.syncLeaks.push({ key: e.syncKey, lpr: e.lpr ?? 1 });
     const owner = timeout ? e.ownerId : this._ownerForTile([Math.round(e.y), Math.round(e.x)]) ?? e.ownerId;
     const pp = this._pp(owner) ?? this._pp(e.ownerId);
     if (pp) {

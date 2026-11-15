@@ -98,11 +98,11 @@ export class BattleEconomy {
     return this._ownerForTile([Math.round(unit.y), Math.round(unit.x)]);
   }
 
-  addCoins(playerId, n) {
+  addCoins(playerId, n, at = null) {
     const pp = this._pp(playerId);
     if (!pp || !(n > 0) || !Number.isFinite(n)) return 0;
     pp.coins += n;
-    this._ev(['bounty', playerId, n]);
+    this._ev(['bounty', playerId, n, ...(at || [])]);
     return n;
   }
 }

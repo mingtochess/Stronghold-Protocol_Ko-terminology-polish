@@ -119,6 +119,15 @@ export class BattleTiles {
   _layBody(u) {
     const r = u.tileR, c = u.tileC, hr = u.homeR, hc = u.homeC;
     u.body = [r, c];
+    // a skill-ending return that its death interrupted (乌尔比安's anchor, content/kits/tier5.js): the body lies on
+    // the anchor tile — the marker has already retreated — so every redeploy path (restTile) brings him home
+    const anchor = u.mem?.anchorReturn || (u.downAtHome ? { r: hr, c: hc } : null);
+    if (anchor && Number.isInteger(anchor.r) && this.grid.inRect(anchor.r, anchor.c) && !this.isReservedTile(anchor.r, anchor.c)) {
+      u.body = [anchor.r, anchor.c];
+      u.mem.anchorReturn = null;
+      return;
+    }
+    u.mem.anchorReturn = null;
     if (r === hr && c === hc) return;
     if (!u.downAtHome && !this.allyUnits.some((a) => a !== u && a.uid != null && (a.kind === 'op' || a.kind === 'token') && a.homeR === r && a.homeC === c)) return;
     if (!this.grid.inRect(hr, hc) || this.isReservedTile(hr, hc)) return;

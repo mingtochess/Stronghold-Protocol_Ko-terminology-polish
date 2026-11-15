@@ -142,6 +142,10 @@ export class Battle {
     this._evq = [];
     this.projectiles = new ProjectileSystem(this);
     this._occ = new Array(this.grid.rows * this.grid.cols).fill(null);
+    this.syncPools = opts.syncPools ?? null;   // 동기화 시뮬레이션 (맹약 server/sim/syncPools.js)
+    this.syncLeaks = [];
+    this._initialDeploymentPending = false;
+    this._damageDisplaySeq = 0;
     this._eb = new Array(this.grid.rows * this.grid.cols);   // range buckets (colliders: queries.js _buildEnemyIndex)
     for (let i = 0; i < this._eb.length; i++) this._eb[i] = [];
     this._ebUsed = [];
