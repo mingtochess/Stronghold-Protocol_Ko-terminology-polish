@@ -65,6 +65,7 @@ export async function loadBrowserSim({ base = '/sim/', dataBase = '/data/', fetc
   attachAttackTimings(raw,raw.assets);
   if(raw.backups?.units)attachAttackTimings({chess:raw.backups.units},raw.assets);
   deepFreeze(raw);
+  globalThis.__SP_SIM_BASE = base;   // the /data.js stand-in reads this engine's data (server/http/static.js DATA_SHIM_JS)
   simdata.setSimData(raw);
   if (typeof support.setGameData === 'function') support.setGameData(null); // re-read through the injected data
   await installSimBounds(base, raw, data ? bounds : undefined);
