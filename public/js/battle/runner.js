@@ -885,7 +885,10 @@ export function createBattleRunner(deps) {
     // a pending battle not built yet takes lastPool when it is built
     for (const e of [...entries.values(), ...pending.values()]) {
       const pool = e.battle ? e.battle.sharedBoss : null;
-      if (pool && typeof pool.sync === 'function') pool.sync(msg.hp, msg.acked ? msg.acked[e.fieldId] : undefined);
+      // a Worker battle: `e.battle` is the wire state (its sharedBoss a { cum, byPlayer } copy without sync), so the
+      // pool update goes to the Worker's own LocalBossPool through the host (it got only the b.start-time pool before)
+      if (e.battle && e.host?.remote) e.host.syncPool(msg.hp, msg.acked ? msg.acked[e.fieldId] : undefined);
+      else if (pool && typeof pool.sync === 'function') pool.sync(msg.hp, msg.acked ? msg.acked[e.fieldId] : undefined);
       if (pool && Number.isFinite(msg.hp) && msg.hp <= 0) {
         e.battle.confirmBossDefeat?.();
         if (e === cur) emitFrame(e, false);
