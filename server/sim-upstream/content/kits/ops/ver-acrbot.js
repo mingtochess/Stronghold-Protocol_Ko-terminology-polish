@@ -17,6 +17,8 @@ function acrbot(_bb, chess, def) {
   const { skills, skill } = kitSkills(chess, def, (id, rec, sbb) => {
     if (id === S1) return {
       id, kind: 'duration', duration: posDur(rec),
+      // cast as soon as the SP is full (the owner's rule; the data's TAKE_DAMAGE waited for a hit after it filled)
+      trigger: 'SP_FULL',
       mods: {
         batPct: batMod(sbb.base_attack_time, chess, descOf(rec)),
         atkPct: num(sbb.atk),
