@@ -267,7 +267,7 @@ export function FacingWheel({ view, row, col, grid, name = '', onPreview, onComm
   return html`<div class=${cx('fwheel', drag && 'is-pressed', dir && `is-${dir.toLowerCase()}`)} role="dialog" aria-label=${`选择${name ? `「${name}」的` : ''}朝向`}
       onPointerDown=${onDown} onPointerMove=${onMove} onPointerUp=${onUp} onPointerCancel=${onPointerCancel}
       onContextMenu=${(e) => { e.preventDefault(); onCancel(); }}>
-    ${g && settingsStore.get().tileMarkStyle !== 'official' ? html`<${Stripes} tiles=${tiles} view=${view} row=${row} col=${col} />` : null}
+    ${/* the simple display (tileMarkStyle ≠ official) draws no striped range: the board's own range fill shows it */''}
     ${g ? html`<div class="fwheel__dia" style=${`left:${g.x/zoom}px;top:${g.y/zoom}px;width:${box/zoom}px;height:${box/zoom}px`}>
       <svg class="fwheel__svg" viewBox="-110 -110 220 220" aria-hidden="true">
         <path class="fwheel__outer" d="M0 -100 L100 0 L0 100 L-100 0 Z" />
@@ -316,7 +316,6 @@ export function stripeMount(view) {
 }
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
-let stripeSeq = 0;
 
 /** Screen polygons (client px) of range tiles, as SVG `points` strings, offset by (ox, oy). */
 export function stripePolys(view, tiles, ox = 0, oy = 0) {
@@ -328,72 +327,3 @@ export function stripePolys(view, tiles, ox = 0, oy = 0) {
   return out;
 }
 
-/**
- * Striped orange range tiles (the official look), re-projected every frame (the camera may still move). The solid
- * orange fill is the render view's highlight group under the units; these are the light stripes on top of it.
- */
-function Stripes({ tiles, view, row, col }) {
-  const [, setN] = useState(0);
-  const mount = stripeMount(view);
-  const key = tiles.map((t) => t.join(',')).join(';');
-  // under the units (3D board): an imperatively managed <svg> between the two canvases
-  useEffect(() => {
-    if (!mount || !tiles.length) return undefined;
-    const id = `fwheel-stripe-u${++stripeSeq}`;
-    const svg = document.createElementNS(SVG_NS, 'svg');
-    svg.setAttribute('class', 'fwheel__stripes fwheel__stripes--under');
-    svg.setAttribute('aria-hidden', 'true');
-    Object.assign(svg.style, { position: 'absolute', left: '0', top: '0', width: '100%', height: '100%', zIndex: '0', pointerEvents: 'none', overflow: 'visible' });
-    svg.innerHTML = `<defs><pattern id="${id}" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">`
-      + '<rect width="3.5" height="10" fill="rgba(255,178,70,.5)" /></pattern></defs><g></g>';
-    const g = svg.lastChild;
-    mount.host.insertBefore(svg, mount.before);
-    let raf = 0;
-    let last = '';
-    const tick = () => {
-      const hr = mount.host.getBoundingClientRect();
-      const polys = stripePolys(view, tiles, hr.left, hr.top);
-      const sig = polys.map((p) => p.pts).join('|');
-      if (sig !== last) {
-        last = sig;
-        g.replaceChildren(...polys.map((p) => {
-          const el = document.createElementNS(SVG_NS, 'polygon');
-          el.setAttribute('points', p.pts);
-          el.setAttribute('fill', `url(#${id})`);
-          el.setAttribute('stroke', 'rgba(255,176,70,.9)');
-          el.setAttribute('stroke-width', '1.5');
-          return el;
-        }));
-      }
-      raf = requestAnimationFrame(tick);
-    };
-    tick();
-    return () => { cancelAnimationFrame(raf); svg.remove(); };
-  }, [key, view, !!mount]);
-  // overlay (2D board / fallback): never over the piece's own tile, so the unit being placed stays visible
-  const over = mount ? [] : tiles.filter(([r, c]) => r !== row || c !== col);
-  const overKey = over.map((t) => t.join(',')).join(';');
-  useEffect(() => {
-    if (!over.length) return undefined;
-    let raf = 0;
-    let last = '';
-    const tick = () => {
-      const t = tileScreen(view, over[0][0], over[0][1]);
-      const k = t ? `${t.x.toFixed(1)},${t.y.toFixed(1)}` : '';
-      if (k !== last) { last = k; setN((n) => n + 1); }
-      raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [overKey, view]);
-  if (!over.length) return null;
-  const polys = stripePolys(view, over);
-  return html`<svg class="fwheel__stripes" aria-hidden="true">
-    <defs>
-      <pattern id="fwheel-stripe" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-        <rect width="3.5" height="10" fill="rgba(255,178,70,.42)" />
-      </pattern>
-    </defs>
-    ${polys.map((p) => html`<polygon key=${p.k} points=${p.pts} fill="url(#fwheel-stripe)" stroke="rgba(255,176,70,.9)" stroke-width="1.5" />`)}
-  </svg>`;
-}
