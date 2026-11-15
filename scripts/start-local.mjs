@@ -4,6 +4,7 @@ import {fileURLToPath} from 'node:url';
 import {readFile,readdir,access} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 import {transform,pinPath} from '../server/release/transform.js';
+import {DATA_SHIM_JS} from '../server/http/static.js';
 import {createReadStream} from 'node:fs';
 import {pipeline} from 'node:stream/promises';
 import {loadData,setData} from '../server/data.js';
@@ -44,9 +45,17 @@ const server=await startServer({dataDir,host:process.env.HOST||'127.0.0.1',port,
  if(path==='/dev/ursus-config.json'){res.setHeader('Content-Type','application/json');res.setHeader('Cache-Control','no-store');res.end(JSON.stringify({httpTransport:!/^(127\.0\.0\.1|localhost)(:\d+)?$/.test(req.headers.host||''),lazyResources:false}));return true;}
  if(path==='/dev/ursus-transport')return preview.handle(req,res);
  if(!['GET','HEAD'].includes(req.method))return false;
- if(path==='/'||(/^\/(?:js|css|dev|vendor|shared|sim)\//.test(path)&&/\.(?:js|mjs|css)$/.test(path))){
+ // (/sim-upstream/ — the 규정 engine — and the /data.js stand-in too: every module the browser simulation imports carries the
+ // same release, or the page holds two copies of a module and the 규정 engine reads the data-less one)
+ if(path==='/data.js'){
+  let response=codeResponses.get(path);
+  if(!response){response={type:'text/javascript',body:Buffer.from(await transform(DATA_SHIM_JS,'text/javascript',codeRelease))};codeResponses.set(path,response);}
+  res.setHeader('Content-Type','text/javascript; charset=utf-8');res.setHeader('Cache-Control','no-store');
+  res.end(req.method==='HEAD'?undefined:response.body);return true;
+ }
+ if(path==='/'||(/^\/(?:js|css|dev|vendor|shared|sim|sim-upstream)\//.test(path)&&/\.(?:js|mjs|css)$/.test(path))){
   const normalized=new URL(req.url,'http://localhost').pathname;
-  const dir=normalized.startsWith('/shared/')?root:normalized.startsWith('/sim/')?new URL('server/',root):new URL('public/',root);
+  const dir=normalized.startsWith('/shared/')?root:normalized.startsWith('/sim/')||normalized.startsWith('/sim-upstream/')?new URL('server/',root):new URL('public/',root);
   let response=codeResponses.get(normalized);
   if(!response){
    try{

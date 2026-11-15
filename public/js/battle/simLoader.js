@@ -25,7 +25,14 @@ let loadedScripts = false, loadedTraits = false, traitInstaller = null;
 export async function loadBrowserSim({ base = '/sim/', dataBase = '/data/', fetchFn = (...a) => globalThis.fetch(...a), data = null, cs = null, bounds = null,
   scripts = [], hashInput = null, nativeVerified = false, deferScripts = false, traitRuntimeVerified = null, reuse = null, reuseOwner = null, version = null } = {}) {
   // a 규정(规程) season's battles run upstream's simulation (server/sim-upstream/, served at /sim-upstream/), as on the server
-  if (base === '/sim/' && versionById(version)?.family === 'regulation') base = '/sim-upstream/';
+  // (also when only the data says so: a 규정 set's config, or the page's own data when it already holds a 규정 set — a
+  // 규정 battle on the 맹약 engine finds no 규정 kit and plays every such operator as a bare data skill)
+  const cfgOf = (c) => (c && typeof c === 'object' ? c : null);
+  let reusedConfig = null;
+  try { reusedConfig = !data && typeof reuse === 'function' ? cfgOf(reuse('config')) : null; } catch { reusedConfig = null; }
+  const family = versionById(version)?.family ?? cfgOf(data?.config)?.version?.family ?? reusedConfig?.version?.family ?? null;
+  if (base === '/sim/' && family === 'regulation') base = '/sim-upstream/';
+  if (!version && family === 'regulation') version = cfgOf(data?.config)?.version?.id ?? reusedConfig?.version?.id ?? null;
   const original = typeof reuse === 'function' && typeof reuseOwner === 'function' ? () => reuseOwner() === null : null;
   const release=globalThis.__SP_RELEASE || new URL(import.meta.url).searchParams.get('release');
   const pin = value => { if(!release || /^file:/.test(String(value)))return value;const u=new URL(value,globalThis.location.href);if(u.origin===globalThis.location.origin)u.searchParams.set('release',release);return u.href;};
@@ -55,6 +62,7 @@ export async function loadBrowserSim({ base = '/sim/', dataBase = '/data/', fetc
   // 규정 content set without it failed every battle start and the server took each field over ("plugin not responding")
   // (the content set's whole config when it carries one — the sim reads its season / modes / rules as the server does)
   if (data?.config && typeof data.config === 'object') raw.config = structuredClone(data.config);
+  else if (reusedConfig?.version?.family === 'regulation') raw.config = structuredClone(reusedConfig);
   else if (version && versionById(version)) raw.config = { version: { id: version, family: versionById(version).family } };
   // A prior simulation may have frozen these records. Clone only their outer timing targets;
   // preserve the shared authored trees and the local authoritative animation timing extension.
