@@ -31,6 +31,9 @@ export class Unit {
     for (const k of ['def', 'player', 'ownerUnit', 'kit', 'profile', 'skill', 'route', 'bossPool', 'blockedBy', 'blocking', 'carry', 'mem', 'trait', 'battle']) {
       Object.defineProperty(this, k, { value: null, writable: true, enumerable: false, configurable: true });
     }
+    // the battle (as in the 맹약 engine): range / tile keys read its grid — a 联防 joined stage is 37 columns wide, and
+    // without it every key fell back to 21 columns (operators on the far board had no range at all)
+    this.battle = init.battle ?? null;
     this.id = init.id;
     this.side = init.side;            // 'ally' | 'enemy'
     this.kind = init.kind;            // 'op' | 'token' | 'enemy' | 'device'

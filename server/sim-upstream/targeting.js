@@ -16,6 +16,7 @@
 // blocking the source included — GitHub #97; 迷彩 is not checked — DESIGN §22.12).
 
 import { COLS, ROWS } from './constants.js';
+const COLS_DEFAULT = COLS, ROWS_DEFAULT = ROWS;
 import { normDir, rotateOffset } from './dir.js';
 import { bodyDist, bodyOnTile } from './body.js';
 import { roundHalfEven } from './detmath.js';
@@ -24,7 +25,9 @@ import { roundHalfEven } from './detmath.js';
  * Build the absolute tile-key list of a grid for a unit standing at (r,c) facing `dir` ('UP'|'RIGHT'|'DOWN'|'LEFT';
  * a legacy facing sign ±1 is read as RIGHT / LEFT).
  */
-export function absoluteRangeKeys(grid, r, c, dir, extend = 0) {
+export function absoluteRangeKeys(grid, r, c, dir, extend = 0, dimensions = null) {
+  // the battle's grid (a 联防 joined stage is wider than 21 columns): keys must match the occupancy index r × cols + c
+  const COLS = dimensions?.cols ?? COLS_DEFAULT, ROWS = dimensions?.rows ?? ROWS_DEFAULT;
   const keys = [];
   const seen = new Set();
   const d = normDir(dir);
