@@ -106,7 +106,7 @@ function BondGroupPicker({ pub, canPick }) {
         <span class="brief-group__label">${t('그룹')} ${idx === 0 ? 'A' : 'B'}</span>
         <span class="brief-group__bonds">${g.map((b) => html`<span key=${b} class="brief-group__bond brief-bond">${/* the bond rows' own item (bondStrip.js HudBond) */''}<${HudBond} name=${gd.bond?.(b)?.name || b} icon=${bondIconUrl(data.get('assets'), b)}
           thresholds=${Number(gd.bond?.(b)?.thresholds?.[0]) || 1} tier=${choice.picked === idx ? Number(gd.bond?.(b)?.thresholds?.[0]) || 1 : 0}
-          active=${choice.picked === idx} disabled=${choice.picked != null && choice.picked !== idx} /></span>`)}</span>
+          active=${choice.picked === idx} disabled=${choice.picked != null && choice.picked !== idx} steps=${false} /></span>`)}</span>
         ${choice.picked === idx ? html`<span class="brief-group__mark"><${Icon} name="check" /></span>` : null}
       </button>`)}
     </div>

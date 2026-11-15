@@ -3806,5 +3806,6 @@
   "구역을 벗어나면 효과가 사라집니다. 비행 유닛에게는 적용되지 않습니다": "The effect ends on leaving the zone. Flying units are unaffected",
   "다른 시즌의 방": "A room of another season",
   "이 방은 {room} 시즌입니다. 참가하면 현재 {cur} 시즌에서 {room} 시즌으로 전환됩니다. 계속할까요?": "This room plays the {room} season. Joining switches you from the {cur} season to {room}. Continue?",
-  "전환하고 참가": "Switch and join"
+  "전환하고 참가": "Switch and join",
+  "동기화 시뮬레이션은 아직 사용할 수 없습니다. 실험실·연습실은 규정 데이터로 열 수 있습니다. 문제를 발견하면 알려 주세요.": "Synced simulation is not available yet. The laboratory and practice room open with the Regulation data. Please report any problems you find."
 }

@@ -109,7 +109,7 @@ export function MatchBondRow({ title, micro, bonds, model }) {
           <div class=${cx('brief-bond', off && 'is-off', state === 'drawn' && 'is-incomplete', !off && bannedN > 0 && 'is-partial')} data-bond=${b.bondId}>
             ${/* the official autochess HUD bond item (board ring + icon + name, bondStrip.js HudBond), as in battle */ ''}
             <${HudBond} name=${b.name} icon=${bondIconUrl(m, b.bondId)} thresholds=${Number(b.thresholds?.[0]) || 1} tier=${off ? 0 : Number(b.thresholds?.[0]) || 1}
-              active=${!off} disabled=${off} />
+              active=${!off} disabled=${off} steps=${false} />
             ${bannedN > 0 ? html`<span class="brief-bond__ban num"><${Icon} name="user" />${bannedN}</span>` : null}
           </div>
         <//>`;

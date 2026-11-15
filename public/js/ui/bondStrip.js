@@ -53,8 +53,10 @@ export function bondBoardProgress(th, count, active) {
  * (bondBoardKey), the bond's icon (36 px — black on a completed bond's filled disc, else light), the stack count on its
  * black matte (matte_num) over the ring's foot, the name under it. Without the board sprites the CSS disc stands in.
  */
-export function HudBond({ name, icon, thresholds, tier, layers, active, disabled = false, open = false, onClick, title }) {
+export function HudBond({ name, icon, thresholds, tier, layers, active, disabled = false, open = false, onClick, title, steps = true }) {
   const m = data.get('assets');
+  // steps false (the briefing, 시뮬레이션 정보): one unbroken ring, no member segments — lit when active
+  if (!steps) { thresholds = 1; tier = active && !disabled ? 1 : 0; }
   const n = Math.max(1, Math.min(4, thresholds | 0 || 1));
   const full = !disabled && (tier | 0) >= n;
   const ring = uiUrl(m, `bondBoardIcon/${bondBoardKey(n, disabled ? 0 : tier)}`);
