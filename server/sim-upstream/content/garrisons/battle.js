@@ -87,14 +87,14 @@ function farToothGrants() {
 // ---------------------------------------------------------------------------------------------------------------------
 // install
 
-function makeInstance(unit, g, grantedBy = null) {
+function makeInstance(unit, g, grantedBy = null, instanceKey = `native:${g.garrisonId}`) {
   const bb = g.bb || {};
   // a 规程 指令 may raise the per-battle cap (unit.commandLayerCapBonus, bandCommands.js)
   const cap = S.num(bb.max_add_count_per_battle, 0) > 0
     ? S.num(bb.max_add_count_per_battle) + S.num(unit.commandLayerCapBonus) : Infinity;
   return {
     unit, g, gid: g.garrisonId, key: g.effectKey, bb, bbStr: g.bbStr || {}, grantedBy,
-    cap, capKey: `gar:${g.garrisonId}:${unit.id}`, cnt: 0, k: -1,
+    cap, capKey: `gar:${g.garrisonId}:${unit.id}:${instanceKey}`, cnt: 0, k: -1,
   };
 }
 
@@ -150,8 +150,8 @@ function installLate(battle, unit) {
     const g = S.garrisonRecord(gid);
     if (!g || g.eventType !== 'IN_BATTLE') continue;
     if (!set) { set = new Set(); owned.set(unit, set); }
-    if (set.has(g.garrisonId)) continue;
-    set.add(g.garrisonId);
+    if (set.has(`native:${g.garrisonId}`)) continue;
+    set.add(`native:${g.garrisonId}`);
     const it = makeInstance(unit, g);
     fresh.push(it);
     battle._garInstances.push(it);
@@ -171,9 +171,12 @@ export function install(battle) {
   const add = (unit, g, grantedBy = null) => {
     let set = battle._garOwned.get(unit);
     if (!set) { set = new Set(); battle._garOwned.set(unit, set); }
-    if (set.has(g.garrisonId)) return null;
-    set.add(g.garrisonId);
-    const it = makeInstance(unit, g, grantedBy);
+    // 맹약 (server/sim/content/garrisons/battle.js): the same trait granted by different units is a separate instance with
+    // its own cap; a grant of a trait the unit has natively (or the same grant twice) adds nothing
+    const instanceKey = grantedBy ? `grant:${grantedBy.unit.id}:${grantedBy.gid}:${g.garrisonId}` : `native:${g.garrisonId}`;
+    if (set.has(instanceKey) || (grantedBy?.unit === unit && set.has(`native:${g.garrisonId}`))) return null;
+    set.add(instanceKey);
+    const it = makeInstance(unit, g, grantedBy, instanceKey);
     all.push(it);
     battle._garInstances.push(it);
     return it;
