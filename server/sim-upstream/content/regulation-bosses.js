@@ -427,7 +427,9 @@ function acidRain(b, e, sk) {
     if (!e.alive) { handle.cancel(); return; }
     for (const u of b.allies()) {
       if (!u.alive || String(u.ownerId ?? '') !== best) continue;
-      b.addBuff(u, { key: 'reg:acid', duration: iv + 0.15, refresh: 'replace', mods: { aspd } });
+      // visible: the snapshot's states carry it, so the client plays the rain's own effects on the unit
+      // (enemy_acspider_debuff_01 / _ground_01, render/vfx/wiring.js REGULATION_STATUS); display only
+      b.addBuff(u, { key: 'reg:acid', duration: iv + 0.15, refresh: 'replace', mods: { aspd }, visible: true });
       hurt(b, e, u, dmg, 'true');
     }
   }, { owner: e });

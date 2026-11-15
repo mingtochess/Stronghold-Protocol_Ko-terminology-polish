@@ -259,6 +259,10 @@ const ICE_TOKENS = new Set(['token_10058_sbell2_icetgt']);
  *  its effects: 乌尔比安's 方向, 塑心's 迷狂牢笼, 贝洛内's 牵绊, 予愿安洁莉娜's “一会儿见！”) draws no fallback diamond either.
  *  ICE_TOKENS keep their deliberate ice diamond. */
 const isBodylessToken = (id) => typeof id === 'string' && id.startsWith('token_') && !ICE_TOKENS.has(id);
+/** Enemies whose official prefab has no Spine and draws itself through its effects (tools/assets/versions.mjs
+ *  NO_SPINE_ENEMIES): 淤困之茧's cocoon is its Bundling loops (render/vfx/talents.js TARGETS_ON_OWN_TILE). The diamond
+ *  shows only while the official effects are off. */
+const FX_BODY_ENEMIES = new Set(['enemy_9036_acweb']);
 /**
  * Units that never show an HP bar: 琳琅诗怀雅's 香槟炸弹 — PRTS 香槟炸弹 备注 "即使自身生命值未满，模型下方也不会显示生命值槽"
  * (the owner's report of 2026-10-08, 「香槟会掉血，会被治疗」: the bar showed every change). Only the bar: its HP, the
@@ -2247,7 +2251,7 @@ export class UnitView {
     }
     // the diamond is only needed while no model shows (a cross-fade keeps whatever diamond was already up); a token the
     // official client draws with no model at all shows its effects only
-    if (!spineShown && this._noBody) this.fallback.visible = false;
+    if (!spineShown && (this._noBody || (FX_BODY_ENEMIES.has(this.info.defId) && !!(this.ctx.officialFor?.(this))))) this.fallback.visible = false;
     else if (!spineShown) this._ensurePicture();
     if (!spineShown || this.swapT < 1) {
       const size = s * UNIT.diamond * (this.isBoss ? 1.5 : 1);

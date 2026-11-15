@@ -2374,7 +2374,9 @@ const STATIC_BODIES = Object.freeze(new Set([
  * 妖怪's, drawn at 0.20), the small 岁 relics enlarged (铜灯盘 0.5, 青铜镜 0.6). The renderer draws every skeleton at one
  * UNIT.modelScale, so an enemy's `modelScale` = its prefab's product / 0.27 (4 decimals; absent when 1).
  * Values: tools/local-extract/enemy_scales.py over the local client (2026-10-01), keyed by prefab (enemy_database
- * `prefabKey`, "enemy_" dropped) and grouped by the product; every other prefab of data/enemies.json is 0.27.
+ * `prefabKey`, "enemy_" dropped) and grouped by the product; every other prefab of data/enemies.json is 0.27. The 规程
+ * prefabs the default data does not name: the same product over the CN client's battle/enm_pfb_*.ab (26-11-06) — 28
+ * non-standard, the rest of act3autochess-v3_1's enemies 0.27 (2026-11-15).
  */
 const MODEL_SCALE_STANDARD = 0.27;
 const MODEL_SCALES = new Map([
@@ -2382,7 +2384,7 @@ const MODEL_SCALES = new Map([
   [0.18, ['1042_frostd']],
   [0.19, ['1112_emppnt', '1112_emppnt_2']],
   [0.2, ['1005_yokai', '1040_bombd', '1041_lazerd', '1041_lazerd_2']],
-  [0.216, ['1067_snslime']],
+  [0.216, ['1067_snslime', '1067_snslime_2']],
   [0.22, ['1005_yokai_2', '1017_defdrn']],
   [0.23, ['1158_divman', '1161_tidmag', '1161_tidmag_2']],
   [0.24, ['1009_lurker', '1019_jshoot', '1019_jshoot_2', '1043_zomsbr', '1071_dftman', '1072_dlancer', '1116_liprr', '1116_liprr_2',
@@ -2390,13 +2392,14 @@ const MODEL_SCALES = new Map([
     '1183_mlasrt', '1195_sfyin', '1195_sfyin_2', '1197_sfshu', '1197_sfshu_2', '1199_sfjin', '1203_sfhu', '1203_sfhu_2', '1207_sfji',
     '1207_sfji_2', '1209_sfden', '1209_sfden_2', '1267_nhpbr', '1267_nhpbr_2', '1269_nhfly', '1270_nhstlk', '1270_nhstlk_2',
     '1272_nhtank', '1272_nhtank_2', '1273_stmgun_2', '1275_dwlock_2', '1500_skulsr', '2002_bearmi', '2003_rockman', '2004_balloon',
-    '2005_axetro', '2008_flking', '2034_sythef']],
-  [0.25, ['1166_dusbr', '1166_dusbr_2', '1169_duphlx', '1169_duphlx_2', '1229_darmy', '1229_darmy_2']],
+    '2005_axetro', '2008_flking', '2034_sythef', '1064_snsbr', '1132_sarchn', '1132_sarchn_2', '1213_mtrsnp', '1216_cansld', '1219_mtrbty']],
+  [0.25, ['1166_dusbr', '1166_dusbr_2', '1169_duphlx', '1169_duphlx_2', '1229_darmy', '1229_darmy_2', '1133_harchn', '1133_harchn_2', '1220_dzoms', '1220_dzoms_2', '1221_dzomg', '1221_dzomg_2', '1222_dpvt', '1222_dpvt_2', '1223_dmech', '1223_dmech_2', '1224_dsuply', '1224_dsuply_2', '1225_dkmage', '1225_dkmage_2', '1226_dklord', '1226_dklord_2']],
   [0.26, ['1000_gopro_2', '1023_jmage', '1025_reveng', '1026_aghost', '1046_agent', '1249_lysdb_2', '1251_lysyta', '1251_lysyta_2',
     '1252_lysytb_2', '1254_lypa_2', '1283_sgkill', '1283_sgkill_2', '1516_jakill', '1517_xi', '2001_duckmi']],
+  [0.264, ['1131_sbeast', '1131_sbeast_2']],
   [0.28, ['1006_shield', '1010_demon', '1010_demon_2', '1061_zomshd', '1062_rager_2', '1069_icebrk_2', '1119_vofsd', '1170_dushld',
-    '1170_dushld_2', '1172_dugago', '1172_dugago_2', '1174_duholy', '1174_duholy_2', '1175_dushdo_2', '2025_syufo']],
-  [0.29, ['1081_sotisd', '1513_dekght', '1513_dekght_2']],
+    '1170_dushld_2', '1172_dugago', '1172_dugago_2', '1174_duholy', '1174_duholy_2', '1175_dushdo_2', '2025_syufo', '1104_lfkght', '1104_lfkght_3']],
+  [0.29, ['1081_sotisd', '1513_dekght', '1513_dekght_2', '1103_wdkght_2']],
   [0.297, ['2009_csaudc']],
   [0.3, ['1001_bigbo', '1045_hammer', '1045_hammer_2', '1121_lifbos', '1121_lifbos_2', '1501_demonk', '1535_wlfmster']],
   [0.31, ['1006_shield_2']],

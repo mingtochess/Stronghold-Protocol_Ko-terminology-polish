@@ -64,6 +64,12 @@ import { UF } from '../../../../shared/constants.js';
 
 /** Battle seconds a non-oneshot cast effect lasts without its end event. */
 export const CAST_LOOP_S = 0.6;
+// 규정 sim statuses (server/sim-upstream/content/regulation-bosses.js, buffs marked visible) → the official effects the
+// client plays on the unit while it holds them: 假想敌：茧's 【悲惨之雨】 (acspider_2's AcidRain: its debuff on the unit and
+// the acid at its feet — both prefabs spawn at the unit, enemy_acspider_debuff_ground_01's _spawnLocation 5).
+export const REGULATION_STATUS = Object.freeze({
+  'reg:acid': Object.freeze(['enemy_acspider_debuff_ground_01', 'enemy_acspider_debuff_01']),
+});
 // Confirmed in each enemy's death/attack projectile, not inferred from the zone colour.
 const ENEMY_ZONES = Object.freeze({
   enemy_1267_nhpbr: ['pollution', 'projectile_enemy_nhpbr_polluted', 'toTargetOnStart'],
@@ -536,6 +542,8 @@ export class FxWiring {
       }
       const zone = ENEMY_ZONES[this.unitKeyOf(v)];
       if (zone) for (const k of this.idx.projectiles?.[zone[1]]?.[zone[2]] || []) keys.add(k);
+      // the 【悲惨之雨】 status effects (REGULATION_STATUS) land on the allies of the 茧 that casts it
+      if (this.unitKeyOf(v) === 'enemy_9035_acspider_2') for (const k of REGULATION_STATUS['reg:acid']) keys.add(k);
       if (u.startEffect) keys.add(u.startEffect);
       if (u.deadEffect) keys.add(u.deadEffect);
     }
@@ -1742,6 +1750,15 @@ export class FxWiring {
     if (!this.ofx.active) return false;
     if (prev && prev.alive) return true;
     // 보호막 / 쉴드: the unit's own prefab where it has one; a 쉴드 without one takes the generic loop, a 보호막 nothing
+    const reg = REGULATION_STATUS[name];
+    if (reg) {
+      // every prefab of the status, held as one loop (syncStatuses checks the slot's `alive`)
+      const hs = reg.filter((k) => this.ofx.lib.has(k)).map((k) => this.playOn(k, v, { follow: true, loop: true, important: true, depthOwner: v })).filter(Boolean);
+      if (!hs.length) return false;
+      const h = { get alive() { return hs.some((x) => x.alive); }, stop() { for (const x of hs) x.stop(); } };
+      this.loops.set(slot, h);
+      return true;
+    }
     const own = name === 'shield' || name === 'barrier' ? this.ownShieldKey(v) : undefined;
     const key = own || (name === 'shield' && own === undefined ? this.statusKey(name) : name === 'shield' || name === 'barrier' ? null : this.statusKey(name));
     if (!key) return false;
@@ -1775,6 +1792,8 @@ export class FxWiring {
 
   /** Resolve the official prefab of a standard status; custom debuffs have no entry. */
   statusKey(name) {
+    const reg=REGULATION_STATUS[name];
+    if(reg){const k=reg.find((x)=>this.ofx.lib.has(x));return k||null;}
     const key=this.idx?.generic?.status?.[name==='invuln'?'invulnerable':name];
     return key&&this.ofx.lib.has(lc(key))?lc(key):null;
   }
