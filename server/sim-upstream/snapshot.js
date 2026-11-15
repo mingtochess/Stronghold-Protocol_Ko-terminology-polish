@@ -25,6 +25,13 @@ import { enemyStealthed } from './targeting.js';
 const r2 = (v) => Math.round(v * 100) / 100;
 const r1 = (v) => Math.round(v * 10) / 10;
 
+
+/** Read each mystic kit's real store, including converted and elite energies (맹약 server/sim/snapshot.js). */
+export function storedEnergy(u) {
+  const n = u.profile?.energyCount ? u.profile.energyCount(u) : u.trait.stored;
+  return Math.max(0, Math.floor(Number(n) || 0));
+}
+
 /** Static per-unit info sent on spawn / in m.field. */
 export function unitInfo(u) {
   const d = u.def || {};

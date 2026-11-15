@@ -1,3 +1,4 @@
+import { storedEnergy } from './snapshot.js';
 // server/sim/ai.js — operator attack loop and enemy AI (route following, blocking, attacks) (DESIGN §5.5).
 //
 // Operators/tokens: attack cooldown counts down while able to act; when ready and a valid target exists the
@@ -71,7 +72,7 @@ export function effectiveProfile(u) {
     if (tg.maxTargets != null) p.maxTargets = tg.maxTargets;
     if (tg.priority) p.priority = tg.priority;
     if (tg.allInRange != null) p.allInRange = tg.allInRange;
-    if (tg.canHitFly != null) p.canHitFly = tg.canHitFly;
+    if (tg.canHitFly != null) { p.canHitFly = tg.canHitFly; if (tg.canHitFly) p.groundOnly = false; }
   }
   return p;
 }
@@ -180,7 +181,10 @@ function cancelWindup(b, u) {
  * 行为）": the attack interval starts again); with a full store it idles, ready to attack.
  */
 function storeEnergy(b, u, prof) {
-  if (prof.storeEnergy && prof.storeEnergy(b, u)) u.atkCd = Math.max(u.atkCd, u.s.interval);
+  if (prof.storeEnergy && prof.storeEnergy(b,u)) {
+    u.atkCd = Math.max(u.atkCd, u.s.interval);
+    b._ev(['energy',u.id,storedEnergy(u),u.s.interval]);
+  }
 }
 
 /** Release blocked enemies beyond the current block capacity (latest blocked first). */
@@ -250,6 +254,7 @@ function setFortressMelee(prof, state, v) {
  * written on `prof`: `{fortressMelee}` — a caller that must not touch the live profile passes a scratch object.
  */
 export function acquireTargets(b, u, prof, state = null) {
+  if (typeof prof.acquireTargets === 'function') return prof.acquireTargets(b,u);
   // a heal attack (医师 / 群愈师 / 疗养师 / 链愈师 / 行医, a skill attack turned into a heal) selects injured allies only,
   // never the enemies its unit blocks — a blocking healer keeps healing: PRTS 卫戍协议/帮助 "对于医疗干员（咒愈师分支除外），
   // 攻击目标为需要治疗的单位" (the blocked-first rule below is for attackers of enemies; community feedback after 0.1.0, E2)
@@ -317,14 +322,21 @@ function targetCount(u, prof) {
 
 /** Perform an attack/heal with profile `prof` against `targets`. opts: { noAmmo } (Battle.forceAttack). */
 export function performAttack(b, u, prof, targets, opts = null) {
+  // Capture the branch per strike so splash cannot leak into a blocked melee hit.
+  // acquireTargets determined melee/ranged mode; preserve that mode for the launched shell.
+  if (prof.fortress) prof = {...prof};
   const isSkill = !!prof.isSkill;
   if (b._hooks.beforeAttack) {
     const ctx = { attacker: u, targets, isSkill, profile: prof };
     b.emit('beforeAttack', ctx);
     targets = (ctx.targets || []).filter((t) => t && t.alive);
-    if (!targets.length || !u.alive) return;
+    if ((!targets.length && !prof.allowEmptyAttack) || !u.alive) return;
   }
   u.lastAttackAt = b.time;
+  if (prof.randomStrikeTargets > 0) {
+    const candidates = b.enemiesInKeys(u.rangeKeys, u, prof);
+    targets = Array.from({ length: prof.randomStrikeTargets }, () => b.rng.pick(candidates)).filter(Boolean);
+  }
   u.stats.attacks++;
   const attackId = ++b._attackSeq; // every damage instance of this attack (all targets, splash, chain) carries it
   const isHeal = !!(prof.heal && prof.dmgType === 'heal');
@@ -334,29 +346,61 @@ export function performAttack(b, u, prof, targets, opts = null) {
     u.mem.engaged = true;
     b._ev(['engage', u.id]);
   }
-  const ranged = !prof._fortressMelee && prof.attack === 'ranged' && prof.projectile && prof.projectile !== 'none' && prof.projectile !== 'beam';
-  const vis = prof._fortressMelee ? 'none' : (prof.projectile || 'none');
-  // 秘术师: the stored energies leave with this attack, at its main target (professions.js installMystic)
+  // `projectileHit` (tiles/s): a melee-class unit whose client attack is a RangedAttack all the same (予愿安洁莉娜's airborne
+  // skills: projectile_chr_aglna2_s* at speed 10) — its damage lands with the shot, not as it leaves
+  const ranged = !prof._fortressMelee && ((prof.attack === 'ranged' && prof.projectile && prof.projectile !== 'none' && prof.projectile !== 'beam') || prof.projectileHit > 0);
+  const vis = prof._fortressMelee ? 'none' : (prof.visualProjectile || prof.projectile || 'none');
   const energy = !isHeal && prof.releaseEnergy ? prof.releaseEnergy(b, u) : 0;
+  const strikeCount = prof.hitsFn ? prof.hitsFn(b, u, { isSkill, energy: 0 }) : Math.max(1, prof.hits || 1);
+  const equipmentStrikes = isHeal ? null : (prof.separateStrikes || prof.randomStrikeTargets > 0) ? targets.map(t => [t]) :
+    strikeCount > 1 || energy > 0 ? [
+      ...Array.from({ length: strikeCount }, () => targets),
+      ...Array.from({ length: energy }, () => targets.slice(0, 1)),
+    ] : null;
+  if (prof.releaseEnergy) b._ev(['energy',u.id,storedEnergy(u)]);
   for (let i = 0; i < targets.length; i++) {
     const t = targets[i];
-    b._ev(['atk', u.id, t.id, vis]);
+    // (a gapped separate strike after the first sends its 'atk' when it goes out)
+    const gapped = prof.strikeGap > 0 && !(energy > 0) && !isHeal && !prof.deferHit;
+    if (!(gapped && (prof.separateStrikes || prof.staggerTargets) && i > 0)) b._ev(['atk', u.id, t.id, vis, !!prof.allInRange, ...(opts?.attackInterval>0?[opts.attackInterval]:[])]);
+    if (prof.deferHit) continue; // authored attacks schedule their own landing damage
     if (isHeal) { doHeal(b, u, prof, t); continue; }
-    // Target acquisition mutates the fortress profile. Keep this shot's mode while its shell is in flight.
-    const info = { isSkill, index: i, attackId, fortressMelee: !!prof._fortressMelee, energy: i === 0 ? energy : 0 };
+    const info = { isSkill, index: i, attackId, fortressMelee: !!prof._fortressMelee, energy: i === 0 ? energy : 0, atk: prof.tags?.includes('wisdel-s3') || (isSkill && u.skill?.pending && u.findBuff('bond:raidShip')) ? u.s.atk : undefined };
     const foe = t.side === 'enemy' || b.isAllyTarget(t);
-    if (ranged && foe && prof.projectile === 'boomerang') {
-      throwBoomerang(b, u, prof, t, info);
-    } else if (ranged && foe) {
-      const speed = PROJECTILE_SPEEDS[prof.projectile] ?? PROJECTILE_SPEED;
-      // projectiles land even if the shooter died meanwhile (damage is credited to it)
-      b.addProjectile({ from: u, target: t, speed, visual: prof.projectile, source: u, hitDead: prof.splashRadius > 0,
-        onHit: (c) => resolveHit(b, u, prof, c.target, info, c.x, c.y) });
+    // one shot / swing of this attack on t (a projectile at range, else the hit at once)
+    const fire = (tt, inf) => {
+      if (ranged && foe && prof.projectile === 'boomerang') {
+        throwBoomerang(b, u, prof, tt, inf);
+      } else if (ranged && foe) {
+        const speed = prof.projectileHit > 0 ? prof.projectileHit : PROJECTILE_SPEEDS[prof.projectile] ?? PROJECTILE_SPEED;
+        // projectiles land even if the shooter died meanwhile (damage is credited to it)
+        b.addProjectile({ from: u, target: tt, speed, visual: prof.visualProjectile || prof.projectile, source: u, hitDead: prof.splashRadius > 0,
+          onHit: (c) => resolveHit(b, u, prof, c.target, inf, c.x, c.y) });
+      } else {
+        resolveHit(b, u, prof, tt, inf, tt.x, tt.y);
+      }
+    };
+    if (gapped) {
+      // 连击间隔 (the official Multi*Attack `_triggerDelta`): the strikes of one attack go out one after another, each its
+      // own shot — a separate-strike attack's k-th target, else this target's k-th hit — `strikeGap` s apart. A later
+      // strike needs its shooter still on the field and its target still alive [ASSUMED: the client's queued shots stop
+      // with the attacker; a dead target is not shot at again].
+      const each = prof.separateStrikes || prof.staggerTargets || strikeCount <= 1 ? [[i, info]] : Array.from({ length: strikeCount }, (_, h) => [h, { ...info, strikeHits: 1 }]);
+      const seq = u.deploySeq;
+      for (const [k, inf] of each) {
+        if (k === 0) { fire(t, inf); continue; }
+        b.after(k * prof.strikeGap, () => {
+          if (!u.alive || !u.deployed || u.deploySeq !== seq || !t.alive) return;
+          b._ev(['atk', u.id, t.id, vis, !!prof.allInRange]);
+          fire(t, inf);
+        }, { owner: u });
+      }
     } else {
-      resolveHit(b, u, prof, t, info, t.x, t.y);
+      fire(t, info);
     }
   }
-  if (b._hooks.attack) b.emit('attack', { attacker: u, targets, isSkill });
+  if (!targets.length && prof.allowEmptyAttack) b._ev(['atk', u.id, u.id, 'none', true]);
+  if (b._hooks.attack) b.emit('attack', { attacker: u, targets, isSkill, equipmentStrikes,...(opts?.attackInterval>0?{attackInterval:opts.attackInterval}:{}) });
   if (u.skill) u.skill.onAttackPerformed(targets, isSkill, !!(opts && opts.noAmmo));
   if (prof.afterAttack) b._safe(() => prof.afterAttack(b, u, targets), 'profile.afterAttack', u);
 }
@@ -387,6 +431,7 @@ function throwBoomerang(b, u, prof, t, info) {
       onHit: (r) => {
         if (!home() || !(u.trait.boomerangsOut > 0)) return;
         u.trait.boomerangsOut--;
+        if (!u.trait.boomerangsOut && prof.onBoomerangReturn) b._safe(() => prof.onBoomerangReturn(), 'boomerang.return', u);
         if (b._hooks.boomerangCaught) b.emit('boomerangCaught', { unit: u, attackId: info.attackId ?? 0, isSkill: !!info.isSkill, x: r.x, y: r.y });
       } });
   };
@@ -395,6 +440,7 @@ function throwBoomerang(b, u, prof, t, info) {
       // (guarded on its own: a content error in the hit must not cost the thrower its boomerang for the battle)
       if (c.target || prof.splashRadius > 0) b._safe(() => resolveHit(b, u, prof, c.target, info, c.x, c.y), 'boomerang.hit', u);
       if (!home()) return;
+      if (prof.onBoomerangTurn) b._safe(() => prof.onBoomerangTurn(c), 'boomerang.turn', u);
       if (typeof prof.boomerangOnward === 'function') {
         const ctx = { battle: b, unit: u, profile: prof, target: c.target, x: c.x, y: c.y, attackId: info.attackId ?? 0, isSkill: !!info.isSkill,
           home, comeBack, hit: (tgt, x, y) => b._safe(() => resolveHit(b, u, prof, tgt, info, x, y), 'boomerang.hit', u) };
@@ -406,7 +452,7 @@ function throwBoomerang(b, u, prof, t, info) {
 
 /** Apply one attack hit (called on impact for projectiles). `target` may be null (splash on a dead target's spot). */
 export function resolveHit(b, u, prof, target, info, x, y) {
-  const atk = u.s.atk;
+  const atk = info.atk ?? u.s.atk;
   const scale = (prof.atkScale ?? 1) * u.s.atkScaleMul;
   let dealtTotal = 0;
   const baseType = prof.dmgType === 'heal' || prof.dmgType === 'none' ? 'phys' : prof.dmgType;
@@ -435,7 +481,7 @@ export function resolveHit(b, u, prof, target, info, x, y) {
     if (!attachedFunnel) mulT *= funnelMul;
     // (a count from a kit, a trait or text is capped here too: an attack of a target that takes no damage would otherwise
     // loop as often as it says — DESIGN §32.5; official counts stay far below PLUGIN_TIMES_MAX)
-    const hits = Math.min(PLUGIN_TIMES_MAX, prof.hitsFn ? prof.hitsFn(b, u, info) : Math.max(1, prof.hits || 1));
+    const hits = info.strikeHits ?? Math.min(PLUGIN_TIMES_MAX, prof.hitsFn ? prof.hitsFn(b, u, info) : Math.max(1, prof.hits || 1));
     // `hitDmgMul` (professions.js header): each instance's 伤害倍率 — the DamageInfo `mul`, after DEF / RES — and only the
     // first instance may give 受击回复 (砾's two 50 % hits, PRTS 砾 特性备注)
     const split = Number.isFinite(prof.hitDmgMul) && prof.hitDmgMul > 0 ? prof.hitDmgMul : null;
@@ -447,8 +493,8 @@ export function resolveHit(b, u, prof, target, info, x, y) {
           isAttack: true, isSkill: info.isSkill, tags: prof.tags || [], attackId });
       }
     }
-    for (let h = 0; h < hits && target.alive; h++) { // loop-cap: hits ≤ PLUGIN_TIMES_MAX
-      const d = { amount: atk * scale * mulT * (attachedFunnel ? funnelMul : 1), type: baseType,
+    for (let h = 0; h < hits && target.alive; h++) {
+      const d = { amount: atk * scale * mulT * (attachedFunnel ? funnelMul : 1), expectedAmount: atk * scale, type: baseType,
         isAttack: !attachedFunnel, isSkill: info.isSkill, tags: attachedFunnel ? [...(prof.tags || []), 'addition', 'funnel'] : (prof.tags || []), attackId };
       if (split != null) { d.mul = split; if (h > 0) d.noSp = true; }
       dealtMain += b.dealDamage(u, target, d);
@@ -467,7 +513,7 @@ export function resolveHit(b, u, prof, target, info, x, y) {
       if (prof.groundOnly && e.isFlying) continue;
       if (!prof.canHitFly && e.isFlying && !prof.splashHitsFly) continue;
       if (e.s.flags.untargetable) continue;
-      const d = b.dealDamage(u, e, { amount: atk * scale * sc * skillMul, type: baseType, isAttack: true, isSplash: true, isSkill: info.isSkill, attackId });
+      const d = b.dealDamage(u, e, { amount: atk * scale * sc * skillMul, expectedAmount: atk * scale * sc, type: baseType, isAttack: true, isSplash: true, isSkill: info.isSkill, attackId });
       dealtTotal += d;
       if (each) each(e, d, 'splash');
     }
@@ -480,14 +526,14 @@ export function resolveHit(b, u, prof, target, info, x, y) {
     for (let k = 1; k < n; k++) {
       let best = null, bd = Infinity;
       for (const e of b.enemiesInRadius(prev.x, prev.y, prof.chain.radius || CHAIN_RADIUS)) {
-        if (hit.has(e.id) || !canTargetEnemy(u, e, prof)) continue;
+        if ((!prof.chain.repeat && hit.has(e.id)) || e === prev || !canTargetEnemy(u, e, prof)) continue;
         const d = hypot(e.x - prev.x, e.y - prev.y);
         if (d < bd - 1e-9 || (Math.abs(d - bd) <= 1e-9 && best && e.spawnSeq < best.spawnSeq)) { bd = d; best = e; }
       }
       if (!best) break;
       hit.add(best.id);
       b._ev(['atk', prev.id, best.id, 'chain']);
-      const d = b.dealDamage(u, best, { amount: atk * scale * skillMul * powi(1 - (prof.chain.falloff ?? 0.15), k), type: baseType, isAttack: true, isSkill: info.isSkill, tags: ['chain'], attackId });
+      const d = b.dealDamage(u, best, { amount: atk * scale * skillMul * powi(1 - (prof.chain.falloff ?? 0.15), k), expectedAmount: atk * scale * powi(1 - (prof.chain.falloff ?? 0.15), k), type: baseType, isAttack: true, isSkill: info.isSkill, tags: ['chain'], attackId });
       dealtTotal += d;
       if (prof.chain.sluggish && best.alive) b.applyStatus(best, 'sluggish', { duration: prof.chain.sluggish, source: u });
       if (each) each(best, d, 'chain');
@@ -495,7 +541,7 @@ export function resolveHit(b, u, prof, target, info, x, y) {
     }
     if (prof.chain.sluggish && target.alive) b.applyStatus(target, 'sluggish', { duration: prof.chain.sluggish, source: u });
   }
-  const hctx = { dealt: dealtTotal, x, y, isSkill: info.isSkill };
+  const hctx = { dealt: dealtTotal, x, y, isSkill: info.isSkill, atk, profile: prof };
   if (prof.afterHit) b._safe(() => prof.afterHit(b, u, target, hctx), 'profile.afterHit', u);
   if (prof.skillOnHit && u.skill) {
     const fn = prof.skillOnHit;
@@ -535,6 +581,9 @@ function doHeal(b, u, prof, t) {
   let amount = atk * scale;
   if (h.farMul && Math.max(Math.abs(t.tileR - u.tileR), Math.abs(t.tileC - u.tileC)) > (h.nearDist ?? 2)) amount *= h.farMul;
   if (h.elementHealRatio) b.healElement({ target: t, amount: atk * h.elementHealRatio });
+  if (typeof h.resolve === 'function') {
+    b._safe(() => h.resolve({ battle: b, unit: u, target: t, amount }), 'profile.heal.resolve', u);
+  } else {
   b.heal(u, t, amount);
   if (h.mode === 'chain') {
     const seen = new Set([t.id]);
@@ -548,6 +597,7 @@ function doHeal(b, u, prof, t) {
       b.heal(u, best, amount * powi(1 - (h.falloff ?? 0.25), k));
       prev = best;
     }
+  }
   }
   if (u.skill && u.skill.active && u.skill.spec.onHit) {
     const fn = u.skill.spec.onHit;
@@ -568,11 +618,13 @@ export function compileRoute(route, rect = null) {
   const cr = (r) => (rect ? Math.max(rect.r0, Math.min(rect.r1, r)) : r);
   const cc = (c) => (rect ? Math.max(rect.c0, Math.min(rect.c1, c)) : c);
   for (const cp of route.checkpoints || []) {
-    if (cp.type === 'MOVE') legs.push({ t: 'move', r: cr(cp.pos[0]), c: cc(cp.pos[1]) });
+    if (cp.type === 'MOVE' || cp.type === 'PATROL') legs.push({ t: 'move', r: cr(cp.pos[0]), c: cc(cp.pos[1]), ...(cp.type === 'PATROL' ? {patrol:true} : {}) });
     else if (cp.type === 'WAIT') legs.push({ t: 'wait', time: Number.isFinite(cp.time) ? Math.max(0, cp.time) : 0 });
     else if (cp.type === 'DISAPPEAR') legs.push({ t: 'disappear' });
     else if (cp.type === 'APPEAR') legs.push({ t: 'appear', r: cr(cp.pos[0]), c: cc(cp.pos[1]) });
   }
+  const firstPatrol=legs.findIndex(l=>l.patrol),lastPatrol=legs.findLastIndex(l=>l.patrol);
+  if (firstPatrol>=0) legs[lastPatrol].loopTo=firstPatrol;
   if (route.end) legs.push({ t: 'move', r: cr(route.end[0]), c: cc(route.end[1]), final: true });
   return legs;
 }
@@ -611,7 +663,7 @@ function planLeg(b, e, leg) {
     if (f) {
       let x = k;
       let guard = (b.grid?.cols ?? COLS) * 32;
-      while (x !== f.dest && guard-- > 0) { // loop-cap: flow-field guard
+      while (x !== f.dest && guard-- > 0) {
         x = f.next[x];
         if (x < 0) break;
         pts.push({ x: x % (b.grid?.cols ?? COLS), y: (x / (b.grid?.cols ?? COLS)) | 0 });
@@ -704,6 +756,13 @@ export function updateEnemy(b, e, dt) {
   // damage frame does not land, and the attack starts again from its wind-up afterwards (enemyAttack)
   if (e.swing && (stunned || e.hidden || unbalanced)) { e.swing = false; e.swingTargets = null; }
   // true: an unblocked ranged enemy in the wind-up of its next attack with a target in range (it stands)
+  // 맹약 (server/sim/ai.js updateEnemy): an enemy ability's own motion holds its attacks and its walk
+  if(b.time < (e.mem.abilityAnimUntil || 0) || (e.mem.visualShift && b.time<e.mem.visualShift[4]+e.mem.visualShift[5])) {
+    e.swing=false;e.swingTargets=null;e.atkStandUntil=-Infinity;e.moving=false;
+    if(!e.hidden && !stunned) b._checkBlock(e);
+    return;
+  }
+  // true: an unblocked ranged enemy in the wind-up of its next attack with a target in range (it stands)
   const winding = !e.hidden && !stunned && !unbalanced && enemyAttack(b, e, prevCd);
   if (!e.alive) return;
   // a stun / freeze / sleep cuts the attack clip short: no stand left once it ends [ASSUMED]. 沉睡 also holds 不可阻挡
@@ -737,7 +796,7 @@ export function updateEnemy(b, e, dt) {
   // (失衡免疫 says 「失衡期间无法自主移动」; no source exempts a fear). A channel is read from its buff, not a `noMove` flag:
   // `noMove` would also freeze a route WAIT / a portal, the leak and a 恐惧 — a channel only holds the walking.
   const channeling = !!e.findBuff('ab:channel');
-  const standing = winding || unbalanced || (channeling && !e.s.flags.fear) || (b.time < e.atkStandUntil && !e.s.flags.fear);
+  const standing = (winding && !(e.profile?.attackMoves ?? e.def?.attackMoves)) || unbalanced || (channeling && !e.s.flags.fear) || (b.time < e.atkStandUntil && !e.s.flags.fear);
   if (e.s.flags.noMove) { e.moving = false; return; }   // standing (a 重生, a form change): drawn idle, not walking
   // 恐惧 (ba.fear "无法被阻挡并四散逃跑"; PRTS 诱发移动: 恐惧 outranks 诱导): runs to random tiles of the fan away from
   // its source — a self-inflicted fear flutters inside its own tile (fear.js); the route re-plans once it ends
@@ -857,7 +916,7 @@ function advanceRoute(b, e, dt, R, standing = false) {
       if (leg.final) {
         if (!portalPickup(b, e)) { b.leak(e); return; }
       }
-      R.legIdx++;
+      R.legIdx = Number.isInteger(leg.loopTo) ? leg.loopTo : R.legIdx + 1;
       R.pts = null;
     }
   }
@@ -916,7 +975,7 @@ function portalPickup(b, e) {
 export function attackStand(e, out = { wind: 0, rest: 0 }) {
   out.wind = 0; out.rest = 0;
   if (e.profile?.attackMoves ?? e.def?.attackMoves) return out;
-  const a = clipTiming(e) || e.def?.attackAnim; // 맹약: the model's attack clip first (shared/attackTiming.js)
+  const a = clipTiming(e) || e.def?.attackAnim;
   if (!a || !(a.dur > 0)) { out.rest = ATTACK_PAUSE; return out; }
   const speed = clipSpeed(e, a);
   const hit = clipHit(a);
