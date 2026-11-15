@@ -2340,6 +2340,12 @@ const HIT_AREAS = Object.freeze({
   enemy_1521_dslily: { w: 4.95, h: 2.95, dx: 0, dy: 1 },
   enemy_9032_aclionk: { w: 4.95, h: 2.95, dx: 0, dy: 1 },
   enemy_9033_acdeer: { w: 4.95, h: 2.95, dx: 0, dy: 1 },
+  // 规程's fixed bosses 假想敌：械 / 假想敌：茧 (and their 隐秘核心 copies): the owner's rule (2026-11-15) — like the other
+  // fixed bosses (胄 / 管), the same collider [ASSUMED: PRTS values not read]
+  enemy_9029_acfnc: { w: 4.95, h: 2.95, dx: 0, dy: 1 },
+  enemy_9029_acfnc_2: { w: 4.95, h: 2.95, dx: 0, dy: 1 },
+  enemy_9035_acspider: { w: 4.95, h: 2.95, dx: 0, dy: 1 },
+  enemy_9035_acspider_2: { w: 4.95, h: 2.95, dx: 0, dy: 1 },
 });
 
 /**
