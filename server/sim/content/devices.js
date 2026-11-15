@@ -267,7 +267,7 @@ function tickTurret(battle, u, dt) {
 const CANNON_KEY = 'trap_196_cnnon';
 // interval: SP 12 (1 SP/s; the owner's figures: HP 20000 / ATK 800 / DEF 200 / RES 0 / SP 12); flight: the shell's air time
 const CANNON_STATS = Object.freeze({ maxHp: 20000, atk: 800, def: 200, res: 0 });
-const CANNON = Object.freeze({ interval: 12, reach: 4, splash: 1.5, carry: 1.1, maxWeight: 3, flight: 0.5 });   // (flight: 4 tiles at the client's lobbed-shell speed 8)
+const CANNON = Object.freeze({ interval: 12, reach: 4, splash: 1.5, carry: 1.1, maxWeight: 3, flight: 4 / 14 });   // (flight: 4 tiles at the drawn shell's speed, arrow 14)
 
 function startCannons(battle, st, devices) {
   for (const d of devices) {

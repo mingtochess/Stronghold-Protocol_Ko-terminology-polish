@@ -25,8 +25,8 @@ test('the cannon at (13,6) facing DOWN shells (9,6) every 12 s for 800 physical 
   h.step();
   const near = h.unit(1), far = h.unit(2);
   const hp0 = near.hp;
-  h.run(12.2);
-  assert.equal(near.hp, hp0, 'nothing before the first shell lands (12 s charge + 0.5 s flight)');
+  h.run(12.1);
+  assert.equal(near.hp, hp0, 'nothing before the first shell lands (12 s charge + 0.29 s flight)');
   h.run(1);
   assert.ok(near.hp < hp0, 'shell landed on (9,6)');
   assert.equal(far.hp, far.s.maxHp, 'an ally 4 tiles away is outside the 1.5 splash');

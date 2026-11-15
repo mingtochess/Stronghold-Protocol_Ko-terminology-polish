@@ -16,14 +16,14 @@ test('the 맹약 custom settings offer 규정 m09–m12 as additional battlefiel
   for (const id of ['act3autochess_m09', 'act3autochess_m10', 'act3autochess_m11', 'act3autochess_m12']) assert.ok(ids.includes(id), id);
 });
 
-test('m10 in the 맹약 sim: the cannon shells (9,6) every 12 s (shell lands 0.5 s later)', () => {
+test('m10 in the 맹약 sim: the cannon shells (9,6) every 12 s (shell lands 0.29 s later)', () => {
   setGameData(raw);
   const data = new DataSource({ ...raw, chess: { ...raw.chess, test_a: chessRec({ id: 'test_a', skill: null, hp: 100000, def: 0 }) } }, null);
   const h = makeBattle({ data, content: 'full', autoFinish: false, timeLimit: 30, stageId: 'act3autochess_m10',
     players: [{ playerId: 'p1', seat: 0, side: 'L', units: [{ uid: 1, kind: 'chess', chessId: 'test_a', row: 9, col: 6 }], bonds: {} }] });
   h.step();
   const u = h.unit(1), hp0 = u.hp;
-  h.run(12.2);
+  h.run(12.1);
   assert.equal(u.hp, hp0);
   h.run(1);
   assert.ok(u.hp < hp0);

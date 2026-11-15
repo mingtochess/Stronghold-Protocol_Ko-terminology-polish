@@ -1871,9 +1871,14 @@ export class FxSystem {
         break;
       }
       case 'howitzer': {
-        // 규정 염괴포: a lobbed shell (style 'bomb': a parabola over the line) from its barrel to the landing tile
+        // 규정 염괴포: 로사(char_197_poca)'s simple basic attack — the siegesniper shell of an 'arrow' (projectileStyle.js) —
+        // from its barrel to the landing tile
         const src = this._viewOf(ex.id ?? ex.src);
-        if (src) this._attack(src, { id: -1, x: at.x, y: at.y, info: {}, alive: true, isEnemy: false, _headTiles: 0.01 }, 'bomb');
+        if (src) {
+          const shooter = Object.create(src);
+          shooter.info = { ...src.info, charId: 'char_197_poca', subProf: 'siegesniper' }; shooter.isEnemy = false;
+          this._attack(shooter, { id: -1, x: at.x, y: at.y, info: {}, alive: true, isEnemy: false, _headTiles: 0.01 }, 'arrow');
+        }
         break;
       }
       case 'shell': {
