@@ -216,9 +216,9 @@ const DEVICE_TIPS = Object.freeze({
   // 염괴포 (server/sim-upstream/content/devices.js): an attackable enemy structure (나무위키 창백한 바다로부터의 탈출 §5)
   cannon: {
     lines: (st, d) => [
-      t('{s}초마다 앞쪽 4번째 칸에 포탄을 쏴, 떨어진 곳 1.5칸 안의 아군(공중 포함)에게 {atk}의 물리 대미지를 줍니다', { s: param(d.stats?.bat, 6), atk: param(d.stats?.atk, 1200) }),
+      t('{s}초마다 앞쪽 4번째 칸에 포탄을 쏴, 떨어진 곳 1.5칸 안의 아군(공중 포함)에게 {atk}의 물리 대미지를 줍니다', { s: 12, atk: 800 }),
       t('포탑 옆의 무게 3 이하 지상 적 1명을 포탄과 함께 떨어진 곳으로 보냅니다'),
-      t('적 구조물: 체력 {hp}, 방어력 {def}, 마법 저항 {res}. 아군이 공격해 파괴할 수 있지만 잘 노려지지 않습니다(도발 레벨 -1)', { hp: param(d.stats?.maxHp, 30000), def: param(d.stats?.def, 3000), res: param(d.stats?.res, 0) }),
+      t('적 구조물: 체력 {hp}, 방어력 {def}, 마법 저항 {res}. 아군이 공격해 파괴할 수 있지만 잘 노려지지 않습니다(도발 레벨 -1)', { hp: 20000, def: 200, res: 0 }),
       t('파괴되면 태우고 있던 적이 즉시 폭심지로 보내지고, 더는 포탄을 쏘지 않습니다. 기절·빙결·침묵·수면에 걸리지 않습니다'),
     ],
     facts: () => [t(BUILDABILITY.NONE)],

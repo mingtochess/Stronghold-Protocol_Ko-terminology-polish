@@ -181,6 +181,8 @@ export function unitTuple(u, t) {
     spMax = persona.duration;
     sp = Math.max(0, Math.min(spMax, persona.until - t));
   }
+  // a device's charge (규정 염괴포: its SP 12 between shots)
+  if (u.devSp) { spMax = u.devSp.max; sp = u.devSp.sp; }
   // hp is rounded up (a living unit never shows 0) but never above the rounded max HP
   const maxHp = Math.max(1, Math.round(u.s.maxHp));
   const hp = u.alive ? Math.min(Math.max(1, Math.ceil(u.hp)), maxHp) : 0;

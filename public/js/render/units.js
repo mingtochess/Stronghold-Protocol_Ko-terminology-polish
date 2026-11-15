@@ -2375,7 +2375,9 @@ export class UnitView {
     if(this.noteText){this.noteText.visible=showBars&&this.noteStacks>0;this.noteText.scale.set(clamp(s/90,.65,1));this.noteText.position.set(x0-1+18*clamp(s/90,.65,1),cy-3);this.noteIcon.visible=this.noteText.visible;this.noteIcon.width=this.noteIcon.height=16*clamp(s/90,.65,1);this.noteIcon.position.set(x0-1,cy-3);}
     // HP
     this.hpBg.visible = this.hpFill.visible = showHp;
-    this.hpGhost.visible = showHp && !off && this.ghostHp > this.hp + .5;
+    // the white trail of lost HP (both bar styles)
+    this.hpGhost.visible = showHp && this.ghostHp > this.hp + .5;
+    this.hpGhost.tint = 0xffffff;
     if (showHp) {
       const k = this.maxHp > 0 ? clamp(this.hp / this.maxHp, 0, 1) : 0;
       const g = this.maxHp > 0 ? clamp(this.ghostHp / this.maxHp, 0, 1) : 0;
@@ -3262,6 +3264,8 @@ export class DeviceView {
     this.info = { ...info };
     this.id = info.id; this.uid = null;
     this.isEnemy = false;
+    // 규정 염괴포: the map draws its own cannon model; the unit only adds the enemy-style HP and SP bars
+    this.cannon = info.defId === 'trap_196_cnnon';
     this.spec = deviceBoxOf(info.defId) || GENERIC_DEVICE;
     this.turret = this.spec === DEVICE_BOX.turret;
     this.x = Number(info.x) || 0; this.y = Number(info.y) || 0; this.z = 0;
@@ -3272,13 +3276,17 @@ export class DeviceView {
     this.screen = { x: 0, y: 0, s: 1, top: 0 };
     this.placed = false;
     this._headTiles = this.spec.height + 0.2;
-    this.box = ctx.createBox ? ctx.createBox(this.spec) : null;
+    this.box = !this.cannon && ctx.createBox ? ctx.createBox(this.spec) : null;
+    this.sp = 0; this.spMax = 0; this.ghostHp = this.hp;
     this.gfx = new P.Graphics();       // fallback body (no tile field) and the turret head
     ctx.layers.units.addChild(this.gfx);
     this.hud = new P.Container();
     ctx.layers.bars.addChild(this.hud);
     this.hpBg = bar(P, this.hud, COLORS.hpBack, 1);
-    this.hpFill = bar(P, this.hud, this.turret ? COLORS.hpAlly : 0xe0b877);
+    this.hpGhost = bar(P, this.hud, 0xffffff, 0.9);
+    this.hpFill = bar(P, this.hud, this.turret ? COLORS.hpAlly : this.cannon ? COLORS.hpEnemy : 0xe0b877);
+    this.spBg = bar(P, this.hud, COLORS.hpBack, 1);
+    this.spFill = bar(P, this.hud, COLORS.sp);
     this.camVersion = -1;
   }
   sync(s) {
@@ -3286,6 +3294,7 @@ export class DeviceView {
     this.x = s.x; this.y = s.y; this.z = groundZ(this.ctx, s.x, s.y);
     if (s.maxHp > 0) this.maxHp = s.maxHp;
     this.hp = clamp(s.hp, 0, this.maxHp); this.flags = s.flags | 0;
+    this.sp = Number(s.sp) || 0; this.spMax = Number(s.spMax) || 0;
   }
   setWorld(x, y, z = 0) { this.x = x; this.y = y; this.z = z; }
   onAttack(target) {
@@ -3323,19 +3332,31 @@ export class DeviceView {
       this.camVersion = cam.version;
       this._lastShake = !!shake;
       g.clear();
-      if (!this.box) drawCrate(g, cam, this.x + shake, this.y, this.z, size, height, 1);
+      if (!this.box && !this.cannon) drawCrate(g, cam, this.x + shake, this.y, this.z, size, height, 1);
       if (this.turret && height > 0.05) this._drawHead(g, cam, dt, height, k);
     }
     g.zIndex = zKey + 0.001;
     g.alpha = k;
     const p = cam.project(this.x, this.y, this.z + spec.height + 0.35, this.screen);
     this.placed = true;
-    const show = this.alive && this.hp < this.maxHp - 0.5;
+    // (the white trail of lost HP catches up over 0.3 s, as on the units)
+    this.ghostHp = this.ghostHp > this.hp ? Math.max(this.hp, this.ghostHp - Math.max(1, this.ghostHp - this.hp) * Math.min(1, dt / 0.3)) : this.hp;
+    const show = this.alive && (this.cannon || this.hp < this.maxHp - 0.5);
     this.hud.visible = show;
     if (show) {
       const bw = clamp(p.s * 0.7, 24, 90), bh = clamp(p.s * 0.06, 3, 6);
-      this.hpBg.position.set(p.x - bw / 2 - 1, p.y); this.hpBg.width = bw + 2; this.hpBg.height = bh + 2;
-      this.hpFill.position.set(p.x - bw / 2, p.y); this.hpFill.width = bw * clamp(this.hp / this.maxHp, 0, 1); this.hpFill.height = bh;
+      const x0 = p.x - bw / 2;
+      this.hpBg.position.set(x0 - 1, p.y); this.hpBg.width = bw + 2; this.hpBg.height = bh + 2;
+      this.hpGhost.visible = this.ghostHp > this.hp + 0.5;
+      this.hpGhost.position.set(x0, p.y); this.hpGhost.width = bw * clamp(this.ghostHp / this.maxHp, 0, 1); this.hpGhost.height = bh;
+      this.hpFill.position.set(x0, p.y); this.hpFill.width = bw * clamp(this.hp / this.maxHp, 0, 1); this.hpFill.height = bh;
+      const showSp = this.spMax > 0;
+      this.spBg.visible = this.spFill.visible = showSp;
+      if (showSp) {
+        const sh = Math.max(2, bh * 0.6), sy = p.y + bh + 2;
+        this.spBg.position.set(x0 - 1, sy); this.spBg.width = bw + 2; this.spBg.height = sh + 2;
+        this.spFill.position.set(x0, sy); this.spFill.width = bw * clamp(this.sp / this.spMax, 0, 1); this.spFill.height = sh;
+      }
     }
     this.screen.top = p.y;
   }

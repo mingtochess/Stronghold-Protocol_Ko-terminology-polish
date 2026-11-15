@@ -144,6 +144,8 @@ export function unitTuple(u, t) {
       sp = spMax * (sk.timeLeft / sk.duration);
     }
   }
+  // a device's charge (규정 염괴포: its SP 12 between shots)
+  if (u.devSp) { spMax = u.devSp.max; sp = u.devSp.sp; }
   // hp is rounded up (a living unit never shows 0) but never above the rounded max HP. A countdown summon (医疗探机, 海嗣 …:
   // content/tokens.js startCountdown) shows the share of its life left instead — its bar runs down like a timer and it
   // leaves when it is empty (community report of 2026-10-06; its HP itself never moves: 无敌, 禁疗)

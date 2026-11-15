@@ -1,5 +1,5 @@
-// 규정 m10's 盐坨子炮 (server/sim-upstream/content/devices.js): every 6 s a shell lands 4 tiles ahead of the cannon,
-// 1200 physical to allies within 1.5; a ground enemy of weight ≤ 3 next to the cannon rides it to the landing point.
+// 규정 m10's 盐坨子炮 (server/sim-upstream/content/devices.js): every 12 s (SP 12) a shell lands 4 tiles ahead of the cannon,
+// 800 physical to allies within 1.5; a ground enemy of weight ≤ 3 next to the cannon rides it to the landing point.
 import { test, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { getVersionData } from '../../server/data.js';
@@ -15,23 +15,23 @@ function battle({ enemies = [], units = [] } = {}) {
   const data = new DataSource({ ...raw,
     chess: { ...raw.chess, test_a: chessRec({ id: 'test_a', skill: null, hp: 100000, def: 0 }) },
     enemies: { ...raw.enemies, test_enemy: enemyRec({ key: 'test_enemy', hp: 100000, speed: 0 }) } }, null);
-  return makeBattle({ data, content: 'full', autoFinish: false, timeLimit: 20, stageId: 'act3autochess_m10', enemies,
+  return makeBattle({ data, content: 'full', autoFinish: false, timeLimit: 40, stageId: 'act3autochess_m10', enemies,
     players: [{ playerId: 'p1', seat: 0, side: 'L', units, bonds: {} }] });
 }
 
-test('the cannon at (13,6) facing DOWN shells (9,6) every 6 s for 1200 physical on allies within 1.5', () => {
+test('the cannon at (13,6) facing DOWN shells (9,6) every 12 s for 800 physical on allies within 1.5', () => {
   const h = battle({ units: [{ uid: 1, kind: 'chess', chessId: 'test_a', row: 9, col: 6 }, { uid: 2, kind: 'chess', chessId: 'test_a', row: 9, col: 10 }] });
   h.step();
   const near = h.unit(1), far = h.unit(2);
   const hp0 = near.hp;
-  h.run(5.5);
-  assert.equal(near.hp, hp0, 'nothing before the first shell (6 s charge)');
+  h.run(12.5);
+  assert.equal(near.hp, hp0, 'nothing before the first shell lands (12 s charge + 0.8 s flight)');
   h.run(1);
   assert.ok(near.hp < hp0, 'shell landed on (9,6)');
   assert.equal(far.hp, far.s.maxHp, 'an ally 4 tiles away is outside the 1.5 splash');
   const hit = hp0 - near.hp;
-  h.run(6);
-  assert.ok(Math.abs((hp0 - near.hp) - 2 * hit) < 1e-6, 'one shell per 6 s');
+  h.run(12);
+  assert.ok(Math.abs((hp0 - near.hp) - 2 * hit) < 1e-6, 'one shell per 12 s');
 });
 
 test('a light ground enemy beside the cannon rides the shell to the landing point', () => {
@@ -40,7 +40,7 @@ test('a light ground enemy beside the cannon rides the shell to the landing poin
   const e = h.b.enemies.find((x) => String(x.defId).endsWith('test_enemy'));
   assert.ok(e, 'enemy spawned');
   e.x = 6.4; e.y = 13;   // next to the cannon (13,6): within 1.1
-  h.run(5.5);
+  h.run(12.5);
   assert.ok(Math.abs(e.x - 6) < 1e-6 && Math.abs(e.y - 9) < 1e-6, `moved to the landing point, at ${e.x},${e.y}`);
 });
 
@@ -57,13 +57,13 @@ test('m09 隐匿模块 (w): an operator standing on it is hidden (隐匿)', () =
   assert.equal(h.unit(1).s.flags.stealth, true);
 });
 
-test('염괴포 is an enemy structure: HP 30000, DEF 3000, taunt -1, attackable and destroyable; not a kill, not a leak', () => {
+test('염괴포 is an enemy structure: HP 20000, DEF 200, taunt -1, attackable and destroyable; not a kill, not a leak', () => {
   const h = battle({});
   h.step();
   const cn = h.b.enemies.find((e) => e.defId === 'trap_196_cnnon');
   assert.ok(cn, 'the cannon is an enemy unit');
-  assert.equal(cn.s.maxHp, 30000);
-  assert.equal(cn.s.def, 3000);
+  assert.equal(cn.s.maxHp, 20000);
+  assert.equal(cn.s.def, 200);
   assert.equal(cn.s.res, 0);
   assert.equal(cn.counted, false);
   assert.equal(cn.mem.noLeak, true);
