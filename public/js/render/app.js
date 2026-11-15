@@ -709,6 +709,8 @@ export async function createFieldView(host, options = {}) {
   setupCleanup.push(() => pluginFx.destroy());
   const wiring = new FxWiring(ofx, {
     gameTime: () => interp.renderT,
+    // a tile's top (render/vfx/wiring.js: effects laid on map tiles, 【悲惨之雨】's field)
+    heightAt,
     speed: projSpeed,
     // the index unit of a battle unit: the drawn operator (a stand-in's, a 自选 pick's), the chess' operator, the enemy / token
     unitKey: (info) => {

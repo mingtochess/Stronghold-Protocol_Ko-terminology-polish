@@ -89,11 +89,15 @@ function optionDescription(entry,tab) {
  return {augments:'기본 4·7·10라운드에 선택',unlimitedHpLoss:'라운드당 HP 감소 상한 10 해제',sharedHp:'참가자 HP·손실 합산',scarecrow:'일반·히든 보스 → 비공격 제셀톤',unlimitedLayers:'999중첩 상한 해제',defaultHarmony:'조화 오퍼레이터 없이도 활성화',duplicateBands:'',unlimitedAspd:'공격속도 600 상한 해제 · 간격 최소 0.1초',skillMotionAspd:'고정 시전 스킬에 공격속도 적용'}[entry.id]||'';
 }
 
-export function CustomExtensionsDialog({ open, room, isHost, disabled, onClose, onSave, additionsOnly = false }) {
+export function CustomExtensionsDialog({ open, room, isHost, disabled, onClose, onSave, additionsOnly = false, hideTabs = [] }) {
+  // hideTabs: categories a caller leaves out (규정 실험실 / 연습실: no 맹약 추가, 실험실 also no 공통 적용 전략); their
+  // selection is saved empty
+  const hidden = new Set(hideTabs);
   // another season (규정): only its own data filters (shared/seasonExtensions.js), listed from its own tables
   const season = !!room?.version && room.version !== DEFAULT_VERSION;
   const [tab,setTab] = useState(season ? 'rules' : 'bonds');
   useEffect(()=>{if(open&&season&&(!SEASON_EXTENSION_CATEGORIES.includes(tab)||(tab==='forcedBonds'&&room.mode==='solo')))setTab('rules');},[open,season]);
+  useEffect(()=>{if(open&&hidden.has(tab))setTab('rules');},[open,hideTabs.join()]);
   const [initial,setInitial]=useState(null),[tierFilter,setTierFilter]=useState(0),[bondFilter,setBondFilter]=useState('');
   const [query,setQuery]=useState('');
   const [notice,setNotice]=useState('');
@@ -152,10 +156,10 @@ export function CustomExtensionsDialog({ open, room, isHost, disabled, onClose, 
   const presetMenu=isHost&&!additionsOnly&&!season?html`<span class="extension-mode-loads" role="group" aria-label="모드 기본 설정 불러오기">${builtinExtensionPresets().map(p=>html`<${Button} key=${p.id} variant="ghost" size="sm" icon="load" title=${p.name+' 기본 설정으로 바꿉니다. 적용을 눌러야 방에 반영됩니다.'} disabled=${disabled||!tables} onClick=${()=>{applyDraft(resolveExtensionPreset(p,catalog));setPresetId('');setPresetName('');}}>${p.name} 불러오기<//>`)}</span>${presetMenu0}`:null;
   return html`<${Modal} open=${open} title="커스텀 설정" micro="CUSTOM EXTENSIONS" class="custom-ext ui-editor" width="min(15rem,96vw)" onClose=${onClose}
     actions=${html`<${ChangeCount} count=${changes}/><span class="editor-status" aria-live="polite">${notice || (errors.length?errors.join(' '):loadError||(!tables?'목록 불러오는 중…':(additionsOnly?'실험실에 추가할 커스텀 콘텐츠를 선택하세요.':'최소 구성 조건 충족')))}</span>${isHost?html`<${Button} variant="ghost" disabled=${disabled||!tables} onClick=${resetSettings}>초기화<//>`:null}<${Button} variant="secondary" onClick=${onClose} disabled=${disabled}>${isHost ? '취소' : '닫기'}<//>
-      ${isHost ? html`<${Button} variant="primary" disabled=${disabled || !tables || errors.length>0} onClick=${()=>onSave(additionsOnly?{bonds:draft.bonds,stages:draft.stages,rules:draft.rules||[],commonBands:draft.commonBands||[],...(draft.ruleValues?{ruleValues:draft.ruleValues}:{})}:draft)}>적용<//>` : null}`}>
+      ${isHost ? html`<${Button} variant="primary" disabled=${disabled || !tables || errors.length>0} onClick=${()=>onSave(additionsOnly?{bonds:hidden.has('bonds')?[]:draft.bonds,stages:draft.stages,rules:draft.rules||[],commonBands:hidden.has('commonBands')?[]:draft.commonBands||[],...(draft.ruleValues?{ruleValues:draft.ruleValues}:{})}:draft)}>적용<//>` : null}`}>
     <div class="settings-head"><p class="lo-note">${additionsOnly?'선택한 커스텀 콘텐츠를 실험실에 추가합니다. 전장·전략 목록과 전투에 함께 적용됩니다.':isHost?'설정은 방 전체에 적용됩니다. 초기화 후 적용을 누르면 기본 설정으로 변경됩니다.':'방장이 선택한 구성이 방 전체에 적용됩니다.'}</p>${presetMenu}</div>
     <div class="extensions-layout"><nav class="extensions-nav" aria-label="설정 분류"><input class="editor-search extensions-search" type="search" aria-label="설정 목록 검색" placeholder="전체 설정 검색" value=${query} onInput=${e=>setQuery(e.target.value)}/><div class="extensions-menu"><h3>규칙</h3>
-      ${EXTENSION_CATEGORIES.filter(c=>!season||(SEASON_EXTENSION_CATEGORIES.includes(c.id)&&!(c.id==='forcedBonds'&&room.mode==='solo'))).filter(c=>additionsOnly?['rules','allies','enemyStats','bossStats','commonBands','bonds','stages'].includes(c.id):!['protectedBonds','protectedAuxBonds',...(room.mode==='coop8'?['forcedBonds','forcedAuxBonds','disabledBonds']:[])].includes(c.id)).map((c,i)=>html`<${Fragment}>${c.id==='bonds'?html`<h3>추가 확장</h3>`:c.id==='forcedBonds'?html`<h3>금지 단계</h3>`:c.id==='disabledBonds'?html`<h3>콘텐츠 비활성화</h3>`:null}<button type="button" id=${'ext-tab-'+c.id} aria-controls=${'ext-panel-'+c.id} aria-pressed=${tab===c.id} class=${tab===c.id?'is-on':''} onClick=${()=>setTab(c.id)} data-dim=${!!query&&!matchCount(c.id)}><${Icon} name=${CATEGORY_ICONS[c.id]} /><span class="extensions-nav__label">${c.name}</span>${query?html`<span class="num num--match" title="검색 결과">${matchCount(c.id)||''}</span>`:html`<${NavCount} n=${tabCount(c.id)}/>`}</button><//>`)}
+      ${EXTENSION_CATEGORIES.filter(c=>!season||(SEASON_EXTENSION_CATEGORIES.includes(c.id)&&!(c.id==='forcedBonds'&&room.mode==='solo'))).filter(c=>!hidden.has(c.id)).filter(c=>additionsOnly?['rules','allies','enemyStats','bossStats','commonBands','bonds','stages'].includes(c.id):!['protectedBonds','protectedAuxBonds',...(room.mode==='coop8'?['forcedBonds','forcedAuxBonds','disabledBonds']:[])].includes(c.id)).map((c,i)=>html`<${Fragment}>${c.id==='bonds'?html`<h3>추가 확장</h3>`:c.id==='forcedBonds'?html`<h3>금지 단계</h3>`:c.id==='disabledBonds'?html`<h3>콘텐츠 비활성화</h3>`:null}<button type="button" id=${'ext-tab-'+c.id} aria-controls=${'ext-panel-'+c.id} aria-pressed=${tab===c.id} class=${tab===c.id?'is-on':''} onClick=${()=>setTab(c.id)} data-dim=${!!query&&!matchCount(c.id)}><${Icon} name=${CATEGORY_ICONS[c.id]} /><span class="extensions-nav__label">${c.name}</span>${query?html`<span class="num num--match" title="검색 결과">${matchCount(c.id)||''}</span>`:html`<${NavCount} n=${tabCount(c.id)}/>`}</button><//>`)}
       </div>
 
     </nav><section class="extensions-editor" id=${'ext-panel-'+tab} aria-labelledby=${'ext-tab-'+tab}>

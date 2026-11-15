@@ -423,6 +423,18 @@ function acidRain(b, e, sk) {
   const iv = Math.max(0.05, bb(sk, 'interval', 0.5));
   const dmg = bb(sk, 'damage', 75);
   const aspd = bb(sk, 'attack_speed', -50);
+  // display only: the field the rain covers — every tile of that player's half of the battle rect (the whole rect
+  // alone), for the client's per-tile enemy_acspider_debuff_ground_01 (render/vfx/wiring.js acidRain)
+  {
+    const R = b.rect, half = b.players.length > 1 ? b.players.find((p) => String(p.playerId) === best)?.half : null;
+    const tiles = [];
+    for (let r = R.r0; r <= R.r1; r++) for (let c = R.c0; c <= R.c1; c++) {
+      if (half === 'L' ? c >= 11 : half === 'R' ? c < 11 : false) continue;
+      const t = b.grid.tile(r, c);
+      if (t.pass === 'ALL' || t.build !== 'NONE') tiles.push(r, c);   // the field's ground and deployable tiles, no walls
+    }
+    b.fx('acidRain', { x: e.x, y: e.y, id: e.id, dur, tiles });
+  }
   const handle = b.every(iv, () => {
     if (!e.alive) { handle.cancel(); return; }
     for (const u of b.allies()) {

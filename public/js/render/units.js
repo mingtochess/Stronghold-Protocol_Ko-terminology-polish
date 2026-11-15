@@ -696,7 +696,7 @@ export class UnitView {
     this.fixedFacing = (this.isEnemy && FIXED_FACING[info.defId]) || 0;
     this.hudDx = (this.isEnemy && BOSS_HUD_DX[info.defId]) || 0;
     // a boss that does not walk (move speed ≤ 0.1: 盐风主教昆图斯, 假想敌：胄 …) — its official HP bar spans its body
-    { const ms = Number((ctx.lookupDef ? ctx.lookupDef(info) : null)?.stats?.moveSpeed); this.fixedBoss = this.isBoss && Number.isFinite(ms) && ms <= 0.1; }
+    { const ms = Number((ctx.lookupDef ? ctx.lookupDef(info) : null)?.stats?.moveSpeed); this.fixedBoss = this.isBoss && ((Number.isFinite(ms) && ms <= 0.1) || info.fixed === true); }
     // enemies: the official prefab's size factor (1 for operators, summons and enemies at the standard size)
     this.modelK = this.isEnemy ? Number(info.modelScale)>0?Number(info.modelScale):enemyModelScale(ctx.lookupDef ? ctx.lookupDef(info) : null) : 1;
     this.isToken = info.kind === 'token';
