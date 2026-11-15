@@ -1520,7 +1520,8 @@ export class BoardScene {
       this.meshes.infectionRise=this._mesh({position:new Float32Array(position),normal:new Float32Array(position.length),uv:new Float32Array(uv),index:new Uint16Array(index)},this.mat.infectionRise,{cast:false,receive:false,order:4});
     }
     // 규정 加速 tiles: drawn over native and procedural boards alike (the converted scenes carry no marking of their own)
-    if (board.terrain.speedup?.length) this.meshes.speedup = this._mesh(quads(board.terrain.speedup, (r,c)=>((this.originalStage || this.official) ? this._nativeTileHeight(board,r,c) : 0)+.02, 0.02), this.mat.speedup, {cast:false,receive:false,order:3});
+    // (the original map model draws its own 加速 tiles: the procedural chevrons only on a drawn board)
+    if (board.terrain.speedup?.length && !this.originalStage) this.meshes.speedup = this._mesh(quads(board.terrain.speedup, (r,c)=>((this.originalStage || this.official) ? this._nativeTileHeight(board,r,c) : 0)+.02, 0.02), this.mat.speedup, {cast:false,receive:false,order:3});
     // Native stage meshes already contain these environmental tile surfaces.
     if ((this.originalStage || this.official)) return;
     const T = board.terrain;

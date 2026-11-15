@@ -3800,5 +3800,8 @@
   "{s}초마다 앞쪽 4번째 칸에 포탄을 쏴, 떨어진 곳 1.5칸 안의 아군(공중 포함)에게 {atk}의 물리 대미지를 줍니다": "Every {s}s it fires a shell 4 tiles ahead, dealing {atk} physical damage to allies (aerial included) within 1.5 tiles of the impact",
   "포탑 옆의 무게 3 이하 지상 적 1명을 포탄과 함께 떨어진 곳으로 보냅니다": "Sends 1 adjacent ground enemy of weight 3 or less to the impact point with the shell",
   "적 구조물: 체력 {hp}, 방어력 {def}, 마법 저항 {res}. 아군이 공격해 파괴할 수 있지만 잘 노려지지 않습니다(도발 레벨 -1)": "Enemy structure: HP {hp}, DEF {def}, RES {res}. Your units can attack and destroy it, but rarely target it (taunt level -1)",
-  "파괴되면 태우고 있던 적이 즉시 폭심지로 보내지고, 더는 포탄을 쏘지 않습니다. 기절·빙결·침묵·수면에 걸리지 않습니다": "When destroyed, its rider is sent to the blast centre at once and it fires no more. Immune to stun, freeze, silence and sleep"
+  "파괴되면 태우고 있던 적이 즉시 폭심지로 보내지고, 더는 포탄을 쏘지 않습니다. 기절·빙결·침묵·수면에 걸리지 않습니다": "When destroyed, its rider is sent to the blast centre at once and it fires no more. Immune to stun, freeze, silence and sleep",
+  "가속 구역": "Acceleration Zone",
+  "이 위에 선 지상 유닛(아군·적 모두)은 공격 속도 +{aspd}, 이동 속도 ×{move}": "Ground units standing on it (allies and enemies) get ATK speed +{aspd} and move speed ×{move}",
+  "구역을 벗어나면 효과가 사라집니다. 비행 유닛에게는 적용되지 않습니다": "The effect ends on leaving the zone. Flying units are unaffected"
 }

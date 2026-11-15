@@ -69,6 +69,17 @@ const TERRAIN_TIPS = Object.freeze({
       t('은신 중에는 상대의 원거리 공격 대상으로 선택되지 않지만, 저지 중인 상대에게는 공격받습니다'),
     ],
   },
+  // 규정 加速 (tile_speedup, devices.js TERRAIN.speedup): stage.special.speedup, else the official 25 / ×1.5
+  speedup: {
+    name: N_('가속 구역'), tag: N_('特殊地形'),
+    lines: (st) => {
+      const b = isObj(st?.speedup) ? st.speedup : {};
+      return [
+        t('이 위에 선 지상 유닛(아군·적 모두)은 공격 속도 +{aspd}, 이동 속도 ×{move}', { aspd: param(b.attack_speed, 25), move: param(b.move_speed, 1.5) }),
+        t('구역을 벗어나면 효과가 사라집니다. 비행 유닛에게는 적용되지 않습니다'),
+      ];
+    },
+  },
   // 울타리 (tile_fence_bound): ground units cannot pass, operators deploy on it
   fence: {
     name: N_('울타리'), tag: N_('特殊地形'),
@@ -106,7 +117,7 @@ const TERRAIN_TIPS = Object.freeze({
 });
 
 /** Tile keys that carry a tip of their own although the legend gives them no `special` tag (gates, teleports). */
-const TIP_BY_TILEKEY = Object.freeze({ tile_start: 'start', tile_end: 'end', tile_telin: 'telin', tile_telout: 'telout', tile_fence_bound: 'fence', tile_fence: 'fence' });
+const TIP_BY_TILEKEY = Object.freeze({ tile_start: 'start', tile_end: 'end', tile_telin: 'telin', tile_telout: 'telout', tile_fence_bound: 'fence', tile_fence: 'fence', tile_speedup: 'speedup' });
 /** 深水区's own legend entry is the one tile whose mechanism overrides the level's buildableType (grid.js DEPLOY_REFUSED_TILES). */
 const BUILDABILITY = Object.freeze({ ALL: N_('可部署'), MELEE: N_('仅近战位可部署'), RANGED: N_('仅远程位可部署'), NONE: N_('不可部署') });
 
