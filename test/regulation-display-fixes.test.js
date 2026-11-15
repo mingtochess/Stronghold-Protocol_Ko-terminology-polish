@@ -56,3 +56,50 @@ test('【悲惨之雨】 sends the field it covers (every ground / deployable ti
   }
   assert.ok(h.b.allies()[0].buffs.some((b) => b.key === 'reg:acid' && b.visible), 'the unit status the client draws');
 });
+
+// display-only signals of the other 규정 bosses (render/vfx/wiring.js REGULATION_HITS / REGULATION_POINT_FX / ECHO_SWITCH,
+// REGULATION_STATUS 'reg:evade'): each fires where its official effect plays
+function bossFight(key, extra = []) {
+  setGameData(raw);
+  const data = new DataSource({ ...raw, chess: { ...raw.chess, t0: chessRec({ id: 't0', skill: null, stats: { maxHp: 60000, atk: 300, def: 300 } }) } }, null);
+  const wait = (r, c) => ({ motion: 'WALK', start: [r, c], end: [r, c], steps: [{ t: 'wait', s: 999 }] });
+  const h = makeBattle({ data, content: 'full', autoFinish: false, timeLimit: 120, seed: 11,
+    enemies: [[key, [10, 9]], ...extra].map(([k, at]) => ({ key: k, time: 0, pos: { row: at[0], col: at[1] }, route: wait(...at) })),
+    players: [{ playerId: 'p1', seat: 0, side: 'L', units: [[1, 10, 3], [2, 10, 5], [3, 11, 4], [4, 9, 6], [5, 12, 7]].map(([uid, row, col]) => ({ uid, kind: 'chess', chessId: 't0', row, col })), bonds: {} }] });
+  const fx = [];
+  const of = h.b.fx.bind(h.b);
+  h.b.fx = (k, o) => { fx.push([k, o]); return of(k, o); };
+  h.step();
+  return { h, fx, boss: h.b.enemies.find((e) => e.defId === key) };
+}
+
+test('假想敌：铳 / “碎铳之簧”: a regHit on every unit the charge or the chase tramples', () => {
+  const { h, fx } = bossFight('enemy_9017_achunt_2', [['enemy_9018_actrpa', [9, 8]], ['enemy_9019_actrpb', [11, 8]], ['enemy_9020_actrpc', [12, 9]]]);
+  h.run(90);
+  const hits = fx.filter(([k]) => k === 'regHit').map(([, o]) => o);
+  assert.ok(hits.some((o) => o.kind === 'finalPenance' && h.b.units.some((u) => u.id === o.target)));
+  assert.ok(hits.some((o) => o.kind === 'springChase'));
+});
+
+test('阿利斯泰尔: an equipDie where each animated piece of equipment ends', () => {
+  const { h, fx } = bossFight('enemy_9032_aclionk');
+  h.run(90);
+  const dies = fx.filter(([k]) => k === 'equipDie').map(([, o]) => o);
+  assert.ok(dies.length > 0);
+  for (const o of dies) assert.match(h.b.units.find((u) => u.id === o.id)?.defId || '', /^enemy_100(28_vtswd|29_vtshld|30_vtwand)$/);
+});
+
+test('矩兽: a regBurst at its death; 假想敌：茧: its 伪装 buff is visible; “余音”: a switch carries `from`', () => {
+  const beast = bossFight('enemy_2124_dyjsfg');
+  beast.h.run(1); beast.h.b.kill(beast.boss, null);
+  assert.ok(beast.fx.some(([k, o]) => k === 'regBurst' && o.kind === 'beastOutOfControl'));
+  const spider = bossFight('enemy_9035_acspider');
+  spider.boss.hp = spider.boss.s.maxHp * 0.7;
+  spider.h.run(1);
+  assert.ok(spider.boss.buffs.some((b) => b.key === 'reg:evade' && b.visible));
+  const pipe = bossFight('enemy_9021_acduml');
+  pipe.h.run(90);
+  const phases = pipe.fx.filter(([k, o]) => k === 'phase' && /^echo_/.test(o.kind)).map(([, o]) => o);
+  assert.ok(phases.some((o) => o.from), 'a switch from the other form');
+  assert.ok(phases.some((o) => !o.from), 'a summon (no switch)');
+});

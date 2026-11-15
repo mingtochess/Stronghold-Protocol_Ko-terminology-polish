@@ -68,6 +68,28 @@ export const CAST_LOOP_S = 0.6;
 // client plays on the unit while it holds them: 假想敌：茧's 【悲惨之雨】 (acspider_2's AcidRain: its debuff on the unit).
 export const REGULATION_STATUS = Object.freeze({
   'reg:acid': Object.freeze(['enemy_acspider_debuff_01']),
+  // 假想敌：茧's 伪装 (Talents/Evade: acspider[evade-ticker] → enemy_acspider_buff_mask_01 on itself)
+  'reg:evade': Object.freeze(['enemy_acspider_buff_mask_01']),
+});
+// 규정 bosses' official hits on the units their moves trample (sim fx 'regHit' `kind`, display only): 假想敌：铳's
+// 【最终之罚】 charge (skill 3: achunt_line_damage → enemy_achunt_chain_hit on its targets) and the “碎铳之簧” of 【末日布道】
+// (MoveToHunter Talents/2: actrpa_s_1[damage] → enemy_actrpa_skill_a_hit)
+export const REGULATION_HITS = Object.freeze({ finalPenance: 'enemy_achunt_chain_hit', springChase: 'enemy_actrpa_skill_a_hit' });
+// effects played where something ends (sim fx `kind` → keys at its point): 阿利斯泰尔's 【莫非王土】 animating a piece of
+// equipment (store / storeA: enemy_vtlionk_s2 ON_BUFF_START on the piece — its three layers), 矩兽's 失控 blast at its death
+// (Talents/OutOfControll ON_OWNER_FINISH)
+export const REGULATION_POINT_FX = Object.freeze({
+  equipDie: Object.freeze(['enemy_vtlionk_skill_02_trap_die_01', 'enemy_vtlionk_skill_02_trap_die_02', 'enemy_vtlionk_skill_02_trap_die_03']),
+  beastOutOfControl: Object.freeze(['enemy_dyjsfg_skill_02_range_02']),
+});
+// “余音”'s mode switch (Talents/1 / 2 switchMode → enemy_acdums_switch on itself)
+export const ECHO_SWITCH = 'enemy_acdums_switch';
+// the keys above, preloaded with the unit that brings them (keysFor)
+const REGULATION_PRELOAD = Object.freeze({
+  enemy_9035_acspider: ['enemy_acspider_buff_mask_01'],
+  enemy_9017_achunt: [REGULATION_HITS.finalPenance], enemy_9018_actrpa: [REGULATION_HITS.springChase],
+  enemy_9032_aclionk: REGULATION_POINT_FX.equipDie, enemy_2124_dyjsfg: REGULATION_POINT_FX.beastOutOfControl,
+  enemy_9023_acdums: [ECHO_SWITCH],
 });
 // 【悲惨之雨】's field: enemy_acspider_debuff_ground_01 (a one-tile ground decal: its bace / ground meshes 0.92 / 1 tile)
 // on every tile of the field the sim's 'acidRain' fx names, for its duration — the rain covers the field, whoever stands
@@ -548,6 +570,7 @@ export class FxWiring {
       if (zone) for (const k of this.idx.projectiles?.[zone[1]]?.[zone[2]] || []) keys.add(k);
       // the 【悲惨之雨】 status effects (REGULATION_STATUS) land on the allies of the 茧 that casts it
       if (this.unitKeyOf(v) === 'enemy_9035_acspider_2') { for (const k of REGULATION_STATUS['reg:acid']) keys.add(k); keys.add(ACID_RAIN_GROUND); }
+      for (const k of REGULATION_PRELOAD[String(this.unitKeyOf(v) || '').replace(/_\d+$/, '')] || []) keys.add(k);
       if (u.startEffect) keys.add(u.startEffect);
       if (u.deadEffect) keys.add(u.deadEffect);
     }
@@ -1909,6 +1932,9 @@ export class FxWiring {
       return true;
     }
     if(kind==='acidRain')return this._acidRain(extra,owner);
+    if(kind==='regHit'){const key=REGULATION_HITS[extra?.kind],t=this.view(extra?.target);return !!(key&&t&&this.playOn(key,t));}
+    if((kind==='equipDie'||kind==='regBurst')&&REGULATION_POINT_FX[kind==='equipDie'?'equipDie':extra?.kind])return this._pointFx(REGULATION_POINT_FX[kind==='equipDie'?'equipDie':extra.kind],x,y);
+    if(kind==='phase'&&/^echo_/.test(extra?.kind||'')&&extra?.from&&owner&&this.unitKeyOf(owner)==='enemy_9023_acdums')return !!this.playOn(ECHO_SWITCH,owner);
     if(kind==='sakikoNoteHit')return this.noteFx.hit(x,y,extra,owner);
     if(kind==='sakikoNoteSound')return true;
     if(this.kitProjectileFx.simFx(kind,x,y,extra,owner))return true;
@@ -2060,6 +2086,15 @@ export class FxWiring {
   }
 
   /** Battle reset. */
+  /** Effects at a map point (a unit that is going away: REGULATION_POINT_FX), on its tile's top. */
+  _pointFx(keys, x, y) {
+    if (!this.ofx.active || !Number.isFinite(x) || !Number.isFinite(y)) return false;
+    const z = Number((this.opts.heightAt || (() => 0))(Math.round(y), Math.round(x))) || 0;
+    let any = false;
+    for (const key of keys) if (this.ofx.lib.has(key) && this.ofx.spawn(key, { pos: [x - 10, y - 9, -z], groundZ: -z, rootRot: [0, 0, 0, 1] }, { important: true })) any = true;
+    return any;
+  }
+
   /** 【悲惨之雨】 (sim fx 'acidRain': `tiles` = r, c pairs of the field, `dur` battle seconds): the ground decal on each. */
   _acidRain(extra, owner) {
     if (!this.ofx.active || !this.ofx.lib.has(ACID_RAIN_GROUND)) return false;

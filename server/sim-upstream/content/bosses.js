@@ -670,7 +670,8 @@ function kitGun(ab, e, b) {
         const arrived = stepToward(e2, t.x, t.y, sp);
         if (!b2.grid.groundPassable(Math.round(e2.y), Math.round(e2.x))) { e2.x = nx; e2.y = ny; }
         // "对进入自身0.35半径范围内的我方单位（包括飞行单位）造成一次…": an area selection (areaAllies)
-        for (const u of areaAllies(b2, e2, e2.x, e2.y, CHARGE_RADIUS)) if (!ch.hit.has(u)) { ch.hit.add(u); hurt(b2, e2, u, e2.s.atk * (T(ab, '3.atk_scale') ?? 1), 'phys'); }
+        // ('regHit': display only — the official hit on each trampled unit, render/vfx/wiring.js REGULATION_HITS)
+        for (const u of areaAllies(b2, e2, e2.x, e2.y, CHARGE_RADIUS)) if (!ch.hit.has(u)) { ch.hit.add(u); hurt(b2, e2, u, e2.s.atk * (T(ab, '3.atk_scale') ?? 1), 'phys'); b2.fx('regHit', { x: u.x, y: u.y, id: e2.id, target: u.id, kind: 'finalPenance' }); }
         if (arrived || b2.time >= ch.until || (e2.x === nx && e2.y === ny)) {
           P.charge = null;
           b2.removeBuff(e2, 'boss:charge');
@@ -813,7 +814,7 @@ function kitSpring(ab, e) {
         const g = d.gun && d.gun.alive ? d.gun : gun(b);
         if (g) stepToward(e2, g.x, g.y, e2.s.moveSpeed * d.mul * MOVE_SCALE * dt);
         // 追逐模式 "对进入自身0.35半径范围内的我方单位（包括飞行单位）造成一次攻击力100%的物理普通伤害" (until 0.1.3: radius 0.5)
-        for (const u of areaAllies(b, e2, e2.x, e2.y, CHARGE_RADIUS)) if (!d.hit.has(u)) { d.hit.add(u); hurt(b, e2, u, e2.s.atk, 'phys'); }
+        for (const u of areaAllies(b, e2, e2.x, e2.y, CHARGE_RADIUS)) if (!d.hit.has(u)) { d.hit.add(u); hurt(b, e2, u, e2.s.atk, 'phys'); b.fx('regHit', { x: u.x, y: u.y, id: e2.id, target: u.id, kind: 'springChase' }); }
         if (b.time >= d.until) { e2.mem.ab.dash = null; b.removeBuff(e2, 'boss:dash'); if (e2.route) e2.route.pts = null; }
       },
     },
@@ -857,11 +858,12 @@ const echoesOf = (b, form) => b.enemies.filter((o) => o.alive && o.defId === ECH
 export function setEchoForm(b, echo, form) {
   const ab = echo.mem.ab;
   if (!ab) return;
+  const from = ab.form ?? null;   // display only: a switch from another form plays the official switch effect
   ab.form = form;
   ab.strikes = 0;
   const mods = form === 'gold' ? { aspd: T(ab, '1.attack_speed') ?? 0 } : { atkPct: T(ab, '2.atk') ?? 0, moveMul: 1 - (T(ab, '2.move_speed') ?? 0) };
   b.addBuff(echo, { key: 'boss:echoForm', persist: true, visible: true, mods });
-  b.fx('phase', { x: echo.x, y: echo.y, id: echo.id, kind: `echo_${form}` });
+  b.fx('phase', { x: echo.x, y: echo.y, id: echo.id, kind: `echo_${form}`, ...(from && from !== form && b.time > (echo.deployedAt ?? -Infinity) ? { from } : {}) });   // (not the gold summon's own first tick)
 }
 
 /** An echo takes a strike/hit: pulse around it (PRTS “余音” "受到伤害时对半径1.6范围内的我方单位造成…": an area selection of the
@@ -1193,6 +1195,7 @@ function kitLion(ab, e, b) {
         P.wand = true;   // [substitute for 黄金回响]: next attack becomes arts and disarms its target
         b2.fx('equip', { x: q.x, y: q.y, id: q.id, key: q.defId, kind: 'wand' });
       }
+      b2.fx('equipDie', { x: q.x, y: q.y, id: q.id, src: e2.id });   // display only: the official end of an animated piece
       b2.kill(q, null);
     }
   };

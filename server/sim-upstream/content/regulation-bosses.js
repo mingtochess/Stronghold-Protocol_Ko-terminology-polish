@@ -350,7 +350,8 @@ function refreshEvade(b, e, ab) {
   if (!(ratio > 0) || !(prob > 0)) return;
   const steps = Math.floor((1 - e.hpRatio) / ratio + 1e-9);
   if (steps <= 0) return;
-  b.addBuff(e, { key: 'reg:evade', duration: dur, refresh: 'replace', mods: { dodgePhys: prob, dodgeArts: prob } });
+  // visible: the client draws its 伪装 (enemy_acspider_buff_mask_01, render/vfx/wiring.js REGULATION_STATUS); display only
+  b.addBuff(e, { key: 'reg:evade', duration: dur, refresh: 'replace', mods: { dodgePhys: prob, dodgeArts: prob }, visible: true });
 }
 
 function kitSpider(ab) {
@@ -633,6 +634,7 @@ function kitBeast(ab) {
         c.dmg.mul *= Math.max(0, 1 - dr);
       },
       death(c, b, e) {
+        b.fx('regBurst', { x: e.x, y: e.y, id: e.id, kind: 'beastOutOfControl' });   // display only: 失控's blast
         const allies = b.allies().slice();
         for (let i = 0; i < allies.length; i++) {
           const u = allies[i];
