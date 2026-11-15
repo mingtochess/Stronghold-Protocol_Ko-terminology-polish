@@ -358,6 +358,8 @@ export function renderInfo(u) {
     // tap hands them to the detail card (a teammate's unit shows its owner's skill / module)
     skillIndex: Number.isInteger(u.skillIndex) ? u.skillIndex : undefined,
     skillId:u.skillId,skillName:u.skillName,skillDescription:u.skillDescription,skillDuration:u.skillDuration,skillNextAttack:!!u.skillNextAttack,rangeGrid:u.rangeGrid,skillZoneGrid:u.skillZoneGrid,omnidirectional:!!u.omnidirectional,fixedFacing:!!u.fixedFacing,
+    // a boss whose route only waits (snapshot unitInfo `fixed`: 규정 假想敌：茧 / 械 / 管 …): the fixed boss's HP bar (units.js fixedBoss)
+    fixed: u.fixed === true ? true : undefined,
     skin: typeof u.skin === 'string' && u.skin ? u.skin : null,
     skinId: u.skinId, charId: u.charId,
     profession:u.profession,subProf:u.subProf,attackType:u.attackType,
