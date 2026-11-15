@@ -53,14 +53,16 @@ const server=await startServer({dataDir,host:process.env.HOST||'127.0.0.1',port,
   res.setHeader('Content-Type','text/javascript; charset=utf-8');res.setHeader('Cache-Control','no-store');
   res.end(req.method==='HEAD'?undefined:response.body);return true;
  }
- if(path==='/'||(/^\/(?:js|css|dev|vendor|shared|sim|sim-upstream)\//.test(path)&&/\.(?:js|mjs|css)$/.test(path))){
+ if(path==='/'||(/^\/(?:js|css|dev|vendor|shared|sim|sim-upstream|match|match-upstream)\//.test(path)&&/\.(?:js|mjs|css)$/.test(path))){
   const normalized=new URL(req.url,'http://localhost').pathname;
-  const dir=normalized.startsWith('/shared/')?root:normalized.startsWith('/sim/')||normalized.startsWith('/sim-upstream/')?new URL('server/',root):new URL('public/',root);
+  const dir=normalized.startsWith('/shared/')?root:normalized.startsWith('/sim/')||normalized.startsWith('/sim-upstream/')||normalized.startsWith('/match/')||normalized.startsWith('/match-upstream/')?new URL('server/',root):new URL('public/',root);
   let response=codeResponses.get(normalized);
   if(!response){
    try{
     const type=path==='/'?'text/html':path.endsWith('.css')?'text/css':'text/javascript';
-    const body=await readFile(new URL(path==='/'?'index.html':normalized.slice(1),dir),'utf8');
+    // (the 규정 match's external-AI gate: its node-free stand-in, as server/http/static.js serves it)
+    const file=normalized==='/match-upstream/llmGate.js'?'match-upstream/llmGate.browser.js':normalized.slice(1);
+    const body=await readFile(new URL(path==='/'?'index.html':file,dir),'utf8');
     const text=type==='text/html'?body.replace(/\b(src|href)=(['"])(\/[^'"]*)\2/g,(_,key,q,url)=>`${key}=${q}${pinPath(url,codeRelease)}${q}`):await transform(body,type,codeRelease);
     response={type,body:Buffer.from(text)};codeResponses.set(normalized,response);
    }catch(error){if(error.code==='ENOENT')return false;throw error;}

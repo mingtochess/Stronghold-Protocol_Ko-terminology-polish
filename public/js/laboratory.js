@@ -7,6 +7,25 @@ import { loadoutStore } from './ui/loadoutSync.js';
 import { customExtensionCatalog, normalizeCustomExtensions, applyCustomExtensions } from '../../shared/customExtensions.js';
 import { attachAttackTimings } from '../../shared/attackTiming.js';
 import { validateC2S } from '../../shared/protocol.js';
+import { versionById, versionSlug } from '../../shared/versions.js';
+import { lobbyVersion } from './versions.js';
+
+/** 규정(规程): the lobby's season, when it is one — the laboratory then runs that season's data, match and engine. */
+function regulationVersion() {
+  const id = lobbyVersion(store.get());
+  const entry = versionById(id);
+  return entry?.family === 'regulation' ? entry : null;
+}
+/** A 규정 season's data files, straight from /data/versions/<slug>/ (the art manifest stays the page's own). */
+async function regulationData(entry) {
+  const base = `/data/versions/${versionSlug(entry)}/`;
+  const names = ['config', 'chess', 'bonds', 'items', 'bands', 'enemies', 'bosses', 'stages', 'tokens', 'garrisons', 'effects', 'choices', 'factions', 'waves', 'backups', 'tuning'];
+  const out = {};
+  await Promise.all(names.map(async (n) => { const r = await fetch(base + n + '.json'); if (r.ok) out[n] = await r.json(); }));
+  await data.load('assets');
+  out.assets = data.get('assets');
+  return out;
+}
 
 let active = null;
 export function isLaboratory() { return !!active; }
@@ -16,6 +35,7 @@ export function stopLaboratory({reconnect=true}={}) {
   active.match.dispose();
   active = null;
   net.localSession = null;
+  globalThis.__SP_LAB_CONTENT = null;
   store.set({ me: previous.me, room: null, match: emptyMatch(), chat: [], ticker: [], emotes: [], clock: previous.clock });
   if(reconnect)net.connect();
 }
@@ -23,16 +43,26 @@ export function stopLaboratory({reconnect=true}={}) {
 export async function startLaboratory(setup) {
   if (active || store.get().room?.inMatch) throw new Error('진행 중인 시뮬레이션을 먼저 종료해주세요.');
   // Only static files are fetched. No room, match, or combat requests are sent to a server.
-  await Promise.all([...GAME_FILES, 'waves', 'backups'].map(k => data.load(k)));
-  let raw = Object.fromEntries([...GAME_FILES, 'waves', 'backups'].map(k => [k, data.get(k)]));
+  const reg = regulationVersion();
+  let raw;
+  if (reg) raw = await regulationData(reg);
+  else {
+    await Promise.all([...GAME_FILES, 'waves', 'backups'].map(k => data.load(k)));
+    raw = Object.fromEntries([...GAME_FILES, 'waves', 'backups'].map(k => [k, data.get(k)]));
+  }
   if (['config','chess','items','bands','stages','bosses','waves'].some(k => !raw[k])) throw new Error('실험실에 필요한 게임 데이터를 불러오지 못했습니다.');
   raw=withLaboratoryDummy(raw);
-  const MatchClass=setup.practice ? (await import('/match/PracticeMatch.js')).PracticeMatch : (await import('/match/LaboratoryMatch.js')).LaboratoryMatch;
-  const { setSimData } = await import('/sim/simdata.js');
+  // the season's match and engine (규정: upstream's, as its rooms play — server/match-upstream, server/sim-upstream)
+  const MatchClass = reg
+    ? (setup.practice ? (await import('/match-upstream/PracticeMatch.js')).PracticeMatch : (await import('/match-upstream/LaboratoryMatch.js')).LaboratoryMatch)
+    : (setup.practice ? (await import('/match/PracticeMatch.js')).PracticeMatch : (await import('/match/LaboratoryMatch.js')).LaboratoryMatch);
+  const simBase = reg ? '/sim-upstream/' : '/sim/';
+  const { setSimData } = reg ? await import('/sim-upstream/simdata.js') : await import('/sim/simdata.js');
   for (const key of ['chess','enemies','tokens','backups']) if (raw[key]) raw[key]=structuredClone(raw[key]);
   attachAttackTimings(raw, raw.assets);
   if (raw.backups?.units) attachAttackTimings({chess:raw.backups.units},raw.assets);
-  const support = await import('/sim/content/support/index.js');
+  const support = reg ? await import('/sim-upstream/content/support/index.js') : await import('/sim/content/support/index.js');
+  globalThis.__SP_SIM_BASE = simBase;   // the /data.js stand-in reads this engine's data (server/http/static.js)
   const previous = { me: store.get().me, clock: store.get().clock };
   const playerId = previous.me.playerId || `lab_${crypto.randomUUID()}`;
   const name = previous.me.name || '박사';
@@ -43,6 +73,8 @@ export async function startLaboratory(setup) {
   if(!setup.practice)configured.config.customRules={...configured.config.customRules,deployCap:15};
   setSimData(configured);
   support.setGameData(configured);
+  // a 규정 laboratory's battles run its own data on upstream's engine (battle/runner.js reads this for a battle with no cs)
+  globalThis.__SP_LAB_CONTENT = reg ? { data: configured, version: reg.id } : null;
   const push = msg => { net._emit(msg.t, msg); net._emit('*', msg); };
   const match = new MatchClass({
     laboratory: setup, practice:setup, difficulty: setup.difficulty, roomCode: setup.practice?'PRACTICE':'LAB', seed: crypto.getRandomValues(new Uint32Array(1))[0], data: raw,

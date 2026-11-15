@@ -158,6 +158,8 @@ export function createStaticHandler({ publicDir, dataDir, sharedDir, simDir = pa
     { prefix: '/shared/', name: 'shared', dir: path.resolve(sharedDir) },
     // the simulation: ES modules only (no directory listings, no other file types, no Node-only loader)
     { prefix: '/match/', name: 'match', dir: path.resolve(simDir, '../match'), only: new Set(['.js']) },
+    // the 규정 season's match for the browser-local laboratory / practice (public/js/laboratory.js)
+    { prefix: '/match-upstream/', name: 'match', dir: path.resolve(simDir, '../match-upstream'), only: new Set(['.js']) },
     { prefix: '/sim/', name: 'sim', dir: path.resolve(simDir), only: new Set(['.js']), deny: SIM_PRIVATE },
     // a 규정 season's simulation (upstream's server/sim, the client loads it for that season's battles: battle/simLoader.js)
     { prefix: '/sim-upstream/', name: 'sim', dir: path.resolve(simDir, '../sim-upstream'), only: new Set(['.js']), deny: SIM_PRIVATE },
@@ -212,6 +214,13 @@ export function createStaticHandler({ publicDir, dataDir, sharedDir, simDir = pa
     const hashed = splitHashedPath(decoded);
     const urlHash = hashed.hash;
     decoded = hashed.path;
+    // the 규정 match's external-AI gate imports node:* modules: the browser gets its stand-in (llmGate.browser.js)
+    if (decoded === '/match-upstream/llmGate.js') {
+      const body = await fsp.readFile(path.resolve(simDir, '../match-upstream/llmGate.browser.js'));
+      res.writeHead(200, { 'Content-Type': MIME['.js'], 'Cache-Control': 'no-cache', 'Content-Length': body.length });
+      res.end(req.method === 'HEAD' ? undefined : body);
+      return;
+    }
     if (decoded === '/data.js') {
       const headers = { 'Content-Type': MIME['.js'], 'Cache-Control': 'no-cache', ETag: shimTag, 'Content-Length': shimBody.length };
       if (isNotModified(req, shimTag, new Date(0))) { delete headers['Content-Length']; res.writeHead(304, headers); res.end(); return; }
