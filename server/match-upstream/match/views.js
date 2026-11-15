@@ -88,6 +88,9 @@ export class MatchViews {
       modeId: this.modeId,
       // 8인 협동 only (the 맹약 field and rules read it, public/js/data.js): other rooms keep upstream's view
       ...(this.mode === 'coop8' ? { mode: 'coop8' } : {}),
+      // 커스텀 / 증강 rooms (opts.seasonExtensions): the selection the client's rules read like a 맹약 room's (전략 중복
+      // 선택 on the strategy draft, 공용 체력, 층수 제한 해제, the custom-settings panel); classic rooms keep upstream's view
+      ...(this.gameplayMode !== 'classic' ? { gameplayMode: this.gameplayMode, customExtensions: structuredClone(this.customExtensions) } : {}),
       difficulty: this.difficulty,
       stageId: this.stageId,
       // a non-default official version's match (DESIGN §35.23): its registry id, so a page that never saw the room (a

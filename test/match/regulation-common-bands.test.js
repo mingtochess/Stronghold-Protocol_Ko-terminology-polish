@@ -36,3 +36,16 @@ test('ACTIVE command strategies are not offered as 규정 common strategies', ()
   for (const id of ['band_smith', 'band_takecare', 'band_cannot', 'band_amiya']) assert.ok(ids.includes(id), id);
   for (const id of ['band_price', 'band_copy', 'band_jenga', 'band_random']) assert.ok(!ids.includes(id), id);
 });
+
+test('a 규정 custom room shows its selection in m.public (전략 중복 선택 on the strategy draft screen); classic does not', () => {
+  const sel = seasonExtensionSelection({ rules: ['duplicateBands'] }, raw);
+  const mk = (ext) => new PracticeMatch({ send() { return true; }, broadcast() {}, onEnd() {}, seed: 1, data: ext ? applySeasonExtensions(raw, sel) : raw,
+    ...(ext ? { seasonExtensions: sel, gameplayMode: 'custom' } : {}),
+    seats: [{ seat: 0, playerId: 'p', name: 'P', isBot: false, connected: true }],
+    practice: { stageId: 'act3autochess_m01', bandId: 'band_sarkazb', round: 1, factions: [], bannedBonds: [] } });
+  const custom = mk(true), classic = mk(false);
+  assert.ok(custom.publicView().customExtensions.rules.includes('duplicateBands'));
+  assert.equal(custom.publicView().gameplayMode, 'custom');
+  assert.equal(classic.publicView().customExtensions, undefined);
+  custom.dispose?.(); classic.dispose?.();
+});
