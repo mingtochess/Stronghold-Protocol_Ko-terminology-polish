@@ -36,6 +36,12 @@
       "repository": "moring-m/Stronghold-Protocol_Ko_Arca_assets",
       "commit": "b38ad9497c5e1c5f2a17c9cf119f445e6608b3d4",
       "manifest": "content/custom/regulation-fx-20261115/assets.json"
+    },
+    {
+      "name": "regulation-enemies-20261115b",
+      "repository": "moring-m/Stronghold-Protocol_Ko_Arca_assets",
+      "commit": "befd8f4910c92e6a2fafba70b878968ab42f9fff",
+      "manifest": "content/custom/regulation-enemies-2/assets.json"
     }
   ]
 }
