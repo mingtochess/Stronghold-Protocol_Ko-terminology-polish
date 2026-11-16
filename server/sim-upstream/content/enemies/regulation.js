@@ -10,7 +10,7 @@ import {
   hurt, elem, areaAllies, auraAllies, remainingRoute, stayRoute, spawnChildren, nthOf, canCast, BOOM_RADIUS, auraBuff, watchDeaths,
   unbalancedNow,
 } from './helpers.js';
-import { skill, stealth, ep, refraction, reborn } from './archetypes.js';
+import { skill, stealth, ep, refraction, reborn, pollution } from './archetypes.js';
 
 const num = (v, d) => {
   if (typeof v === 'number' && Number.isFinite(v)) return v;
@@ -528,7 +528,75 @@ function kitAchest() {
 
 const same = (kit) => kit;
 
+
+// ---------------------------------------------------------------------------------------------------------------------
+// 规程 enemies without a kit until 0.4.0a6 (PRTS, 2026-11): 恶尘源石虫, 纤核漂游者, 搏命养家者 / 搏命享受者.
+
+/** 恶尘源石虫 death blast radius and delay (PRTS: "爆炸半径1.3，延迟1秒（爆炸时来源无效），造成攻击力350%物理溅射伤害"). */
+const LRBOOM_RADIUS = 1.3;
+const LRBOOM_DELAY = 1;
+/** 源石污染区 it leaves: PRTS 十四章机制控制器 "位于源石污染区地块的单位…每秒受到…真实伤害（1级50/s）"; one tile, level 1,
+ *  lasting the battle [ASSUMED: the page states no radius / level / duration for this enemy's zone]. */
+const LRBOOM_ZONE_RADIUS = 0.5;
+const LRBOOM_ZONE_DPS = 50;
+
+/** 恶尘源石虫: on death (silenceable) a 1 s delayed 350% ATK physical splash, and a 源石污染区 on its tile. */
+function kitLrboom(ab) {
+  const scale = tv(ab, 'Boom.atk_scale', 3.5);
+  return [{
+    sil: true,
+    death(c, b, e) {
+      if (c.reason !== 'killed') return;
+      const x = e.x, y = e.y, atk = e.s.atk;
+      b.after(LRBOOM_DELAY, () => {
+        b.fx('explode', { x, y, r: LRBOOM_RADIUS, kind: 'deathBoom', id: e.id });
+        // "爆炸时来源无效": the blast lands with no source
+        for (const u of areaAllies(b, null, x, y, LRBOOM_RADIUS)) {
+          if (u.isFlying) continue;
+          hurt(b, null, u, atk * scale, 'phys');
+        }
+        pollution(b, null, x, y, LRBOOM_ZONE_RADIUS, Infinity, LRBOOM_ZONE_DPS, LRBOOM_ZONE_DPS);
+      });
+    },
+  }];
+}
+
+/** 纤核漂游者: its attack prefers allies on high ground and adds neural damage (ATK × 15%). Flying: the data's motion. */
+function kitDsflys(ab) {
+  const ratio = tv(ab, '0.attack@ep_damage_ratio', 0.15);
+  return [
+    { spawn(b, e) { e.profile.prefer = (u) => !u.ground; } },
+    ratio > 0 ? ep('neural', ratio) : null,
+  ];
+}
+
+/** 搏命养家者 aura radius (PRTS: "半径1.7范围内的所有敌方单位…受到的物理/法术伤害…降低至75%（…可乘算叠加）"). */
+const UBBA_AURA_RADIUS = 1.7;
+
+/**
+ * 搏命养家者 / 搏命享受者: every enemy within 1.7 (itself included [ASSUMED: "范围内的所有敌方单位"]) takes physical / arts
+ * damage ×(1 − Talent1.damage_resistance); several auras multiply (one buff per source). Its 警戒 / 搜捕 mode needs
+ * allies that 触发警戒 (警戒塔), which 规程 fields have none of: it stays in its initial mode.
+ */
+function kitUbba(ab) {
+  const mul = Math.max(0, 1 - tv(ab, 'Talent1.damage_resistance', 0.25));
+  const iv = 0.5;
+  return [{
+    iv,
+    tick(b, e) {
+      for (const o of b.enemiesInRadius(e.x, e.y, UBBA_AURA_RADIUS)) {
+        if (!o.alive) continue;
+        b.addBuff(o, { key: `ab:ubba:${e.id}`, duration: iv + 0.05, refresh: 'replace', visible: true, mods: { physTakenMul: mul, artsTakenMul: mul } });
+      }
+    },
+  }];
+}
+
 export const REGULATION_KITS = Object.freeze({
+  enemy_1424_lrboom: kitLrboom,
+  enemy_1435_dsflys: kitDsflys,
+  enemy_10196_ubba: kitUbba,
+  enemy_10196_ubba_2: same(kitUbba),
   enemy_1406_chghmr: kitChghmr,
   enemy_1375_ltnclr: kitLtnclr,
   enemy_1375_ltnclr_2: same(kitLtnclr),
