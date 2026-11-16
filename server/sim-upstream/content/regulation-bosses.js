@@ -347,13 +347,17 @@ function pickByHp(b, enemy, maxTarget, batch) {
   return picked;
 }
 
+// HP steps of 茧 that already triggered its 伪装 (per enemy; a step triggers once, never by every tick / hit)
+const evadeSteps = new WeakMap();
 function refreshEvade(b, e, ab) {
   const ratio = tv(ab, 'Evade.hp_ratio', 0.25);
   const prob = tv(ab, 'Evade.prob', 0);
   const dur = tv(ab, 'Evade.duration', 15);
   if (!(ratio > 0) || !(prob > 0)) return;
   const steps = Math.floor((1 - e.hpRatio) / ratio + 1e-9);
-  if (steps <= 0) return;
+  // "每损失一定生命值时": the buff starts when a new HP step is reached and then runs out after `dur`
+  if (steps <= (evadeSteps.get(e) || 0)) return;
+  evadeSteps.set(e, steps);
   // visible: the client draws its 伪装 (enemy_acspider_buff_mask_01, render/vfx/wiring.js REGULATION_STATUS); display only
   b.addBuff(e, { key: 'reg:evade', duration: dur, refresh: 'replace', mods: { dodgePhys: prob, dodgeArts: prob }, visible: true });
 }
