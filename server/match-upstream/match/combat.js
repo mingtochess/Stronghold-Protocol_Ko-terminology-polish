@@ -4,6 +4,7 @@
 // Installed on Match.prototype by server/match/Match.js (a method container: never instantiated; `this` is the match).
 
 import { PHASE, GEO } from '../../../shared/constants.js';
+import { recordCombatField } from '../../match/combatHistory.js';
 import { deriveSeed } from '../../sim-upstream/rng.js';
 import { withBounties } from '../waves.js';
 import { planUnite } from '../unite.js';
@@ -125,6 +126,8 @@ export class MatchCombat {
 
   /** Aggregate a finished field's content/engine errors (battle.errors: unique records) for diagnostics. */
   _collectSimErrors(f, res) {
+    // 전투 통계 (the result screen's combat report): every finished field — normal, 联防 and both boss phases
+    recordCombatField(this, f, res);
     this.simErrors += Number(res && res.errors) || 0;
     const list = f && f.battle && Array.isArray(f.battle.errors) ? f.battle.errors : [];
     for (const e of list) {
