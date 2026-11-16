@@ -190,12 +190,13 @@ export default {
       const back = sign > 0 ? (across ? R.c0 : R.r0) : (across ? R.c1 : R.r1), edge = sign > 0 ? (across ? R.c1 : R.r1) : (across ? R.c0 : R.r0);
       const from = sign > 0 ? Math.max(back, at - WAVE_MAX_BACK) : Math.min(back, at + WAVE_MAX_BACK);
       const to = edge + sign * num(b3.wave_exit_distance);
-      const wave = { atk: unit.s.atk, hit: new Set() };
+      // (display: serial — the renderer's official 簇火 trail, talulahWave / talulahWaveHit, keyed per wave and lane)
+      const wave = { atk: unit.s.atk, hit: new Set(), serial: (unit.mem.oxiWaveSerial = (unit.mem.oxiWaveSerial || 0) + 1) };
       const delay = num(b3.random_birth_delay);
       const shots = unit.mem.oxiShots ?? (unit.mem.oxiShots = []);
       for (let lane = a; lane <= b; lane++) {
         shots.push({ x: across ? from : lane, y: across ? lane : from, dx: across ? sign : 0, dy: across ? 0 : sign,
-          left: Math.abs(to - from), age: 0, wait: delay > 0 ? battle.rng.range(0, delay) : 0, wave });
+          left: Math.abs(to - from), age: 0, wait: delay > 0 ? battle.rng.range(0, delay) : 0, wave, lane });
       }
       battle.fx('heatwave', { x: unit.x, y: unit.y, dir: unit.dir, n: b - a + 1, id: unit.id, skill: 'oxi:heatwave' });
     };
@@ -203,6 +204,7 @@ export default {
     const explode = (battle, unit, s, target) => {
       const r = num(b3.range_radius), base = num(b3.heatwave_atk_scale), again = num(b3.same_wave_repeat_damage_scale, 1);
       const foes = [target, ...battle.foesInRadius(target.x, target.y, r).filter((e) => e !== target && canTargetEnemy(unit, e, AIR))];
+      battle.fx('talulahWaveHit', { x: target.x, y: target.y, id: unit.id, src: unit.id, wave: s.wave.serial, lane: s.lane });
       battle.fx('blast', { x: target.x, y: target.y, r, id: unit.id, element: 'burn', skill: 'oxi:heatwave' });
       for (const e of foes) {
         if (!e.alive) continue;
@@ -220,6 +222,12 @@ export default {
       for (const s of shots) {
         if (s.done) continue;
         if (s.wait > 0) { s.wait -= dt; continue; }
+        // display only: the 簇火 leaves now — its official trail flies the shot's path (render/vfx/northernfx.js)
+        if (!s.shown) {
+          s.shown = true;
+          battle.fx('talulahWave', { born: battle.time, x: s.x, y: s.y, dx: s.dx, dy: s.dy, speed, dur: Math.min(s.left / Math.max(speed, 1e-6), SHOT_LIFETIME),
+            id: unit.id, src: unit.id, wave: s.wave.serial, lane: s.lane });
+        }
         const step = Math.min(speed * dt, s.left);
         s.x += s.dx * step; s.y += s.dy * step; s.left -= step; s.age += dt;
         let hit = null, best = Infinity;
