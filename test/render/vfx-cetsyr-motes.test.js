@@ -34,7 +34,7 @@ test('carrier orbit resolves caster skin and follows the carrier rather than cas
  fx.simFx('orbitProjectile',carrier.x,carrier.y,{id:2,src:1,projectile:'projectile_chr_reed2_fire',slots:[]},caster);
  assert.ok(spawned.every(s=>s.h.stopped));
 });
-for(const defId of ['chess_char_4_25_a','chess_char_4_25_b','chess_char_5_09_a','chess_char_5_09_b'])test(`${defId}: Civilight motes use the official model attachment without persistent particle emitters`,()=>{
+for(const defId of ['chess_char_4_25_a','chess_char_4_25_b','chess_char_5_09_a','chess_char_5_09_b','chess_char_6_12_a','chess_char_6_12_b'])test(`${defId}: Civilight motes use the official model attachment without persistent particle emitters`,()=>{
  const states=[],owner={info:{defId},setMoteState:s=>states.push(s)};
  const w={unitKeyOf:()=> 'char_4134_cetsyr',ofx:{active:true,spawn:()=>assert.fail('persistent particle emitter')}};
  const fx=new KitProjectileFx(w),state={slots:[true,false,true],radius:1.15,phase:0};
