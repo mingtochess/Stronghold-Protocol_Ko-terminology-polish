@@ -173,3 +173,18 @@ test('startMatch and wireOptions omit soloUnlimited unless the flag is on', () =
   assert.equal(Object.hasOwn(Rec.last, 'soloUnlimited'), false);
   assert.equal(Object.hasOwn(Rec.last, 'version'), false);
 });
+
+test('chat faction 이베리아: selectable only in a 규정 room, dropped when the room returns to 맹약', () => {
+  const h = harness();
+  const host = h.player('Host');
+  ok(h.lobby.create(host, { mode: 'coop', difficulty: 'NORMAL' }));
+  assert.equal(h.lobby.chat(host, { t: 'g.chatFaction', faction: '이베리아' })?.error, ERR.BAD_MSG);
+  const REG = VERSIONS.find((v) => v.family === 'regulation').id;
+  ok(h.lobby.proposeVersion(host, { version: REG }));
+  ok(h.lobby.chat(host, { t: 'g.chatFaction', faction: '이베리아' }));
+  const room = h.lobby.roomOf(host);
+  assert.equal(room.chatMembers.get(host.playerId).faction, '이베리아');
+  h.clock.t += 300;
+  ok(h.lobby.proposeVersion(host, { version: DEFAULT_VERSION }));
+  assert.equal(room.chatMembers.get(host.playerId).faction, null);
+});
