@@ -61,3 +61,13 @@ test('搏命享受者: enemies within 1.7 take phys / arts ×0.75; outside, full
   assert.equal(far.s.physTakenMul, 1);
   assert.equal(boss.s.physTakenMul, 0.75, 'itself included');
 });
+
+for (const [key, child, n] of [['enemy_1131_sbeast', 'enemy_1137_plasm', 2], ['enemy_1132_sarchn_2', 'enemy_1138_tumor', 3]]) test(`${key}: splits into ${n} ${child} after 0.2 s`, () => {
+  const h = fight();
+  const e = put(h, key, [10, 6]);
+  h.step(1);
+  h.b.kill(e);
+  assert.equal(h.enemies().filter((x) => x.defId === child).length, 0, 'not at once');
+  h.run(0.3);
+  assert.equal(h.enemies().filter((x) => x.defId === child && x.alive).length, n);
+});

@@ -284,6 +284,14 @@ function kitDeathrattle(ab) {
   return [{ death(c, b, e) { if (c.reason === 'killed') replaceLater(b, e, key, delay); } }];
 }
 
+/** 变异沙地兽 / 变异岩蛛 (α): on death, deathrattle.cnt children (畸变赘生物 / 畸变恶性瘤) after deathrattle.delay, not counted. */
+function kitSplitDeath(ab) {
+  const key = sv(ab.tS, 'deathrattle.enemy_key');
+  const delay = tv(ab, 'deathrattle.delay', 0.2);
+  const cnt = tv(ab, 'deathrattle.cnt', 2);
+  return [{ death(c, b, e) { if (c.reason === 'killed') replaceLater(b, e, key, delay, cnt); } }];
+}
+
 /** Bombardiers use Attack's child key and delay for their death replacement (PRTS talent). */
 function kitDthrowDeath(ab) {
   const key = sv(ab.tS, 'Attack.enemy_key');
@@ -597,6 +605,10 @@ export const REGULATION_KITS = Object.freeze({
   enemy_1435_dsflys: kitDsflys,
   enemy_10196_ubba: kitUbba,
   enemy_10196_ubba_2: same(kitUbba),
+  enemy_1131_sbeast: kitSplitDeath,
+  enemy_1131_sbeast_2: same(kitSplitDeath),
+  enemy_1132_sarchn: kitSplitDeath,
+  enemy_1132_sarchn_2: same(kitSplitDeath),
   enemy_1406_chghmr: kitChghmr,
   enemy_1375_ltnclr: kitLtnclr,
   enemy_1375_ltnclr_2: same(kitLtnclr),
