@@ -1952,7 +1952,7 @@ function bossCandidateOpts(m, ps, byUid, plan) {
     sharedBoss: new SharedBossPool(hp),
     // the spec the host's browser rebuilds the pool from (buildBattleSpec reads `boss`, not the live pool object)
     boss: { poolHp: hp, poolMax: hp },
-    flags: { layerGainsEnabled: false, ...m.gd.dp, enemyScale: m.gd.enemyScale(m.round) },
+    flags: { layerGainsEnabled: true, ...m.gd.dp, enemyScale: m.gd.enemyScale(m.round) },
     fieldId: `rb:${ps.playerId}`,
     enemyOverrides: wave.overrides,
     waveId: wave.templateId,
