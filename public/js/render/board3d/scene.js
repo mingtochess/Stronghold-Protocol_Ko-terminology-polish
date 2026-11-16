@@ -159,11 +159,15 @@ export function surfaceForArea(src, areas) {
   areas=disjointAreas(areas);
   const attrs = Object.entries({position:3,normal:3,uv:2,uv1:2,color:3}).filter(([key,size])=>src[key]?.length === src.position.length/3*size);
   const output = Object.fromEntries(attrs.map(([key])=>[key,[]]));
+  const outs = attrs.map(([key,size])=>[output[key],src[key],size]);
   const index=[];
+  // A triangle wholly inside an area survives clipping unchanged: copy its vertices straight from the source
+  // (the same values and order the clipper would emit) instead of building and clipping vertex objects.
+  const copy=id=>{for(const [out,arr,size] of outs)for(let k=0;k<size;k++)out.push(arr[id*size+k]);};
   const vertex=id=>Object.fromEntries(attrs.map(([key,size])=>[key,Array.from(src[key].slice(id*size,(id+1)*size))]));
   const mix=(a,b,t)=>Object.fromEntries(attrs.map(([key])=>[key,a[key].map((v,i)=>v+(b[key][i]-v)*t)]));
   for(let i=0;i<src.index.length;i+=3) {
-    const ids=src.index.slice(i,i+3),p=src.position;
+    const ids=[src.index[i],src.index[i+1],src.index[i+2]],p=src.position;
     const x0=Math.min(p[ids[0]*3],p[ids[1]*3],p[ids[2]*3]),x1=Math.max(p[ids[0]*3],p[ids[1]*3],p[ids[2]*3]);
     const y0=Math.min(p[ids[0]*3+1],p[ids[1]*3+1],p[ids[2]*3+1]),y1=Math.max(p[ids[0]*3+1],p[ids[1]*3+1],p[ids[2]*3+1]);
     let triangle;
@@ -171,6 +175,12 @@ export function surfaceForArea(src, areas) {
       // Most authored scenery lies outside a requested border strip. Reject
       // those triangles before allocating/interpolating all vertex attributes.
       if(x1<area.c0-.5 || x0>area.c1+.5 || y1<area.r0-.5 || y0>area.r1+.5)continue;
+      if(x0>=area.c0-.5 && x1<=area.c1+.5 && y0>=area.r0-.5 && y1<=area.r1+.5) {
+        const base=output.position.length/3;
+        copy(ids[0]);copy(ids[1]);copy(ids[2]);
+        index.push(base,base+1,base+2);
+        continue;
+      }
       triangle ||= Array.from(ids,vertex);
       let poly=triangle;
       for(const [axis,limit,sign] of [[0,area.c0-.5,1],[0,area.c1+.5,-1],[1,area.r0-.5,1],[1,area.r1+.5,-1]]) {

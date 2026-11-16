@@ -428,6 +428,8 @@
 
 /* ---- team panel ------------------------------------------------------------------------------------------- */
 .team { position: absolute; left: .22rem; top: 2.36rem; display: flex; flex-direction: column; gap: .14rem; pointer-events: none; }
+/* 팀 전체 보기 (ui/teamOverview.js) is drawn inside .team: its veil and box take input again (closing on the outside) */
+.team .modal { pointer-events: auto; }
 .team__row { position: relative; display: flex; align-items: center; gap: .1rem; pointer-events: auto; }
 .team__btn {
   position: relative; padding: 0; background: none; border: 0;

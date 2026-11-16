@@ -54,10 +54,8 @@ export class MatchWatch {
     if (this.clientCombat && this.fields.length && this.fields.some((x) => x.cc)) return this._watchClient(ps, fieldId, playerId);
     const f = this.fields.find((x) => x.fieldId === fieldId);
     if (f) {
-      // 最终攻势 / 隐秘核心: "两名参与者会处于同一个战场，但无法查看另一组队友的战场情况" — a fighting player sees its own
-      // boss field only (eliminated / departed players spectate freely)
-      const own = this.fieldOf(ps);
-      if ((f.kind === 'boss' || f.kind === 'hidden') && own && own !== f.fieldId) return fail(ERR.BAD_TARGET, 'other group hidden');
+      // 규정: 最终攻势 / 隐秘核心 fields of the other groups can be watched too (the official hides them; the fork lets
+      // teammates follow each other's boss fight)
       this.watchers.set(ps.playerId, fieldId);
       this._watchPrefSet(ps, f, playerId);
       this._sendField(ps.playerId, fieldId);
@@ -138,7 +136,6 @@ export class MatchWatch {
     if (!f) return fail(ERR.BAD_TARGET, 'no such field');
     const own = this.fields.find((x) => x.players.includes(ps.playerId)) || null;
     if (ps.alive) {
-      if ((f.kind === 'boss' || f.kind === 'hidden') && own && own !== f) return fail(ERR.BAD_TARGET, 'other group hidden');
       if (f.kind === 'normal' && own && own !== f && own.live) return fail(ERR.WRONG_PHASE, 'own battle running');
     }
     this.watchers.set(ps.playerId, f.fieldId);

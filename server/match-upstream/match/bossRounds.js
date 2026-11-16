@@ -5,7 +5,7 @@
 // RESULT.
 // Installed on Match.prototype by server/match/Match.js (a method container: never instantiated; `this` is the match).
 
-import { PHASE, GEO } from '../../../shared/constants.js';
+import { PHASE, GEO, layerGainRoom } from '../../../shared/constants.js';
 import { createRng, deriveSeed } from '../../sim-upstream/rng.js';
 import { creditedKillsOf } from '../../sim-upstream/spec.js';
 import { buildBossWave, bountySpawns } from '../waves.js';
@@ -106,7 +106,8 @@ export class MatchBoss {
         routes: wave.routes,
         sharedBoss: this.bossPool,
         // the round's enemy effects for the leaders' mid-fight summons (server/sim/content/bosses.js summonMods)
-        flags: { layerGainsEnabled: false, ...this.gd.dp, enemyScale: this.gd.enemyScale(this.round) },
+        // 규정: IN_BATTLE traits gain their layers in the boss fight too (kept permanently: _finishFinal)
+        flags: { layerGainsEnabled: true, ...this.gd.dp, enemyScale: this.gd.enemyScale(this.round) },
         fieldId,
         enemyOverrides: wave.overrides,
         waveId: wave.templateId,
@@ -583,6 +584,16 @@ export class MatchBoss {
           ps.creditedKills += creditedKillsOf(pp);
           ps.dirty(); // m.private.stats
           this._charDamageTickers(ps, pp);
+          // 규정: IN_BATTLE layer gains of the boss fight are permanent, as a normal round's settle makes them (the
+          // Hidden Core that may follow fights with them)
+          for (const [bondId, n] of Object.entries(pp.layerGains || {})) {
+            if (!this.gd.bond(bondId) || !(n > 0)) continue;
+            const before = ps.layers[bondId] || 0;
+            const add = layerGainRoom(before, Math.floor(n), this.gd.config.customRules?.unlimitedLayers ? Infinity : undefined);
+            if (!(add > 0)) continue;
+            ps.layers[bondId] = before + add;
+            this.dispatch(ps, 'onLayers', { bondId, from: before, to: ps.layers[bondId], reason: 'battle' });
+          }
         }
         if (pp && ps) {
           // the own battle counts as perfect when the team won, the result is a real one (not the stand-in of a field that

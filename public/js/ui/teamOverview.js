@@ -1,7 +1,7 @@
 // 팀 전체 보기: one row per player — name, the active bonds (the battle bond list's item: bondStrip.js HudBond + count) and the operators on the board
 // (m.public players[].bonds / lineup). Opened from the search button above the team panel in multiplayer.
 
-import { html, Icon, Modal } from './components.js';
+import { html, Icon, Modal, Button } from './components.js';
 import { useGameData, UnitThumb, PlayerAvatar } from './gameComponents.js';
 import { sortedPlayers, nextThreshold } from './gameLogic.js';
 import { HudBond, bondBoardProgress } from './bondStrip.js';
@@ -24,7 +24,8 @@ export function TeamOverview({ open, onClose, pub, myId }) {
   const gd = useGameData();
   if (!open) return null;
   const players = sortedPlayers(pub);
-  return html`<${Modal} open=${open} title="팀 전체 보기" micro="TEAM OVERVIEW" onClose=${onClose} width="min(96vw, 13.6rem)" class="team-overview">
+  return html`<${Modal} open=${open} title="팀 전체 보기" micro="TEAM OVERVIEW" onClose=${onClose} width="min(96vw, 13.6rem)" class="team-overview"
+    actions=${html`<${Button} variant="secondary" icon="close" onClick=${onClose}>닫기<//>`}>
     <div class="tov">
       ${players.map((p) => {
         const bonds = overviewBonds(p.bonds);

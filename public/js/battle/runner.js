@@ -1,5 +1,4 @@
 import { withLaboratoryDummy, LAB_DUMMY_BOSS, LAB_DUMMY_ENEMY } from '../../../shared/laboratoryDummy.js';
-import { damageValues } from '../../../shared/damageTypes.js';
 import { attachAttackTimings } from '../../../shared/attackTiming.js';
 // Local battle runner — client-side combat (DESIGN §14, research 09 §3.2 / §6.4).
 //
@@ -91,7 +90,7 @@ import { recordError, setBattleSource } from '../diag.js';
 import { loadBrowserSim } from './simLoader.js';
 import { data as gameData } from '../data.js';
 import { InPageSimHost, WorkerSimHost } from './simHost.js';
-import { trackCombat, combineCombat, prepLayerRecords } from './metrics.js';
+import { trackCombat, combineCombat, prepLayerRecords, sampleRows } from './metrics.js';
 import { t } from '../../../shared/i18n.js';
 export { loadBrowserSim, SIM_DATA_FILES } from './simLoader.js';
 
@@ -201,23 +200,17 @@ export function createBattleRunner(deps) {
   const practiceEpochs = new Map();
   function practiceTime(round) { if(!practiceEpochs.has(round))practiceEpochs.set(round,clock());return (clock()-practiceEpochs.get(round))/1000; }
   function sampleOf(e) {
-    const rows=new Map();
-    for(const u of e.battle.allyUnits||[]){
-      const owner=u.kind==='op'?u:u.ownerUnit;
-      if(!owner||owner.kind!=='op')continue;
-      let row=rows.get(owner.id);
-      if(!row){row={id:owner.id,defId:owner.defId,name:owner.def?.name||owner.defId,values:[0,0,0,0,0,0]};rows.set(owner.id,row);}
-      damageValues(u.stats).forEach((v,i)=>row.values[i]+=v);
-    }
+    // a Worker battle is wire state on the page: its rows come with the Worker's step packet
+    const rows=e.host?.remote?(e.host.packet?.sample||[]):sampleRows(e.battle);
     const state=store?.get?.(),practice=state?.match?.public?.practice;
     return {battleId:practice?'practice-round:'+e.round:e.battleId,time:practice?practiceTime(e.round):e.battle.time,
-      rows:[...rows.values()],layers:combineCombat([...(practice?prepLayerRecords(state?.match?.private,e.round):[]),...(e.combatMetrics?[e.combatMetrics()]:[])]).rows};
+      rows:rows.map(r=>({...r,values:[...r.values]})),layers:combineCombat([...(practice?prepLayerRecords(state?.match?.private,e.round):[]),...(e.combatMetrics?[e.combatMetrics()]:[])]).rows};
   }
 
   const rememberCombat = (e) => {
     if (!e.combatMetrics) return;
     const record = { ...e.combatMetrics(), round:e.round };
-    if (e.battle && !e.host?.remote) record.sample = sampleOf(e);
+    if (e.battle) record.sample = sampleOf(e);
     if (!(combatHistory.get(e.battleId)?.seconds > record.seconds)) combatHistory.set(e.battleId, record);
   };
   // Opt-in (设置「作战统计」, default off). A boolean deps.combatMetrics pins a test and ignores setCombatMetrics.
@@ -830,7 +823,7 @@ export function createBattleRunner(deps) {
         if (e.host.remote) {
           await e.host.load(sim.cs, sim.content);
           if (!wanted()) return;
-          await e.host.start(e.spec);
+          await e.host.start(e.spec, { metrics: metricsEnabled() });
         } else { e.host.sim = sim; e.host.start(e.spec, { logger }); }
         battle = e.host.battle;
       } catch (err) {
@@ -843,9 +836,14 @@ export function createBattleRunner(deps) {
       e.sim = sim;
       e.battle = battle;
       e.meter = e.host.meter;
-      // The Worker page holds wire state only (time, ids): no `damaged` hook and no `heal`, so trackCombat cannot
-      // run there. An in-page Battle gets the meter only when 作战统计 is on (default off; a test may pin it).
+      // The meter only when 作战统计 is on (default off; a test may pin it). A Worker battle is wire state on the page:
+      // the Worker runs trackCombat itself and each packet carries its reading.
       if (metricsEnabled() && !e.host.remote) e.combatMetrics = trackCombat(battle);
+      else if (metricsEnabled() && e.host.packet?.metrics) {
+        const host = e.host;
+        let last = host.packet.metrics;
+        e.combatMetrics = Object.assign(() => (last = host.packet?.metrics || last), { stop() {} });
+      }
       e.t0 = clock() - (e.elapsed / e.speed) * 1000;
       if (lastPool) await e.host.syncPool(lastPool.hp, lastPool.acked ? lastPool.acked[e.fieldId] : undefined);
       if (lastSync && e.spec && e.spec.sync && lastSync.round === e.spec.round && e.host.syncShared) await e.host.syncShared(lastSync, e.authoritative ? e.fieldId : null);

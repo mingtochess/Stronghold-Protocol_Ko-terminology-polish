@@ -18,7 +18,8 @@ export class KitProjectileFx {
     const id=w.unitKeyOf(owner);
     if(kind==='orbitProjectile'&&['char_1020_reed2','char_1044_hsgma2'].includes(id))return this.moteState(extra,owner);
     if(id==='char_4134_cetsyr'&&kind==='moteState'){
-      if(/^chess_char_(?:4_25|5_09)_[ab]$/.test(owner.info?.defId)&&typeof owner.setMoteState==='function'
+      // Match by character, not chess id: ids collide across seasons (규정 act3 = chess_char_6_12_a/b).
+      if(!extra?.projectile&&typeof owner.setMoteState==='function'
         &&(!owner.spineReady||owner.actor?.effectTexture?.('C_Eff_Moire_B','C_Eff_Moire_B'))){owner.setMoteState(extra);return true;}
       return this.moteState(extra,owner);
     }
