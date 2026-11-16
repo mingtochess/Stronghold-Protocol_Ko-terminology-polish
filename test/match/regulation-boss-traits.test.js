@@ -32,3 +32,20 @@ test('regulation: a fighting player can watch the other group\'s boss field', (t
   assert.equal(m.watch(ps, other.fieldId).ok ?? true, true);
   assert.equal(m.watchers.get('p_0'), other.fieldId);
 });
+
+test('regulation: boss-fight layer gains are kept permanently', (t) => {
+  const data = getVersionData('act3autochess@V3_1');
+  const h = makeMatch({ data, version: 'act3autochess@V3_1', humans: 1, bots: 3, seed: 5 }).start();
+  t.after(() => h.m.dispose());
+  const m = h.m, ps = m.players.get('p_0');
+  m.handle('p_0', { t: 'g.autoplay', on: true });
+  m.startRound(m.gd.bossRound);
+  h.drive(() => m.fields.some((f) => f.kind === 'boss'));
+  const bondId = Object.keys(m.gd.raw.bonds || {}).find((id) => m.gd.bond(id));
+  const before = ps.layers[bondId] || 0;
+  const result = (f) => ({ perPlayer: Object.fromEntries(f.players.map((pid) => [pid, {
+    killed: 0, total: 0, leaked: [], perfect: true, coins: 0, damageDealt: 0, unitsEnd: [], unitStats: [],
+    layerGains: pid === 'p_0' ? { [bondId]: 2 } : {} }])) });
+  m._finishFinal(false, result);
+  assert.equal(ps.layers[bondId], before + 2);
+});
