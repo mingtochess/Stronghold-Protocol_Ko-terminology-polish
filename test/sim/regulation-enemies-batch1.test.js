@@ -71,3 +71,62 @@ for (const [key, child, n] of [['enemy_1131_sbeast', 'enemy_1137_plasm', 2], ['e
   h.run(0.3);
   assert.equal(h.enemies().filter((x) => x.defId === child && x.alive).length, n);
 });
+
+test('冰爆源石虫·α: 1 s after death, 200% ATK physical and 寒冷', () => {
+  const h = fight([{ chessId: 't_wall', row: 10, col: 5, uid: 1 }]);
+  h.step(1);
+  const op = h.allies()[0];
+  const e = put(h, 'enemy_1067_snslime_2', [10, 6]);
+  h.step(1);
+  const hp0 = op.hp;
+  h.b.kill(e);
+  h.run(0.5);
+  assert.equal(op.hp, hp0);
+  h.run(0.6);
+  assert.ok(op.hp < hp0);
+  assert.ok(op.findBuff('cold') || op.s.flags.cold || op.statuses?.cold, 'cold');
+});
+
+test('畸变恶性瘤: its blocker attacks 5× slower while it blocks it', () => {
+  const h = fight([{ chessId: 't_wall', row: 10, col: 5, uid: 1 }]);
+  h.step(1);
+  const op = h.allies()[0];
+  const base = op.s.interval;
+  const e = h.spawn('enemy_1138_tumor', { pos: [10, 8], route: { motion: 'WALK', start: [10, 8], end: [10, 0], steps: [] } });
+  h.runUntil(() => e.blockedBy === op, 10);
+  h.step(2);
+  assert.ok(Math.abs(op.s.interval - base * 5) < 1e-6, `interval ${op.s.interval} vs ${base}`);
+});
+
+test('诡核集养者: one copy at the same HP ratio when HP first falls under half; copies do not split', () => {
+  const h = fight();
+  const e = put(h, 'enemy_1436_dsdivi', [10, 6]);
+  h.step(1);
+  h.b.dealDamage(null, e, { amount: e.s.maxHp * 0.6, type: 'true' });
+  h.step(1);
+  const all = h.enemies().filter((x) => x.defId === 'enemy_1436_dsdivi' && x.alive);
+  assert.equal(all.length, 2);
+  const copy = all.find((x) => x !== e);
+  assert.ok(Math.abs(copy.hp / copy.s.maxHp - e.hp / e.s.maxHp) < 0.02);
+  h.b.dealDamage(null, copy, { amount: 1, type: 'true' });
+  h.step(1);
+  assert.equal(h.enemies().filter((x) => x.defId === 'enemy_1436_dsdivi' && x.alive).length, 2);
+});
+
+test('沸血骑士团精锐: +10% ATK per enemy death, capped at 10', () => {
+  const h = fight();
+  const k = put(h, 'enemy_1103_wdkght_2', [10, 6]);
+  h.step(1);
+  const atk0 = k.s.atk;
+  for (let i = 0; i < 12; i++) { const s = put(h, 'enemy_1007_slime', [10, 9]); h.step(1); h.b.kill(s); h.step(1); }
+  assert.ok(Math.abs(k.s.atk - atk0 * 2) < 1e-6, `${k.s.atk} vs ${atk0}`);
+});
+
+test('新生血裔 leaves a 血珀', () => {
+  const h = fight();
+  const e = put(h, 'enemy_1360_dfello', [10, 6]);
+  h.step(1);
+  h.b.kill(e);
+  h.step(2);
+  assert.ok(h.enemies().some((x) => x.defId === 'enemy_1367_dseed' && x.alive));
+});

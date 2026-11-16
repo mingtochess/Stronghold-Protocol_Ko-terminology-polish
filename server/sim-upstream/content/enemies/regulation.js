@@ -289,7 +289,8 @@ function kitSplitDeath(ab) {
   const key = sv(ab.tS, 'deathrattle.enemy_key');
   const delay = tv(ab, 'deathrattle.delay', 0.2);
   const cnt = tv(ab, 'deathrattle.cnt', 2);
-  return [{ death(c, b, e) { if (c.reason === 'killed') replaceLater(b, e, key, delay, cnt); } }];
+  // PRTS: "因坠落以外的原因死亡时" … 可被沉默
+  return [{ sil: true, death(c, b, e) { if (c.reason === 'killed') replaceLater(b, e, key, delay, cnt); } }];
 }
 
 /** Bombardiers use Attack's child key and delay for their death replacement (PRTS talent). */
@@ -600,7 +601,100 @@ function kitUbba(ab) {
   }];
 }
 
+
+/** A sourceless delayed death blast (PRTS 冰爆源石虫·α / 喷射罐: "延迟…（爆炸时来源无效）"), ground allies only [ASSUMED]. */
+function delayedBlast({ delay = 1, r, scale, type = 'phys', cold = 0 }) {
+  return {
+    sil: true,
+    death(c, b, e) {
+      if (c.reason !== 'killed') return;
+      const x = e.x, y = e.y, atk = e.s.atk;
+      const fire = () => {
+        b.fx('explode', { x, y, r, kind: 'deathBoom', id: e.id });
+        for (const u of areaAllies(b, null, x, y, r)) {
+          if (u.isFlying) continue;
+          hurt(b, null, u, atk * scale, type);
+          if (cold > 0 && u.alive) b.applyStatus(u, 'cold', { duration: cold, source: e });
+        }
+      };
+      if (delay > 0) b.after(delay, fire); else fire();
+    },
+  };
+}
+
+/** 冰爆源石虫·α: 1 s after death, 200% ATK physical within 1.65 and 寒冷 10 s (PRTS). */
+const kitSnslime2 = (ab) => [delayedBlast({ delay: 1, r: 1.65, scale: tv(ab, 'boom.atk_scale', 2), cold: tv(ab, 'boom.freeze', 10) })];
+
+/** “喷射罐” / “喷爆罐”: on death, 100% ATK arts within 1.55 and 寒冷 10 s (PRTS). Its 3-hit volley and the heater
+ *  extinguishing are not simulated (规程 fields have no 紧急供暖器). */
+const kitWinbom = (ab) => [delayedBlast({ delay: 0, r: 1.55, scale: tv(ab, 'Boom.atk_scale', 1), type: 'arts', cold: tv(ab, 'Boom.freeze', 10) })];
+
+/** 畸变恶性瘤: the unit blocking it attacks ×0.2 as fast (PRTS "攻击速度-80%（直接乘算，不可叠加）": interval ×5). */
+function kitTumor(ab) {
+  const down = tv(ab, 'atkSpeedDown.attack_speed', -0.8);
+  const bat = down > -1 ? 1 / (1 + down) - 1 : 0;
+  return [{
+    iv: 0,
+    tick(b, e) {
+      const bl = e.blockedBy;
+      if (bl && bl.alive && bat > 0) b.addBuff(bl, { key: 'ab:tumorSlow', duration: 0.1, refresh: 'replace', visible: true, mods: { batPct: bat } });
+    },
+  }];
+}
+
+/** 诡核集养者 / 异光体集养者: the first time HP falls under 0.hp_ratio, one copy at its current HP ratio, which does not split. */
+function kitDivide(ab) {
+  const ratio = tv(ab, '0.hp_ratio', 0.5);
+  const key = ab.sk && ab.sk['0'] ? sv(ab.sk['0'].bs, 'enemy_key') : null;
+  return [{
+    sil: true,
+    taken(c, b, e) {
+      if (e.mem.divided || !e.alive || e.hp >= e.s.maxHp * ratio) return;
+      e.mem.divided = true;
+      const k = key || e.defId;
+      const [copy] = spawnChildren(b, e, k, 1, { countInTotal: false, pos: [e.y, e.x] });
+      if (copy) { copy.mem.divided = true; copy.hp = Math.max(1, copy.s.maxHp * (e.hp / e.s.maxHp)); }
+    },
+  }];
+}
+
+/** 新生血裔: arts attack ×(1 + 20% × the enemies its target blocks), heals 220% of the damage it deals, leaves a 血珀. */
+function kitDfello(ab) {
+  const per = tv(ab, 'DamageUp.scale_ratio', 0.2);
+  const heal = tv(ab, 'vampire.heal_scale', 2.2);
+  const key = sv(ab.tS, 'Summon.enemy_key');
+  return [
+    { spawn(b, e) { e.profile.dmgType = 'arts'; } },
+    { hitOut(c, b, e) { const n = (c.target?.blocking || []).filter((x) => x && x.alive).length; if (n > 0 && c.dmg) c.dmg.mul = (c.dmg.mul ?? 1) * (1 + per * n); } },
+    { dealt(c, b, e) { if (heal > 0 && c.amount > 0 && e.alive) e.hp = Math.min(e.s.maxHp, e.hp + c.amount * heal); } },
+    { death(c, b, e) { if (c.reason === 'killed' && key) replaceLater(b, e, key, 0, 1); } },
+  ];
+}
+
+/** 沸血骑士团精锐: each enemy that dies on the field: ATK +10%, attack speed +5, up to 10 times (PRTS). */
+function kitWdkght2(ab) {
+  const atk = tv(ab, 'enhance.atk', 0.1), aspd = tv(ab, 'enhance.attack_speed', 5), max = tv(ab, 'enhance.max_stack_cnt', 10);
+  return [{
+    spawn(b, e) {
+      e.mem.boil = 0;
+      b.on('death', ({ unit }) => {
+        if (!e.alive || !unit || unit === e || unit.side !== 'enemy' || e.mem.boil >= max) return;
+        e.mem.boil++;
+        b.addBuff(e, { key: 'ab:boil', persist: true, visible: true, refresh: 'replace', mods: { atkPct: atk * e.mem.boil, aspd: aspd * e.mem.boil } });
+      }, { owner: e });
+    },
+  }];
+}
+
 export const REGULATION_KITS = Object.freeze({
+  enemy_1067_snslime_2: kitSnslime2,
+  enemy_1385_winbom: kitWinbom,
+  enemy_1385_winbom_2: same(kitWinbom),
+  enemy_1138_tumor: kitTumor,
+  enemy_1436_dsdivi: kitDivide,
+  enemy_1436_dsdivi_2: same(kitDivide),
+  enemy_1360_dfello: kitDfello,
+  enemy_1103_wdkght_2: kitWdkght2,
   enemy_1424_lrboom: kitLrboom,
   enemy_1435_dsflys: kitDsflys,
   enemy_10196_ubba: kitUbba,
