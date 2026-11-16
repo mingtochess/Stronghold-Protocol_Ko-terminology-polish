@@ -648,6 +648,8 @@ export async function createFieldView(host, options = {}) {
   // prep field (render/prepfield.js): identity on the own board, the boss-field half in the Final Assault prep
   let prepXf = IDENTITY;
   let lastPrep = null;        // { ps, o } of the last setPrep (re-applied when the prep field changes)
+  let standInList = [];       // the own m.private.standIns (0.2.0 补位): pieces of these chess draw their stand-in
+  let diyPicks = {};          // the own m.private.diy (0.2.0 자선/선발): pieces of these DIY slots draw the operator
   const hlReq = new Map();    // highlight group → { tiles (board space), style } requested through highlightTiles
   // enemy preview pen (render/pen.js): figure key → UnitView (own map: never touched by the battle sync)
   const penViews = new Map();
@@ -666,7 +668,10 @@ export async function createFieldView(host, options = {}) {
     cam: () => cam, rangeRect: () => battleMeta?.rect || (prepXf !== IDENTITY ? GEO.BOSS_RECT : GEO.NORMAL_RECT), heightAt, tileAt: (r,c) => tiles.tile(r,c),
     animRate: () => (mode === 'battle' && !battleMeta?.prep ? interp.rate : 1),
     timeScale: () => (mode === 'battle' && !battleMeta?.prep ? interp.rate : 1),
-    lookupDef: (info) => (info.side === 'enemy' ? data.enemy(info.defId) : data.chess(info.defId) || data.token(info.defId)),
+    // (a chess fighting as its 补位 stand-in — `standInFor` — reads the stand-in's record; a filled DIY slot — `diy` — the
+    // operator's composed record: its name, model and attack interval)
+    lookupDef: (info) => (info.side === 'enemy' ? data.enemy(info.defId)
+      : (info.standInFor && data.standIn(info.defId)) || (info.diy && data.diy(info.defId, info.diy)) || data.chess(info.defId) || data.token(info.defId)),
     crowded: () => views.size > 90,
     renderer: app.renderer,
     frameNo: () => frameNo,
@@ -1147,10 +1152,20 @@ export async function createFieldView(host, options = {}) {
       const rec = data.token(piece.id);
       return { kind: 'token', side: 'ally', defId: piece.id, spine: rec?.assets?.spine || piece.id, avatar: rec?.assets?.avatar || piece.id, tier: piece.tier || 1, golden: false, dir };
     }
-    const original = data.chess(piece.id);
-    const selected = resolveLoadout(lastPrep?.ps?.loadout,original,id=>data.chess(id));
-    const rec = loadoutRecord(original,resolveRecordLoadout(original,selected));
+    const chess = data.chess(piece.id);
+    // 0.2.0 补位: a piece of a chess the player does not own (m.private.standIns) is its stand-in's model; 自选 (규정 선발):
+    // a DIY slot the player filled is its operator — in the hand, the 临时整备区 and on the board alike. Without this the
+    // owner saw the slot's 甄选干员 placeholder with no model while a scouting teammate saw the operator (the server's
+    // scouting view carries it).
+    const si = chess && standInList.includes(chess.baseId || chess.chessId) && typeof data.standIn === 'function' ? data.standIn(piece.id) : null;
+    const pick = chess && chess.isDiy ? diyPicks[chess.baseId || chess.chessId] : null;
+    const dr = pick && typeof data.diy === 'function' ? data.diy(piece.id, pick) : null;
+    const original = si || dr || chess;
+    const selected = dr ? { skillIndex: pick.skillIndex ?? null, moduleId: pick.uniEquipId ?? null } : resolveLoadout(lastPrep?.ps?.loadout,original,id=>data.chess(id));
+    const rec = dr ? dr : loadoutRecord(original,resolveRecordLoadout(original,selected));
     return {
+      ...(si ? { standInFor: si.standInFor } : null),
+      ...(dr ? { diy: { charId: pick.charId, skillIndex: pick.skillIndex ?? null, uniEquipId: pick.uniEquipId ?? null } } : null),
       kind: 'op', side: 'ally', defId: piece.id, optionalRecruit:!!rec?.optionalRecruit,
       spine: piece.assets?.spine || rec?.assets?.spine || rec?.charId || null, avatar: piece.assets?.avatar || rec?.assets?.avatar || rec?.charId || null,
       skinId: piece.skinId ?? selected?.skinId, charId: piece.charId ?? rec?.charId,
@@ -1263,6 +1278,8 @@ export async function createFieldView(host, options = {}) {
       });
     };
     const src = ps && typeof ps === 'object' ? ps : {};
+    standInList = Array.isArray(src.standIns) ? src.standIns.filter((x) => typeof x === 'string') : [];
+    diyPicks = src.diy && typeof src.diy === 'object' ? src.diy : {};
     ownPen = Array.isArray(src.nextEnemies) ? src.nextEnemies : null;
     setPenList(ownPen);
     addList(src.hand, 'hand');
