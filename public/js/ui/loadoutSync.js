@@ -273,7 +273,17 @@ function installPrefSync({ net, timers, target, notify, key, stateKey, msgType, 
     if (prev.open && !s.open && timer != null) { T.clearTimeout(timer); timer = null; void flush(); }
   });
   // a match leaving INFO_CHECK locks the loadout; a new match (the room back in LOBBY / a new INFO_CHECK) accepts it again
-  const offRoom = net.on('room.state', (msg) => { if (msg && !msg.inMatch && target.get()[stateKey] === 'locked') { lastSent = null; schedule(); } });
+  // a room of another season (or a version switch): sent again, checked against the data that room plays (the lobby
+  // checked the setting against the default season while no room existed)
+  let roomKey = null;
+  const offRoom = net.on('room.state', (msg) => {
+    if (!msg || msg.inMatch) return;
+    const k = `${msg.code ?? ''}|${msg.version ?? ''}`;
+    const changed = k !== roomKey;
+    roomKey = k;
+    if (changed) refused.clear(); // another season's data: the ids it refused may be this one's
+    if (changed || target.get()[stateKey] === 'locked') { lastSent = null; schedule(); }
+  });
   // the room's content set arrived or went (DESIGN §32.6): sent again, checked against the data the room plays now
   let contentKey = content ? `${content.get().cs}|${content.get().status}` : '';
   const offContent = content ? content.subscribe((c) => {
