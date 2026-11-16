@@ -5,6 +5,12 @@
 
 import { PHASE, GEO } from '../../../shared/constants.js';
 import { recordCombatField } from '../../match/combatHistory.js';
+import { gameData, setGameData } from '../../sim-upstream/content/support/index.js';
+
+/** Make `raw` the 규정 engine's content data (a no-op when it already is). */
+function useBattleData(raw) {
+  if (raw && typeof raw === 'object' && raw.garrisons && gameData() !== raw) setGameData(raw);
+}
 import { deriveSeed } from '../../sim-upstream/rng.js';
 import { withBounties } from '../waves.js';
 import { planUnite } from '../unite.js';
@@ -17,6 +23,10 @@ import { reconcileCommandChests } from '../bandCommands.js';
 export class MatchCombat {
   /** Construct a battle; a constructor failure yields a finished stand-in (clean result) and is logged. */
   newBattle(opts, { preview = false } = {}) {
+    // The 규정 engine's content reads its tables (garrisons, bonds, items, bands …) from one process-wide data object,
+    // which defaults to the server's 맹약 data — where 规程 trait ids (garrison_58_a 耀骑士临光 …) are missing or mean
+    // something else. Point it at this match's data before any battle is built (battles step synchronously).
+    useBattleData(this.gd?.matchData?.raw ?? this.gd?.raw);
     const full = { resourceNumbers: !preview, data: this.ds, content: this.battleContent, logger: this.log, ...opts, ...morphBattleOpt(this.rules),
       ...(this.augments?.active() ? { flags: { ...opts.flags, augments: this.augments.battleState() } } : {}),
       ...(preview ? { logger: {}, quiet: true } : {}) };
