@@ -24,7 +24,8 @@ function acrbot(_bb, chess, def) {
         atkPct: num(sbb.atk),
         hpPct: num(sbb.max_hp),
       },
-      onStart({ battle, unit }) { cleanseAbnormal(battle, unit); },
+      // the cast starts a new attack at once (the pending wind-down is dropped), as the owner asked
+      onStart({ battle, unit }) { cleanseAbnormal(battle, unit); unit.atkCd = 0; },
     };
     return { id, kind: 'instant' };
   });

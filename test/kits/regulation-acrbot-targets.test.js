@@ -28,3 +28,23 @@ test('acrbot hits up to its block count of enemies in range, blocked or not', ()
   const hit = enemies.filter((e) => !e.alive || e.hp < e.s.maxHp).length;
   assert.equal(hit, Math.min(enemies.length, u.s.blockCnt), `hit ${hit} of ${enemies.length}`);
 });
+
+test('acrbot S1 starts a new attack the moment it is cast', () => {
+  const h = makeBattle({ seed: 1, autoFinish: false, timeLimit: 40, data: new DataSource(V3), flags: { dpInit: 0, dpPerSec: 0 },
+    units: [{ uid: 1, chessId: 'chess_char_5_22_a', row: 9, col: 5, skillIndex: 0 }] });
+  h.step();
+  const u = h.unit(1);
+  const k = [...u.rangeKeys].find((x) => x !== 9 * COLS + 5), pos = [Math.floor(k / COLS), k % COLS];
+  const foe = h.spawn('enemy_1007_slime', { pos, route: waitAt(pos[0], pos[1]) });
+  h.battle.addBuff(foe, { key: 'test:hp', mods: { hpFlat: 1e6 } }); foe.hp = foe.s.maxHp;
+  h.runUntil(() => u.stats.attacks >= 1, 5);
+  h.step();
+  assert.ok(u.atkCd > 0, 'mid-cooldown');
+  const before = u.stats.attacks;
+  u.skill.gainSp(9999, 'test');
+  const t0 = h.battle.time;
+  h.runUntil(() => u.stats.attacks > before, 3);
+  assert.ok(u.skill.active, 'cast');
+  // the cast's own motion, then the new attack's wind-up: well under the 1 s left of the old cooldown
+  assert.ok(h.battle.time - t0 < 0.6, `attacked ${(h.battle.time - t0).toFixed(2)} s after the cast`);
+});
