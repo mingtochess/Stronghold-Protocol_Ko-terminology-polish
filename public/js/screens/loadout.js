@@ -58,7 +58,7 @@ import { atPotential } from '../../../shared/potential.js';
 import { setOwned, notOwnedCount, serializeOwnership, parseOwnershipImport, OWNERSHIP_IMPORT_MAX_BYTES } from '../ui/ownershipModel.js';
 import { OwnershipPanel, useOwnershipRoster } from './ownership.js';
 import { DiyPanel, diyData } from './diy.js';
-import { diyCandidates, diySelect, diyDrop, diyChoice, diyResetChoice, diycId, DIYC, DIY_PER_TIER } from '../ui/diyRecruit.js';
+import { diyCandidates, diySelect, diyDrop, diyChoice, diyResetChoice, diyChoicePrefs, diycId, DIYC, DIY_PER_TIER } from '../ui/diyRecruit.js';
 
 import { diyCount, sanitizeDiyPicks, setPick, serializeDiy, parseDiyImport, DIY_IMPORT_MAX_BYTES } from '../ui/diyModel.js';
 import { tParts } from '../../../shared/i18n.js';
@@ -513,7 +513,11 @@ function LoadoutScreen({ st }) {
   const setDiySlot = (slotId, pick) => setDiyPicks(setPick(loadoutStore.get().diy, slotId, pick));
   // 규정 (ui/diyRecruit.js): the 自选编队 slots shown as this 맹약 선발 layout — candidate records, synthetic entries
   const reg = ready && regulationSeason();
-  const diyc = useMemo(() => (reg ? diyCandidates(diyData(), st.diyKitted || [], st.diy) : null), [reg, st.diy, st.diyKitted]);
+  // 규정 선발: a skill / module chosen for an operator before it is picked (the slot roster holds picked ones only) is
+  // remembered per charId and used when it is picked — as a 맹약 recruit keeps its choice whether picked or not
+  const [diyPrefs, setDiyPrefsState] = useState(() => { const v = loadPref('loadout.regDiyChoice', null); return v && typeof v === 'object' ? v : {}; });
+  const setDiyPrefs = (next) => { setDiyPrefsState(next); savePref('loadout.regDiyChoice', next); };
+  const diyc = useMemo(() => (reg ? diyCandidates(diyData(), st.diyKitted || [], st.diy, diyPrefs) : null), [reg, st.diy, st.diyKitted, diyPrefs]);
   // 규정 선발: a 自选 operator's skin lives in the skin store by charId (room.skins), not in a loadout entry
   const chosenSkins = useStore((v) => v[SKINS_KEY] || null, Object.is, skinsStore);
   const diyEntries = useMemo(() => {
@@ -530,7 +534,7 @@ function LoadoutScreen({ st }) {
   const diyPatch = (d, patch) => {
     if (patch && 'skin' in patch) { if (!patch.skin || patch.skin === 'default') clearSkin(d.charId); else setSkin(d.charId, patch.skin); }
     const rest = { ...(patch || {}) }; delete rest.skin;
-    if (Object.keys(rest).length) setDiyPicks(diyChoice(st.diy, diyData(), d.charId, d.tier, rest));
+    if (Object.keys(rest).length) { setDiyPrefs(diyChoicePrefs(diyPrefs, d.charId, rest)); setDiyPicks(diyChoice(st.diy, diyData(), d.charId, d.tier, rest)); }
   };
   const [recruitPicker,setRecruitPicker]=useState(null);
   const [recruitQuery,setRecruitQuery]=useState('');
@@ -556,7 +560,7 @@ function LoadoutScreen({ st }) {
 
   const pick = (id) => { const c=data.lookup('chess',id);if(c?.charId){audio.warmVoices([c.charId]);} loadoutStore.set({ sel: id }); setNarrowDetail(true); };
   const recruit = (c, tier) => {
-    if (diyc) { const d = diycOf(c); const r = diySelect(st.diy, diyData(), d.charId, tier); if (!r.ok) { toast(`각 단계는 최대 ${DIY_PER_TIER(diyData(), tier)}명까지 선발 후보로 지정할 수 있습니다.`, 'warn'); return; } setDiyPicks(r.picks); loadoutStore.set({ sel: diycId(d.charId, tier || d.tier) }); return true; }
+    if (diyc) { const d = diycOf(c); const r = diySelect(st.diy, diyData(), d.charId, tier, diyPrefs); if (!r.ok) { toast(`각 단계는 최대 ${DIY_PER_TIER(diyData(), tier)}명까지 선발 후보로 지정할 수 있습니다.`, 'warn'); return; } setDiyPicks(r.picks); loadoutStore.set({ sel: diycId(d.charId, tier || d.tier) }); return true; }
     const next = setRecruitSelection(loadoutStore.get().entries, c, tier, G);
     const id = c.chessId.replace(/_[56]_a$/, `_${tier || 5}_a`);
     const check = checkLoadout(next, G);
@@ -572,7 +576,7 @@ function LoadoutScreen({ st }) {
   const resetOne = () => {
     if (!base) return;
     const d = diyc ? diycOf(base) : null;
-    if (d) { clearSkin(d.charId); setDiyPicks(diyResetChoice(st.diy, diyData(), d.charId, d.tier)); return; }
+    if (d) { clearSkin(d.charId); setDiyPrefs(diyChoicePrefs(diyPrefs, d.charId, null)); setDiyPicks(diyResetChoice(st.diy, diyData(), d.charId, d.tier)); return; }
     if (!base.optionalRecruit) { setEntries(resetChoice(loadoutStore.get().entries, base.chessId)); return; }
     let next = {...loadoutStore.get().entries};
     for (const tier of [5,6]) {

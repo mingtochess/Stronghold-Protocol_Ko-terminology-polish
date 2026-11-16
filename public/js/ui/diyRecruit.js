@@ -27,12 +27,27 @@ export function slotOf(picks, data, charId, tier) {
 }
 
 /**
+ * The pick an operator starts with in a slot: its default (defaultPick), with the player's remembered skill / module
+ * choice of that operator (`prefs[charId]`: `{ skill?, module? }`, chosen while it was not picked yet) where the slot
+ * offers it. A prototype keeps its locked selection.
+ */
+export function preferredPick(charId, slotId, data, prefs = null) {
+  const pick = defaultPick(charId, slotId, data);
+  const pref = prefs && typeof prefs === 'object' ? prefs[charId] : null;
+  const ch = pref ? pickChoices(charId, slotId, data) : null;
+  if (!ch || ch.proto) return pick;
+  if (Number.isInteger(pref.skill) && ch.skills.some((x) => x.index === pref.skill)) pick.skillIndex = pref.skill;
+  if ('module' in pref && (pref.module == null || ch.modules.some((m) => m.uniEquipId === pref.module))) pick.uniEquipId = pref.module ?? null;
+  return pick;
+}
+
+/**
  * Candidate records and the synthetic entries. `records` maps every synthetic id to its record (normal `_a`, elite `_b`);
  * `bases` lists one normal record per operator (the tier it is picked at, else its first pickable tier); `entries`
  * carries the picks.
  * @param {any} data `{ chess, backups }` @param {Iterable<string>|null} kitted @param {any} picks
  */
-export function diyCandidates(data, kitted, picks) {
+export function diyCandidates(data, kitted, picks, prefs = null) {
   const kit = kitted ? [...kitted] : null;
   const roster = cleanPicks(picks);
   const records = new Map(), entries = {}, bases = [];
@@ -45,7 +60,7 @@ export function diyCandidates(data, kitted, picks) {
       const slot = slotsOf(data, tier)[0];
       if (!slot) continue;
       const held = slotOf(roster, data, charId, tier);
-      const pick = held ? roster[held] : defaultPick(charId, slot.slotId, data);
+      const pick = held ? roster[held] : preferredPick(charId, slot.slotId, data, prefs);
       const normal = slotRecord(slot.slotId, pick, data), elite = slotRecord(slot.slotId, pick, data, { elite: true });
       if (!normal) continue;
       const proto = isPrototypePick(data, tier, charId);
@@ -61,6 +76,9 @@ export function diyCandidates(data, kitted, picks) {
         entries[a] = { selected: true, ...(Number.isInteger(pick.skillIndex) ? { skill: pick.skillIndex } : {}), ...(pick.uniEquipId !== undefined ? { module: pick.uniEquipId ?? null } : {}) };
         if (ch?.proto) delete entries[a].skill;
         shown ??= a;
+      } else if (prefs?.[charId] && !proto) {
+        // a choice made before picking it: shown on the card / detail, used when it is picked (diySelect)
+        entries[a] = { ...(Number.isInteger(pick.skillIndex) ? { skill: pick.skillIndex } : {}), ...(pick.uniEquipId !== undefined ? { module: pick.uniEquipId ?? null } : {}) };
       }
     }
     const first = shown || (tiers.length ? diycId(charId, tiers[0]) : null);
@@ -73,13 +91,13 @@ export function diyCandidates(data, kitted, picks) {
  * Pick (tier 5 / 6) or drop (0) an operator: removed from every slot, then put in the first free slot of the tier.
  * @returns {{ ok: true, picks: object } | { ok: false, full: true }}
  */
-export function diySelect(picks, data, charId, tier) {
+export function diySelect(picks, data, charId, tier, prefs = null) {
   let next = cleanPicks(picks);
   for (const t of TIERS) { const held = slotOf(next, data, charId, t); if (held) next = setPick(next, held, null); }
   if (!tier) return { ok: true, picks: next };
   const free = slotsOf(data, tier).find((s) => !next[s.slotId]);
   if (!free) return { ok: false, full: true };
-  return { ok: true, picks: setPick(next, free.slotId, defaultPick(charId, free.slotId, data)) };
+  return { ok: true, picks: setPick(next, free.slotId, preferredPick(charId, free.slotId, data, prefs)) };
 }
 
 /** Drop an operator from one tier only (a prototype picked at both tiers keeps the other). */
@@ -100,8 +118,23 @@ export function diyChoice(picks, data, charId, tier, patch) {
 
 /** Back to the operator's default skill / module (keeps the pick). */
 export function diyResetChoice(picks, data, charId, tier) {
+  // (the caller also forgets the remembered choice: diyChoicePrefs)
   const roster = cleanPicks(picks), held = slotOf(roster, data, charId, tier);
   return held ? setPick(roster, held, defaultPick(charId, held, data)) : roster;
 }
 
 export const DIY_PER_TIER = (data, tier) => slotsOf(data, tier).length;
+
+/**
+ * The remembered skill / module choices after a candidate's change: `{ [charId]: { skill?, module? } }` (a new object;
+ * `patch` = the 맹약 detail's `{ skill?, module? }`; null `patch` forgets the operator's choice).
+ */
+export function diyChoicePrefs(prefs, charId, patch) {
+  const out = { ...(prefs && typeof prefs === 'object' ? prefs : {}) };
+  if (!patch) { delete out[charId]; return out; }
+  const cur = { ...(out[charId] || {}) };
+  if (Number.isInteger(patch.skill)) cur.skill = patch.skill;
+  if ('module' in patch) cur.module = patch.module ?? null;
+  out[charId] = cur;
+  return out;
+}
