@@ -1353,6 +1353,8 @@ export class Lobby {
       if (s.playerId !== room.hostId) s.ready = false;
       s.loadout = null; s.ops = null; s.notOwned = null; s.diy = null;
       s.loadoutCs = null; s.notOwnedCs = null; s.diyCs = null;
+      // the raw settings stay: the next start re-checks them against the new season's data (seatSettings)
+      s.loadoutVer = null; s.diyVer = null;
     }
     this.log.info(`[lobby] ${room.code} version → ${version}`);
     this.broadcastState(room);
@@ -1567,11 +1569,18 @@ export class Lobby {
     const room = this.roomOf(session);
     // checked against the room's own data: a room with gameplay plugins knows its plugins' operators (header "Gameplay plugins")
     const data = this.dataFor(room);
+    // the raw settings and the season they are for: a page edits the season of its lobby (규정 or 맹약) before any room
+    // exists, so the default data would refuse or mangle them; the match re-checks the raw copy against its room's data
+    // (seatSettings); the page also sends again for a room of another season (loadoutSync.js).
+    const raw = Object.freeze({ entries: entries ? { ...entries } : {}, ops: ops ? { ...ops } : {} });
+    const version = room ? room.version : null;
     const res = checkLoadout(entries, (id) => lookup('chess', id, data));
     if (!res || res.error) return fail(res && isErrCode(res.error) ? res.error : ERR.BAD_MSG, res && res.detail);
     const ids = opsCharIds(data);
     const resOps = checkLoadoutOps(ops, (id) => ids.has(id), (id) => charPotentialChanges(data, id));
     if (!resOps || resOps.error) return fail(resOps && isErrCode(resOps.error) ? resOps.error : ERR.BAD_MSG, resOps && resOps.detail);
+    session.loadoutRaw = raw;
+    session.loadoutVer = version;
     let linked=session.strategyPresets||{};
     if(strategyPresets!==undefined){
       if(!strategyPresets||typeof strategyPresets!=='object'||Array.isArray(strategyPresets)||Object.keys(strategyPresets).length>30)return fail(ERR.BAD_MSG);
@@ -1593,7 +1602,7 @@ export class Lobby {
     session.loadoutCs = cs;
     if (!room) return OK;
     const seat = room.seatOf(session.playerId);
-    if (seat) { seat.strategyPresets=linked;seat.loadout = loadout; seat.ops = opsSet; seat.loadoutCs = cs; }
+    if (seat) { seat.strategyPresets=linked;seat.loadout = loadout; seat.ops = opsSet; seat.loadoutCs = cs; seat.loadoutRaw = raw; seat.loadoutVer = version; }
     if (!room.match || !seat) return OK; // a spectator's loadout stays on its session, never reaching the match
     if (typeof room.match.setLoadout !== 'function') return fail(ERR.ROOM_STARTED, 'stored for the next match');
     let r;
@@ -1642,11 +1651,16 @@ export class Lobby {
     if (!res || !('ok' in res)) return fail(ERR.BAD_MSG, res && res.detail);
     const kept = freezeDiy(res.picks);
     const cs = this.csOf(room);
+    // the raw picks and the season they were checked for (see loadout): re-checked against the room's data at the start
+    const raw = Object.freeze({ ...picks });
+    const version = room ? room.version : null;
     session.diy = kept;
     session.diyCs = cs;
+    session.diyRaw = raw;
+    session.diyVer = version;
     if (!room) return OK;
     const seat = room.seatOf(session.playerId);
-    if (seat) { seat.diy = kept; seat.diyCs = cs; }
+    if (seat) { seat.diy = kept; seat.diyCs = cs; seat.diyRaw = raw; seat.diyVer = version; }
     if (room.match && seat) return fail(ERR.ROOM_STARTED, 'stored for the next match');
     return OK;
   }
@@ -1716,14 +1730,19 @@ export class Lobby {
   seatSettings(room, s, data) {
     const cs = this.csOf(room);
     const other = (checked) => !!cs && (checked ?? this.vanilla?.cs ?? null) !== cs;
+    // checked for another season (or outside any room): re-check the raw copy against this room's data
+    const otherVer = (v) => v !== room.version;
     let loadout = s.loadout || null;
     let ops = s.ops || null;
     let notOwned = s.notOwned || null;
     let diy = s.diy || null;
     const chess = (id) => lookup('chess', id, data);
-    if (loadout && other(s.loadoutCs)) {
+    const loadoutAgain = (s.loadoutRaw && otherVer(s.loadoutVer)) || (loadout && other(s.loadoutCs));
+    if (loadoutAgain && s.loadoutRaw && otherVer(s.loadoutVer)) { loadout = s.loadoutRaw.entries || {}; ops = s.loadoutRaw.ops || {}; }
+    if (loadoutAgain && loadout) {
       const keep = {};
       for (const [id, e] of Object.entries(loadout)) {
+        if (!e || typeof e !== 'object') continue;
         const r = checkLoadout({ [id]: { skill: e.skill, ...(e.module != null ? { module: e.module } : {}) } }, chess);
         if (r && !r.error && r.loadout[id]) keep[id] = r.loadout[id];
       }
@@ -1744,7 +1763,9 @@ export class Lobby {
       const r = checkNotOwned([...notOwned], chess);
       notOwned = r && !r.error ? Object.freeze(r.notOwned.slice()) : null;
     }
-    if (diy && other(s.diyCs)) {
+    const diyAgain = (s.diyRaw && otherVer(s.diyVer)) || (diy && other(s.diyCs));
+    if (diyAgain && s.diyRaw && otherVer(s.diyVer)) diy = s.diyRaw;
+    if (diyAgain && diy) {
       const r = checkDiyPicks({ ...diy }, { data, kitted: this.kittedFor(room) });
       diy = r && 'ok' in r ? freezeDiy(r.picks) : null;
     }
@@ -2255,6 +2276,9 @@ export class Lobby {
       loadoutCs: session.loadoutCs ?? null,
       notOwnedCs: session.notOwnedCs ?? null,
       diyCs: session.diyCs ?? null,
+      // the raw settings and the season they were checked for (null: outside a room — re-checked for the room's season)
+      loadoutRaw: session.loadoutRaw ?? null, loadoutVer: session.loadoutVer ?? null,
+      diyRaw: session.diyRaw ?? null, diyVer: session.diyVer ?? null,
     };
   }
 
