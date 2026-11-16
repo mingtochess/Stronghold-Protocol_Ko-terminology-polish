@@ -1,4 +1,5 @@
 // Browser-only, read-only combat accounting. No event history or network payloads.
+import { damageValues } from '../../../shared/damageTypes.js';
 export const DAMAGE_TYPES = Object.freeze(['phys', 'arts', 'true', 'elemental']);
 const positive = (n) => Number.isFinite(n) && n > 0 ? n : 0;
 
@@ -122,4 +123,17 @@ export function prepLayerRecords(priv, round = null) {
     seconds:0, owners:[priv.playerId], rows:r.rows.map(row=>({...row, damage:0, healing:0,
       types:Object.fromEntries(DAMAGE_TYPES.map(t=>[t,0]))})),
   }));
+}
+
+/** Per-operator damage counters of a Battle (the stats detail's sample): its tokens count toward their operator. */
+export function sampleRows(battle) {
+  const rows = new Map();
+  for (const u of battle?.allyUnits || []) {
+    const owner = u.kind === 'op' ? u : u.ownerUnit;
+    if (!owner || owner.kind !== 'op') continue;
+    let row = rows.get(owner.id);
+    if (!row) { row = { id: owner.id, defId: owner.defId, name: owner.def?.name || owner.defId, values: [0, 0, 0, 0, 0, 0] }; rows.set(owner.id, row); }
+    damageValues(u.stats).forEach((v, i) => row.values[i] += v);
+  }
+  return [...rows.values()];
 }

@@ -1,11 +1,13 @@
 // Kept separate from the browser port so the same engine/packets can be verified with a Node worker.
 import { InPageSimHost } from './simHost.js';
+import { trackCombat, sampleRows } from './metrics.js';
 
 export function createSimWorker({ loadSim, prepareScripts = browserScripts } = {}) {
   const host = new InPageSimHost(loadSim ? { loadSim } : {});
   let loaded = false;
   let loadingStarted = false;
   let installScripts = null;
+  let metrics = null; // 作战统计 meter (trackCombat), when the page asked for it
   const packet = (step = null) => {
     const b = host.battle;
     const pids = (host.spec.players || []).map(p => p.playerId);
@@ -20,6 +22,7 @@ export function createSimWorker({ loadSim, prepareScripts = browserScripts } = {
       meta: b.fieldMeta(), players: Object.fromEntries(pids.map(id => [id, { bonds: b.getPlayer(id)?.bonds }])),
       ops: Object.fromEntries(pids.map(id => [id, host.ownerOps(id)])), meter: { lp: host.meter.lp },
       progress: host.progress(), left: host.spec.kind === 'unite' ? host.uniteLeft() : null,
+      ...(metrics ? { metrics: metrics(), sample: sampleRows(b) } : {}),
       result: b.finished ? host.compactResult({ bossLike: ['boss', 'hidden'].includes(host.spec.kind), battleId: host.spec.battleId }) : null,
     };
   };
@@ -45,7 +48,7 @@ export function createSimWorker({ loadSim, prepareScripts = browserScripts } = {
     }
     if (!loaded) throw new Error('simulation not loaded');
     switch (method) {
-      case 'start': host.start(args[0]); return packet();
+      case 'start': host.start(args[0]); metrics = args[1]?.metrics ? trackCombat(host.battle) : null; return packet();
       case 'step': {
         if (!Number.isInteger(args[0]) || args[0] < 0 || args[0] > 600) throw new Error('invalid step count');
         return packet(host.step(args[0], args[1] || {}));
