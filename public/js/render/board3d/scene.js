@@ -206,6 +206,22 @@ export function surfaceForArea(src, areas) {
   return {...src,...output,index};
 }
 
+// The low triangles of an authored geometry (every corner at z ≤ .85): their offsets in `index` and `a,b,c` keys, in
+// index order. Cached per index/position buffers (immutable), as the opposite-border copy asks once per run and source.
+const lowTriangleCache = new WeakMap();
+function lowTriangles(src) {
+  let byPos=lowTriangleCache.get(src.index);
+  if(!byPos)lowTriangleCache.set(src.index,byPos=new WeakMap());
+  const hit=byPos.get(src.position);
+  if(hit)return hit;
+  const ix=src.index,p=src.position,at=[],keys=[];
+  for(let n=0;n<ix.length;n+=3) {
+    const a=ix[n],b=ix[n+1],c=ix[n+2];
+    if(p[a*3+2]<=.85 && p[b*3+2]<=.85 && p[c*3+2]<=.85){at.push(n);keys.push(a+','+b+','+c);}
+  }
+  const out={at,keys};byPos.set(src.position,out);return out;
+}
+
 // Authored geometry buffers are immutable. Border selection repeatedly asks for
 // different cells of the same mesh; weld its seams and find components once.
 // Weak keys let obsolete stages and their derived buffers be collected.
@@ -1145,7 +1161,7 @@ export class BoardScene {
         if(!copies.has(material))copies.set(material,[]);
         copies.get(material).push(reflectOppositeBorder(geometry,axis));
       };
-      runs.forEach(({source,axis},i)=>{
+      for(const {source,axis} of runs){
         const footprints=sourceRaised.flatMap(g=>g.footprints || []).filter(b=>b.x0>=source.c0-.55 && b.x1<=source.c1+.55 && b.y0>=source.r0-.55 && b.y1<=source.r1+.55);
         const supportAreas=footprints.length ? [{...source,r0:source.r0-.03,r1:source.r1+.03,c0:source.c0-.03,c1:source.c1+.03}] : [];
         borderSources.forEach(({geometry,ornamentGeometry,sourceArea,material,platform},j)=>{
@@ -1167,18 +1183,24 @@ export class BoardScene {
             // landscape/pen fragments into otherwise empty background cells.
             if(supportAreas.length) {
               const used=new Set();
-              for(let n=0;n<ornament.index.length;n+=3)used.add(Array.from(ornament.index.slice(n,n+3)).join(','));
+              const oi=ornament.index;
+              for(let n=0;n<oi.length;n+=3)used.add(oi[n]+','+oi[n+1]+','+oi[n+2]);
+              // the source's low triangles (every corner z ≤ .85) and their keys, computed once per source geometry
+              const low=lowTriangles(supportSource);
               const index=[];
-              for(let n=0;n<supportSource.index.length;n+=3) {
-                const tri=Array.from(supportSource.index.slice(n,n+3));
-                if(!used.has(tri.join(',')) && tri.every(id=>supportSource.position[id*3+2]<=.85))index.push(...tri);
+              for(let t=0;t<low.keys.length;t++) {
+                if(used.has(low.keys[t]))continue;
+                const n=low.at[t];
+                index.push(supportSource.index[n],supportSource.index[n+1],supportSource.index[n+2]);
               }
               const base=surfaceForArea({...supportSource,index},supportAreas);
               addCopy(compactGeometry(base),axis,material);
             }
           }
         });
-      });
+        // background prewarm: one border run per idle slice (a foreground setStage runs every step at once)
+        yield;
+      }
       const occupied=new Set();
       for(const mesh of Object.values(M))if(mesh && !mesh.material?.isShaderMaterial && mesh.geometry?.index) {
         uniqueCopiedFaces({position:mesh.geometry.attributes.position.array,index:mesh.geometry.index.array},occupied);

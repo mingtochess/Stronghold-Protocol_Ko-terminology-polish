@@ -87,7 +87,7 @@ import { contentFor as appContentFor, simContent as appSimContent, contentSet as
 import { fxForm } from '../../../shared/protocol.js';
 import { spectateEffects } from './observe.js';
 import { recordError, setBattleSource } from '../diag.js';
-import { loadBrowserSim } from './simLoader.js';
+import { loadBrowserSim, checkOperatorTraitRuntime } from './simLoader.js';
 import { data as gameData } from '../data.js';
 import { InPageSimHost, WorkerSimHost } from './simHost.js';
 import { trackCombat, combineCombat, prepLayerRecords, sampleRows } from './metrics.js';
@@ -174,7 +174,7 @@ export function createBattleRunner(deps) {
   const clearIv = deps.clearInterval || ((h) => globalThis.clearInterval(h));
   const doc = deps.doc !== undefined ? deps.doc : (typeof document !== 'undefined' ? document : null);
   // `content` (DESIGN §32.6): `{ cs, data }` of a room's content set → the sim on it; null → the original content
-  const loadSim = deps.loadSim || ((content) => (content ? loadBrowserSim({ data: content.data, cs: content.cs, version: content.version ?? null, bounds: content.bounds ?? null, scripts:content.scripts || [], hashInput:content.hashInput, nativeVerified:content.nativeVerified }) : (globalThis.__SP_LAB_CONTENT ? loadBrowserSim(globalThis.__SP_LAB_CONTENT) : loadBrowserSim({reuse:deps.reuseSimData || (n=>gameData.getRaw(n)),reuseOwner:deps.reuseSimOwner || (()=>gameData.contentId())}))));
+  const loadSim = deps.loadSim || ((content) => (content ? loadBrowserSim({ data: content.data, cs: content.cs, version: content.version ?? null, bounds: content.bounds ?? null, scripts:content.scripts || [], hashInput:content.hashInput, nativeVerified:content.nativeVerified, traitRuntimeVerified:content.traitRuntimeVerified ?? null }) : (globalThis.__SP_LAB_CONTENT ? loadBrowserSim(globalThis.__SP_LAB_CONTENT) : loadBrowserSim({reuse:deps.reuseSimData || (n=>gameData.getRaw(n)),reuseOwner:deps.reuseSimOwner || (()=>gameData.contentId())}))));
   const logger = deps.logger || SIM_LOGGER;
   // the content sets (DESIGN §32.6): the room's set the page holds (content.js) and the server's original one
   const contentFor = deps.contentFor || appContentFor;
@@ -290,7 +290,12 @@ export function createBattleRunner(deps) {
     simCs = want; simLab = lab;
     const p = (want ? contentFor(want).then((content) => {
       if (!content || content.cs !== want) throw new Error(`the content set ${want.slice(0, 8)} is not loaded on this page`);
-      return deps.loadSim ? loadSim(content) : { content, cs: want, remote: true };
+      if (deps.loadSim) return loadSim(content);
+      // The official 규정 season (its data names the regulation family, no plugin scripts) is trusted: it runs on the page
+      // like the original content, so the page has the Battle itself (작전 통계, unit stats, …). Plugin sets — scripts or
+      // data alone, which may hang a step — keep the sandboxed Worker (DESIGN §32.11).
+      if (!(content.scripts?.length) && content.data?.config?.version?.family === 'regulation') return checkOperatorTraitRuntime(content.data).then((traitRuntimeVerified) => loadSim({ ...content, traitRuntimeVerified }));
+      return { content, cs: want, remote: true };
     }) : loadSim(null)).catch((err) => { if (simP === p) { simP = null; simCs = null; } throw err; });
     simP = p;
     return p;
