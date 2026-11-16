@@ -236,13 +236,20 @@ export function useCommand(ps, effectId, target, ctx) {
  * ITEMS integration: openSkillChangeDraft(player, 'skill_change_1', ctx) opens the 投机骰子 three-command choice.
  * skill_change_2 is the two-command prep choice. Returns false without changing state for an unknown choice or
  * a season without commands. ctx is optional; its RNG is used when supplied. g.commandChoice resolves the first
- * queued draft. [ASSUMED] Pool = all other ACTIVE skill rows, including upgraded rows; no filter exists in the data.
+ * queued draft. Pool = the first row of every other strategy with an ACTIVE command (its unlock / upgrade conditions apply).
  */
 export function openSkillChangeDraft(player, choiceId, ctx = null) {
   if (!['skill_change_1', 'skill_change_2'].includes(choiceId)) return false;
   syncCommand(player);
   if (!player.command) return false;
-  const pool = skillRows(player).filter(s => s.type === 'ACTIVE' && s.effectId !== player.command.currentEffectId);
+  // Each other strategy's command enters at its FIRST row: a locked row (【…-未解锁】: round / shop level / funds spent /
+  // bond count) or a level-1 row then unlocks / upgrades by its own condition (syncCommand), never handed out
+  // already unlocked or upgraded (引星棘刺 【出航时刻】, 琳琅诗怀雅 【最佳品味-2级】 used without their conditions).
+  // Offered: the strategies whose chain has an ACTIVE command, but not the chain the player runs now.
+  const live = Object.values(player.gd.raw.bands || {}).find(b => (b.skills || []).some(r => r.effectId === player.command.currentEffectId));
+  const pool = Object.values(player.gd.raw.bands || {})
+    .filter(b => b !== live && b.skills?.length && b.skills.some(r => r.type === 'ACTIVE'))
+    .map(b => b.skills[0]);
   const cards = (ctx?.rng || player.m.rngMeta).shuffle(pool).slice(0, choiceId === 'skill_change_1' ? 3 : 2).map(s => s.effectId);
   if (!cards.length) return false;
   (player.commandDrafts ||= []).push({ id: `command.${player.m.nextUid()}`, choiceId, cards });
