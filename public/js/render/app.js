@@ -758,6 +758,13 @@ export async function createFieldView(host, options = {}) {
   const recover = { THREE: null, pack: null, timer: 0, tries: 0, since: 0, off: false, count: 0 };
   setupCleanup.push(() => { clearTimeout(recover.timer); disable3d(); });
   /** The stage's official scene, once loaded (the procedural board shows meanwhile and when there is none). */
+  /** stage id → its loaded official scene pack (handed to the board before the stage is built: no procedural pop-in) */
+  const loadedScenes = new Map();
+  function readyScene(st) {
+    const id = st && typeof st.id === 'string' ? st.id : '';
+    const pack = id && board3d && settings.mapQuality !== 'low' ? loadedScenes.get(id) : null;
+    if (pack) board3d.setScenePack(id, pack);
+  }
   function useOfficialScene(st) {
     if (st?.coopEightStage || st?.previewLayout) return;
     // 맵 품질 '낮음' (단순 3D): the simple procedural board only — the official scene pack is the original map's mesh
@@ -765,6 +772,7 @@ export async function createFieldView(host, options = {}) {
     const id = st && typeof st.id === 'string' ? st.id : '';
     if (!id || !board3d) return;
     loadScenePack(assets, id).then((scene) => {
+      if (scene) loadedScenes.set(id, scene);
       if (scene && !destroyed && board3d && stageRec && stageRec.id === id) board3d.setScenePack(id, scene);
     }).catch(() => {});
   }
@@ -779,7 +787,8 @@ export async function createFieldView(host, options = {}) {
       host.insertBefore(c3, canvas);
       board3dCanvas = c3;
       const b = new BoardScene(THREE, pack, {
-        layoutCacheSize: 4,
+        // 규정: every player's field may be another map; keep each visited map's layouts like the one shared 맹약 map
+        layoutCacheSize: (opts.data?.get?.('config') || opts.data?.config)?.version ? 8 : 4,
         canvas: c3, antialias: settings.quality !== 'low' && (globalThis.devicePixelRatio || 1) < 2, shadows: settings.shadows !== false,
       });
       const sz = size();
@@ -1098,7 +1107,7 @@ export async function createFieldView(host, options = {}) {
     stageRec = st;
     tiles.setStage(visualStage());
     tiles.setBattleRect(mode === 'battle' && battleMeta && !battleMeta.prep ? battleMeta.rect : null);
-    if (board3d) { board3d.setStage(visualStage(),st.coopEightStage?[{r0:6,r1:13,c0:0,c1:36}]:undefined); useOfficialScene(visualStage()); board3d.setBattleRect(mode === 'battle' && battleMeta && !battleMeta.prep ? battleMeta.rect : null); }
+    if (board3d) { readyScene(visualStage()); board3d.setStage(visualStage(),st.coopEightStage?[{r0:6,r1:13,c0:0,c1:36}]:undefined); useOfficialScene(visualStage()); board3d.setBattleRect(mode === 'battle' && battleMeta && !battleMeta.prep ? battleMeta.rect : null); }
     tiles.project(cam, true);
     // a pen laid out before the stage arrived (setPrep / a scouting board first) used the default zones and the old
     // tile heights: lay it out again on this stage
