@@ -149,6 +149,9 @@ function translate(s, noPieces = false) {
   const core = s.slice(lead.length, s.length - trail.length);
   let out = dict.get(core);
   if (out === undefined && core.includes('\n')) out = dict.get(core.replace(/\n/g, '\\n'));
+  // official texts that end in a line break (规程 特质 「…获得1个幽灵鲨、安哲拉、深巡或斯卡蒂\n」): the entry keeps it
+  if (out === undefined) out = dict.get(core + trail) ?? dict.get(`${core}\n`);
+  if (typeof out === 'string') out = out.replace(/\s+$/, '');
   if (out === undefined) out = viaPattern(core);
   if (out == null) {
     const shortcut = /^(.*?)(\s*\[[A-Z0-9]+\])$/.exec(core);

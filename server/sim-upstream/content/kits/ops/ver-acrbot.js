@@ -24,7 +24,8 @@ function acrbot(_bb, chess, def) {
         atkPct: num(sbb.atk),
         hpPct: num(sbb.max_hp),
       },
-      onStart({ battle, unit }) { cleanseAbnormal(battle, unit); },
+      // the cast starts a new attack at once (the pending wind-down is dropped), as the owner asked
+      onStart({ battle, unit }) { cleanseAbnormal(battle, unit); unit.atkCd = 0; },
     };
     return { id, kind: 'instant' };
   });
@@ -44,12 +45,12 @@ function acrbot(_bb, chess, def) {
           ctx.dmg.mul *= cut;
         }, { owner: unit });
       }
-      // 酋长之威 (PRTS 备注): each attack's max targets = the enemies it blocks now (at least 1), fixed as the attack starts —
-      // the blocked ones first, then others of its range
+      // 酋长之威: each attack hits as many enemies of its range as its block count (the stat, not the enemies it blocks
+      // now — one blocked enemy still lets it hit others in range), fixed as the attack starts; the blocked ones first
       battle.on('beforeAttack', (ctx) => {
         if (ctx.attacker !== unit) return;
         const blocked = (unit.blocking || []).filter((e) => e && e.alive && e.side === 'enemy');
-        const n = Math.max(1, blocked.length);
+        const n = Math.max(1, Math.floor(unit.s?.blockCnt || 0));
         const targets = (ctx.targets || []).filter((t) => t && t.side === 'enemy');
         if (targets.length >= n) return;
         const pool = [...blocked, ...battle.enemiesInKeys(unit.rangeKeys, unit, ctx.profile)];

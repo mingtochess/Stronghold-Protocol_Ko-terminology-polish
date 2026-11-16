@@ -47,6 +47,7 @@ import { chessStatsBlock, traitText, chessTalents } from '../ui/detailPanel.js';
 import { chessLoadout } from '../ui/gameLogic.js';
 import { data, useData, localAsset, DATA_FILES } from '../data.js';
 import { useStore, loadPref, savePref } from '../store.js';
+import { skinsStore, SKINS_KEY, setSkin, clearSkin } from '../ui/skins.js';
 import { PHASE } from '../../../shared/constants.js';
 import { garrisonTexts, MODULE_NONE, PROF_ORDER, PROF_NAME, rosterOf, filterRoster, recordsOf, chessOptions, effectiveChoice, setChoice, resetChoice, changedCount, skillLabel, moduleBadge, attrRows, skillTags, serializeExport, parseImport, LOADOUT_IMPORT_MAX_BYTES, sanitizeEntries, setRecruitChoice, setRecruitSelection } from '../ui/loadoutModel.js';
 import { loadoutStore, openLoadout, closeLoadout, setEntries, applyLoadoutEntries, setNotOwned, applyOwnershipImport, setDiyPicks, applyDiyImport } from '../ui/loadoutSync.js';
@@ -513,9 +514,24 @@ function LoadoutScreen({ st }) {
   // 규정 (ui/diyRecruit.js): the 自选编队 slots shown as this 맹약 선발 layout — candidate records, synthetic entries
   const reg = ready && regulationSeason();
   const diyc = useMemo(() => (reg ? diyCandidates(diyData(), st.diyKitted || [], st.diy) : null), [reg, st.diy, st.diyKitted]);
-  const E = tab === 'recruits' && diyc ? diyc.entries : st.entries;
+  // 규정 선발: a 自选 operator's skin lives in the skin store by charId (room.skins), not in a loadout entry
+  const chosenSkins = useStore((v) => v[SKINS_KEY] || null, Object.is, skinsStore);
+  const diyEntries = useMemo(() => {
+    if (!diyc) return null;
+    const out = {};
+    for (const [id, e] of Object.entries(diyc.entries)) { const sk = chosenSkins?.[diyc.records.get(id)?.charId]; out[id] = sk ? { ...e, skin: sk } : e; }
+    for (const [id, r] of diyc.records) if (!out[id] && chosenSkins?.[r.charId]) out[id] = { skin: chosenSkins[r.charId] };
+    return out;
+  }, [diyc, chosenSkins]);
+  const E = tab === 'recruits' && diyc ? diyEntries : st.entries;
   const G = (id) => diyc?.records.get(id) || getChess(id);
   const diycOf = (c) => { const m = DIYC.exec(c?.chessId || ''); return m ? { charId: m[1], tier: Number(m[2]) } : null; };
+  // a 自选 candidate's change: its skin to the skin store, its skill / module to the slot pick
+  const diyPatch = (d, patch) => {
+    if (patch && 'skin' in patch) { if (!patch.skin || patch.skin === 'default') clearSkin(d.charId); else setSkin(d.charId, patch.skin); }
+    const rest = { ...(patch || {}) }; delete rest.skin;
+    if (Object.keys(rest).length) setDiyPicks(diyChoice(st.diy, diyData(), d.charId, d.tier, rest));
+  };
   const [recruitPicker,setRecruitPicker]=useState(null);
   const [recruitQuery,setRecruitQuery]=useState('');
   const [listView,setListView]=useState(()=>loadPref('loadout.listView',false)===true);
@@ -552,11 +568,11 @@ function LoadoutScreen({ st }) {
     return true;
   };
   const recruitControls=c=>html`<div class="lo-seg lo-recruit-choice" aria-label=${c.name+' 선발 단계'}>${[0,5,6].map(t=>html`<button type="button" disabled=${locked||(t===6&&c.recruitReserve)} aria-pressed=${t?selectedAt(c,t):!selectedTier(c)} class=${cx((t?selectedAt(c,t):!selectedTier(c))&&'is-on')} title=${t?`${t}단계로 선발`:'선발 안 함'} aria-label=${c.name+' '+(t?`${t}단계로 선발`:'선발 안 함')} onClick=${()=>recruit(c,t)}>${t?html`<${TierChip} tier=${t} size="sm"/>`:html`<span class="lo-recruit-choice__none">안 함</span>`}</button>`)}</div>`;
-  const change = (patch) => { const d = base && diyc ? diycOf(base) : null; if (d) { setDiyPicks(diyChoice(st.diy, diyData(), d.charId, d.tier, patch)); return; } if (base) setEntries(setRecruitChoice(loadoutStore.get().entries, base, patch, G)); };
+  const change = (patch) => { const d = base && diyc ? diycOf(base) : null; if (d) { diyPatch(d, patch); return; } if (base) setEntries(setRecruitChoice(loadoutStore.get().entries, base, patch, G)); };
   const resetOne = () => {
     if (!base) return;
     const d = diyc ? diycOf(base) : null;
-    if (d) { setDiyPicks(diyResetChoice(st.diy, diyData(), d.charId, d.tier)); return; }
+    if (d) { clearSkin(d.charId); setDiyPicks(diyResetChoice(st.diy, diyData(), d.charId, d.tier)); return; }
     if (!base.optionalRecruit) { setEntries(resetChoice(loadoutStore.get().entries, base.chessId)); return; }
     let next = {...loadoutStore.get().entries};
     for (const tier of [5,6]) {
@@ -663,11 +679,11 @@ function LoadoutScreen({ st }) {
     ${!ready ? html`<div class="lo-loading"><${Spinner} size="sm" />正在载入干员数据（打开页面后仅载入一次）…</div>` : html`<main class=${cx('lo-body', listView&&'lo-body--list',narrowDetail && 'is-detail')}>
       <section class="lo-roster" style=${`--lo-name-length:${nameLength}`} id="lo-roster-panel" role="tabpanel" aria-labelledby=${`lo-tab-${tab}`}>
         ${html`<${Filters} m=${m} filters=${st.filters} bonds=${bonds} presetAction=${tab==='recruits'?null:html`<${FavoritesButton} view="editor"/>`} listView=${listView} onView=${()=>{savePref("loadout.listView",!listView);setListView(!listView);setNarrowDetail(false);}} onFilters=${(filters) => loadoutStore.set({ filters })} />`}${tab === 'recruits' ? html`<div class="lo-recruit-note">
-          <div class="lo-recruit-selected">${[5,6].map(t=>{const list=candidates.filter(c=>selectedAt(c,t)).map(c=>G(c.chessId.replace(/_[56]_a$/,`_${t}_a`))).filter(Boolean);return html`<section class=${`lo-recruit-selected__tier lo-recruit-selected__tier--${t}`} aria-label=${t+'단계 선발 후보'}><h2>${t + '단계 후보'} <b class="num">${list.length}/${RECRUIT_CANDIDATES}</b></h2><div class="lo-rchips">${list.map(c=>html`<${RosterRow} key=${c.chessId} m=${m} chess=${c} golden=${c.goldenId?G(c.goldenId):null} entries=${E} selected=${c.chessId===selId} onPick=${pick} tier=${t} locked=${locked} getBond=${getBond} recruitControl=${html`<button class="lo-recruit-remove" type="button" disabled=${locked} title="후보 해제" aria-label=${c.name+' '+t+'단계 후보 해제'} onClick=${()=>{const d=diycOf(c);if(d){setDiyPicks(diyDrop(st.diy,diyData(),d.charId,t));return;}recruit(c,t);}}><${Icon} name="close"/></button>`} onChange=${patch=>{const d=diycOf(c);if(d){setDiyPicks(diyChoice(st.diy,diyData(),d.charId,d.tier,patch));return;}setEntries(setRecruitChoice(loadoutStore.get().entries,c,patch,G));}}/>`)}${list.length<RECRUIT_CANDIDATES?html`<button type="button" class="lo-rchip lo-rchip--add" disabled=${locked} aria-label=${t+'단계 후보 추가'} onClick=${()=>{setRecruitQuery('');setRecruitPicker(t);}}><${Icon} name="plus"/><span>추가</span></button>`:null}</div></section>`;})}</div><p>${`각 단계에 최대 ${RECRUIT_CANDIDATES}명까지 선발 후보로 지정합니다. 전략 선택 후 선발 선택 단계에서 후보 중 단계별 최대 ${RECRUIT_PICKS}명을 고르며, 고른 오퍼레이터만 본인의 모집·보상에 등장합니다. 특질은 없습니다. 원형 오퍼레이터는 각 단계에 한 번씩 지정할 수 있습니다.`}</p></div>` : null}
+          <div class="lo-recruit-selected">${[5,6].map(t=>{const list=candidates.filter(c=>selectedAt(c,t)).map(c=>G(c.chessId.replace(/_[56]_a$/,`_${t}_a`))).filter(Boolean);return html`<section class=${`lo-recruit-selected__tier lo-recruit-selected__tier--${t}`} aria-label=${t+'단계 선발 후보'}><h2>${t + '단계 후보'} <b class="num">${list.length}/${RECRUIT_CANDIDATES}</b></h2><div class="lo-rchips">${list.map(c=>html`<${RosterRow} key=${c.chessId} m=${m} chess=${c} golden=${c.goldenId?G(c.goldenId):null} entries=${E} selected=${c.chessId===selId} onPick=${pick} tier=${t} locked=${locked} getBond=${getBond} recruitControl=${html`<button class="lo-recruit-remove" type="button" disabled=${locked} title="후보 해제" aria-label=${c.name+' '+t+'단계 후보 해제'} onClick=${()=>{const d=diycOf(c);if(d){setDiyPicks(diyDrop(st.diy,diyData(),d.charId,t));return;}recruit(c,t);}}><${Icon} name="close"/></button>`} onChange=${patch=>{const d=diycOf(c);if(d){diyPatch(d,patch);return;}setEntries(setRecruitChoice(loadoutStore.get().entries,c,patch,G));}}/>`)}${list.length<RECRUIT_CANDIDATES?html`<button type="button" class="lo-rchip lo-rchip--add" disabled=${locked} aria-label=${t+'단계 후보 추가'} onClick=${()=>{setRecruitQuery('');setRecruitPicker(t);}}><${Icon} name="plus"/><span>추가</span></button>`:null}</div></section>`;})}</div><p>${`각 단계에 최대 ${RECRUIT_CANDIDATES}명까지 선발 후보로 지정합니다. 전략 선택 후 선발 선택 단계에서 후보 중 단계별 최대 ${RECRUIT_PICKS}명을 고르며, 고른 오퍼레이터만 본인의 모집·보상에 등장합니다. 특질은 없습니다. 원형 오퍼레이터는 각 단계에 한 번씩 지정할 수 있습니다.`}</p></div>` : null}
         ${listView?html`<div class="lo-list-header" ref=${listHeaderRef}><div class="lo-list-heading" aria-hidden="true"><span>오퍼레이터</span><span>직군</span><span>맹약</span><span>스킬</span><span>모듈</span>${tab==='recruits'?html`<span>선발</span>`:null}</div></div>`:null}
         <div class=${cx('lo-grid', tab === 'recruits' && 'lo-grid--recruits',listView&&'lo-grid--list')} role="listbox" aria-label="干员列表" ref=${gridRef} onScroll=${e=>{if(listHeaderRef.current)listHeaderRef.current.scrollLeft=e.currentTarget.scrollLeft;}}>
           ${list.length ? list.map((c) => html`<div class=${cx('lo-roster-entry',tab === 'recruits' && 'lo-recruit-card')} key=${c.chessId}>
-            ${listView ? html`<${RosterRow} m=${m} chess=${c} golden=${c.goldenId?G(c.goldenId):null} entries=${E} selected=${c.chessId===selId} onPick=${pick} tier=${tab==='recruits'?(selectedAt(c,c.tier)?c.tier:selectedTier(c)):c.tier} locked=${locked} getBond=${getBond} recruitMode=${tab==='recruits'} recruitControl=${tab==='recruits'?recruitControls(c):null} onChange=${patch=>{const d=diycOf(c);if(d){setDiyPicks(diyChoice(st.diy,diyData(),d.charId,d.tier,patch));return;}setEntries(setRecruitChoice(loadoutStore.get().entries,c,patch,G));}}/>` : html`<${RosterCard} recruitMode=${tab==='recruits'} m=${m} chess=${c} golden=${c.goldenId?G(c.goldenId):null} entries=${E} selected=${c.chessId===selId} onPick=${pick} tier=${tab==='recruits'?(selectedAt(c,c.tier)?c.tier:selectedTier(c)):c.tier}/>`}
+            ${listView ? html`<${RosterRow} m=${m} chess=${c} golden=${c.goldenId?G(c.goldenId):null} entries=${E} selected=${c.chessId===selId} onPick=${pick} tier=${tab==='recruits'?(selectedAt(c,c.tier)?c.tier:selectedTier(c)):c.tier} locked=${locked} getBond=${getBond} recruitMode=${tab==='recruits'} recruitControl=${tab==='recruits'?recruitControls(c):null} onChange=${patch=>{const d=diycOf(c);if(d){diyPatch(d,patch);return;}setEntries(setRecruitChoice(loadoutStore.get().entries,c,patch,G));}}/>` : html`<${RosterCard} recruitMode=${tab==='recruits'} m=${m} chess=${c} golden=${c.goldenId?G(c.goldenId):null} entries=${E} selected=${c.chessId===selId} onPick=${pick} tier=${tab==='recruits'?(selectedAt(c,c.tier)?c.tier:selectedTier(c)):c.tier}/>`}
             ${!listView&&tab==='recruits'?recruitControls(c):null}
           </div>`) : html`<p class="lo-empty t-dim">没有符合条件的干员</p>`}
         </div>

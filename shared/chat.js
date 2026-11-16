@@ -13,6 +13,8 @@ export const CHAT_FACTIONS = Object.freeze([
   { name: '카시미어', bondId: 'kazimierzShip', color: '#d8b400' },
   { name: '라이타니엔', bondId: 'leithanienShip', color: '#b7a5ed' },
   { name: '우르수스', bondId: 'ursusShip', color: '#d94c45' },
+  // 규정 seasons only (their official 伊比利亚 bond; the 맹약 season has no Iberia)
+  { name: '이베리아', bondId: 'iberiaShip', color: '#d1a54a', seasonOnly: true },
 ].map(Object.freeze));
 export const chatFaction = (name) => CHAT_FACTIONS.find((f) => f.name === name) || null;
 

@@ -52,6 +52,21 @@ const SHARED_FIELD = new Set([PHASE.UNITE, PHASE.FINAL_ASSAULT, PHASE.HIDDEN_COR
  * field per player), outside these phases, and without a viewer (`myId`). User playtest #5: nothing on screen said who
  * shares your field — the phase banner names them and the team panel frames their avatar.
  */
+/**
+ * The planned boss-round pairs while the boss round is being prepared (回合开始 / 机变 / 休整期): the 맹약 server's
+ * `pub.bossPairing`, or a 규정 (upstream) match's `pub.bossPairs` (published every round there — only its boss / hidden
+ * round's prep is a boss prep). [] otherwise.
+ * @param {any} pub
+ * @returns {string[][]}
+ */
+export function bossPairingOf(pub) {
+  if (!isObj(pub)) return [];
+  if (Array.isArray(pub.bossPairing)) return pub.bossPairing;
+  const bossRound = Number.isInteger(pub.round) && (pub.round === pub.bossRound || pub.round === pub.hiddenRound);
+  const prep = pub.phase === PHASE.ROUND_START || pub.phase === PHASE.SP_DRAFT || pub.phase === PHASE.PREP;
+  return bossRound && prep && Array.isArray(pub.bossPairs) ? pub.bossPairs : [];
+}
+
 export function sameFieldmates(pub, myId) {
   if (!myId || !isObj(pub)) return [];
   if (pub.phase === PHASE.UNITE) {
@@ -65,7 +80,7 @@ export function sameFieldmates(pub, myId) {
     const f = fieldOf(pub, myId);
     if (f && Array.isArray(f.players)) return f.players.filter((pid) => pid !== myId);
   }
-  const pair = Array.isArray(pub.bossPairing) ? pub.bossPairing.find((g) => Array.isArray(g) && g.includes(myId)) : null;
+  const pair = bossPairingOf(pub).find((g) => Array.isArray(g) && g.includes(myId)) || null;
   return pair ? pair.filter((pid) => typeof pid === 'string' && pid !== myId) : [];
 }
 

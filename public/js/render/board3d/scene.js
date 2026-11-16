@@ -357,7 +357,7 @@ export class BoardScene {
    * @param {{ canvas?: HTMLCanvasElement, quality?: string, antialias?: boolean, renderer?: any }} [opts]
    */
   constructor(THREE, pack, opts = {}) {
-    this.layoutCacheSize = Math.max(0, Math.min(4, opts.layoutCacheSize || 0));
+    this.layoutCacheSize = Math.max(0, Math.min(8, opts.layoutCacheSize || 0));
     this.layoutCache = new Map();
     this.layoutCacheHits = 0;
     this.THREE = THREE;

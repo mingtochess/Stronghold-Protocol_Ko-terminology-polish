@@ -145,7 +145,7 @@ import { net } from '../net.js';
 import { store, useStore, shallowEqual, serverNow, emptyMatch, isSpectating } from '../store.js';
 import { battleRunner } from '../battle/runner.js';
 import { LaboratoryDamage } from '../ui/laboratoryDamage.js';
-import { isClientCombat, observeTarget, teammateProgress, cameraLayers, layerCamera, sidesOf, resumedWatch, loneHalf, followedScout } from '../battle/observe.js';
+import { isClientCombat, observeTarget, teammateProgress, cameraLayers, layerCamera, sidesOf, resumedWatch, loneHalf, followedScout, bossPairingOf } from '../battle/observe.js';
 
 
 import '../ui/pluginFrame.js';
@@ -1606,7 +1606,7 @@ function MatchScreen() {
   // watched player as well as the camera, so the other half is never an empty board.
   const prepOwnerId = watchingOther ? watchWho?.playerId || (watching?.startsWith('n:') ? watching.slice(2) : null) : myId;
   const prepPair = !combat && phase === PHASE.PREP
-    ? (pub?.bossPairing || []).find(pair => Array.isArray(pair) && pair.includes(prepOwnerId)) : null;
+    ? bossPairingOf(pub).find(pair => Array.isArray(pair) && pair.includes(prepOwnerId)) : null;
   const prepLayers = prepPair?.length > 1 ? prepPair.map(pid => ({
     key: pid, label: pid === myId ? '나의 전장' : players.find(p => p.playerId === pid)?.name || '팀원',
     self: pid === myId, watch: pid !== myId,

@@ -1347,6 +1347,8 @@ export class Lobby {
       : modeExtensionSelection(normalizeCustomExtensions(room.savedCustomExtensions, this.safeData()), room.mode);
     room.customExtensions = this.extSelection(version, room.savedCustomExtensions, room.mode, room.gameplayMode);
     room.customFactions = false;
+    // a 규정-only chat faction (이베리아) does not stay chosen in a 맹약 room
+    if (version === DEFAULT_VERSION) for (const member of room.chatMembers.values()) if (chatFaction(member.faction)?.seasonOnly) member.faction = null;
     for (const s of [...room.seats, ...room.spectators]) if (s && !s.isBot) { s.content = null; s.consentCs = null; }
     for (const s of room.seats) {
       if (!s || s.isBot) continue;
@@ -2123,6 +2125,7 @@ export class Lobby {
     const season = room.version !== DEFAULT_VERSION;
     if (selecting && msg.faction === '라이타니엔' && !season && !room.customExtensions.bonds.includes('leithanien')) return fail(ERR.BAD_MSG);
     if (selecting && msg.faction === '우르수스' && !season && !room.customFactions) return fail(ERR.BAD_MSG);
+    if (selecting && chatFaction(msg.faction)?.seasonOnly && !season) return fail(ERR.BAD_MSG);
     const text = selecting ? (msg.faction === null ? '진영 선택 취소' : chatFaction(msg.faction) ? `진영 선택: ${msg.faction}` : '') : normalizeChatText(msg.text);
     if (!text) return fail(ERR.BAD_MSG);
     const member = room.chatMembers.get(session.playerId) || {faction:null,lastChatAt:-Infinity,lastFactionAt:-Infinity};

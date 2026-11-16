@@ -648,6 +648,8 @@ export async function createFieldView(host, options = {}) {
   // prep field (render/prepfield.js): identity on the own board, the boss-field half in the Final Assault prep
   let prepXf = IDENTITY;
   let lastPrep = null;        // { ps, o } of the last setPrep (re-applied when the prep field changes)
+  let standInList = [];       // the own m.private.standIns (0.2.0 补位): pieces of these chess draw their stand-in
+  let diyPicks = {};          // the own m.private.diy (0.2.0 자선/선발): pieces of these DIY slots draw the operator
   const hlReq = new Map();    // highlight group → { tiles (board space), style } requested through highlightTiles
   // enemy preview pen (render/pen.js): figure key → UnitView (own map: never touched by the battle sync)
   const penViews = new Map();
@@ -666,7 +668,10 @@ export async function createFieldView(host, options = {}) {
     cam: () => cam, rangeRect: () => battleMeta?.rect || (prepXf !== IDENTITY ? GEO.BOSS_RECT : GEO.NORMAL_RECT), heightAt, tileAt: (r,c) => tiles.tile(r,c),
     animRate: () => (mode === 'battle' && !battleMeta?.prep ? interp.rate : 1),
     timeScale: () => (mode === 'battle' && !battleMeta?.prep ? interp.rate : 1),
-    lookupDef: (info) => (info.side === 'enemy' ? data.enemy(info.defId) : data.chess(info.defId) || data.token(info.defId)),
+    // (a chess fighting as its 补位 stand-in — `standInFor` — reads the stand-in's record; a filled DIY slot — `diy` — the
+    // operator's composed record: its name, model and attack interval)
+    lookupDef: (info) => (info.side === 'enemy' ? data.enemy(info.defId)
+      : (info.standInFor && data.standIn(info.defId)) || (info.diy && data.diy(info.defId, info.diy)) || data.chess(info.defId) || data.token(info.defId)),
     crowded: () => views.size > 90,
     renderer: app.renderer,
     frameNo: () => frameNo,
@@ -758,6 +763,13 @@ export async function createFieldView(host, options = {}) {
   const recover = { THREE: null, pack: null, timer: 0, tries: 0, since: 0, off: false, count: 0 };
   setupCleanup.push(() => { clearTimeout(recover.timer); disable3d(); });
   /** The stage's official scene, once loaded (the procedural board shows meanwhile and when there is none). */
+  /** stage id → its loaded official scene pack (handed to the board before the stage is built: no procedural pop-in) */
+  const loadedScenes = new Map();
+  function readyScene(st) {
+    const id = st && typeof st.id === 'string' ? st.id : '';
+    const pack = id && board3d && settings.mapQuality !== 'low' ? loadedScenes.get(id) : null;
+    if (pack) board3d.setScenePack(id, pack);
+  }
   function useOfficialScene(st) {
     if (st?.coopEightStage || st?.previewLayout) return;
     // 맵 품질 '낮음' (단순 3D): the simple procedural board only — the official scene pack is the original map's mesh
@@ -765,6 +777,7 @@ export async function createFieldView(host, options = {}) {
     const id = st && typeof st.id === 'string' ? st.id : '';
     if (!id || !board3d) return;
     loadScenePack(assets, id).then((scene) => {
+      if (scene) loadedScenes.set(id, scene);
       if (scene && !destroyed && board3d && stageRec && stageRec.id === id) board3d.setScenePack(id, scene);
     }).catch(() => {});
   }
@@ -779,7 +792,8 @@ export async function createFieldView(host, options = {}) {
       host.insertBefore(c3, canvas);
       board3dCanvas = c3;
       const b = new BoardScene(THREE, pack, {
-        layoutCacheSize: 4,
+        // 규정: every player's field may be another map; keep each visited map's layouts like the one shared 맹약 map
+        layoutCacheSize: (opts.data?.get?.('config') || opts.data?.config)?.version ? 8 : 4,
         canvas: c3, antialias: settings.quality !== 'low' && (globalThis.devicePixelRatio || 1) < 2, shadows: settings.shadows !== false,
       });
       const sz = size();
@@ -1098,7 +1112,7 @@ export async function createFieldView(host, options = {}) {
     stageRec = st;
     tiles.setStage(visualStage());
     tiles.setBattleRect(mode === 'battle' && battleMeta && !battleMeta.prep ? battleMeta.rect : null);
-    if (board3d) { board3d.setStage(visualStage(),st.coopEightStage?[{r0:6,r1:13,c0:0,c1:36}]:undefined); useOfficialScene(visualStage()); board3d.setBattleRect(mode === 'battle' && battleMeta && !battleMeta.prep ? battleMeta.rect : null); }
+    if (board3d) { readyScene(visualStage()); board3d.setStage(visualStage(),st.coopEightStage?[{r0:6,r1:13,c0:0,c1:36}]:undefined); useOfficialScene(visualStage()); board3d.setBattleRect(mode === 'battle' && battleMeta && !battleMeta.prep ? battleMeta.rect : null); }
     tiles.project(cam, true);
     // a pen laid out before the stage arrived (setPrep / a scouting board first) used the default zones and the old
     // tile heights: lay it out again on this stage
@@ -1138,10 +1152,20 @@ export async function createFieldView(host, options = {}) {
       const rec = data.token(piece.id);
       return { kind: 'token', side: 'ally', defId: piece.id, spine: rec?.assets?.spine || piece.id, avatar: rec?.assets?.avatar || piece.id, tier: piece.tier || 1, golden: false, dir };
     }
-    const original = data.chess(piece.id);
-    const selected = resolveLoadout(lastPrep?.ps?.loadout,original,id=>data.chess(id));
-    const rec = loadoutRecord(original,resolveRecordLoadout(original,selected));
+    const chess = data.chess(piece.id);
+    // 0.2.0 补位: a piece of a chess the player does not own (m.private.standIns) is its stand-in's model; 自选 (규정 선발):
+    // a DIY slot the player filled is its operator — in the hand, the 临时整备区 and on the board alike. Without this the
+    // owner saw the slot's 甄选干员 placeholder with no model while a scouting teammate saw the operator (the server's
+    // scouting view carries it).
+    const si = chess && standInList.includes(chess.baseId || chess.chessId) && typeof data.standIn === 'function' ? data.standIn(piece.id) : null;
+    const pick = chess && chess.isDiy ? diyPicks[chess.baseId || chess.chessId] : null;
+    const dr = pick && typeof data.diy === 'function' ? data.diy(piece.id, pick) : null;
+    const original = si || dr || chess;
+    const selected = dr ? { skillIndex: pick.skillIndex ?? null, moduleId: pick.uniEquipId ?? null } : resolveLoadout(lastPrep?.ps?.loadout,original,id=>data.chess(id));
+    const rec = dr ? dr : loadoutRecord(original,resolveRecordLoadout(original,selected));
     return {
+      ...(si ? { standInFor: si.standInFor } : null),
+      ...(dr ? { diy: { charId: pick.charId, skillIndex: pick.skillIndex ?? null, uniEquipId: pick.uniEquipId ?? null } } : null),
       kind: 'op', side: 'ally', defId: piece.id, optionalRecruit:!!rec?.optionalRecruit,
       spine: piece.assets?.spine || rec?.assets?.spine || rec?.charId || null, avatar: piece.assets?.avatar || rec?.assets?.avatar || rec?.charId || null,
       skinId: piece.skinId ?? selected?.skinId, charId: piece.charId ?? rec?.charId,
@@ -1254,6 +1278,8 @@ export async function createFieldView(host, options = {}) {
       });
     };
     const src = ps && typeof ps === 'object' ? ps : {};
+    standInList = Array.isArray(src.standIns) ? src.standIns.filter((x) => typeof x === 'string') : [];
+    diyPicks = src.diy && typeof src.diy === 'object' ? src.diy : {};
     ownPen = Array.isArray(src.nextEnemies) ? src.nextEnemies : null;
     setPenList(ownPen);
     addList(src.hand, 'hand');
