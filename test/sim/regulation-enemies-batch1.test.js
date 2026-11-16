@@ -130,3 +130,49 @@ test('新生血裔 leaves a 血珀', () => {
   h.step(2);
   assert.ok(h.enemies().some((x) => x.defId === 'enemy_1367_dseed' && x.alive));
 });
+
+test('大君之触: phys/arts taken ×0.1 and its blocker blocks +1', () => {
+  const h = fight([{ chessId: 't_wall', row: 10, col: 5, uid: 1 }]);
+  h.step(1);
+  const op = h.allies()[0];
+  const blk = op.s.blockCnt;
+  const e = h.spawn('enemy_1220_dzoms', { pos: [10, 8], route: { motion: 'WALK', start: [10, 8], end: [10, 0], steps: [] } });
+  h.step(1);
+  assert.ok(Math.abs(e.s.physTakenMul - 0.1) < 1e-9);
+  h.runUntil(() => e.blockedBy === op, 10);
+  h.step(3);
+  assert.equal(op.s.blockCnt, blk + 1);
+});
+
+test('补给车: 重生造物 +10% ATK per car while one is on the field', () => {
+  const h = fight();
+  const z = put(h, 'enemy_1221_dzomg', [10, 6]);
+  h.step(1);
+  const a0 = z.s.atk;
+  put(h, 'enemy_1224_dsuply', [10, 9]);
+  h.run(1);
+  assert.ok(Math.abs(z.s.atk - a0 * 1.1) < 1e-6, `${z.s.atk} vs ${a0}`);
+});
+
+test('炫目刀技厨师: ground enemies within 2.5 get RES +25 and ASPD +50', () => {
+  const h = fight();
+  put(h, 'enemy_10229_agactr_2', [10, 6]);
+  const near = put(h, 'enemy_1007_slime', [10, 7]);
+  const far = put(h, 'enemy_1007_slime', [10, 12]);
+  const r0 = far.s.res;
+  h.run(1);
+  assert.equal(near.s.res, r0 + 25);
+  assert.equal(far.s.res, r0);
+});
+
+test('圆号手: every third attack takes one more target', () => {
+  const h = fight([{ chessId: 't_gun', row: 10, col: 6, uid: 1 }, { chessId: 't_gun', row: 10, col: 8, uid: 2 }]);
+  h.step(1);
+  const e = put(h, 'enemy_1373_ltnhor', [10, 7]);
+  const hits = [];
+  h.b.on('damaged', (c) => { if (c.source === e) hits.push(c.target.id); });
+  h.run(30);
+  assert.ok(hits.length >= 4);
+  const per = new Map(); for (const id of hits) per.set(id, (per.get(id) || 0) + 1);
+  assert.equal(per.size, 2, 'both units were hit');
+});

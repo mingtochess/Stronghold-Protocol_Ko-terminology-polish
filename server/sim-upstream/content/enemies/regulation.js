@@ -686,7 +686,118 @@ function kitWdkght2(ab) {
   }];
 }
 
+
+/** One count per landed normal attack (deduped by attackId); `fire` on every third (after 2 attacks, the next one). */
+function everyThird(fire) {
+  return {
+    sil: true,
+    dealt(c, b, e, a) {
+      const id = c.dmg?.attackId ?? 0;
+      if (!c.dmg?.isAttack || id === a.last) return;
+      a.last = id;
+      a.n = (a.n ?? 0) + 1;
+      if (a.n % 3 === 0) fire(c, b, e);
+    },
+  };
+}
+
+/** 残党/巫王乐团圆号手: after 2 attacks the next one also hits one more ally in range (switchMode unused, as 管乐家). */
+const kitLtnhor = () => [everyThird((c, b, e) => {
+  const extra = areaAllies(b, e, e.x, e.y, (e.base.rangeRadius || 0) + 0.25).find((u) => u.alive && u !== c.target);
+  if (extra) hurt(b, e, extra, e.s.atk * (c.dmg.mul ?? 1), c.dmg.type || 'phys', { isSkill: false });
+})];
+
+/** 残党/巫王乐团鼓手: after 2 attacks the next one splashes every other ally in its reach (melee: the neighbouring tiles). */
+const kitLtndru = () => [everyThird((c, b, e) => {
+  for (const u of areaAllies(b, e, e.x, e.y, Math.max(1, e.base.rangeRadius || 0) + 0.25)) {
+    if (u.alive && u !== c.target) hurt(b, e, u, e.s.atk, c.dmg.type || 'phys', { tags: ['splash'] });
+  }
+})];
+
+/** 重生造物 (大君之触/赐 …): phys / arts taken ×(1 − dmg_res.damage_resistance); its blocker blocks +1 (≤ +6 in all). */
+function kitDzom(ab) {
+  const mul = Math.max(0, 1 - tv(ab, 'dmg_res.damage_resistance', 0.9));
+  const add = tv(ab, 'buff_to_blocker.block_cnt', 1);
+  const cap = tv(ab, 'buff_to_blocker.max_valid_stack_cnt', 6);
+  return [
+    { spawn(b, e) { e.mem.reborn = true; b.addBuff(e, { key: 'ab:dzomRes', persist: true, visible: true, mods: { physTakenMul: mul, artsTakenMul: mul } }); } },
+    {
+      iv: 0.2,
+      tick(b, e) {
+        const bl = e.blockedBy;
+        if (!bl || !bl.alive) return;
+        const key = `ab:dzomBlock:${e.id}`;
+        const have = (bl.buffs || []).filter((x) => x && typeof x.key === 'string' && x.key.startsWith('ab:dzomBlock:')).length;
+        if (!bl.findBuff(key) && have >= cap) return;
+        b.addBuff(bl, { key, duration: 0.3, refresh: 'replace', mods: { blockCnt: add } });
+      },
+    },
+    {
+      // 补给车 on the field: its attacks add 凋亡损伤
+      dealt(c, b, e) {
+        const ep = e.mem.dsuplyEp || 0;
+        if (!(ep > 0) || !c.target || !b.enemies.some((x) => x && x.alive && /^enemy_1224_dsuply/.test(x.defId))) return;
+        elem(b, e, c.target, 'apoptosis', e.s.atk * ep);
+      },
+    },
+  ];
+}
+
+/** 萨卡兹子裔(改装)补给车: while on the field every 重生造物 gets +10% ATK (one stack per car, ≤ 5) and adds 凋亡损伤
+ *  of 10% ATK to its attacks. */
+function kitDsuply(ab) {
+  const keyOf = (k) => Object.keys(ab.t || {}).find((x) => x.endsWith(k));
+  const atk = tv(ab, keyOf('[attr_buff].atk'), 0.1);
+  const cap = tv(ab, keyOf('[attr_buff].max_valid_stack_cnt'), 5);
+  const ep = tv(ab, 'aura.ep_damage_ratio', 0.1);
+  return [{
+    iv: 0.5,
+    tick(b, e) {
+      const cars = b.enemies.filter((x) => x && x.alive && /^enemy_1224_dsuply/.test(x.defId)).length;
+      const n = Math.min(cap, cars);
+      for (const o of b.enemies) {
+        if (!o || !o.alive || !o.mem?.reborn) continue;
+        b.addBuff(o, { key: 'ab:dsuply', duration: 0.6, refresh: 'replace', visible: true, mods: { atkPct: atk * n } });
+        o.mem.dsuplyEp = ep;
+      }
+    },
+  }];
+}
+
+/** 雪怪小队: ×1.5 against a frozen target. */
+function kitSnsbr(ab) {
+  const scale = tv(ab, 'atkup.atk_scale', 1.5);
+  return [{ hitOut(c, b, e) { if (c.dmg && c.dmg.isAttack && c.target?.s?.flags?.freeze) c.dmg.mul *= scale; } }];
+}
+
+/** 炫目刀技厨师: ground enemies within 2.5 get RES +25 and attack speed +50 (itself included [ASSUMED]). */
+function kitAgactr(ab) {
+  const r = tv(ab, 'AuraAttributeUp.range_radius', 2.5);
+  const res = tv(ab, 'AuraAttributeUp.magic_resistance', 25), aspd = tv(ab, 'AuraAttributeUp.attack_speed', 50);
+  return [{
+    iv: 0.5,
+    tick(b, e) {
+      for (const o of b.enemiesInRadius(e.x, e.y, r)) {
+        if (!o.alive || o.isFlying) continue;
+        b.addBuff(o, { key: 'ab:agactr', duration: 0.6, refresh: 'replace', visible: true, mods: { resFlat: res, aspd } });
+      }
+    },
+  }];
+}
+
 export const REGULATION_KITS = Object.freeze({
+  enemy_1373_ltnhor: kitLtnhor,
+  enemy_1373_ltnhor_2: same(kitLtnhor),
+  enemy_1376_ltndru: kitLtndru,
+  enemy_1376_ltndru_2: same(kitLtndru),
+  enemy_1220_dzoms: kitDzom,
+  enemy_1220_dzoms_2: same(kitDzom),
+  enemy_1221_dzomg: same(kitDzom),
+  enemy_1221_dzomg_2: same(kitDzom),
+  enemy_1224_dsuply: kitDsuply,
+  enemy_1224_dsuply_2: same(kitDsuply),
+  enemy_1064_snsbr: kitSnsbr,
+  enemy_10229_agactr_2: kitAgactr,
   enemy_1067_snslime_2: kitSnslime2,
   enemy_1385_winbom: kitWinbom,
   enemy_1385_winbom_2: same(kitWinbom),
