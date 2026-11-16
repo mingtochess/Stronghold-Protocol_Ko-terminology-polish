@@ -10,6 +10,11 @@ import { diySlotList, pickChoices, defaultPick, slotRecord, setPick, cleanPicks 
 import { diyPool, isPrototypePick } from '../../../shared/diy.js';
 
 export const DIYC = /^diyc_(.+)_([56])_([ab])$/;
+const skinList = (data, charId) => {
+  const b = typeof data?.rawBackups === 'function' ? data.rawBackups() : data?.backups;
+  const list = b?.units?.[charId]?.skins;
+  return Array.isArray(list) && list.length ? list : null;
+};
 export const diycId = (charId, tier, elite = false) => `diyc_${charId}_${tier}_${elite ? 'b' : 'a'}`;
 const TIERS = [5, 6];
 
@@ -46,7 +51,9 @@ export function diyCandidates(data, kitted, picks) {
       const proto = isPrototypePick(data, tier, charId);
       const a = diycId(charId, tier), b = diycId(charId, tier, true);
       const wrap = (rec, id) => ({ ...rec, chessId: id, baseId: a, goldenId: b, isGolden: id === b, tier, optionalRecruit: true,
-        recruitPrototype: proto, recruitReserve: !tiers.includes(6), diySlotTier: tier });
+        recruitPrototype: proto, recruitReserve: !tiers.includes(6), diySlotTier: tier,
+        // the 선발 detail's skin list (tools/add-regulation-diy-skins.mjs): the operator's, as a 맹약 recruit record has it
+        ...(skinList(data, charId) ? { skins: skinList(data, charId) } : {}) });
       records.set(a, wrap(normal, a));
       if (elite) records.set(b, wrap(elite, b));
       if (held) {
