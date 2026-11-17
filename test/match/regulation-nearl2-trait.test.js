@@ -37,3 +37,28 @@ test('regulation: Nearl the Radiant Knight summons the bench 卡西米尔·突�
   // 卡西米尔 is not active with these two, so (correctly) no layers: the trait adds to active bonds only
   void before;
 });
+
+test('regulation: Irene gains SP when an enemy is knocked down near her (server-built battle)', (t) => {
+  const data = getVersionData('act3autochess@V3_1');
+  const h = makeMatch({ data, version: 'act3autochess@V3_1', humans: 1, bots: 0, seed: 4 }).start();
+  t.after(() => h.m.dispose());
+  const m = h.m;
+  m.handle('p_0', { t: 'g.autoplay', on: true });
+  h.drive(() => m.phase === 'PREP' && m.round === 1);
+  m.handle('p_0', { t: 'g.autoplay', on: false });
+  const ps = m.players.get('p_0');
+  const irene = give(m, ps, 'chess_char_5_03_a', 'board', legalTileFor(m, ps, 'chess_char_5_03_a'));
+  setGameData(null);
+  const b = m.newBattle({ seed: 1, kind: 'normal', modeId: m.modeId, round: m.round, stageId: m.stageId, rect: { ...GEO.NORMAL_RECT },
+    timeLimit: 60, players: [ps.battleInput({ side: 'L', colOffset: 0 })], spawns: [], routes: m.wave ? m.wave.routes : [], sharedBoss: null,
+    flags: { layerGainsEnabled: true, ...m.gd.dp }, fieldId: 'n:p_0', recordEvents: false });
+  b.start?.();
+  b.step();
+  const u = b.allyUnits.find((x) => x.uid === irene.uid);
+  const e = b.spawnEnemy('enemy_1007_slime', { pos: [u.y, u.x + 1], route: { motion: 'WALK', start: [u.y, u.x + 1], end: [u.y, u.x + 1], steps: [{ t: 'wait', s: 999 }] } });
+  b.step();
+  const sp = u.skill.sp;
+  b.kill(e, u);
+  b.step();
+  assert.equal(u.skill.sp - sp >= 3, true, `sp ${sp} → ${u.skill.sp}`);
+});
