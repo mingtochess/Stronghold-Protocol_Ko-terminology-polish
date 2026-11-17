@@ -10,7 +10,7 @@ import {
   hurt, elem, areaAllies, auraAllies, remainingRoute, stayRoute, spawnChildren, nthOf, canCast, BOOM_RADIUS, auraBuff, watchDeaths,
   unbalancedNow,
 } from './helpers.js';
-import { skill, stealth, ep, refraction, reborn, pollution } from './archetypes.js';
+import { skill, stealth, ep, refraction, reborn, pollution, blockWeight } from './archetypes.js';
 
 const num = (v, d) => {
   if (typeof v === 'number' && Number.isFinite(v)) return v;
@@ -960,7 +960,62 @@ function kitLrwzrd(ab) {
   ];
 }
 
+
+// The PRTS pages of the next enemies could not be read (2026-11-17: 503 / redirect loop); their values are the data's
+// talent blackboard and the handbook line, the rest is [ASSUMED] and marked so.
+
+/** 开天汽水瓶 (handbook "移动时逐渐加速，但会持续损失生命"): while moving, every Passive…interval s move speed +0.3 and
+ *  Passive.fixed_value_damage true damage to itself, for Passive…max_time s [ASSUMED: one step per interval]. */
+function kitNscola(ab) {
+  const add = tv(ab, 'Passive.enemy_nscola[speed].move_speed', 0.3), iv = tv(ab, 'Passive.enemy_nscola[speed].interval', 0.5);
+  const max = tv(ab, 'Passive.enemy_nscola[speed].max_time', 25), loss = tv(ab, 'Passive.fixed_value_damage', 120);
+  return [{
+    iv,
+    tick(b, e, a) {
+      if (!e.moving || e.blockedBy) return;
+      a.t = (a.t ?? 0) + iv;
+      if (a.t > max + 1e-9) return;
+      a.n = (a.n ?? 0) + 1;
+      b.addBuff(e, { key: 'ab:fizz', persist: true, refresh: 'replace', visible: true, mods: { moveFlat: add * a.n } });
+      if (loss > 0) b.dealDamage(null, e, { amount: loss, type: 'true', tags: ['selfLoss'] });
+    },
+  }];
+}
+
+/** 遮天面包机 (handbook "未被阻挡时持续对周围我方单位造成溅射伤害"): unblocked, every Passive.interval s Passive.atk_scale ×
+ *  ATK to allies within Passive.range_radius [ASSUMED: physical]. */
+function kitNsbomb(ab) {
+  const iv = tv(ab, 'Passive.interval', 2.5), r = tv(ab, 'Passive.range_radius', 1), scale = tv(ab, 'Passive.atk_scale', 2);
+  return [{
+    iv,
+    tick(b, e) {
+      if (e.blockedBy) return;
+      for (const u of areaAllies(b, e, e.x, e.y, r)) hurt(b, e, u, e.s.atk * scale, 'phys', { tags: ['splash'] });
+    },
+  }];
+}
+
+/** 破城者 (handbook): only a unit blocking ≥ 3 blocks it; 飞弹 (SkyProjectile, its cooldown): 3 missiles [ASSUMED] at
+ *  random allies, each SkyProjectile.atk_scale × ATK physical within 1 [ASSUMED]. */
+function kitUareap(ab) {
+  const sk = ab.sk.SkyProjectile;
+  const scale = bb(sk, 'atk_scale', 0.7);
+  return [
+    blockWeight(3),
+    sk && skill(sk, (b, e) => {
+      const pool = areaAllies(b, e, e.x, e.y, 40).filter((u) => u.alive);
+      for (let i = 0; i < 3 && pool.length; i++) {
+        const t = pool[Math.floor(b.rng() * pool.length)];
+        for (const u of areaAllies(b, e, t.x, t.y, 1)) hurt(b, e, u, e.s.atk * scale, 'phys');
+      }
+    }, { cond: (b, e) => areaAllies(b, e, e.x, e.y, 40).length > 0 }),
+  ];
+}
+
 export const REGULATION_KITS = Object.freeze({
+  enemy_10146_nscola: kitNscola,
+  enemy_10147_nsbomb: kitNsbomb,
+  enemy_10123_uareap: kitUareap,
   enemy_1429_lrwzrd: kitLrwzrd,
   enemy_1429_lrwzrd_2: same(kitLrwzrd),
   enemy_1213_mtrsnp: kitMtrsnp,

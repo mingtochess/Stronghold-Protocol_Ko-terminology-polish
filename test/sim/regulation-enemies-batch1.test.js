@@ -244,3 +244,30 @@ test('聚焦魂灵残迹: absorbs a 魂灵涡流, then lasers an ally on its row
   assert.ok(op.hp < hp, 'laser hits');
   assert.ok(w.s.atk > w.base.atk, 'ATK climbs');
 });
+
+test('开天汽水瓶: speeds up and loses HP while moving', () => {
+  const h = fight();
+  const e = h.spawn('enemy_10146_nscola', { pos: [10, 12], route: { motion: 'FLY', start: [10, 12], end: [10, 0], steps: [] } });
+  h.step(1);
+  const s0 = e.s.moveSpeed, hp0 = e.hp;
+  h.run(2.1);
+  assert.ok(e.s.moveSpeed > s0);
+  assert.ok(e.hp < hp0);
+});
+
+test('遮天面包机: unblocked splash around itself', () => {
+  const h = fight([{ chessId: 't_gun', row: 10, col: 6, uid: 1 }]);
+  h.step(1);
+  const op = h.allies()[0];
+  put(h, 'enemy_10147_nsbomb', [10, 6]);
+  const hp = op.hp;
+  h.run(3);
+  assert.ok(op.hp < hp);
+});
+
+test('破城者: only blocked by a block ≥ 3 unit', () => {
+  const h = fight();
+  const e = put(h, 'enemy_10123_uareap', [10, 6]);
+  h.step(1);
+  assert.equal(e.blockWeight, 3);
+});
