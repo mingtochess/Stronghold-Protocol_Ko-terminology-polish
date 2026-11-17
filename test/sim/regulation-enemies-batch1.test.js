@@ -229,3 +229,18 @@ test('赏金猎人“骑士”: speeds up while unblocked', () => {
   h.run(2.1);
   assert.ok(e.s.moveSpeed >= s0 * 3 - 1e-9, `${e.s.moveSpeed} vs ${s0}`);
 });
+
+test('聚焦魂灵残迹: absorbs a 魂灵涡流, then lasers an ally on its row', () => {
+  const h = fight([{ chessId: 't_gun', row: 10, col: 3, uid: 1 }]);
+  h.step(1);
+  const op = h.allies()[0];
+  const w = put(h, 'enemy_1429_lrwzrd', [10, 8]);
+  const soul = put(h, 'enemy_1428_lrsoul', [10, 8]);
+  h.step(2);
+  assert.equal(soul.alive, false, 'absorbed');
+  assert.equal(w.mem.souls ?? 0, 0, 'spent on the laser');
+  const hp = op.hp;
+  h.run(3.1);
+  assert.ok(op.hp < hp, 'laser hits');
+  assert.ok(w.s.atk > w.base.atk, 'ATK climbs');
+});

@@ -909,7 +909,60 @@ function kitMpbarr(ab) {
   return [skill(sk || { cd: 5, icd: 3, bb: {}, bs: {} }, (b, e) => spawnChildren(b, e, key, 1, { countInTotal: false, pos: [e.y + 0.05, e.x] }), { sil: true, icd: 3, cd: 5 })];
 }
 
+
+/** 魂灵涡流 pickup radius and the carriers' charge cap (PRTS 聚焦/棱镜魂灵残迹: "进入…0.25范围…最多同时保有三个"). */
+const SOUL_PICK_RADIUS = 0.25;
+const SOUL_MAX = 3;
+/** 巫术激流 duration, tick and strip half-width (PRTS: "最多持续7.8s…每秒…宽0.65"). */
+const LASER_TIME = 7.8;
+const LASER_HALF = 0.325;
+
+/**
+ * 聚焦 / 棱镜魂灵残迹: picks up 魂灵涡流 within 0.25 (one charge each, ≤ 3; the vortex leaves). 巫术激流 (cooldown 0 / 15):
+ * holding charges with an ally on its row or column, it spends them all and fires a laser that way for 7.8 s — each
+ * second Laser.atk_scale × ATK arts to every ally in the 0.65-wide strip ahead — while its ATK climbs +atk_step per
+ * second up to charges × atk_ladder.
+ */
+function kitLrwzrd(ab) {
+  const sk = ab.sk.Laser;
+  const scale = bb(sk, 'atk_scale', 0.4), step = bb(sk, 'atk_step', 0.4), ladder = bb(sk, 'atk_ladder', 0.25);
+  return [
+    {
+      iv: 0,
+      tick(b, e) {
+        for (const o of b.enemiesInRadius(e.x, e.y, SOUL_PICK_RADIUS)) {
+          if ((e.mem.souls ?? 0) >= SOUL_MAX) break;
+          if (!o.alive || o.defId !== 'enemy_1428_lrsoul') continue;
+          e.mem.souls = (e.mem.souls ?? 0) + 1;
+          b._remove(o, 'absorbed');   // "立刻退场": no kill, no leak
+        }
+      },
+    },
+    sk && skill(sk, (b, e) => {
+      const n = e.mem.souls ?? 0;
+      const t = lineAlly(b, e);
+      if (!(n > 0) || !t) return;
+      e.mem.souls = 0;
+      const dir = Math.abs(t.y - e.y) < 0.5 ? [Math.sign(t.x - e.x), 0] : [0, Math.sign(t.y - e.y)];
+      const cap = n * ladder;
+      for (let i = 1; i <= Math.floor(LASER_TIME); i++) {
+        b.after(i, () => {
+          if (!e.alive) return;
+          b.addBuff(e, { key: 'ab:laserAtk', duration: LASER_TIME - i + 1, refresh: 'replace', visible: true, mods: { atkPct: Math.min(cap, step * i) } });
+          for (const u of areaAllies(b, e, e.x, e.y, 40)) {
+            const dx = u.x - e.x, dy = u.y - e.y;
+            const ahead = dir[0] ? Math.sign(dx) === dir[0] && Math.abs(dy) <= LASER_HALF : Math.sign(dy) === dir[1] && Math.abs(dx) <= LASER_HALF;
+            if (ahead) hurt(b, e, u, e.s.atk * scale, 'arts');
+          }
+        });
+      }
+    }, { icd: 0, cd: 15, cond: (b, e) => (e.mem.souls ?? 0) > 0 && !!lineAlly(b, e) }),
+  ];
+}
+
 export const REGULATION_KITS = Object.freeze({
+  enemy_1429_lrwzrd: kitLrwzrd,
+  enemy_1429_lrwzrd_2: same(kitLrwzrd),
   enemy_1213_mtrsnp: kitMtrsnp,
   enemy_1309_mhboar_2: kitMhboar2,
   enemy_1413_mmstck: kitMmstck,
