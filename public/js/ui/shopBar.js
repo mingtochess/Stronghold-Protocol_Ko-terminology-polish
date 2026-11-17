@@ -38,7 +38,7 @@ import { store } from '../store.js';
 import { useEffect, useState } from '../../vendor/hooks.module.js';
 import { html, Icon, HexBadge, TierChip, Tooltip, MicroLabel } from './components.js';
 import { Img, BondGlyph, CoinGlyph, GIcon, RichText } from './gameComponents.js';
-import { priceTone, mergeProgress, mergeTarget, shopBlockReason, chessLoadout, offerHeader, briefingBondTip } from './gameLogic.js';
+import { priceTone, mergeProgress, mergeTarget, shopBlockReason, chessLoadout, offerHeader, briefingBondTip, ownDiyRecord, diyGetter } from './gameLogic.js';
 import { chessPortraitUrl, itemIconUrl, profIconUrl, uiUrl, moduleTypeIconUrl } from './assetUrls.js';
 import { matchData as data } from '../data.js';
 
@@ -106,7 +106,11 @@ export function ChessCard(props) {
 }
 
 export function ChessCardView({ slot, idx, priv, frozen = false, reason = null, free = false, hidePrice = false, showFavorite = true, armed = false, onTap = null, onBuy, onDetail, offBonds = null }) {
-  const c = data.lookup('chess', slot.id);
+  const raw = data.lookup('chess', slot.id);
+  // 규정 선발 (自选): a DIY slot the player filled shows its operator (m.private.diy), not the slot's 甄选干员 placeholder
+  const diyData = { chess: data.get('chess'), backups: data.get('backups') };
+  const dr = raw?.isDiy ? ownDiyRecord(raw, priv, diyData) : null;
+  const c = dr || raw;
   const m = data.get('assets');
   const tier = c?.tier ?? 1;
   const recruit = !!c?.optionalRecruit;
@@ -116,7 +120,7 @@ export function ChessCardView({ slot, idx, priv, frozen = false, reason = null, 
   const willMerge = !!hint;
   const bonds = (Array.isArray(c?.bonds) ? c.bonds : []).filter(b=>b!=='ursusShip' || store.get().match.public?.customFactions || !!data.get('config')?.version);
   const disabled = !!reason;
-  const lo = c ? chessLoadout(c, priv?.loadout, LOOKUPS.getChess, {ops:priv?.ops ?? null,effects:data.get('effects')}) : null;
+  const lo = c ? chessLoadout(c, priv?.loadout, dr ? diyGetter(LOOKUPS.getChess, priv, diyData) : LOOKUPS.getChess, {ops:priv?.ops ?? null,effects:data.get('effects')}) : null;
   const mod=lo?.module && !lo.module.none ? lo.module : null;
   const tap = () => { if (onTap) onTap(idx); else if (!disabled) onBuy(idx); else onDetail(slot.id, 'chess', hint); };
   const name = c?.name || t('干员');
@@ -128,6 +132,7 @@ export function ChessCardView({ slot, idx, priv, frozen = false, reason = null, 
     <span class="scard__bg" aria-hidden="true"></span>
     ${favorite?html`<span class="scard__favorite" title="선호 오퍼레이터" aria-label="선호 오퍼레이터">선호</span>`:null}
     ${recruit?html`<span class="scard__recruit" title="선발 오퍼레이터">선발</span>`:null}
+    ${dr ? html`<span class="scard__diy" data-diy=${dr.charId} title=${t('自选编队：{name}（只在你的商店出现）', { name: dr.name })}>${t('自选')}</span>` : null}
     <span class="scard__water" aria-hidden="true">${bonds[0] ? html`<${BondGlyph} bondId=${bonds[0]} />` : null}</span>
     <${Img} src=${chessPortraitUrl(m, {...(lo?.record || c),appearanceResolved:!!priv?.loadout})} class="scard__art" />
     <span class="scard__top">

@@ -25,7 +25,7 @@ const M = await import('../../public/js/ui/diyModel.js');
 const { installDiySync, SYNC_DEBOUNCE_MS } = await import('../../public/js/ui/loadoutSync.js');
 const { createStore } = await import('../../public/js/store.js');
 const G = await import('../../public/js/ui/gameLogic.js');
-const { ChessCard } = await import('../../public/js/ui/shopBar.js');
+const { ChessCardView: ChessCard } = await import('../../public/js/ui/shopBar.js');
 const { ChessDetail, resolveDetail } = await import('../../public/js/ui/detailPanel.js');
 const { BondPopup } = await import('../../public/js/ui/bondStrip.js');
 const { ownerBoard } = await import('../../public/js/ui/watchBonds.js');
@@ -365,7 +365,8 @@ describe('match UI of a 自选 piece', () => {
     assert.equal(badge.props.children, '自选');
     assert.equal(nodes.find((v) => hasClass(v, 'scard__name')).props.children, DATA.backups.units[SIEGE].name);
     assert.ok(nodes.some((v) => v.props?.bondId === 'victoriaShip'), 'the derived bond');
-    assert.equal(nodes.find((v) => v?.type && v.props?.lo).props.lo.skill.skillId, 'skchr_siege_3');
+    // (the fork's card shows no skill row: the pick's skill is checked through chessLoadout above)
+    //    assert.equal(nodes.find((v) => v?.type && v.props?.lo).props.lo.skill.skillId, 'skchr_siege_3');
     const other = ChessCard({ slot: { kind: 'chess', id: T5A, price: 4, basePrice: 4 }, idx: 0, priv: { diy: {} }, onBuy() {}, onDetail() {} });
     assert.equal([...walk(other)].find((v) => hasClass(v, 'scard__diy')), undefined);
   });

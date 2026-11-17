@@ -51,10 +51,13 @@ const noopLog = { info() {}, warn() {}, error() {}, debug() {} };
 export const HOST_DEFAULTS = Object.freeze({
   transport: 'process',
   maxWorkers: 4,
+  // matches one host takes before another host of the same content set starts (while maxWorkers allows): the rooms of
+  // one set no longer share one memory limit — a single host running every room was the likeliest 'plugin-crash'
+  matchesPerHost: 3,
   heartbeatMs: 1000,
   watchdogMs: 10_000,
   idleMs: 10 * 60_000,
-  resourceLimits: Object.freeze({ maxOldGenerationSizeMb: 768, maxYoungGenerationSizeMb: 64, stackSizeMb: 4 }),
+  resourceLimits: Object.freeze({ maxOldGenerationSizeMb: 1536, maxYoungGenerationSizeMb: 64, stackSizeMb: 4 }),
 });
 
 /** An error the lobby turns into a refusal (start). */
@@ -70,15 +73,17 @@ export class HostError extends Error {
  */
 export function createMatchHosts({ contents, log = noopLog, options = {} }) {
   const o = { ...HOST_DEFAULTS, ...options };
-  /** @type {Map<string, WorkerHost>} by cs */
+  /** @type {Map<string, WorkerHost>} by host key (cs#n): a content set may run several hosts (matchesPerHost) */
   const hosts = new Map();
   let seq = 0;
   let closed = false;
+  let hostSeq = 0;
 
   /** One worker (or child process) and the matches of its content set. */
   class WorkerHost {
-    constructor(cs) {
+    constructor(cs, key) {
       this.cs = cs;
+      this.key = key;
       this.tag = `[cs:${csUrlPart(cs).slice(0, 8)}]`;
       const set = contents.get(cs);
       const files = set ? contents.dataBytes(cs) : null;
@@ -111,7 +116,7 @@ export function createMatchHosts({ contents, log = noopLog, options = {} }) {
           log.warn?.(`[plugins] match host ${this.tag} (${this.plugins}) exited (${signal ? `signal ${signal}` : `code ${code}`})`);
           this.stop(this.ready ? 'plugin-crash' : 'plugin-start', `the match host exited (${signal ? `signal ${signal}` : `code ${code}`})`);
         }
-        if (hosts.get(this.cs) === this) hosts.delete(this.cs);
+        if (hosts.get(this.key) === this) hosts.delete(this.key);
       };
       // a worker thread only when asked for by name (anything else: a child process — the header's measurement)
       this.transport = !scripts.length && o.transport === 'worker' ? 'worker' : 'process';
@@ -192,7 +197,7 @@ export function createMatchHosts({ contents, log = noopLog, options = {} }) {
       if (this.dead) return;
       this.dead = { reason: reason || 'plugin-crash', detail };
       if (this.idleTimer) { clearTimeout(this.idleTimer); this.idleTimer = null; }
-      if (hosts.get(this.cs) === this) hosts.delete(this.cs);
+      if (hosts.get(this.key) === this) hosts.delete(this.key);
       this.kill();
       const list = [...this.matches.values()];
       this.matches.clear();
@@ -210,15 +215,22 @@ export function createMatchHosts({ contents, log = noopLog, options = {} }) {
 
   /** A worker for `cs`: the running one, or a new one (an idle one of another set stopped when the limit is reached). */
   function hostFor(cs) {
-    const cur = hosts.get(cs);
-    if (cur && !cur.dead) return cur;
+    const mine = [...hosts.values()].filter((h) => h.cs === cs && !h.dead).sort((a, b) => a.matches.size - b.matches.size);
+    const per = Math.max(1, Number(o.matchesPerHost) || HOST_DEFAULTS.matchesPerHost);
+    if (mine.length && (mine[0].matches.size < per || hosts.size >= o.maxWorkers)) {
+      // full and no worker left to start: an idle host of another set makes room, else the least loaded one takes it
+      const idle = mine[0].matches.size >= per ? [...hosts.values()].find((h) => h.cs !== cs && !h.matches.size) : null;
+      if (!idle) return mine[0];
+      idle.stop(null, 'room for another host');
+    }
     if (hosts.size >= o.maxWorkers) {
       const idle = [...hosts.values()].find((h) => !h.matches.size);
       if (idle) idle.stop(null, 'room for another content set');
       else throw new HostError(ERR.PLUGIN_BUSY, `${hosts.size} match hosts run (limit ${o.maxWorkers})`);
     }
-    const h = new WorkerHost(cs);
-    hosts.set(cs, h);
+    const key = `${cs}#${++hostSeq}`;
+    const h = new WorkerHost(cs, key);
+    hosts.set(key, h);
     return h;
   }
 
@@ -250,6 +262,6 @@ export function createMatchHosts({ contents, log = noopLog, options = {} }) {
       for (const h of [...hosts.values()]) h.stop(null, 'shutdown');
     },
     /** Test hook: the worker of a set (its thread id, its state). */
-    _host: (cs) => hosts.get(cs) || null,
+    _host: (cs) => [...hosts.values()].find((h) => h.cs === cs) || null,
   };
 }
