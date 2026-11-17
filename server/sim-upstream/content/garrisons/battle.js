@@ -50,7 +50,7 @@ import { REGULATION_INSTALLERS, runChild, inGarrisonRange, grantBondRange } from
 const ids = (s) => String(s ?? '').split(',').map((x) => x.trim()).filter(Boolean);
 const EMPTY = Object.freeze([]);
 /** Status keys for check_ab_flag values used by the data (16 = 冻结). */
-const AB_FLAG_STATUS = Object.freeze({ 16: 'freeze' });
+const AB_FLAG_STATUS = Object.freeze({ 16: 'freeze', 33: 'fear' });
 
 function garrisonIdsOf(u) {
   const list = u?.def?.raw?.garrisonIds ?? u?.def?.garrisonIds;
