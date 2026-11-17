@@ -261,8 +261,9 @@ function applyStackMax(battle, it) {
     if (!S.isOp(t) || t.ownerId !== it.unit.ownerId || !S.onField(t)) continue;
     if (bySelf && t === it.unit) continue;
     if (bySelf && !S.unitBonds(t).some((b) => mine.has(b))) continue;
-    // [ASSUMED] filter_bond_ids is an AND: the operator has every listed bond.
-    if (need.length && !need.every((b) => S.unitBonds(t).includes(b))) continue;
+    // filter_bond_ids lists the bonds the operator may belong to: 凛御银灰 "身前一格【谢拉格】【灵巧】干员" covers a 灵巧
+    // operator without 谢拉格 (佩佩: 萨尔贡 / 灵巧) — any one of them (an AND left 佩佩 out, the user report of 2026-11-17)
+    if (need.length && !need.some((b) => S.unitBonds(t).includes(b))) continue;
     if (!global && !S.onKeys(t, keys)) continue;
     for (const inst of battle._garInstances || []) {
       if (inst.unit !== t || !Number.isFinite(inst.cap)) continue;
