@@ -307,7 +307,7 @@ function installKjerag2(battle, pid, effectId, members) {
     const atkMul = 1 + num(tb['BondBuff.base_atk']) + num(tb['BondBuff.attack_per_stack']) * steps;
     const hpMul = 1 + num(tb['BondBuff.base_max_hp']) + num(tb['BondBuff.max_hp_per_stack']) * steps;
     const st = raw.stats || {};
-    battle.spawnToken(anchor, GIANT, tile[0], tile[1], {
+    const giant = battle.spawnToken(anchor, GIANT, tile[0], tile[1], {
       def: raw, anySource: true,
       stats: {
         atk: num(st.atk) * atkMul,
@@ -315,7 +315,61 @@ function installKjerag2(battle, pid, effectId, members) {
         blockCnt: num(tb['BlockEnemy.block_cnt'], st.blockCnt),
       },
     });
+    if (giant) runGiantModes(battle, giant, raw, tb);
   }, { once: true });
+}
+
+/**
+ * 雪山巨人 "可自主行动…将在巨人和雪山形态间转换" (bondeffect_kjerag_2; enemy_9024_acsgnt abilities): 【覆雪苏醒】 walks
+ * towards the nearest enemy (the record's moveSpeed, one tile at a time) and blocks nothing; with an enemy within reach it
+ * sits down as 【覆雪坐定】 (blocks BlockEnemy.block_cnt, the frozen bonus below) for at least SwitchMode.interval seconds,
+ * and wakes again once no enemy is near. [ASSUMED] starts awake; "near" = Chebyshev 1 tile (Switch2Snowy range 0.8 rounds
+ * to the adjacent tiles); the tile path is a greedy step (no flow field: the remake's allies own no route). Until
+ * 2026-11-17 it was a fixed token that never moved (user report).
+ */
+function runGiantModes(battle, giant, raw, tb) {
+  const AWAKE = 'kjerag:giant-awake';
+  const interval = num(tb['SwitchMode.interval'], 5);
+  const stepEvery = 1 / Math.max(0.05, num(raw.stats?.moveSpeed, 0.4));
+  const frozenScale = num(tb['FrozenBreak.atk_scale'], 3.5);
+  let snowy = false, since = 0, lastStep = 0;
+  const near = (e, d) => Math.max(Math.abs(Math.round(e.y) - giant.tileR), Math.abs(Math.round(e.x) - giant.tileC)) <= d;
+  const enemies = () => battle.enemies.filter((e) => e.alive && !e.s?.flags?.untargetable);
+  const wake = () => {
+    snowy = false; since = battle.time;
+    battle.addBuff(giant, { key: AWAKE, persist: true, refresh: 'replace', mods: { blockCnt: -99 } });
+    battle.releaseBlocked(giant);
+  };
+  const sit = () => { snowy = true; since = battle.time; battle.removeBuff(giant, AWAKE); };
+  wake();
+  battle.every(0.2, () => {
+    if (!giant.alive) return;
+    const list = enemies();
+    const close = list.some((e) => !e.isFlying && near(e, 1));
+    if (!snowy && close) { sit(); return; }
+    if (snowy) { if (!close && battle.time - since >= interval) wake(); return; }
+    // awake: hold while an enemy is within the ranged attack (rangeRadius), else step towards the nearest enemy
+    const reach = num(giant.s?.rangeRadius, num(raw.stats?.rangeRadius, 2.4));
+    if (!list.length || list.some((e) => Math.hypot(e.x - giant.tileC, e.y - giant.tileR) <= reach)) return;
+    if (battle.time - lastStep < stepEvery) return;
+    const target = list.reduce((a, e) => (Math.hypot(e.x - giant.tileC, e.y - giant.tileR) < Math.hypot(a.x - giant.tileC, a.y - giant.tileR) ? e : a));
+    let best = null, bestD = Math.hypot(target.x - giant.tileC, target.y - giant.tileR);
+    for (const [dr, dc] of [[0, 1], [0, -1], [1, 0], [-1, 0]]) {
+      const r = giant.tileR + dr, c = giant.tileC + dc;
+      if (!battle.grid.inRect(r, c) || !battle.grid.canStand(r, c) || battle.unitAt(r, c) || battle.downOn(r, c)) continue;
+      const d = Math.hypot(target.x - c, target.y - r);
+      if (d < bestD - 1e-9) { bestD = d; best = [r, c]; }
+    }
+    if (best && battle.relocate(giant, best[0], best[1])) lastStep = battle.time;
+  }, { owner: giant });
+  // 【覆雪坐定】 "攻击被冻结的敌人时造成更高法术伤害并解除其冻结状态" (FrozenBreak.atk_scale × ATK)
+  battle.on('damaged', (c) => {
+    if (!snowy || c.source !== giant || !c.target?.alive || c.dmg?.attackType === 'BUFF') return;
+    const t = c.target;
+    if (!t.s?.flags?.frozen) return;
+    battle.removeStatus?.(t, 'frozen');
+    battle.dealDamage({ source: giant, target: t, amount: giant.s.atk * frozenScale, type: 'arts', attackType: 'BUFF', tags: ['kjerag:frozenBreak'] });
+  });
 }
 
 function installSiracusa2(battle, pid, effectId, members) {

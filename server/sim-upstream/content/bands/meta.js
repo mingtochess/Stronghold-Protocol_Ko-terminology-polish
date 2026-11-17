@@ -558,12 +558,20 @@ export function duckReplace(ctx, spawns, p, ownerPlayerId, { routes = null, side
   return applyDuckPicks(spawns, picks, ownerPlayerId);
 }
 
+/** The match's 커스텀 공통 적용 전략 (config.customRules.commonBands): strategies every player runs besides its own. */
+export function commonBands(ctx) {
+  const list = ctx?.gd?.config?.customRules?.commonBands;
+  return Array.isArray(list) ? list.filter((id) => typeof id === 'string') : [];
+}
+
 const duckGlobal = {
   onBattleStart(ctx, ev) {
     if (!ev || !DUCK_KINDS.has(ev.kind) || !Array.isArray(ev.spawns)) return;
     const holder = [ctx, ...ctx.teammates()].find(t => duckParams(t.bandId(), t.commandEffectId));
-    if (!holder) return;
-    const p = duckParams(holder.bandId(), holder.commandEffectId);
+    // 커스텀 공통 적용 전략 (customRules.commonBands): a common 鸭爵 swaps every player's enemies as if a teammate held it
+    const common = holder ? null : commonBands(ctx).find((id) => duckParams(id));
+    if (!holder && !common) return;
+    const p = holder ? duckParams(holder.bandId(), holder.commandEffectId) : duckParams(common);
     if (!p || ctx.round < int(p.round, 1)) return;
     // one draw per round for every player (GitHub #839): its own stream from the match seed — no player's meta stream,
     // the same in the stats preview and the bot rehearsals — on the wave before the player's bounties (ev.waveSpawns);
@@ -610,8 +618,8 @@ export function registerMeta(registry) {
   registry.global('bands_ducklord', duckGlobal);
   registry.global('bands_devices', {
     onRoundStart(ctx) {
-      for (const holder of [ctx, ...ctx.teammates()]) {
-        for (const b of buffsOf(bandRecord(holder.bandId()))) {
+      for (const record of [ctx, ...ctx.teammates()].map((t) => bandRecord(t.bandId())).concat(commonBands(ctx).map((id) => bandRecord(id)))) {
+        for (const b of buffsOf(record)) {
           if (b.key !== 'auto_chess_change_map') continue;
           for (const [alias, on] of Object.entries(b.p)) if (alias.startsWith('trap_') && alias.includes('#')) ctx.setDeviceActive(alias, !!on);
         }
