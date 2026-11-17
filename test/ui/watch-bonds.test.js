@@ -167,7 +167,7 @@ describe('§20.15 the picked teammate and the camera half', () => {
     assert.equal(playerLayer(two, pub, 'p3', 'p1'), null, 'not on that field');
     const pair = { fieldId: 'b1', kind: 'boss', players: ['p1', 'p3'], sides: { p1: 'L', p3: 'R' }, local: true };
     assert.equal(playerLayer(pair, pub, 'p2', 'p3'), 'R');
-    assert.equal(playerLayer({ fieldId: 'b2', kind: 'boss', players: ['p3'], sides: { p3: 'L' } }, pub, 'p2', 'p3'), null, 'a lone boss field has no halves');
+    assert.equal(playerLayer({ fieldId: 'b2', kind: 'boss', players: ['p3'], sides: { p3: 'L' } }, pub, 'p2', 'p3'), 'L', 'a lone boss field: its player\'s half');
     assert.equal(playerLayer({ fieldId: 'n:p2', kind: 'normal', players: ['p2'] }, pub, ME, 'p2'), null);
     assert.equal(playerLayer(null, pub, ME, 'p2'), null);
   });
