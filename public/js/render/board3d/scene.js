@@ -1851,7 +1851,7 @@ export const REGULATION_NATIVE_ALIAS = Object.freeze({
   // m05 is act2 m01 with four field cells turned into ground: its own patched copy (tools/local-extract/patch_native_map.py),
   // drawn as act2 m01 otherwise (the stage-specific tuning below reads nativeStageId)
 });
-export const nativeStageId = (stage) => stage?.originalStageId || REGULATION_NATIVE_ALIAS[stage?.id] || stage?.id;
+export const nativeStageId = (stage) => { const id = stage?.originalStageId || stage?.id; return REGULATION_NATIVE_ALIAS[id] || id; };
 /** The 맹약 map a stage's native tuning follows (act2 m01's city light / rear scenery for 규정 m05 too). */
 const NATIVE_TUNING = Object.freeze({ act3autochess_m05: 'act2autochess_m01' });
 const tuningStageId = (stage) => NATIVE_TUNING[stage?.id] || nativeStageId(stage);
