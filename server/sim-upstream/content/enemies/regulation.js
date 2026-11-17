@@ -785,7 +785,138 @@ function kitAgactr(ab) {
   }];
 }
 
+
+/** 寻路者狙击手: one round of ammo (SP 1/1, no regen): while it has it, the attack is ×2 and spends it. No air targets. */
+function kitMtrsnp(ab) {
+  const scale = tv(ab, 'shotbuff.attack@headshot_atk_scale', 2);
+  return [{
+    spawn(b, e, a) { a.ammo = 1; e.profile.canTarget = (u) => !u.isFlying; },
+    hitOut(c, b, e, a) { if (a.ammo > 0 && c.dmg && c.dmg.isAttack) { a.ammo--; c.dmg.mul *= scale; } },
+  }];
+}
+
+/**
+ * A speeding charge (PRTS 狂暴凶豕兽 / 赏金猎人“骑士”): while unblocked and free to move, every `iv` s (after `pre` s)
+ * one more stack of +`per` move speed, up to `max`; a stun / freeze / bind or a block (`stopOnBlock`) clears them.
+ */
+function charge(a, b, e, dt, { iv, per, max, pre = 0, stopOnBlock = true }) {
+  // 晕眩 / 冻结 (the stun flag) or 束缚 (no movement: move speed 0)
+  const held = e.s.flags.stun || !(e.s.moveSpeed > 0);
+  if (held || (stopOnBlock && e.blockedBy)) { if (a.stacks || a.t) { a.stacks = 0; a.t = 0; a.acc = 0; b.removeBuff(e, 'ab:charge'); } return; }
+  a.t = (a.t ?? 0) + dt;
+  if (a.t < pre || (a.stacks ?? 0) >= max) return;
+  a.acc = (a.acc ?? 0) + dt;
+  while (a.acc + 1e-9 >= iv && (a.stacks ?? 0) < max) { a.acc -= iv; a.stacks = (a.stacks ?? 0) + 1; }
+  b.addBuff(e, { key: 'ab:charge', persist: true, refresh: 'replace', visible: true, mods: { moveMul: 1 + per * a.stacks } });
+}
+
+/** 狂暴凶豕兽: charges (3 s, then +33.3% per 0.333 s, ≤ 35); every low-ground ally it passes within 0.5 takes
+ *  move speed × 800 physical once per contact; its blocker takes move speed × 600 once, which ends the charge. */
+function kitMhboar2(ab) {
+  const per = tv(ab, 'Rush.mhboar_t[trigger].move_speed', 0.333), iv = tv(ab, 'Rush.mhboar_t[trigger].interval', 0.333);
+  const max = tv(ab, 'Rush.mhboar_t[trigger].trig_cnt', 35), pre = tv(ab, 'Rush.mhboar_t_predelay.predelay', 3);
+  const crash = tv(ab, 'Crash.atk_scale', 800), first = tv(ab, 'FirstAttack.atk_scale', 600);
+  return [{
+    iv: 0,
+    tick(b, e, a, dt) {
+      const wasCharging = (a.stacks ?? 0) > 0;
+      if (e.blockedBy && wasCharging && !a.struck) {
+        a.struck = true;
+        hurt(b, e, e.blockedBy, e.s.moveSpeed * first, 'phys', { isSkill: false });
+      }
+      if (!e.blockedBy) a.struck = false;
+      charge(a, b, e, dt, { iv, per, max, pre });
+      const inside = new Set();
+      for (const u of areaAllies(b, e, e.x, e.y, 0.5)) {
+        if (!u.ground) continue;
+        inside.add(u.id);
+        if (a.hit?.has(u.id) || !((a.stacks ?? 0) > 0)) continue;
+        hurt(b, e, u, e.s.moveSpeed * crash, 'phys');
+      }
+      a.hit = inside;
+    },
+  }];
+}
+
+/** 赏金猎人“骑士”: speeds up while unblocked (+50% per 0.5 s, ≤ 25); its first attack after a block adds move speed ×
+ *  550 arts, then the stacks clear. */
+function kitMmstck(ab) {
+  const per = tv(ab, 'Rush.enemy_mmstck_t[trigger].move_speed', 0.5), iv = tv(ab, 'Rush.enemy_mmstck_t[trigger].interval', 0.5);
+  const max = tv(ab, 'Rush.enemy_mmstck_t[trigger].trig_cnt', 25), first = tv(ab, 'FirstAttack.atk_scale', 550);
+  return [{
+    iv: 0,
+    tick(b, e, a, dt) { if (!e.blockedBy) charge(a, b, e, dt, { iv, per, max, stopOnBlock: false }); else a.acc = 0; },
+    dealt(c, b, e, a) {
+      if (!((a.stacks ?? 0) > 0) || !c.target || !c.dmg?.isAttack) return;
+      hurt(b, e, c.target, e.s.moveSpeed * first, 'arts');
+      a.stacks = 0; a.t = 0; a.acc = 0; b.removeBuff(e, 'ab:charge');
+    },
+  }];
+}
+
+/** The nearest ally on `e`'s row or column (a straight line), optionally only in direction (dx, dy). */
+function lineAlly(b, e, dir = null) {
+  let best = null, bd = Infinity;
+  for (const u of areaAllies(b, e, e.x, e.y, 40)) {
+    if (!u.alive) continue;
+    const dx = u.x - e.x, dy = u.y - e.y;
+    const row = Math.abs(dy) < 0.5, col = Math.abs(dx) < 0.5;
+    if (!row && !col) continue;
+    if (dir && !((dir[0] && row && Math.sign(dx) === dir[0]) || (dir[1] && col && Math.sign(dy) === dir[1]))) continue;
+    const d = Math.abs(dx) + Math.abs(dy);
+    if (d < bd || (d === bd && u.id < best.id)) { best = u; bd = d; }
+  }
+  return best;
+}
+
+/** 速射轻弩手 / 劲弩手 直击 (cooldown 2 / 5, silenceable): unblocked, with an ally on its row or column — 3 bolts of 100% ATK
+ *  physical at the first ally that way. */
+function kitGunsho(ab) {
+  const sk = ab.sk.CrossAttack;
+  return [sk && skill(sk, (b, e) => {
+    const t = lineAlly(b, e);
+    if (!t) return;
+    for (let i = 0; i < 3; i++) b.after(0.15 * i, () => { if (t.alive) hurt(b, e, t, e.s.atk, 'phys'); });
+  }, { sil: true, icd: 2, cd: 5, cond: (b, e) => !e.blockedBy && !!lineAlly(b, e) })];
+}
+
+/** 无畏掷弹兵: the first damage it takes while unblocked: a bomb up / down / left / right, each bursting on the first ally
+ *  that way for 200% ATK physical within 1.1; then move speed +0.7, weight −2, no attack and unblockable (掷弹模式). */
+function kitBoomer2(ab) {
+  const sk = ab.sk.Bomb;
+  const scale = bb(sk, 'atk_scale', 2), r = bb(sk, 'projectile_range', 1.1);
+  const spd = tv(ab, 'Light.move_speed', 0.7), mass = tv(ab, 'Light.mass_level', -2);
+  return [{
+    sil: true,
+    taken(c, b, e, a) {
+      if (a.done || e.blockedBy || !e.alive) return;
+      a.done = true;
+      for (const dir of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+        const t = lineAlly(b, e, dir);
+        if (!t) continue;
+        for (const u of areaAllies(b, e, t.x, t.y, r)) hurt(b, e, u, e.s.atk * scale, 'phys');
+      }
+      e.profile.noAttack = true;
+      b.addBuff(e, { key: 'ab:grenadier', persist: true, visible: true, flags: { unblockable: true }, mods: { moveFlat: spd, massFlat: mass } });
+    },
+  }];
+}
+
+/** 内测版自助出餐终端 配餐 (silenceable): one 迷茫的修理小助手 at 3 s, then every 5 s, on its path. */
+function kitMpbarr(ab) {
+  const sk = ab.sk.Spawn;
+  const key = (sk && sv(sk.bs, 'enemy_key')) || 'enemy_10073_mpcar';
+  return [skill(sk || { cd: 5, icd: 3, bb: {}, bs: {} }, (b, e) => spawnChildren(b, e, key, 1, { countInTotal: false, pos: [e.y + 0.05, e.x] }), { sil: true, icd: 3, cd: 5 })];
+}
+
 export const REGULATION_KITS = Object.freeze({
+  enemy_1213_mtrsnp: kitMtrsnp,
+  enemy_1309_mhboar_2: kitMhboar2,
+  enemy_1413_mmstck: kitMmstck,
+  enemy_1403_gunsho: kitGunsho,
+  enemy_1403_gunsho_2: same(kitGunsho),
+  enemy_1405_boomer_2: kitBoomer2,
+  enemy_10077_mpbarr: kitMpbarr,
   enemy_1373_ltnhor: kitLtnhor,
   enemy_1373_ltnhor_2: same(kitLtnhor),
   enemy_1376_ltndru: kitLtndru,

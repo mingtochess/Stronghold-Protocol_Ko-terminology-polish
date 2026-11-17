@@ -176,3 +176,56 @@ test('圆号手: every third attack takes one more target', () => {
   const per = new Map(); for (const id of hits) per.set(id, (per.get(id) || 0) + 1);
   assert.equal(per.size, 2, 'both units were hit');
 });
+
+test('寻路者狙击手: the first attack (ammo) is ×2, the next ×1', () => {
+  const h = fight([{ chessId: 't_gun', row: 10, col: 5, uid: 1 }]);
+  h.step(1);
+  const e = put(h, 'enemy_1213_mtrsnp', [10, 6]);
+  const dmg = [];
+  h.b.on('damaged', (c) => { if (c.source === e) dmg.push(c.amount); });
+  h.run(8);
+  assert.ok(dmg.length >= 2);
+  assert.ok(Math.abs(dmg[0] - dmg[1] * 2) < 1e-6, dmg.join(','));
+});
+
+test('速射轻弩手: 3 bolts at an ally on its row', () => {
+  const h = fight([{ chessId: 't_gun', row: 10, col: 3, uid: 1 }]);
+  h.step(1);
+  const e = put(h, 'enemy_1403_gunsho', [10, 8]);
+  const hits = [];
+  h.b.on('damaged', (c) => { if (c.source === e) hits.push(h.b.time); });
+  h.run(3);
+  assert.equal(hits.length, 3);
+});
+
+test('无畏掷弹兵: first unblocked damage ⇒ bombs, then faster, lighter, no attack', () => {
+  const h = fight([{ chessId: 't_gun', row: 10, col: 3, uid: 1 }]);
+  h.step(1);
+  const op = h.allies()[0];
+  const e = put(h, 'enemy_1405_boomer_2', [10, 8]);
+  h.step(1);
+  const spd = e.s.moveSpeed, hp = op.hp;
+  h.b.dealDamage(null, e, { amount: 1, type: 'true' });
+  h.step(1);
+  assert.ok(op.hp < hp, 'bomb hit');
+  assert.ok(Math.abs(e.s.moveSpeed - spd - 0.7) < 1e-9);
+  assert.ok(e.profile.noAttack);
+});
+
+test('内测版自助出餐终端: a helper at 3 s, then every 5 s', () => {
+  const h = fight();
+  put(h, 'enemy_10077_mpbarr', [10, 8]);
+  h.run(3.2);
+  assert.equal(h.enemies().filter((x) => x.defId === 'enemy_10073_mpcar').length, 1);
+  h.run(5);
+  assert.equal(h.enemies().filter((x) => x.defId === 'enemy_10073_mpcar').length, 2);
+});
+
+test('赏金猎人“骑士”: speeds up while unblocked', () => {
+  const h = fight();
+  const e = h.spawn('enemy_1413_mmstck', { pos: [10, 12], route: { motion: 'WALK', start: [10, 12], end: [10, 0], steps: [] } });
+  h.step(1);
+  const s0 = e.s.moveSpeed;
+  h.run(2.1);
+  assert.ok(e.s.moveSpeed >= s0 * 3 - 1e-9, `${e.s.moveSpeed} vs ${s0}`);
+});
