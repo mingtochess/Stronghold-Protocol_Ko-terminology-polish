@@ -271,3 +271,16 @@ test('破城者: only blocked by a block ≥ 3 unit', () => {
   h.step(1);
   assert.equal(e.blockWeight, 3);
 });
+
+test('a split 畸变赘生物 that leaks counts (costs LP)', () => {
+  const h = fight();
+  const e = put(h, 'enemy_1131_sbeast', [10, 6]);
+  h.step(1);
+  h.b.kill(e);
+  h.run(0.3);
+  const kid = h.enemies().find((x) => x.defId === 'enemy_1137_plasm' && x.alive);
+  assert.ok(kid);
+  h.b.leak ? h.b.leak(kid) : h.b._recordLeak(kid, false);
+  const pp = h.b._pp(kid.ownerId) || Object.values(h.b._perPlayer)[0];
+  assert.ok(pp.leaked.some((l) => l.enemyKey === 'enemy_1137_plasm' && l.counted), JSON.stringify(pp.leaked));
+});

@@ -41,7 +41,7 @@ test('cameraLayers: ‹ LEFT / 全景 / RIGHT › with "你自己" / name / "无
   const single = { ...unite, players: ['b'], sides: { b: 'L' } };
   assert.deepEqual(cameraLayers(single, pub, 'a').map((l) => l.label), ['B', '全景', '无人在家']);
   assert.deepEqual(cameraLayers({ kind: 'normal' }, pub, 'a'), []);
-  assert.deepEqual(cameraLayers({ kind: 'boss', players: ['a'], sides: { a: 'L' } }, pub, 'a'), [], 'a solo boss field has no halves');
+  assert.deepEqual(cameraLayers({ kind: 'boss', players: ['a'], sides: { a: 'L' } }, pub, 'a').map((l) => l.key), ['L', 'ALL', 'R'], 'a solo boss field keeps ‹ ›');
   assert.deepEqual(layerCamera(unite, 'R', 'R'), { rect: unite.rect, side: 'R', half: true });
   assert.deepEqual(layerCamera(unite, 'ALL', 'R'), { rect: unite.rect, side: 'R' });
   // a lone helper's 联防 starts on its half; 全景 stays the whole field (GitHub #635, PR #637)
@@ -105,7 +105,8 @@ test('laboratory solo boss fights expose the regular left/full/right camera cont
  const field={kind:'boss',players:['a'],sides:{a:'L'},rect:{r0:0,r1:5,c0:0,c1:15}};
  assert.deepEqual(cameraLayers(field,{laboratory:{},players:[P('a',0)]},'a').map(l=>l.key),['L','ALL','R']);
  assert.deepEqual(cameraLayers({...field,kind:'hidden'},{laboratory:{}},'a').map(l=>l.key),['L','ALL','R']);
- assert.deepEqual(cameraLayers(field,{},'a'),[]);
+ // outside the laboratory too (a solo / odd-player Final Assault keeps ‹ ›)
+ assert.deepEqual(cameraLayers(field,{},'a').map(l=>l.key),['L','ALL','R']);
 });
 
 test('four consecutive helper fields expose overview and each player camera',()=>{

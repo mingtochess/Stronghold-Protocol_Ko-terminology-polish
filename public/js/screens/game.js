@@ -617,8 +617,12 @@ function MatchScreen() {
     // local simulation (client-side combat) feeds a frame per animation frame: no network jitter buffer
     view.raw?.setLocalFeed?.({ on: !!field.local, speed: field.speed });
     const extendedUnite = kind === 'unite' && String(field.stageId||'').startsWith('coop8_unite_');
-    const observerHalf = !extendedUnite && (spectator || watchingOther) && (kind === 'boss' || (kind === 'unite' && members.length === 1));
-    const observedId = watchWho?.playerId || members[0];
+    // the watched player's half — only when a player was picked (前往查看 / a team row); a field picked as such (the combat
+    // switcher, watchField) shows the whole field instead of pinning the first member's (left) half
+    const picked = watchWho && watchWho.fieldId === field.fieldId ? watchWho.playerId : null;
+    const observerHalf = !extendedUnite && (spectator || watchingOther) && (kind === 'boss' || (kind === 'unite' && members.length === 1))
+      && (!!picked || members.length === 1);
+    const observedId = picked || members[0];
     const observedSide = sides?.[observedId] || (members.indexOf(observedId) === 1 ? 'R' : 'L');
     const lone = (kind === 'boss' || kind === 'unite' && !extendedUnite) && members.length === 1;
     setLayer(observerHalf ? observedSide : lone ? side : 'ALL');

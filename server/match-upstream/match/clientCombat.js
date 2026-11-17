@@ -9,6 +9,7 @@ import { PHASE, ERR } from '../../../shared/constants.js';
 import { OK, fail } from './common.js';
 import { DeadBattle, syntheticResult, RESULT_GRACE_MS, HARD_CAP_SECONDS, HeadlessJob } from '../fields.js';
 import { buildBattleSpec, createBattleFromSpec } from '../../sim-upstream/spec.js';
+import { useBattleData } from './combat.js';
 import { testSlice } from '../testTrace.js';
 import { morphBattleOpt } from '../../../shared/plugins/rules.js';
 
@@ -65,6 +66,9 @@ export class MatchClientCombat {
   /** A battle built from a spec on the server (headless / takeover / verification); never throws. */
   _specBattle(spec, { sharedBoss = null } = {}) {
     try {
+      // the 규정 engine's traits read the match's data (combat.js useBattleData): a takeover / verification battle built
+      // on the server's default 맹약 data installed no 규정 trait (Irene, Kazemaru, Nymph … never fired)
+      useBattleData(this.gd?.matchData?.raw ?? this.gd?.raw);
       return createBattleFromSpec(spec, this.ds, { BattleClass: this.BattleClass, sharedBoss, logger: this.log, recordEvents: false });
     } catch (e) {
       this.reportError(`battle ${spec && spec.fieldId} construct`, e);

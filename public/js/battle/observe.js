@@ -171,7 +171,8 @@ export function cameraLayers(field, pub, myId) {
   const label = (pid) => (!pid ? '无人在家' : pid === myId ? '你自己' : nameOf(pub, pid));
   const left = at('L');
   const right = at('R');
-  if ((field.kind === 'boss' || field.kind === 'hidden') && (!left || !right) && !pub?.laboratory) return [];
+  // a lone boss field (solo, the odd player of a co-op Final Assault) keeps the ‹ › halves too: its camera starts on the
+  // own half (screens/game.js `lone`) and the player may still look at the whole field or the empty half
   return [
     { key: 'L', label: label(left), self: left === myId, watch: !!left && left !== myId },
     { key: 'ALL', label: '全景', self: false, watch: false },

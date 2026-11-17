@@ -45,11 +45,12 @@ function timed(sk, fire, extra = {}) {
   return null;
 }
 
-function replaceLater(b, e, key, delay, n = 1) {
+/** `counted`: the child counts like a wave enemy (its leak costs LP — 畸变赘生物 "进入目标点损失1目标生命"), else not. */
+function replaceLater(b, e, key, delay, n = 1, counted = false) {
   if (!key || !(n > 0)) return;
   const pos = [e.y, e.x];
   const route = remainingRoute(e);
-  const spawn = () => spawnChildren(b, e, key, n, { countInTotal: false, pos, route });
+  const spawn = () => spawnChildren(b, e, key, n, { countInTotal: counted ? undefined : false, pos, route });
   if (!(delay > 0)) { spawn(); return; }
   // Keep an otherwise empty field alive until its replacement arrives; ordinary visual timers must not do so.
   b.after(delay, spawn, { holdsBattle: true });
@@ -290,7 +291,7 @@ function kitSplitDeath(ab) {
   const delay = tv(ab, 'deathrattle.delay', 0.2);
   const cnt = tv(ab, 'deathrattle.cnt', 2);
   // PRTS: "因坠落以外的原因死亡时" … 可被沉默
-  return [{ sil: true, death(c, b, e) { if (c.reason === 'killed') replaceLater(b, e, key, delay, cnt); } }];
+  return [{ sil: true, death(c, b, e) { if (c.reason === 'killed') replaceLater(b, e, key, delay, cnt, true); } }];
 }
 
 /** Bombardiers use Attack's child key and delay for their death replacement (PRTS talent). */
@@ -432,14 +433,14 @@ function kitHarchn(ab) {
   return [
     {
       sil: true,
-      death(c, b, e) { if (c.reason === 'killed') replaceLater(b, e, key, delay, cnt); },
+      death(c, b, e) { if (c.reason === 'killed') replaceLater(b, e, key, delay, cnt, true); },
     },
     timed(sk, (b, e) => {
       const k = sv(sk.bs, 'enemy_key') || key;
       const n = bb(sk, 'cnt', 1);
       const pos = [e.y, e.x];
       const route = remainingRoute(e);
-      spawnChildren(b, e, k, n, { countInTotal: false, pos, route });
+      spawnChildren(b, e, k, n, { pos, route });   // counted: 畸变赘生物 / 恶性瘤 leaks cost LP
     }, { sil: true }),
   ];
 }
