@@ -8,7 +8,7 @@ import { recordCombatField } from '../../match/combatHistory.js';
 import { gameData, setGameData } from '../../sim-upstream/content/support/index.js';
 
 /** Make `raw` the 규정 engine's content data (a no-op when it already is). */
-function useBattleData(raw) {
+export function useBattleData(raw) {
   if (raw && typeof raw === 'object' && raw.garrisons && gameData() !== raw) setGameData(raw);
 }
 import { deriveSeed } from '../../sim-upstream/rng.js';

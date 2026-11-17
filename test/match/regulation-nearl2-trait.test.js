@@ -62,3 +62,27 @@ test('regulation: Irene gains SP when an enemy is knocked down near her (server-
   b.step();
   assert.equal(u.skill.sp - sp >= 3, true, `sp ${sp} → ${u.skill.sp}`);
 });
+
+test('regulation: a battle the server builds from a client spec (takeover / verification) installs the 규정 traits', (t) => {
+  const data = getVersionData('act3autochess@V3_1');
+  const h = makeMatch({ data, version: 'act3autochess@V3_1', humans: 2, bots: 0, seed: 3 }).start();
+  t.after(() => h.m.dispose());
+  const m = h.m;
+  for (const p of ['p_0', 'p_1']) m.handle(p, { t: 'g.autoplay', on: true });
+  h.drive(() => m.phase === 'PREP' && m.round === 2);
+  for (const p of ['p_0', 'p_1']) m.handle(p, { t: 'g.autoplay', on: false });
+  const ps = m.players.get('p_0');
+  const irene = give(m, ps, 'chess_char_5_03_a', 'board', legalTileFor(m, ps, 'chess_char_5_03_a'));
+  setGameData(null); // the server's process default (맹약 data)
+  const f = m._ccField({ fieldId: 'n:p_0', kind: 'normal', players: ['p_0'], opts: m._normalOpts(ps) });
+  const b = m._specBattle(f.spec);
+  b.start?.();
+  b.step();
+  const u = b.allyUnits.find((x) => x.uid === irene.uid);
+  const e = b.spawnEnemy('enemy_1007_slime', { pos: [u.y, u.x + 1], route: { motion: 'WALK', start: [u.y, u.x + 1], end: [u.y, u.x + 1], steps: [{ t: 'wait', s: 999 }] } });
+  b.step();
+  const sp = u.skill.sp;
+  b.kill(e);
+  b.step();
+  assert.equal(u.skill.sp - sp >= 3, true, `sp ${sp} → ${u.skill.sp}`);
+});
