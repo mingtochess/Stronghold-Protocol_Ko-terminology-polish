@@ -879,7 +879,11 @@ export function validateClientResult(spec, raw, { gd = null } = {}) {
       for (const [bondId, n] of Object.entries(p.layerGains || {})) {
         // ≤ 60 + 4·round + what the player's layer 特质 can add to the bond (layerAllowanceOf; uncapped ones: no flat
         // bound), and never past BOND_LAYER_CAP from the layers the bond started with (Battle.addLayers clamps)
-        const bound = Math.min(B.layerCap + (own.layerAllow.get(bondId) || 0), layerGainRoom(own.startLayers.get(bondId) || 0, Infinity));
+        // 규정 boss / hidden fields have no time limit and keep their gains (bossRounds _finishFinal): the per-round bound
+        // grows with each started minute of the fight — a fixed 60 + 4·round rejected a long boss fight's whole result,
+        // which then ended as a synthetic one without its layers (user report 2026-11-17)
+        const span = bossLike ? Math.max(1, Math.ceil((Number(raw.time) || 0) / 60)) : 1;
+        const bound = Math.min((B.layerCap + (own.layerAllow.get(bondId) || 0)) * span, layerGainRoom(own.startLayers.get(bondId) || 0, Infinity));
         if (!finiteIn(n, 0, bound)) return bad('layer bound');
         if (n > 0 && spec.flags && spec.flags.layerGainsEnabled === false) return bad('layers disabled');
         if (gd && typeof gd.bond === 'function' && !gd.bond(bondId)) return bad('bond');

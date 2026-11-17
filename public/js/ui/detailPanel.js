@@ -396,7 +396,8 @@ export function ChessDetail({ chess, piece, unit, snapHp, editable, onSell, bond
   const getItem = (id) => data.lookup('items', id);
   const bondIds = pieceBondIds(c, carried, getItem).filter(id => id !== 'ursusShip' || store.get().match.public?.customFactions === true || !!data.get('config')?.version);
   const grantedIds = bondIds.filter((b) => !(Array.isArray(c.bonds) && c.bonds.includes(b)));
-  const sell = c.sellPrice ?? 1;
+  // an effect-resolved price of the piece (海沫's 「自身售出价格+1」: pieceView sellPrice) before the record's table price
+  const sell = (Number.isFinite(piece?.sellPrice) ? piece.sellPrice : null) ?? c.sellPrice ?? 1;
   const blocks = {};
   blocks.head = html`
     <div key="head" class="dhead">
@@ -733,7 +734,7 @@ export function DetailPanel({ detail, editable, snapHp, onClose, onSell, onDestr
   const sellIt = async (piece, chess) => {
     const golden = piece.golden || chess?.isGolden;
     if (golden) {
-      const ok = await confirmDialog({ title: '出售精锐干员', text: `确定要出售精锐干员「${chess?.name || ''}」吗？出售后获得 ${chess?.sellPrice ?? 1} 资金。`, okText: '出售', danger: true });
+      const ok = await confirmDialog({ title: '出售精锐干员', text: `确定要出售精锐干员「${chess?.name || ''}」吗？出售后获得 ${(Number.isFinite(piece?.sellPrice) ? piece.sellPrice : null) ?? chess?.sellPrice ?? 1} 资金。`, okText: '出售', danger: true });
       if (!ok) return;
     }
     onSell(piece);
