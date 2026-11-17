@@ -233,10 +233,13 @@ describe('match hosts in rooms (P1c): verification, the watchdog, crashes', () =
     await ok(host, { t: 'g.emote', id: EMOTES[0] }, 5000);
     const probe = await host.waitFor('m.toast', (m) => /^probe;/.test(m.text || ''), 5000);
     assert.match(probe.text, /;bond=0\.33;/);
-    // a worker that throws: its match ends the same way (plugin-crash)
+    // a worker that throws out of its event loop: the error is logged and the match goes on (the vanilla rooms in the
+    // server process end nothing on such an error; user report 2026-11-17 — hosted 규정 rooms went back to the lobby)
     await ok(host, { t: 'g.emote', id: EMOTES[2] }, 5000);
-    await host.waitFor('m.toast', (m) => m.msgid === CRASH, 5000);
-    await host.waitFor('room.state', (s) => s.inMatch === false, 5000);
+    await new Promise((r) => setTimeout(r, 500));
+    await ok(host, { t: 'g.emote', id: EMOTES[0] }, 5000);
+    assert.equal(srv.hosts.stats().workers, 1, 'the host is still up');
+    void CRASH;
   });
 
   // maxLevelCnt 1e9 has makeTypeSchedule push a billion round slots. In a worker thread that growth ends at

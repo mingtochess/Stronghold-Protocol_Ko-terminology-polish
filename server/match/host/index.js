@@ -55,7 +55,9 @@ export const HOST_DEFAULTS = Object.freeze({
   // one set no longer share one memory limit — a single host running every room was the likeliest 'plugin-crash'
   matchesPerHost: 3,
   heartbeatMs: 1000,
-  watchdogMs: 10_000,
+  // 60 s: a host busy with server-run battles / rehearsals for a while is slow, not dead — the vanilla rooms in the server
+  // process only lag then; 10 s ended every room of the host (user report 2026-11-17)
+  watchdogMs: 60_000,
   idleMs: 10 * 60_000,
   resourceLimits: Object.freeze({ maxOldGenerationSizeMb: 1536, maxYoungGenerationSizeMb: 64, stackSizeMb: 4 }),
 });

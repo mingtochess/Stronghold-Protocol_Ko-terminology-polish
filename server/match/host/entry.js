@@ -61,6 +61,11 @@ const log = {
   error: (...a) => post({ type: 'log', level: 'error', text: text(a) }),
   debug: () => {},
 };
+// An error no match handler caught (a timer, a promise) is logged, and the host keeps its matches: the vanilla rooms run
+// in the server process, where such an error ends nothing — a hosted 규정 room used to end for every room of the host
+// (the user report of 2026-11-17). Out of memory still ends the host (resourceLimits / --max-old-space-size).
+process.on('uncaughtException', (e) => { try { log.error('[host] uncaught error (the matches go on)', e); } catch { /* ignore */ } });
+process.on('unhandledRejection', (e) => { try { log.error('[host] unhandled rejection (the matches go on)', e); } catch { /* ignore */ } });
 let beat = null;
 const startBeat = () => { if (!beat) beat = setInterval(() => post({ type: 'hb' }), Math.max(50, Number(options.heartbeatMs) || 1000)); };
 if (viaWorker) startBeat();
